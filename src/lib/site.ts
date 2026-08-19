@@ -1,3 +1,6 @@
+// Production URL must be set via NEXT_PUBLIC_SITE_URL (see .env.example).
+// The fallback below is a documented placeholder used only until the real
+// domain is confirmed and configured in the hosting environment.
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://dockcentra.com";
 
