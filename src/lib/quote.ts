@@ -18,19 +18,16 @@ export interface QuoteDeliveryResult {
 }
 
 /**
- * Delivery adapter for quote requests.
- *
- * The website form posts to /api/quote, which calls this function. Right now
- * no external delivery method is connected, so submissions are logged on the
- * server. To connect a real destination later (email provider, CRM, Supabase,
- * webhook), implement it here and configure credentials via environment
- * variables only — never hardcode secrets.
+ * Honeypot check. The form renders a visually hidden "company" field that
+ * real visitors never see or fill in; simple bots auto-fill every field.
+ * A non-empty value means the submission is almost certainly automated.
  */
-export async function deliverQuoteRequest(
-  quote: QuoteRequest,
-): Promise<QuoteDeliveryResult> {
-  console.log("New quote request received:", JSON.stringify(quote, null, 2));
-  return { ok: true };
+export function isSpamSubmission(data: unknown): boolean {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+  const honeypot = (data as Record<string, unknown>).company;
+  return typeof honeypot === "string" && honeypot.trim().length > 0;
 }
 
 export function validateQuoteRequest(

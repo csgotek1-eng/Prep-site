@@ -16,10 +16,14 @@ export default function QuoteForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (state === "submitting") {
+      return;
+    }
     const form = event.currentTarget;
     const formData = new FormData(form);
 
     const payload = {
+      company: formData.get("company"),
       name: formData.get("name"),
       businessName: formData.get("businessName"),
       email: formData.get("email"),
@@ -92,6 +96,19 @@ export default function QuoteForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate={false}>
+      {/* Honeypot: hidden from real visitors, auto-filled by naive bots.
+          Submissions with a value here are silently discarded server-side. */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="company">Company</label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="name" className={labelClasses}>
