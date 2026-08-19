@@ -4,7 +4,38 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Stage 3 — Deployment preparation (complete, not yet deployed)
+Pricing calculator & admin service management (complete on branch
+claude/website-pricing-admin, not yet merged, not yet deployed)
+
+PRICING CALCULATOR STAGE:
+COMPLETE
+- Public calculator at /pricing-calculator (linked from /pricing, in the
+  sitemap): select services, quantities, unit prices, line totals,
+  estimated total, custom-quote handling, non-binding-estimate
+  disclaimer; EUR formatting; no VAT applied or claimed
+- Service model + calculation in src/lib/pricing (money as integer euro
+  cents; 10 pricing types incl. CUSTOM_QUOTE; minimum charges)
+- Seed catalogue ships with price = 0 and isActive = false — no invented
+  commercial prices; public page shows a "prices being finalised" state
+- Quote integration: calculator selections attach to the quote form and
+  /api/quote RECALCULATES the estimate server-side from authoritative
+  prices (client totals never trusted); delivery payload gains an
+  optional estimate field
+- Admin at /admin/pricing: list/add/edit/activate/deactivate services,
+  price history (serviceId, oldPrice, newPrice, changedAt); all
+  mutations behind server-side ADMIN_ACCESS_TOKEN checks (503 when
+  unset); robots disallow /admin + /api, admin page noindex
+- Persistence behind a PricingRepository interface; current FilePricing-
+  Repository (JSON, gitignored) is development-grade — production needs
+  Supabase/Postgres (requires authorization) per
+  docs/PRICING_CALCULATOR.md
+- Production admin auth: NOT READY (shared token is dev-grade;
+  documented)
+- 17 new unit tests (29 total) — calculation, minimum charge, invalid
+  quantities, inactive hidden, custom quote, client price ignored,
+  admin validation, token verification, repository CRUD/history
+
+PREVIOUS: Stage 3 — Deployment preparation (complete, not yet deployed)
 
 STAGE 3 (DEPLOYMENT PREPARATION):
 COMPLETE

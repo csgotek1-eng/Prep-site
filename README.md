@@ -84,8 +84,14 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
 | `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockcentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
 | `QUOTE_WEBHOOK_TIMEOUT_MS` | Optional webhook timeout in milliseconds (default 8000). |
+| `ADMIN_ACCESS_TOKEN` | Enables the `/admin/pricing` area; verified server-side on every admin request. Unset = admin disabled entirely. Development-grade auth — see [docs/PRICING_CALCULATOR.md](docs/PRICING_CALCULATOR.md). Server-side only. |
+| `PRICING_STORE_FILE` | Optional path for the development pricing store JSON file (default `./data/pricing-store.json`, gitignored). |
 
 The quote form posts to `/api/quote`. The route validates input, drops honeypot (bot) submissions, applies a light per-IP rate limit and then hands off to the delivery layer in `src/lib/quote-delivery.ts`. Email / CRM / Supabase adapters can be added there later as new modes behind their own environment variables.
+
+## Pricing calculator
+
+`/pricing-calculator` is a public fulfilment cost calculator backed by a configurable service catalogue; `/admin/pricing` manages services and prices (server-side token auth, disabled unless `ADMIN_ACCESS_TOKEN` is set). Prices are authoritative on the server — submitted estimates are always recalculated server-side. See [docs/PRICING_CALCULATOR.md](docs/PRICING_CALCULATOR.md) for the model, admin workflow, and the production persistence/auth requirements.
 
 ## Brand assets
 
