@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { salesChannels, serviceOptions } from "@/lib/site";
+import { formatEuro } from "@/lib/pricing/money";
+import { CALCULATOR_STORAGE_KEY } from "@/components/PricingCalculator";
+import type { Estimate, EstimateSelection } from "@/lib/pricing/types";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
@@ -13,6 +16,62 @@ const labelClasses = "block text-sm font-medium text-slate-700";
 export default function QuoteForm() {
   const [state, setState] = useState<SubmitState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [calculatorSelections, setCalculatorSelections] = useState<
+    EstimateSelection[]
+  >([]);
+  const [calculatorEstimate, setCalculatorEstimate] =
+    useState<Estimate | null>(null);
+
+  // Pick up selections handed over from the pricing calculator. The
+  // displayed estimate is fetched from the server, which prices the
+  // selections from its own catalogue — the browser only stores
+  // service ids and quantities.
+  useEffect(() => {
+    let cancelled = false;
+    let selections: EstimateSelection[] = [];
+    try {
+      const raw = sessionStorage.getItem(CALCULATOR_STORAGE_KEY);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          selections = parsed as EstimateSelection[];
+        }
+      }
+    } catch {
+      selections = [];
+    }
+    if (selections.length === 0) {
+      return;
+    }
+    fetch("/api/pricing/estimate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections }),
+    })
+      .then((response) => response.json())
+      .then((result: { ok: boolean; estimate?: Estimate }) => {
+        if (!cancelled && result.ok && result.estimate?.lines.length) {
+          setCalculatorSelections(selections);
+          setCalculatorEstimate(result.estimate);
+        }
+      })
+      .catch(() => {
+        // Estimate preview is optional; the form still works without it.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function removeCalculatorEstimate() {
+    setCalculatorSelections([]);
+    setCalculatorEstimate(null);
+    try {
+      sessionStorage.removeItem(CALCULATOR_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,6 +83,8 @@ export default function QuoteForm() {
 
     const payload = {
       company: formData.get("company"),
+      calculatorSelections:
+        calculatorSelections.length > 0 ? calculatorSelections : undefined,
       name: formData.get("name"),
       businessName: formData.get("businessName"),
       email: formData.get("email"),
@@ -62,6 +123,11 @@ export default function QuoteForm() {
 
       setState("success");
       form.reset();
+      try {
+        sessionStorage.removeItem(CALCULATOR_STORAGE_KEY);
+      } catch {
+        // ignore
+      }
     } catch {
       setState("error");
       setErrorMessage(
@@ -96,6 +162,48 @@ export default function QuoteForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate={false}>
+      {calculatorEstimate && (
+        <div className="mb-8 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-base font-semibold text-slate-900">
+              Your calculator estimate
+            </h2>
+            <button
+              type="button"
+              onClick={removeCalculatorEstimate}
+              className="min-h-11 text-sm font-medium text-slate-600 underline-offset-2 hover:underline"
+            >
+              Remove from request
+            </button>
+          </div>
+          <ul className="mt-2 space-y-1 text-sm text-slate-700">
+            {calculatorEstimate.lines.map((line) => (
+              <li
+                key={line.serviceId}
+                className="flex justify-between gap-3"
+              >
+                <span>
+                  {line.name} × {line.quantity}
+                </span>
+                <span className="whitespace-nowrap font-medium">
+                  {line.customQuote
+                    ? "Custom quote"
+                    : formatEuro(line.lineTotal ?? 0)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 flex justify-between gap-3 border-t border-emerald-200 pt-2 text-sm font-semibold text-slate-900">
+            <span>Estimated total</span>
+            <span>{formatEuro(calculatorEstimate.subtotal)}</span>
+          </p>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            This estimate will be attached to your request and re-checked
+            by us. It is not a binding quotation.
+          </p>
+        </div>
+      )}
+
       {/* Honeypot: hidden from real visitors, auto-filled by naive bots.
           Submissions with a value here are silently discarded server-side. */}
       <div className="hidden" aria-hidden="true">

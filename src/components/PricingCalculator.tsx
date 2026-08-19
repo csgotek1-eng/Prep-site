@@ -1,0 +1,306 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
+import { formatEuro } from "@/lib/pricing/money";
+import type { PricingService } from "@/lib/pricing/types";
+
+export const CALCULATOR_STORAGE_KEY = "dockcentra-calculator-selections";
+
+interface SelectionState {
+  [serviceId: string]: number; // quantity
+}
+
+export default function PricingCalculator() {
+  const router = useRouter();
+  const [services, setServices] = useState<PricingService[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [selections, setSelections] = useState<SelectionState>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/pricing/services")
+      .then((response) => response.json())
+      .then((data: { ok: boolean; services?: PricingService[] }) => {
+        if (!cancelled) {
+          if (data.ok && Array.isArray(data.services)) {
+            setServices(data.services);
+          } else {
+            setLoadError(true);
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The on-page preview uses the same shared calculation module as the
+  // server. The server independently recalculates from authoritative
+  // prices when the quote is submitted — nothing monetary is trusted
+  // from the browser.
+  const estimate = useMemo(() => {
+    if (!services) return null;
+    return calculateEstimate(
+      services,
+      Object.entries(selections).map(([serviceId, quantity]) => ({
+        serviceId,
+        quantity,
+      })),
+    );
+  }, [services, selections]);
+
+  function toggleService(service: PricingService) {
+    setSelections((current) => {
+      const next = { ...current };
+      if (service.id in next) {
+        delete next[service.id];
+      } else {
+        next[service.id] = 1;
+      }
+      return next;
+    });
+  }
+
+  function setQuantity(serviceId: string, value: string) {
+    const parsed = Number(value);
+    const quantity =
+      Number.isInteger(parsed) && parsed > 0
+        ? Math.min(parsed, MAX_QUANTITY)
+        : 1;
+    setSelections((current) => ({ ...current, [serviceId]: quantity }));
+  }
+
+  function requestQuote() {
+    const payload = Object.entries(selections).map(
+      ([serviceId, quantity]) => ({ serviceId, quantity }),
+    );
+    try {
+      sessionStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Storage unavailable (private mode) — the quote form simply won't
+      // pre-attach the estimate; the visitor can still describe it.
+    }
+    router.push("/contact?from=calculator");
+  }
+
+  if (loadError) {
+    return (
+      <p className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-base text-slate-700">
+        The calculator couldn&apos;t load right now. Please try again, or
+        use the contact form to request a quote.
+      </p>
+    );
+  }
+
+  if (!services) {
+    return (
+      <p className="p-6 text-base text-slate-500" role="status">
+        Loading services…
+      </p>
+    );
+  }
+
+  if (services.length === 0) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 sm:p-8">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Calculator prices are being finalised
+        </h2>
+        <p className="mt-2 text-base leading-7 text-slate-600">
+          Our service list and pricing are currently being configured. In
+          the meantime, tell us what you need through the quote form and
+          we&apos;ll prepare an estimate for you.
+        </p>
+        <a
+          href="/contact"
+          className="mt-4 inline-flex min-h-12 items-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+        >
+          Get a Quote
+        </a>
+      </div>
+    );
+  }
+
+  const categories = [...new Set(services.map((s) => s.category))];
+  const selectedCount = Object.keys(selections).length;
+
+  return (
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
+      {/* Service selector */}
+      <div>
+        {categories.map((category) => (
+          <fieldset key={category} className="mb-8">
+            <legend className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              {category}
+            </legend>
+            <ul className="mt-3 space-y-3">
+              {services
+                .filter((service) => service.category === category)
+                .map((service) => {
+                  const selected = service.id in selections;
+                  const isCustom = service.pricingType === "CUSTOM_QUOTE";
+                  return (
+                    <li
+                      key={service.id}
+                      className={`rounded-lg border p-4 transition-colors ${
+                        selected
+                          ? "border-emerald-600 bg-emerald-50/50"
+                          : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <label className="flex min-h-11 cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleService(service)}
+                          className="mt-1 h-5 w-5 rounded border-slate-300 accent-emerald-600"
+                        />
+                        <span className="flex-1">
+                          <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                            <span className="text-base font-semibold text-slate-900">
+                              {service.name}
+                            </span>
+                            <span className="text-sm font-medium text-slate-700">
+                              {isCustom ? (
+                                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                  Custom quote required
+                                </span>
+                              ) : (
+                                <>
+                                  {formatEuro(service.price)}{" "}
+                                  <span className="text-slate-500">
+                                    {service.unitLabel}
+                                  </span>
+                                </>
+                              )}
+                            </span>
+                          </span>
+                          {service.description && (
+                            <span className="mt-1 block text-sm leading-6 text-slate-600">
+                              {service.description}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+
+                      {selected && !isCustom && (
+                        <div className="mt-3 flex flex-wrap items-center gap-3 pl-8">
+                          <label
+                            htmlFor={`qty-${service.id}`}
+                            className="text-sm font-medium text-slate-700"
+                          >
+                            Quantity
+                          </label>
+                          <input
+                            id={`qty-${service.id}`}
+                            type="number"
+                            inputMode="numeric"
+                            min={1}
+                            max={MAX_QUANTITY}
+                            step={1}
+                            value={selections[service.id]}
+                            onChange={(event) =>
+                              setQuantity(service.id, event.target.value)
+                            }
+                            className="h-11 w-28 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+                          />
+                          {service.minimumCharge !== null && (
+                            <span className="text-xs text-slate-500">
+                              Minimum charge{" "}
+                              {formatEuro(service.minimumCharge)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+            </ul>
+          </fieldset>
+        ))}
+      </div>
+
+      {/* Estimate summary */}
+      <aside
+        aria-label="Estimate summary"
+        className="h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24"
+      >
+        <h2 className="text-lg font-semibold text-slate-900">
+          Your estimate
+        </h2>
+
+        {estimate && estimate.lines.length > 0 ? (
+          <>
+            <ul className="mt-4 divide-y divide-slate-100">
+              {estimate.lines.map((line) => (
+                <li key={line.serviceId} className="py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-medium text-slate-800">
+                      {line.name}
+                    </span>
+                    <span className="whitespace-nowrap text-sm font-semibold text-slate-900">
+                      {line.customQuote
+                        ? "Custom quote"
+                        : formatEuro(line.lineTotal ?? 0)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-xs text-slate-500">
+                    {line.customQuote ? (
+                      <>Qty {line.quantity} — priced individually</>
+                    ) : (
+                      <>
+                        {line.quantity} × {formatEuro(line.unitPrice ?? 0)}{" "}
+                        {line.unitLabel}
+                        {line.minimumApplied && " (minimum charge applied)"}
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4">
+              <span className="text-base font-semibold text-slate-900">
+                Estimated total
+              </span>
+              <span className="text-xl font-bold text-slate-900">
+                {formatEuro(estimate.subtotal)}
+              </span>
+            </div>
+            {estimate.hasCustomQuoteItems && (
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                Custom-quote services are not included in this total and
+                will be priced individually.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={requestQuote}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+            >
+              Request This Quote
+            </button>
+          </>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Select services on the left to build your estimate.
+            {selectedCount === 0 && " Nothing is selected yet."}
+          </p>
+        )}
+
+        <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+          Estimated price only. Final pricing may vary depending on
+          product dimensions, handling requirements, storage profile,
+          packaging and agreed service terms. This estimate is not a
+          binding quotation.
+        </p>
+      </aside>
+    </div>
+  );
+}
