@@ -4,7 +4,37 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Stage 3 — Deployment preparation (complete, not yet deployed)
+Stage 4 — Launch readiness (complete, not yet deployed)
+
+STAGE 4 (LAUNCH READINESS):
+COMPLETE
+- docs/LEGAL_INPUTS_REQUIRED.md: fill-in template of the 16 exact user
+  inputs needed before legal pages can be finalized (no values guessed)
+- docs/PRIVACY_POLICY_DRAFT.md and docs/WEBSITE_TERMS_DRAFT.md:
+  placeholder-only draft structures, documentation only, clearly marked
+  DRAFT — NOT FOR PUBLICATION; no public routes created
+- Form privacy notice plan documented in docs/LEGAL_REQUIREMENTS.md
+  (wording concept + exact future insertion point in QuoteForm.tsx);
+  intentionally NOT added to the live site yet
+- docs/DEPLOYMENT_ENV.md: final launch matrix (LOCAL/PREVIEW/PRODUCTION),
+  6-step domain deployment sequence, planned Vercel project settings
+  table (framework, repo, branch, npm ci / npm run build, Node)
+- docs/PRODUCTION_CHECKLIST.md: blocking-items section added (default
+  branch, domain, legal inputs, legal pages, form notice, webhook
+  destination, env vars, preview test, explicit launch authorization) —
+  all deliberately unchecked
+- Re-confirmed: no analytics/pixels/tracking of any kind (ANALYTICS:
+  NOT CONFIGURED); URL-dependent code still has the single source
+  NEXT_PUBLIC_SITE_URL
+
+LEGAL PAGES:
+AWAITING USER INPUTS (see docs/LEGAL_INPUTS_REQUIRED.md)
+
+PRODUCTION DEPLOYMENT:
+NOT YET DEPLOYED
+
+PREVIOUS STAGE:
+Stage 3 — Deployment preparation (complete)
 
 STAGE 3 (DEPLOYMENT PREPARATION):
 COMPLETE
@@ -91,11 +121,12 @@ IN PROGRESS:
 
 NEXT:
 - Confirm GitHub default branch is main (manual, in repository settings)
-- Review + merge claude/website-stage-3-deploy-prep into main
-- Authorized first Vercel deployment following docs/PRODUCTION_CHECKLIST.md
-- Decide the production domain, then set NEXT_PUBLIC_SITE_URL and redeploy
-- Provide legal inputs (docs/LEGAL_REQUIREMENTS.md) so privacy/terms pages
-  can be drafted
+- Review + merge claude/website-stage-4-launch-readiness into main
+- Fill in docs/LEGAL_INPUTS_REQUIRED.md so the legal drafts can be
+  finalized and published as routes
+- Decide the production domain and webhook destination
+- Authorized preview deployment, then production launch per
+  docs/PRODUCTION_CHECKLIST.md (blocking items first)
 - Later: approved logo/brand assets, real delivery destination (webhook or
   email provider), optional marketplace SEO landing pages with genuinely
   unique content
@@ -114,4 +145,4 @@ KNOWN ISSUES:
   security headers are in place)
 
 LAST VERIFIED COMMIT:
-a7710919f7b6460f95e51f6a1b0512c448be4d22 — "docs: add production deployment checklist"
+64201f21422078c094d1069e96a4e642026bb8ba — "docs: add legal launch input templates"

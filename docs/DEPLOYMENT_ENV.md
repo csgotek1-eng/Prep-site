@@ -27,6 +27,54 @@ Notes:
 - Changing `NEXT_PUBLIC_SITE_URL` requires a redeploy (it is inlined at
   build time).
 
+## Final launch matrix
+
+Condensed per-environment values (details in the table above; no real
+values invented — items in `<angle brackets>` are decided at launch):
+
+```
+LOCAL (.env.local)
+  NEXT_PUBLIC_SITE_URL   optional (fallback applies)
+  QUOTE_DELIVERY_MODE    log
+
+PREVIEW (Vercel, Preview scope)
+  NEXT_PUBLIC_SITE_URL   unset (preview URLs vary per deploy)
+  QUOTE_DELIVERY_MODE    log — unless deliberately testing webhook
+                         delivery against a test endpoint
+
+PRODUCTION (Vercel, Production scope)
+  NEXT_PUBLIC_SITE_URL   <real production domain> (REQUIRED)
+  QUOTE_DELIVERY_MODE    webhook — or log until a destination exists
+  QUOTE_WEBHOOK_URL      <destination URL>        (if webhook mode)
+  QUOTE_WEBHOOK_SECRET   <long random value>      (if webhook mode)
+  QUOTE_WEBHOOK_TIMEOUT_MS  optional (default 8000)
+```
+
+## Deployment sequence (domain launch)
+
+1. Deploy a preview (import the repo; the first deployment can stay a
+   preview / unassigned domain).
+2. Verify the preview: pages, mobile nav, quote form, API behavior.
+3. Connect the custom domain in Vercel (Settings → Domains).
+4. Set `NEXT_PUBLIC_SITE_URL` to that domain (Production scope).
+5. Redeploy.
+6. Verify canonical URLs, `/sitemap.xml`, `/robots.txt` and the OG image
+   all use the production domain.
+
+## Planned Vercel project settings
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | Next.js |
+| Git repository | `csgotek1-eng/Prep-site` |
+| Production branch | `main` |
+| Root directory | repository root |
+| Install command | `npm ci` |
+| Build command | `npm run build` |
+| Output | default (Next.js managed) |
+| Node.js | Vercel default (satisfies `engines.node >=20.9.0`) |
+| Environment variables | per this document — set in the dashboard, never committed |
+
 ## Vercel configuration
 
 - Framework preset: Next.js (auto-detected). Build `npm run build`,

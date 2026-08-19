@@ -6,6 +6,27 @@ variables, webhook contract), [LEGAL_REQUIREMENTS.md](LEGAL_REQUIREMENTS.md)
 (inputs needed for legal pages) and the "Deployment to Vercel" section in
 the README.
 
+## Blocking items — must all be resolved before production launch
+
+None of these may be marked complete until they are actually done:
+
+- [ ] GitHub default branch is `main`
+- [ ] Production domain chosen
+- [ ] Privacy/legal inputs supplied
+      ([LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md))
+- [ ] Privacy Policy finalized (from
+      [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md)) and published
+- [ ] Website Terms finalized (from
+      [WEBSITE_TERMS_DRAFT.md](WEBSITE_TERMS_DRAFT.md)) and published
+- [ ] Quote-form privacy notice added (plan in
+      [LEGAL_REQUIREMENTS.md](LEGAL_REQUIREMENTS.md))
+- [ ] Production webhook destination chosen (or explicit decision to
+      launch in `log` mode)
+- [ ] Production env vars configured in Vercel
+      ([DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md))
+- [ ] Preview deployment tested end-to-end
+- [ ] Production deployment explicitly authorized by the owner
+
 ## Before deploying
 
 - [ ] GitHub default branch is `main` (Settings → General → Default branch)
