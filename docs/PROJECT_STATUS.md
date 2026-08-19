@@ -4,7 +4,37 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Stage 2 — Production readiness (complete, not yet deployed)
+Stage 3 — Deployment preparation (complete, not yet deployed)
+
+STAGE 3 (DEPLOYMENT PREPARATION):
+COMPLETE
+- Vercel compatibility audited: zero-config Next.js support suffices, no
+  vercel.json required; Node engines >=20.9.0 declared in package.json
+- Security headers added in next.config.ts (X-Content-Type-Options,
+  X-Frame-Options, Referrer-Policy, Permissions-Policy); CSP deliberately
+  deferred until it can be tested against the inline JSON-LD script
+- docs/DEPLOYMENT_ENV.md: env-variable plan for LOCAL / PREVIEW /
+  PRODUCTION plus the webhook endpoint contract (payload schema, HMAC
+  verification example, timeout expectations)
+- docs/PRODUCTION_CHECKLIST.md: checkbox list for the first deployment
+  (env vars, domain, NEXT_PUBLIC_SITE_URL, smoke tests for form, webhook,
+  sitemap, robots, icons, OG image, SSL, security headers, no leaked
+  secrets)
+- docs/LEGAL_REQUIREMENTS.md: privacy/legal readiness — INPUT REQUIRED;
+  no legal pages published, required user inputs listed, no facts invented
+- Site URL audit: NEXT_PUBLIC_SITE_URL consistently drives metadataBase,
+  canonical, Open Graph, sitemap, robots and JSON-LD; the only hardcoded
+  URL is the documented fallback in src/lib/site.ts
+- Business-data audit: no phone numbers, addresses, emails, registration/
+  VAT numbers, testimonials, trust badges or partnership claims anywhere
+- ANALYTICS: NOT CONFIGURED (deliberate — avoids cookie-consent
+  complexity before launch)
+
+PRODUCTION DEPLOYMENT:
+NOT YET DEPLOYED
+
+PREVIOUS STAGE:
+Stage 2 — Production readiness (complete)
 
 STAGE 1:
 COMPLETE — core marketing website (see git history for details): responsive
@@ -60,22 +90,28 @@ IN PROGRESS:
 - Nothing
 
 NEXT:
-- Change GitHub default branch to main (manual, in repository settings)
-- Review + merge claude/website-stage-2 into main
-- Authorize and perform Vercel deployment; set NEXT_PUBLIC_SITE_URL after
-  the production domain is confirmed
+- Confirm GitHub default branch is main (manual, in repository settings)
+- Review + merge claude/website-stage-3-deploy-prep into main
+- Authorized first Vercel deployment following docs/PRODUCTION_CHECKLIST.md
+- Decide the production domain, then set NEXT_PUBLIC_SITE_URL and redeploy
+- Provide legal inputs (docs/LEGAL_REQUIREMENTS.md) so privacy/terms pages
+  can be drafted
 - Later: approved logo/brand assets, real delivery destination (webhook or
   email provider), optional marketplace SEO landing pages with genuinely
   unique content
 
 KNOWN ISSUES:
-- GitHub default branch is still claude/dockcentra-ireland-site-x9dacq —
-  must be switched to main manually in repository settings
-- Site URL falls back to https://dockcentra.com until the real domain is
-  confirmed via NEXT_PUBLIC_SITE_URL (documented in .env.example/README)
-- In-memory rate limiter is per-instance (fine at current scale; swap for a
-  shared store via the RateLimiter interface if abuse appears)
+- GitHub default branch still reports as claude/dockcentra-ireland-site-x9dacq
+  via the API — switch/confirm main manually in repository settings
+- Production domain not confirmed; site URL falls back to
+  https://dockcentra.com until NEXT_PUBLIC_SITE_URL is set (documented)
+- Legal/privacy pages not published — inputs required
+  (docs/LEGAL_REQUIREMENTS.md)
+- In-memory rate limiter is per-instance (documented in
+  docs/DEPLOYMENT_ENV.md; swap for a shared store if abuse appears)
 - No approved graphical logo yet — neutral generated assets in use
+- No Content-Security-Policy header yet (deliberately deferred; other
+  security headers are in place)
 
 LAST VERIFIED COMMIT:
-dcaf692660351ab110d5719962cbef2bbe62ab6d — "feat: add brand assets, favicon and Open Graph image"
+a7710919f7b6460f95e51f6a1b0512c448be4d22 — "docs: add production deployment checklist"

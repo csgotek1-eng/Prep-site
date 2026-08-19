@@ -103,7 +103,13 @@ The site is a standard Next.js app; Vercel is the recommended host. Do not deplo
 6. Set `NEXT_PUBLIC_SITE_URL` to that domain (e.g. `https://www.example.ie`).
 7. Redeploy so canonical URLs, sitemap, robots and Open Graph pick up the domain.
 
-Notes: requires Node.js 20+ (Vercel default is fine); all pages are static except `/api/quote`, which runs as a serverless function. The in-memory rate limit on `/api/quote` is per-instance — swap in a shared store (see `src/lib/rate-limit.ts`) if abuse ever becomes a problem. Any platform that runs `npm run build` + `npm run start` also works.
+Notes: requires Node.js 20.9+ (declared in `package.json` engines; Vercel default is fine); all pages are static except `/api/quote`, which runs as a serverless function. No `vercel.json` is needed — zero-config Next.js support covers everything, including the security headers set in `next.config.ts`. The in-memory rate limit on `/api/quote` is per-instance — swap in a shared store (see `src/lib/rate-limit.ts`) if abuse ever becomes a problem. Any platform that runs `npm run build` + `npm run start` also works.
+
+Deployment docs:
+
+- [docs/DEPLOYMENT_ENV.md](docs/DEPLOYMENT_ENV.md) — environment variables per environment (local/preview/production) and the webhook endpoint contract
+- [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) — step-by-step checklist for the first production deployment
+- [docs/LEGAL_REQUIREMENTS.md](docs/LEGAL_REQUIREMENTS.md) — privacy/legal pages status and required inputs
 
 ## Project structure
 

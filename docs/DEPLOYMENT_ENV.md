@@ -1,0 +1,117 @@
+# DEPLOYMENT ENVIRONMENTS
+
+Environment-variable plan for the Dockcentra website. No real secrets in
+this file or anywhere in the repository — values are set in `.env.local`
+(local) and in Vercel Project → Settings → Environment Variables
+(Preview / Production).
+
+## Variables by environment
+
+| Variable | LOCAL (`.env.local`) | PREVIEW (Vercel) | PRODUCTION (Vercel) |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | optional (falls back to the documented placeholder) | optional — leave unset; preview URLs vary per deploy | **REQUIRED — the production website URL.** Not confirmed yet; set it once the real domain is decided. Until then the build falls back to the documented placeholder `https://dockcentra.com`. |
+| `QUOTE_DELIVERY_MODE` | `log` | `log` (keeps previews from posting to the real destination) | `webhook` once a real endpoint exists; `log` is a safe interim value |
+| `QUOTE_WEBHOOK_URL` | unset (or a test endpoint) | unset | required when mode is `webhook` |
+| `QUOTE_WEBHOOK_SECRET` | unset (or a test value) | unset | strongly recommended when mode is `webhook`; generate a long random value |
+| `QUOTE_WEBHOOK_TIMEOUT_MS` | unset (default 8000) | unset | optional |
+
+Notes:
+
+- `NEXT_PUBLIC_SITE_URL` is the **only** `NEXT_PUBLIC_` variable. It is
+  public by design (it appears in canonical URLs, Open Graph, robots and
+  the sitemap). Everything else is server-only and must never gain a
+  `NEXT_PUBLIC_` prefix.
+- The final production domain has intentionally **not** been invented.
+  Deciding/buying it is a user decision; after it exists, set
+  `NEXT_PUBLIC_SITE_URL` and redeploy.
+- Changing `NEXT_PUBLIC_SITE_URL` requires a redeploy (it is inlined at
+  build time).
+
+## Vercel configuration
+
+- Framework preset: Next.js (auto-detected). Build `npm run build`,
+  install `npm ci` — defaults, no overrides needed.
+- **No `vercel.json` is required.** Routing, headers (set in
+  `next.config.ts`), the `/api/quote` function and the generated
+  icon/OG-image routes all work with Vercel's zero-config Next.js
+  support. Add `vercel.json` only if a future need appears (e.g. cron
+  jobs or region pinning).
+- Node.js: `package.json` declares `engines.node >= 20.9.0`; Vercel's
+  default Node 20/22 runtime satisfies this.
+- Production branch: `main`.
+
+## Webhook endpoint contract
+
+When `QUOTE_DELIVERY_MODE=webhook`, the site POSTs each valid quote
+request to `QUOTE_WEBHOOK_URL`:
+
+```
+POST <QUOTE_WEBHOOK_URL>
+Content-Type: application/json
+X-Dockcentra-Signature: sha256=<hex hmac>   (only when QUOTE_WEBHOOK_SECRET is set)
+```
+
+Body schema (example values, not real customer data):
+
+```json
+{
+  "source": "dockcentra-website",
+  "type": "quote-request",
+  "quote": {
+    "name": "Jane Example",
+    "businessName": "Example Brand Ltd",
+    "email": "jane@example.com",
+    "phone": "+353 1 000 0000",
+    "website": "https://example.com",
+    "salesChannels": ["TikTok Shop", "Amazon"],
+    "skuCount": "25",
+    "monthlyOrders": "300",
+    "stockQuantity": "2000",
+    "servicesNeeded": ["Storage", "Pick & Pack"],
+    "message": "Free-text message from the form"
+  }
+}
+```
+
+All `quote` fields are strings (arrays of strings for `salesChannels` /
+`servicesNeeded`); only `name` and `email` are guaranteed non-empty.
+Strings are trimmed and length-capped server-side before delivery.
+
+The receiver should:
+
+1. Verify the signature (when a secret is configured): compute
+   HMAC-SHA256 of the **raw request body** with `QUOTE_WEBHOOK_SECRET`
+   and compare to the header value after the `sha256=` prefix.
+
+   ```js
+   // Node.js example
+   import { createHmac, timingSafeEqual } from "node:crypto";
+   const expected = "sha256=" +
+     createHmac("sha256", process.env.QUOTE_WEBHOOK_SECRET)
+       .update(rawBody)
+       .digest("hex");
+   const valid = timingSafeEqual(Buffer.from(expected), Buffer.from(signatureHeader));
+   ```
+
+2. Respond with a 2xx status within 8 seconds (the site's default
+   timeout). Any non-2xx or timeout makes the site show the visitor a
+   generic "try again" error, so the receiver should be fast and queue
+   any slow processing.
+
+## Rate limiting — production note
+
+`/api/quote` uses an in-memory sliding-window limiter (5 requests/min
+per IP). **On Vercel this is per serverless instance, not a global
+distributed limit** — parallel instances and cold starts each get a
+fresh window. This is acceptable protection for launch-scale traffic
+combined with the honeypot and size limits. If real abuse appears,
+implement the `RateLimiter` interface in `src/lib/rate-limit.ts` with a
+shared store — e.g. Upstash Redis (has a free tier) or another
+Redis-compatible service. Do not add a paid service until it is needed.
+
+## Analytics
+
+ANALYTICS: NOT CONFIGURED — deliberately. No Google Analytics, Meta
+Pixel, TikTok Pixel or other tracking is included, which keeps the site
+free of cookie-consent complexity at launch. Adding any tracker later is
+a separate decision that must come with a cookie-consent review.
