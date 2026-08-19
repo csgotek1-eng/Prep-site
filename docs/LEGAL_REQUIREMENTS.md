@@ -50,3 +50,32 @@ of creating placeholder routes.
 
 Once these inputs exist, the pages can be drafted, added to the footer
 navigation, and included in the sitemap in a small follow-up stage.
+
+> Stage 4 update: the fill-in template for these inputs now lives in
+> [LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md), and placeholder
+> draft structures exist in
+> [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md) and
+> [WEBSITE_TERMS_DRAFT.md](WEBSITE_TERMS_DRAFT.md) (documentation only,
+> not public routes).
+
+## Form privacy notice plan
+
+Once the Privacy Policy route exists (and not before), a short notice is
+added to the quote form. Suggested wording concept for the future UI:
+
+> "By submitting this form, you agree that Dockcentra may use the
+> information provided to respond to your enquiry. See our Privacy
+> Policy."
+
+Where it goes later:
+
+- `src/components/QuoteForm.tsx` — a small paragraph directly above the
+  "Send Quote Request" submit button (visible at the moment of
+  submission on all breakpoints), with "Privacy Policy" as a link to the
+  published `/privacy-policy` route.
+- Keep it as plain informative text — no extra consent checkbox unless
+  legal review asks for one.
+
+Do NOT add this to the live site while the Privacy Policy is
+unpublished: a notice linking to a non-existent policy is worse than no
+notice.
