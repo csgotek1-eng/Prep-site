@@ -13,7 +13,7 @@ A public marketing website built mobile-first:
 - How It Works (8-step process)
 - Pricing (flexible, quote-based — no fixed prices published)
 - About
-- Contact / Get a Quote form (backend delivery is modular and not yet connected)
+- Contact / Get a Quote form with modular server-side delivery (log or webhook mode, configured via environment variables)
 
 No marketplace APIs, payment systems, customer portal or WMS integrations are connected yet — the architecture is kept ready for them.
 
@@ -50,11 +50,12 @@ Open http://localhost:3000.
 ```bash
 npm run lint        # ESLint
 npm run typecheck   # TypeScript (tsc --noEmit)
+npm test            # Unit tests (quote validation & delivery, node:test)
 npm run build       # Production build
 npm run start       # Serve the production build
 ```
 
-Run all three checks before committing a finished stage.
+Run lint, typecheck, test and build before committing a finished stage.
 
 ## GitHub Codespaces usage
 
@@ -78,13 +79,31 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph and the sitemap. Defaults to `https://dockcentra.com` if unset. |
+| `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph, robots and the sitemap. Falls back to `https://dockcentra.com` until the production domain is confirmed — always set it explicitly in production. |
+| `QUOTE_DELIVERY_MODE` | Quote form delivery mode: `log` (default — submissions are logged server-side) or `webhook` (submissions are POSTed as JSON to `QUOTE_WEBHOOK_URL`). Server-side only. |
+| `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
+| `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockcentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
+| `QUOTE_WEBHOOK_TIMEOUT_MS` | Optional webhook timeout in milliseconds (default 8000). |
 
-The quote form posts to `/api/quote`. Delivery is handled by `src/lib/quote.ts` (`deliverQuoteRequest`) — currently it logs submissions server-side. Connect email / CRM / Supabase / a webhook there later, configured via environment variables.
+The quote form posts to `/api/quote`. The route validates input, drops honeypot (bot) submissions, applies a light per-IP rate limit and then hands off to the delivery layer in `src/lib/quote-delivery.ts`. Email / CRM / Supabase adapters can be added there later as new modes behind their own environment variables.
 
-## Deployment
+## Brand assets
 
-The site is a standard Next.js app and deploys cleanly to Vercel (recommended), or any platform that runs `npm run build` + `npm run start`. Set `NEXT_PUBLIC_SITE_URL` to the production domain in the hosting platform's environment settings.
+See [docs/BRAND_ASSETS.md](docs/BRAND_ASSETS.md). Favicon, Apple touch icon and the 1200×630 Open Graph image are generated from source (`src/app/icon.svg`, `apple-icon.tsx`, `opengraph-image.tsx`) with neutral Dockcentra-only branding; `public/brand/` and `public/og/` are reserved for approved logo files.
+
+## Deployment to Vercel
+
+The site is a standard Next.js app; Vercel is the recommended host. Do not deploy until explicitly authorized.
+
+1. In Vercel, **Add New → Project** and import `csgotek1-eng/Prep-site` from GitHub.
+2. Set **`main`** as the production branch (framework preset: Next.js, no custom build settings needed — `npm run build` is detected automatically).
+3. In **Project → Settings → Environment Variables** add the variables from the table above. Minimum for launch: `QUOTE_DELIVERY_MODE` (and `QUOTE_WEBHOOK_URL` + `QUOTE_WEBHOOK_SECRET` if using webhook delivery). Never put real values in the repository.
+4. Deploy.
+5. In **Project → Settings → Domains** add the production domain.
+6. Set `NEXT_PUBLIC_SITE_URL` to that domain (e.g. `https://www.example.ie`).
+7. Redeploy so canonical URLs, sitemap, robots and Open Graph pick up the domain.
+
+Notes: requires Node.js 20+ (Vercel default is fine); all pages are static except `/api/quote`, which runs as a serverless function. The in-memory rate limit on `/api/quote` is per-instance — swap in a shared store (see `src/lib/rate-limit.ts`) if abuse ever becomes a problem. Any platform that runs `npm run build` + `npm run start` also works.
 
 ## Project structure
 
@@ -93,9 +112,14 @@ src/
   app/            # App Router pages, layout, sitemap, robots, API routes
     api/quote/    # Quote form endpoint (modular delivery, no secrets)
   components/     # Header, Footer, Container, QuoteForm
-  lib/            # Site config, quote validation & delivery adapter
+  lib/            # Site config, quote validation, delivery layer, rate limiting
+public/
+  brand/          # Reserved for approved logo files (see docs/BRAND_ASSETS.md)
+  og/             # Reserved for designed social images
+tests/            # Unit tests (node:test) for quote validation & delivery
 docs/
   PROJECT_STATUS.md  # Current project status (updated after every stage)
+  BRAND_ASSETS.md    # Brand asset locations and how to swap in a real logo
 ```
 
 ## Project status

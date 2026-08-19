@@ -4,38 +4,78 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Stage 1 — Core marketing website (complete)
+Stage 2 — Production readiness (complete, not yet deployed)
 
-COMPLETED:
-- Project scaffolding: Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4
-- Git setup with `.gitignore` (node_modules, .env, build output excluded) and `.env.example`
-- Responsive sticky Header with desktop nav and mobile hamburger menu (44px+ touch targets)
-- Homepage: Hero (headline, subheadline, marketplace chips, Get a Quote / Talk to Us CTAs), Services preview (6 cards), Built for Small and Growing Businesses, Why Dockcentra (5 points), final CTA
-- Services page: 6 core services with full detail + marketplace sections (TikTok Shop, Amazon FBA Prep, Shopify, eBay/WooCommerce) with anchor links
-- How It Works page: 8-step vertical process
-- Pricing page: flexible quote-based pricing with 8 pricing factors (no fixed prices published)
-- About page with small-business focus (no invented facts, no claimed partnerships)
-- Contact page: full quote form (name, business, email, phone, website, sales channels, SKUs, monthly orders, stock quantity, services needed, message) posting to `/api/quote` with a modular delivery adapter in `src/lib/quote.ts` (currently logs server-side; ready for email/CRM/Supabase/webhook later)
-- SEO: per-page titles/descriptions, keywords, Open Graph (en_IE), canonical URLs, robots.txt, sitemap.xml, Organization JSON-LD, semantic HTML
-- Accessibility: form labels, aria attributes on nav/menu, keyboard-visible focus states, contrast-safe palette, sr-only text on icon links
-- 404 not-found page
-- README with install/dev/build/Codespaces/deployment instructions
-- QA: automated horizontal-overflow check on all 6 pages × 8 breakpoints (320–1440px) — all pass; mobile menu open/navigate and quote form submission verified in headless Chromium
-- `npm run lint`, `npm run typecheck`, `npm run build` all pass; `npm audit` reports 0 vulnerabilities
+STAGE 1:
+COMPLETE — core marketing website (see git history for details): responsive
+mobile-first pages (Home, Services, How It Works, Pricing, About, Contact),
+sticky header with mobile menu, quote form posting to /api/quote, SEO
+(titles, descriptions, Open Graph, canonical, robots.txt, sitemap.xml,
+JSON-LD), accessibility, README, all checks passing.
+
+STAGE 2:
+COMPLETE
+
+COMPLETED (STAGE 2):
+- Brand asset structure: public/brand/ and public/og/ placeholders plus
+  docs/BRAND_ASSETS.md documenting where an approved logo goes later; no
+  logo invented, neutral text wordmark kept
+- Favicon (src/app/icon.svg) and Apple touch icon (src/app/apple-icon.tsx),
+  neutral Dockcentra "D" mark, no marketplace affiliation claims
+- Open Graph image 1200×630 generated at build time
+  (src/app/opengraph-image.tsx) with Dockcentra-only branding; twitter card
+  upgraded to summary_large_image
+- Production quote delivery layer (src/lib/quote-delivery.ts):
+  QUOTE_DELIVERY_MODE=log (default) and QUOTE_DELIVERY_MODE=webhook with
+  QUOTE_WEBHOOK_URL, optional HMAC-SHA256 signing via QUOTE_WEBHOOK_SECRET,
+  configurable timeout, safe error handling, no secret leakage; modular for
+  future email/CRM adapters
+- Anti-abuse on /api/quote: hidden honeypot field (silently dropped
+  server-side), 50KB request size limit, per-IP in-memory rate limit
+  (5/min) behind a swappable RateLimiter interface
+- Quote form UX: duplicate-submit guard added; existing submitting/success/
+  error states with role=status / role=alert retained
+- .env.example rewritten to document only variables actually used
+- README: full environment variable table, brand assets section and
+  step-by-step DEPLOYMENT TO VERCEL section
+- Unit tests (node:test, no new dependencies): 12 tests covering invalid
+  payload rejection, honeypot detection, log mode, webhook success/failure/
+  timeout without secret leakage, missing/invalid webhook URL
+- Legal/trust review: no official-partner claims, no invented facts,
+  marketplace names descriptive only
+- Security review: no secrets in repo, .env not tracked, server-only vars
+  have no NEXT_PUBLIC_ prefix, webhook secret never reaches client JS
+- Responsive regression re-check across 320–1440px on all pages plus form
+  states — no horizontal overflow
+
+QUOTE DELIVERY MODE:
+log (default). Switch to webhook in production by setting
+QUOTE_DELIVERY_MODE=webhook and QUOTE_WEBHOOK_URL (+ optional
+QUOTE_WEBHOOK_SECRET). No email/CRM adapter connected yet.
+
+DEPLOYMENT:
+NOT YET DEPLOYED. Vercel-ready; follow "Deployment to Vercel" in README.
 
 IN PROGRESS:
 - Nothing
 
 NEXT:
-- Connect quote form delivery (email provider or webhook) via environment variables
-- Add Open Graph image and favicon/brand assets
-- Deploy to hosting (e.g. Vercel) and set `NEXT_PUBLIC_SITE_URL` to the production domain
-- Optional: dedicated marketplace landing pages for SEO (e.g. /tiktok-shop-fulfilment-ireland)
+- Change GitHub default branch to main (manual, in repository settings)
+- Review + merge claude/website-stage-2 into main
+- Authorize and perform Vercel deployment; set NEXT_PUBLIC_SITE_URL after
+  the production domain is confirmed
+- Later: approved logo/brand assets, real delivery destination (webhook or
+  email provider), optional marketplace SEO landing pages with genuinely
+  unique content
 
 KNOWN ISSUES:
-- Quote form submissions are only logged on the server — no email/CRM delivery is connected yet (by design for Stage 1)
-- No custom favicon or Open Graph image yet
-- Site URL defaults to https://dockcentra.com until the real domain is confirmed via NEXT_PUBLIC_SITE_URL
+- GitHub default branch is still claude/dockcentra-ireland-site-x9dacq —
+  must be switched to main manually in repository settings
+- Site URL falls back to https://dockcentra.com until the real domain is
+  confirmed via NEXT_PUBLIC_SITE_URL (documented in .env.example/README)
+- In-memory rate limiter is per-instance (fine at current scale; swap for a
+  shared store via the RateLimiter interface if abuse appears)
+- No approved graphical logo yet — neutral generated assets in use
 
 LAST VERIFIED COMMIT:
-9163348266a072d9eb19a88dd8791a8f75dadc83 — "feat: create responsive Dockcentra marketing website (stage 1)"
+dcaf692660351ab110d5719962cbef2bbe62ab6d — "feat: add brand assets, favicon and Open Graph image"
