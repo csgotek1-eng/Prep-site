@@ -553,6 +553,7 @@ export default function AdminPricingManager() {
                   {new Date(change.changedAt).toLocaleString("en-IE")} —{" "}
                   {service?.name ?? change.serviceId}:{" "}
                   {formatEuro(change.oldPrice)} → {formatEuro(change.newPrice)}
+                  {change.changedBy ? ` (by ${change.changedBy})` : ""}
                 </li>
               );
             })}
