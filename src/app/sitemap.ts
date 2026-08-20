@@ -2,9 +2,13 @@ import type { MetadataRoute } from "next";
 import { navLinks, siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return navLinks.map((link) => ({
-    url: `${siteUrl}${link.href === "/" ? "" : link.href}`,
+  const pages = [
+    ...navLinks.map((link) => link.href),
+    "/pricing-calculator",
+  ];
+  return pages.map((href) => ({
+    url: `${siteUrl}${href === "/" ? "" : href}`,
     changeFrequency: "monthly",
-    priority: link.href === "/" ? 1 : 0.8,
+    priority: href === "/" ? 1 : 0.8,
   }));
 }

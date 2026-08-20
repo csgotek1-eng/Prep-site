@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import type { QuoteDeliveryResult, QuoteRequest } from "./quote";
+import type { Estimate } from "./pricing/types";
 
 /**
  * Quote delivery layer. Server-side only — never import from client code.
@@ -66,6 +67,7 @@ function getWebhookUrl(): URL | null {
 
 async function deliverToWebhook(
   quote: QuoteRequest,
+  estimate: Estimate | null,
 ): Promise<QuoteDeliveryResult> {
   const url = getWebhookUrl();
   if (!url) {
@@ -79,6 +81,9 @@ async function deliverToWebhook(
     source: "dockcentra-website",
     type: "quote-request",
     quote,
+    // Present only when the visitor came from the pricing calculator.
+    // Always recalculated server-side from authoritative prices.
+    ...(estimate ? { estimate } : {}),
   });
 
   const headers: Record<string, string> = {
@@ -124,13 +129,17 @@ async function deliverToWebhook(
 
 export async function deliverQuoteRequest(
   quote: QuoteRequest,
+  estimate: Estimate | null = null,
 ): Promise<QuoteDeliveryResult> {
   if (getDeliveryMode() === "webhook") {
-    return deliverToWebhook(quote);
+    return deliverToWebhook(quote, estimate);
   }
 
   // Log mode: the server log IS the delivery destination, so the full
   // submission is written out. Switch to a real mode for production.
-  console.log("New quote request received:", JSON.stringify(quote, null, 2));
+  console.log(
+    "New quote request received:",
+    JSON.stringify(estimate ? { quote, estimate } : quote, null, 2),
+  );
   return { ok: true };
 }

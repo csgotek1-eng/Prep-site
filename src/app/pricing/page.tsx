@@ -59,6 +59,12 @@ export default function PricingPage() {
               Flexible pricing based on your operation — you only pay for the
               services your business actually uses.
             </p>
+            <Link
+              href="/pricing-calculator"
+              className="mt-6 inline-flex min-h-12 items-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+            >
+              Try the Fulfilment Cost Calculator
+            </Link>
           </div>
         </Container>
       </section>

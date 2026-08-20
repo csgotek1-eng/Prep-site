@@ -32,3 +32,6 @@ Thumbs.db
 # Misc temporary files
 *.tmp
 *.temp
+
+# Pricing calculator dev store (file-backed repository)
+data/

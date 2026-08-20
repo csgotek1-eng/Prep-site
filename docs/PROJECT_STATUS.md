@@ -4,7 +4,28 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Stage 4 — Launch readiness (complete, not yet deployed)
+Integrated: Stage 4 launch readiness + pricing calculator/admin +
+production pricing foundation (merged into main; nothing deployed,
+nothing activated)
+
+STATUS SUMMARY:
+- Stage 1 (core marketing website): COMPLETE
+- Stage 2 (production readiness): COMPLETE
+- Stage 3 (deployment preparation): COMPLETE
+- Stage 4 (launch readiness): COMPLETE
+- Pricing calculator: COMPLETE
+- Pricing admin development foundation: COMPLETE
+- Production pricing persistence foundation: COMPLETE
+- Production admin auth foundation: COMPLETE
+- Supabase production activation: NOT ACTIVE
+- Supabase migration: CREATED / NOT APPLIED
+  (supabase/migrations/0001_pricing_schema.sql)
+- Production deployment: NOT DEPLOYED
+- Real prices: NOT ENTERED
+- Active production pricing services: NONE
+- Legal pages: AWAITING USER INPUT / NOT PUBLISHED
+- Admin production UI: PARTIAL — API/auth foundation ready, Supabase
+  sign-in UI not yet implemented
 
 STAGE 4 (LAUNCH READINESS):
 COMPLETE
@@ -27,14 +48,67 @@ COMPLETE
   NOT CONFIGURED); URL-dependent code still has the single source
   NEXT_PUBLIC_SITE_URL
 
+PRODUCTION PRICING ADMIN FOUNDATION:
+COMPLETE
+- Supabase/Postgres schema as code: supabase/migrations/
+  0001_pricing_schema.sql (pricing_services + pricing_price_history,
+  price >= 0 checks, EUR-only, restricted pricing types, custom-quote
+  no-price constraint, indexes, updated_at trigger, deny-all RLS) —
+  NOT APPLIED to any database
+- PRICING_PERSISTENCE switch (file | supabase) with fail-closed rules:
+  production never silently uses the file store; misconfigured supabase
+  mode serves a safe unavailable state; quote enquiries still deliver
+  without an estimate when the store is down
+- SupabasePricingRepository over PostgREST via plain fetch (no new
+  dependency), server-only service-role key, safe errors with no
+  URL/key/upstream-body leakage
+- AdminAuthProvider abstraction: dev-token provider (development only —
+  refuses ALL requests in production builds) and SupabaseAdminAuth-
+  Provider (server-side Bearer validation, admin role strictly from
+  app_metadata.role; user_metadata ignored); unknown/unconfigured
+  providers fail closed 503
+- Price history actor: changedBy recorded from the authenticated
+  server-side identity only; changed_by in request bodies is ignored
+  (tested); shown in the admin UI
+- 19 new security/architecture tests (48 total)
+- docs: PRICING_PRODUCTION_SETUP.md (12-step activation, no
+  credentials), BRANCH_INTEGRATION_PLAN.md (verified: single conflict
+  with Stage 4 branch in docs/PROJECT_STATUS.md; Stage-4-first merge
+  order recommended), PRICING_CALCULATOR.md updated
+- Not done by design: no Supabase project created, no migration
+  applied, no credentials configured, no real prices, no active seeded
+  services, complex RBAC not built (single ADMIN role; MANAGER
+  documented only)
+
+PRICING CALCULATOR STAGE:
+COMPLETE
+- Public calculator at /pricing-calculator (linked from /pricing, in the
+  sitemap): select services, quantities, unit prices, line totals,
+  estimated total, custom-quote handling, non-binding-estimate
+  disclaimer; EUR formatting; no VAT applied or claimed
+- Service model + calculation in src/lib/pricing (money as integer euro
+  cents; 10 pricing types incl. CUSTOM_QUOTE; minimum charges)
+- Seed catalogue ships with price = 0 and isActive = false — no invented
+  commercial prices; public page shows a "prices being finalised" state
+- Quote integration: calculator selections attach to the quote form and
+  /api/quote RECALCULATES the estimate server-side from authoritative
+  prices (client totals never trusted); delivery payload gains an
+  optional estimate field
+- Admin at /admin/pricing: list/add/edit/activate/deactivate services,
+  price history (serviceId, oldPrice, newPrice, changedAt, changedBy);
+  all mutations behind server-side auth; robots disallow /admin + /api,
+  admin page noindex
+- Persistence behind the PricingRepository interface (see production
+  foundation above for the file/supabase implementations)
+- 17 unit tests — calculation, minimum charge, invalid quantities,
+  inactive hidden, custom quote, client price ignored, admin
+  validation, token verification, repository CRUD/history
+
 LEGAL PAGES:
-AWAITING USER INPUTS (see docs/LEGAL_INPUTS_REQUIRED.md)
+AWAITING USER INPUTS (see docs/LEGAL_INPUTS_REQUIRED.md) — NOT PUBLISHED
 
 PRODUCTION DEPLOYMENT:
 NOT YET DEPLOYED
-
-PREVIOUS STAGE:
-Stage 3 — Deployment preparation (complete)
 
 STAGE 3 (DEPLOYMENT PREPARATION):
 COMPLETE
@@ -59,12 +133,6 @@ COMPLETE
   VAT numbers, testimonials, trust badges or partnership claims anywhere
 - ANALYTICS: NOT CONFIGURED (deliberate — avoids cookie-consent
   complexity before launch)
-
-PRODUCTION DEPLOYMENT:
-NOT YET DEPLOYED
-
-PREVIOUS STAGE:
-Stage 2 — Production readiness (complete)
 
 STAGE 1:
 COMPLETE — core marketing website (see git history for details): responsive
@@ -113,23 +181,28 @@ log (default). Switch to webhook in production by setting
 QUOTE_DELIVERY_MODE=webhook and QUOTE_WEBHOOK_URL (+ optional
 QUOTE_WEBHOOK_SECRET). No email/CRM adapter connected yet.
 
-DEPLOYMENT:
-NOT YET DEPLOYED. Vercel-ready; follow "Deployment to Vercel" in README.
-
 IN PROGRESS:
 - Nothing
 
-NEXT:
-- Confirm GitHub default branch is main (manual, in repository settings)
-- Review + merge claude/website-stage-4-launch-readiness into main
-- Fill in docs/LEGAL_INPUTS_REQUIRED.md so the legal drafts can be
-  finalized and published as routes
-- Decide the production domain and webhook destination
-- Authorized preview deployment, then production launch per
+NEXT / BLOCKERS:
+- Switch GitHub default branch to main (manual, repository settings —
+  still unresolved per the API)
+- Create/authorize a Supabase project (owner decision)
+- Apply supabase/migrations/0001_pricing_schema.sql only after explicit
+  owner approval
+- Configure Supabase Auth (invite-only sign-in)
+- Create the admin user (app_metadata.role=admin, service-role only)
+- Implement the Supabase admin sign-in UI for /admin/pricing
+- Enter real Dockcentra prices (owner) — none entered yet
+- Activate pricing services once prices are confirmed
+- Provide legal/privacy user inputs (docs/LEGAL_INPUTS_REQUIRED.md) and
+  finalize/publish the legal pages
+- Decide the production domain; set NEXT_PUBLIC_SITE_URL
+- Authorized Vercel preview deployment, then production launch per
   docs/PRODUCTION_CHECKLIST.md (blocking items first)
-- Later: approved logo/brand assets, real delivery destination (webhook or
-  email provider), optional marketplace SEO landing pages with genuinely
-  unique content
+- Later: approved logo/brand assets, real quote delivery destination
+  (webhook or email provider), optional marketplace SEO landing pages
+  with genuinely unique content
 
 KNOWN ISSUES:
 - GitHub default branch still reports as claude/dockcentra-ireland-site-x9dacq
@@ -137,12 +210,18 @@ KNOWN ISSUES:
 - Production domain not confirmed; site URL falls back to
   https://dockcentra.com until NEXT_PUBLIC_SITE_URL is set (documented)
 - Legal/privacy pages not published — inputs required
-  (docs/LEGAL_REQUIREMENTS.md)
+  (docs/LEGAL_REQUIREMENTS.md, docs/LEGAL_INPUTS_REQUIRED.md)
 - In-memory rate limiter is per-instance (documented in
   docs/DEPLOYMENT_ENV.md; swap for a shared store if abuse appears)
 - No approved graphical logo yet — neutral generated assets in use
 - No Content-Security-Policy header yet (deliberately deferred; other
   security headers are in place)
+- Admin UI ships only the dev-token form; Supabase sign-in UI is future
+  work (API/auth layer is final)
+- Local production-preview (next start) requires explicit
+  PRICING_PERSISTENCE=file to see the catalogue — intentional
+  fail-closed behavior
 
 LAST VERIFIED COMMIT:
-64201f21422078c094d1069e96a4e642026bb8ba — "docs: add legal launch input templates"
+(merge commit integrating Stage 4 + production pricing foundation — see
+git log on main)

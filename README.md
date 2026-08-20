@@ -84,8 +84,18 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
 | `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockcentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
 | `QUOTE_WEBHOOK_TIMEOUT_MS` | Optional webhook timeout in milliseconds (default 8000). |
+| `PRICING_PERSISTENCE` | Pricing store: `file` (development only) or `supabase` (production). Fail closed — unset in production or misconfigured `supabase` disables the store; no silent file fallback. |
+| `ADMIN_AUTH_PROVIDER` | Admin auth: `dev-token` (development only; refused in production builds) or `supabase` (Supabase Auth, server-side validation). |
+| `ADMIN_ACCESS_TOKEN` | Dev-token provider's shared secret; verified server-side on every admin request. Unset = admin disabled. Never valid in production. Server-side only. |
+| `PRICING_STORE_FILE` | Optional path for the development pricing store JSON file (default `./data/pricing-store.json`, gitignored). |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project URL and publishable anon key (needed only for the supabase modes). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service-role key for the pricing repository. Never `NEXT_PUBLIC_`, never committed. |
 
 The quote form posts to `/api/quote`. The route validates input, drops honeypot (bot) submissions, applies a light per-IP rate limit and then hands off to the delivery layer in `src/lib/quote-delivery.ts`. Email / CRM / Supabase adapters can be added there later as new modes behind their own environment variables.
+
+## Pricing calculator
+
+`/pricing-calculator` is a public fulfilment cost calculator backed by a configurable service catalogue; `/admin/pricing` manages services and prices (server-side token auth, disabled unless `ADMIN_ACCESS_TOKEN` is set). Prices are authoritative on the server — submitted estimates are always recalculated server-side. See [docs/PRICING_CALCULATOR.md](docs/PRICING_CALCULATOR.md) for the model, admin workflow, and the production persistence/auth requirements.
 
 ## Brand assets
 
