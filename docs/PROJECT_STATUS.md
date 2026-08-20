@@ -4,6 +4,30 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
+Stage 5 — Supabase auth readiness (complete; remote Supabase NOT
+activated, nothing deployed)
+
+STAGE 5 (SUPABASE AUTH READINESS):
+COMPLETE
+- /admin/login: Supabase email/password sign-in UI (plain-fetch client,
+  anon key only, zero new dependencies) with loading/error states,
+  session restoration + refresh, logout with server-side revocation
+- /admin/pricing is mode-aware: Supabase Bearer-session flow when the
+  build has NEXT_PUBLIC_SUPABASE_* (unauthenticated → login redirect;
+  401/403 → session cleared), dev-token form otherwise (refused by
+  production servers as before)
+- Server authority unchanged: AdminAuthProvider verifies every
+  /api/admin/* request; role strictly from app_metadata; client-side
+  role claims never consulted; price-history actor from server identity
+- 10 new tests (58 total); full mock-Supabase E2E executed locally
+  (production build): redirects, wrong password, non-admin denial,
+  admin CRUD, session restoration, logout revocation, forged/dev tokens
+  denied, no service-role key in bundles — REMOTE NOT EXECUTED (no
+  project exists)
+- Migration re-audited statically: 0 critical/high findings, NOT APPLIED
+- Details: docs/STAGE_5_SUPABASE_AUTH_READINESS.md
+
+PREVIOUS:
 Integrated: Stage 4 launch readiness + pricing calculator/admin +
 production pricing foundation (merged into main; nothing deployed,
 nothing activated)
@@ -24,8 +48,8 @@ STATUS SUMMARY:
 - Real prices: NOT ENTERED
 - Active production pricing services: NONE
 - Legal pages: AWAITING USER INPUT / NOT PUBLISHED
-- Admin production UI: PARTIAL — API/auth foundation ready, Supabase
-  sign-in UI not yet implemented
+- Admin production UI: IMPLEMENTED (Stage 5) — /admin/login + Bearer
+  session flow; first REAL remote verification happens at activation
 
 STAGE 4 (LAUNCH READINESS):
 COMPLETE
@@ -192,7 +216,8 @@ NEXT / BLOCKERS:
   owner approval
 - Configure Supabase Auth (invite-only sign-in)
 - Create the admin user (app_metadata.role=admin, service-role only)
-- Implement the Supabase admin sign-in UI for /admin/pricing
+- Supabase admin sign-in UI: DONE (Stage 5) — first remote verification
+  happens during activation
 - Enter real Dockcentra prices (owner) — none entered yet
 - Activate pricing services once prices are confirmed
 - Provide legal/privacy user inputs (docs/LEGAL_INPUTS_REQUIRED.md) and
@@ -216,8 +241,8 @@ KNOWN ISSUES:
 - No approved graphical logo yet — neutral generated assets in use
 - No Content-Security-Policy header yet (deliberately deferred; other
   security headers are in place)
-- Admin UI ships only the dev-token form; Supabase sign-in UI is future
-  work (API/auth layer is final)
+- Admin Supabase sign-in UI implemented (Stage 5) but verified only
+  against a local mock — real remote verification pending activation
 - Local production-preview (next start) requires explicit
   PRICING_PERSISTENCE=file to see the catalogue — intentional
   fail-closed behavior

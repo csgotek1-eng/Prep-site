@@ -1,6 +1,16 @@
 "use client";
 
-import { useCallback, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import {
+  getSupabaseAuthClientConfig,
+  isSessionExpiring,
+  loadStoredSession,
+  refreshSession,
+  signOut,
+  storeSession,
+  type AdminSession,
+} from "@/lib/supabase-browser";
 import { formatEuro } from "@/lib/pricing/money";
 import {
   PRICING_TYPES,
@@ -283,6 +293,17 @@ function ServiceForm({
 }
 
 export default function AdminPricingManager() {
+  const router = useRouter();
+  // Two auth modes for the SAME server-verified API:
+  //  - Supabase mode (production): this build has NEXT_PUBLIC_SUPABASE_*
+  //    set; the session comes from /admin/login and every request sends
+  //    Authorization: Bearer, re-validated server-side.
+  //  - Dev-token mode: no Supabase config in the build; the existing
+  //    ADMIN_ACCESS_TOKEN form (refused by the server in production).
+  // In both modes the UI is only UX — authorization lives in
+  // AdminAuthProvider on the server.
+  const supabaseConfig = getSupabaseAuthClientConfig();
+  const [session, setSession] = useState<AdminSession | null>(null);
   const [token, setToken] = useState("");
   const [tokenInput, setTokenInput] = useState("");
   const [authError, setAuthError] = useState("");
@@ -293,14 +314,9 @@ export default function AdminPricingManager() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  // The token lives only in component state: it is entered per visit and
-  // never persisted in the browser. It is verified server-side on every
-  // /api/admin/* request.
   const loadServices = useCallback(
-    async (currentToken: string) => {
-      const response = await fetch("/api/admin/services", {
-        headers: { "x-admin-token": currentToken },
-      });
+    async (headers: Record<string, string>) => {
+      const response = await fetch("/api/admin/services", { headers });
       const data = (await response.json()) as {
         ok: boolean;
         error?: string;
@@ -308,7 +324,9 @@ export default function AdminPricingManager() {
         priceHistory?: PriceChange[];
       };
       if (!response.ok || !data.ok) {
-        throw new Error(data.error ?? "Request failed.");
+        const error = new Error(data.error ?? "Request failed.");
+        (error as Error & { status?: number }).status = response.status;
+        throw error;
       }
       setServices(data.services ?? []);
       setPriceHistory(data.priceHistory ?? []);
@@ -316,13 +334,66 @@ export default function AdminPricingManager() {
     [],
   );
 
+  // Supabase mode: restore the stored session (refreshing when close to
+  // expiry) and verify admin access server-side; otherwise send the
+  // visitor to /admin/login.
+  useEffect(() => {
+    if (!supabaseConfig) return;
+    let active = true;
+    (async () => {
+      let stored = loadStoredSession();
+      if (stored && isSessionExpiring(stored)) {
+        const refreshed = await refreshSession(
+          supabaseConfig,
+          stored.refreshToken,
+        );
+        stored = refreshed.session ?? null;
+        storeSession(stored);
+      }
+      if (!stored) {
+        router.replace("/admin/login");
+        return;
+      }
+      try {
+        await loadServices({ Authorization: `Bearer ${stored.accessToken}` });
+        if (active) setSession(stored);
+      } catch {
+        storeSession(null);
+        router.replace("/admin/login");
+      }
+    })();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function authHeader(): Record<string, string> {
+    if (supabaseConfig) {
+      return session
+        ? { Authorization: `Bearer ${session.accessToken}` }
+        : {};
+    }
+    return { "x-admin-token": token };
+  }
+
+  async function handleSignOut() {
+    if (supabaseConfig && session) {
+      await signOut(supabaseConfig, session.accessToken);
+    }
+    storeSession(null);
+    setSession(null);
+    setServices(null);
+    router.replace("/admin/login");
+  }
+
   async function handleTokenSubmit(event: FormEvent) {
     event.preventDefault();
     const candidate = tokenInput.trim();
     if (!candidate) return;
     setAuthError("");
     try {
-      await loadServices(candidate);
+      await loadServices({ "x-admin-token": candidate });
       setToken(candidate);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Request failed.");
@@ -337,15 +408,22 @@ export default function AdminPricingManager() {
         method,
         headers: {
           "Content-Type": "application/json",
-          "x-admin-token": token,
+          ...authHeader(),
         },
         body: JSON.stringify(body),
       });
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !data.ok) {
+        // An invalidated/expired Supabase session cannot recover here —
+        // clear it and return to sign-in.
+        if (supabaseConfig && (response.status === 401 || response.status === 403)) {
+          storeSession(null);
+          router.replace("/admin/login");
+          return false;
+        }
         throw new Error(data.error ?? "Request failed.");
       }
-      await loadServices(token);
+      await loadServices(authHeader());
       return true;
     } catch (error) {
       setActionError(
@@ -357,7 +435,15 @@ export default function AdminPricingManager() {
     }
   }
 
-  if (!token || services === null) {
+  if (supabaseConfig && (!session || services === null)) {
+    return (
+      <p role="status" className="text-sm text-slate-500">
+        Checking access…
+      </p>
+    );
+  }
+
+  if (!supabaseConfig && (!token || services === null)) {
     return (
       <form
         onSubmit={handleTokenSubmit}
@@ -385,17 +471,36 @@ export default function AdminPricingManager() {
           Unlock admin
         </button>
         <p className="mt-3 text-xs leading-5 text-slate-500">
-          The token is verified server-side on every request
-          (ADMIN_ACCESS_TOKEN) and is not stored in the browser. If it is
-          not configured on the server, the admin area is disabled
-          entirely.
+          Development access only: the token is verified server-side on
+          every request (ADMIN_ACCESS_TOKEN), is not stored in the
+          browser, and is always refused in production builds. Production
+          sign-in uses /admin/login with Supabase Auth.
         </p>
       </form>
     );
   }
 
+  if (services === null) {
+    return null;
+  }
+
   return (
     <div>
+      {supabaseConfig && session && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-4 py-2.5">
+          <span className="text-sm text-slate-600">
+            Signed in{session.email ? ` as ${session.email}` : ""}
+          </span>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="min-h-11 text-sm font-semibold text-slate-700 underline-offset-2 hover:underline"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+
       {actionError && (
         <p
           role="alert"

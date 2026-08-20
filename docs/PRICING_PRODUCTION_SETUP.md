@@ -78,11 +78,16 @@ go-ahead. No credentials belong in this repository — ever.
 
 ## Admin UI note
 
-The /admin/pricing UI currently ships only the development token form.
-When Supabase auth is activated, the UI needs a small sign-in step
-(Supabase email sign-in → send the session's access token as the
-Bearer header). The API layer is already final; only the login form is
-future UI work.
+IMPLEMENTED (Stage 5): `/admin/login` provides Supabase email/password
+sign-in (loading/error states, session restoration, logout with
+server-side revocation), and `/admin/pricing` automatically uses the
+Bearer-token flow whenever the build carries `NEXT_PUBLIC_SUPABASE_URL`
++ `NEXT_PUBLIC_SUPABASE_ANON_KEY` (unauthenticated → redirected to
+login; non-admin → denied server-side). Without that public config the
+page falls back to the development token form, which production builds
+always refuse. Verified locally against a mock Supabase Auth API — see
+docs/STAGE_5_SUPABASE_AUTH_READINESS.md; step 6 below remains the
+first REAL remote verification.
 
 ## Future MANAGER role (documented only — not built)
 
