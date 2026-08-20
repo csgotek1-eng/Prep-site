@@ -4,8 +4,44 @@ PROJECT:
 Dockcentra Website
 
 CURRENT STAGE:
-Pricing calculator & admin service management (complete on branch
-claude/website-pricing-admin, not yet merged, not yet deployed)
+Production pricing admin foundation (complete on branch
+claude/website-pricing-admin-production-foundation, not merged, not
+deployed)
+
+PRODUCTION PRICING ADMIN FOUNDATION:
+COMPLETE
+- Supabase/Postgres schema as code: supabase/migrations/
+  0001_pricing_schema.sql (pricing_services + pricing_price_history,
+  price >= 0 checks, EUR-only, restricted pricing types, custom-quote
+  no-price constraint, indexes, updated_at trigger, deny-all RLS) —
+  NOT APPLIED to any database
+- PRICING_PERSISTENCE switch (file | supabase) with fail-closed rules:
+  production never silently uses the file store; misconfigured supabase
+  mode serves a safe unavailable state; quote enquiries still deliver
+  without an estimate when the store is down
+- SupabasePricingRepository over PostgREST via plain fetch (no new
+  dependency), server-only service-role key, safe errors with no
+  URL/key/upstream-body leakage
+- AdminAuthProvider abstraction: dev-token provider (development only —
+  refuses ALL requests in production builds) and SupabaseAdminAuth-
+  Provider (server-side Bearer validation, admin role strictly from
+  app_metadata.role; user_metadata ignored); unknown/unconfigured
+  providers fail closed 503
+- Price history actor: changedBy recorded from the authenticated
+  server-side identity only; changed_by in request bodies is ignored
+  (tested); shown in the admin UI
+- 19 new security/architecture tests (48 total)
+- docs: PRICING_PRODUCTION_SETUP.md (12-step activation, no
+  credentials), BRANCH_INTEGRATION_PLAN.md (verified: single conflict
+  with Stage 4 branch in docs/PROJECT_STATUS.md; Stage-4-first merge
+  order recommended), PRICING_CALCULATOR.md updated
+- Not done by design: no Supabase project created, no migration
+  applied, no credentials configured, no real prices, no active seeded
+  services, complex RBAC not built (single ADMIN role; MANAGER
+  documented only)
+
+PREVIOUS: Pricing calculator & admin service management (complete on
+branch claude/website-pricing-admin, not yet merged, not yet deployed)
 
 PRICING CALCULATOR STAGE:
 COMPLETE

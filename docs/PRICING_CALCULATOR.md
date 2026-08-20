@@ -96,30 +96,44 @@ interface: `listActiveServices`, `listAllServices`, `getService`,
 `createService`, `updateService`, `setServiceActive`,
 `recordPriceChange`, `listPriceHistory`.
 
-The current implementation is `FilePricingRepository` — a JSON file at
-`data/pricing-store.json` (gitignored; path overridable via
-`PRICING_STORE_FILE`). It is correct for development and
-single-instance servers, but on Vercel serverless the file lands on an
-ephemeral instance filesystem: **admin edits do not survive cold starts
-and are not shared between instances.**
+Two implementations exist, selected by `PRICING_PERSISTENCE`:
 
-### Production requirement
+- `file` → `FilePricingRepository`: JSON at `data/pricing-store.json`
+  (gitignored; `PRICING_STORE_FILE` overrides the path). DEVELOPMENT
+  ONLY — per-instance and ephemeral on serverless.
+- `supabase` → `SupabasePricingRepository`: Supabase/Postgres via
+  PostgREST over plain fetch (no extra dependency), using the
+  server-only `SUPABASE_SERVICE_ROLE_KEY`; tables carry deny-all RLS.
+  Schema: `supabase/migrations/0001_pricing_schema.sql` (**NOT APPLIED**
+  — activation requires authorization, see
+  [PRICING_PRODUCTION_SETUP.md](PRICING_PRODUCTION_SETUP.md)).
 
-Before the admin area is used in production, implement
-`PricingRepository` against a real database — Supabase or Postgres are
-the preferred options. **Connecting any new external/paid service
-requires explicit authorization first.** The API routes and UI need no
-changes; only `getPricingRepository()` swaps implementations.
+Fail-closed rules (tested): unset mode in a production build, an
+unknown mode, or `supabase` without its configuration → the store is
+disabled — the public calculator gets a safe unavailable state (503 →
+friendly retry message), admin writes fail clearly, and the quote flow
+still delivers enquiries (just without an attached estimate). There is
+never a silent fallback to the file store in production.
 
-## Production authentication requirement
+## Admin authentication
 
-The shared `ADMIN_ACCESS_TOKEN` is development-grade: single token, no
-user identity, no rotation, no brute-force lockout. Before exposing
-`/admin/pricing` on a production domain, replace it with a real
-authentication provider (and keep the server-side checks). Until then,
-production admin access is **NOT READY** — either leave
-`ADMIN_ACCESS_TOKEN` unset in production (admin disabled) or manage
-prices from a non-production environment.
+`AdminAuthProvider` (src/lib/admin-auth.ts) is the auth abstraction;
+every `/api/admin/*` route resolves a verified `AdminIdentity`
+server-side. Providers via `ADMIN_AUTH_PROVIDER`:
+
+- `dev-token` (default in development): the shared `ADMIN_ACCESS_TOKEN`
+  header check. In a production build this provider REFUSES all
+  requests — a static token can never be the final production security.
+- `supabase`: Supabase Auth. The server validates the caller's Bearer
+  token against the Supabase Auth API and requires
+  `app_metadata.role === "admin"` (settable only with service-role
+  access — clients cannot self-assign it). Activation steps in
+  [PRICING_PRODUCTION_SETUP.md](PRICING_PRODUCTION_SETUP.md).
+
+Price history records `changedBy` from the authenticated identity only;
+any `changed_by` field in a request body is ignored. Role model: single
+ADMIN role (a future MANAGER role is documented in the setup doc, not
+built).
 
 ## Testing
 
