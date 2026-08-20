@@ -80,10 +80,16 @@ export async function POST(request: Request) {
   );
   let estimate = null;
   if (selections.length > 0) {
-    const services = await getPricingRepository().listActiveServices();
-    const calculated = calculateEstimate(services, selections);
-    if (calculated.lines.length > 0) {
-      estimate = calculated;
+    try {
+      const services = await getPricingRepository().listActiveServices();
+      const calculated = calculateEstimate(services, selections);
+      if (calculated.lines.length > 0) {
+        estimate = calculated;
+      }
+    } catch {
+      // Pricing store unavailable: deliver the quote without an estimate
+      // rather than losing the enquiry.
+      console.error("Quote estimate skipped: pricing store unavailable.");
     }
   }
 

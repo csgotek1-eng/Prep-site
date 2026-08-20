@@ -72,6 +72,12 @@ export interface PriceChange {
   oldPrice: number;
   newPrice: number;
   changedAt: string; // ISO timestamp
+  /**
+   * Authenticated admin identity (email or user id) that made the
+   * change. Set server-side from the verified identity ONLY — never
+   * accepted from a client request body.
+   */
+  changedBy?: string | null;
 }
 
 /** A calculator selection sent by the browser: id + quantity, never price. */

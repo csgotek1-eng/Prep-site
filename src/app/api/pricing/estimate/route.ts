@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { calculateEstimate, parseSelections } from "@/lib/pricing/calculate";
+import { PricingUnavailableError } from "@/lib/pricing/errors";
 import { getPricingRepository } from "@/lib/pricing/repository";
 
 const MAX_BODY_BYTES = 20_000;
@@ -37,7 +38,17 @@ export async function POST(request: Request) {
   const selections = parseSelections(
     (data as { selections?: unknown })?.selections,
   );
-  const services = await getPricingRepository().listActiveServices();
-  const estimate = calculateEstimate(services, selections);
-  return NextResponse.json({ ok: true, estimate });
+  try {
+    const services = await getPricingRepository().listActiveServices();
+    const estimate = calculateEstimate(services, selections);
+    return NextResponse.json({ ok: true, estimate });
+  } catch (error) {
+    if (error instanceof PricingUnavailableError) {
+      return NextResponse.json(
+        { ok: false, error: error.message },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
 }
