@@ -19,14 +19,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <p className="flex items-center gap-2.5 text-lg font-bold text-white">
-              {/* Official Dockentra D mark, transparent derivation — sits
+              {/* Official Dockentra D mark in the circular badge shared
+                  with the header and the "How It Works" circles — sits
                   directly on the deep navy footer, no white card. */}
               <Image
-                src="/brand/dockentra-logo-mark-transparent.png"
+                src="/brand/dockentra-logo-mark-badge.png"
                 alt=""
                 width={36}
                 height={36}
-                className="h-9 w-9 shrink-0 object-contain"
+                className="h-9 w-9 shrink-0 rounded-full object-contain"
               />
               <span className="brand-wordmark-light">{siteConfig.name}</span>
             </p>

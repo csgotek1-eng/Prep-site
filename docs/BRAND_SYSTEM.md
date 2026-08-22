@@ -20,28 +20,41 @@ Asset paths:
 | Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254, stacked D mark + "Dockentra" wordmark, opaque near-white background |
 | Full logo, transparent | `public/brand/dockentra-logo-transparent.png` | content-cropped derivation with the near-white background removed (alpha extraction only — artwork pixels untouched) |
 | Official D mark (opaque) | `public/brand/dockentra-logo-mark.png` | 512×512, pixel-bbox crop + resample of the full logo — never redrawn |
-| Official D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512, same crop with background/counter alpha extraction; **this is the version used across the site** |
-| Favicon | `src/app/icon.png` | 64×64 transparent crop/resample of the official mark (no white square on dark browser tabs) |
-| Apple touch icon | `src/app/apple-icon.png` | 180×180 crop/resample of the official mark, opaque (iOS requires opaque icons) |
-| OG image | `src/app/opengraph-image.tsx` | embeds the transparent mark directly on the deep-navy surface — no white card |
+| Official D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512, same crop with background/counter alpha extraction |
+| Circular badge mark | `public/brand/dockentra-logo-mark-badge.png` | 512×512 — the exact transparent mark composed into the "How It Works" circle style (deep-navy circular ground + ring in the HIW gradient); **this is the version used across the site** |
+| Favicon | `src/app/icon.png` | 64×64 badge, transparent outside the circle (no white square on dark browser tabs) |
+| Apple touch icon | `src/app/apple-icon.png` | 180×180 badge on an opaque deep-navy square (iOS requires opaque icons) |
+| OG image | `src/app/opengraph-image.tsx` | embeds the badge directly on the deep-navy surface — no white card |
 
 Transparency derivation (allowed ops only): near-white pixels
 (min channel ≥ 236, chroma ≤ 16 — the background and the D's negative-space
-counter) get alpha 0, the 2px antialiased edge band gets a soft alpha fade
-by whiteness, and every other pixel is copied verbatim. No shape or colour
-of the artwork was changed; the logo was never redrawn.
+counter) get alpha 0; the first ring of white-matte-blended edge pixels is
+dropped (a 1px erode at full 1254px resolution, re-antialiased by the
+downscale) so no pale halo appears on dark surfaces; the remaining edge
+band gets a soft alpha fade with white-matte defringe. Every other pixel
+is copied verbatim. No shape or colour of the artwork was changed; the
+logo was never redrawn.
+
+**Circular badge system** (owner request): the mark's site-wide
+presentation matches the "How It Works" numbered circles — rounded-full,
+ring in the exact HIW gradient (135°, `#14533f → #1e7d61 → #2b9c77`),
+`shadow-sm` in DOM usage. The badge is a composition: deep-navy
+(`#0d1730`) circular ground, gradient ring (~4% of diameter), and the
+exact transparent D mark centered at 62% of the diameter. One asset
+(`dockentra-logo-mark-badge.png`) serves header, footer, favicon, Apple
+icon and OG, so the mark is pixel-identical everywhere.
 
 Usage:
 
-- **Header**: transparent official mark (`next/image`, 40px, accessible
-  name "Dockentra" via alt) + typographic wordmark with the
-  `.brand-wordmark` depth treatment (subtle navy vertical gradient +
-  one soft drop shadow; solid navy fallback where gradient text is
-  unsupported). The full stacked lockup is not used in the 64px header
-  bar because its wordmark would render unreadably small.
-- **Footer**: transparent official mark directly on the deep navy
-  footer — the white card wrapper was removed at the owner's request —
-  + wordmark text with the `.brand-wordmark-light` treatment.
+- **Header**: circular badge (`next/image`, 40px, `rounded-full
+  shadow-sm`, accessible name "Dockentra" via alt) + typographic
+  wordmark with the `.brand-wordmark` depth treatment (subtle navy
+  vertical gradient + one soft drop shadow; solid navy fallback where
+  gradient text is unsupported). The full stacked lockup is not used in
+  the 64px header bar because its wordmark would render unreadably
+  small.
+- **Footer**: the same badge directly on the deep navy footer (no white
+  card) + wordmark text with the `.brand-wordmark-light` treatment.
 - The wordmark depth effect is deliberately restrained: no bevel, no
   gloss, no heavy shadow. It must stay readable at all sizes.
 

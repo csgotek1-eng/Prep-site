@@ -12,12 +12,12 @@ export const contentType = "image/png";
 
 // Open Graph image in the official Dockentra brand system: deep navy
 // surface, dark-green → emerald → mint gradient accents, white text, and
-// the EXACT official D mark (transparent derivation of the owner-approved
-// logo — never redrawn) sitting directly on the navy surface, no white
-// card. Generated statically at build time.
+// the official D mark in its circular badge (the EXACT mark composed
+// into the "How It Works" circle style — never redrawn), no white card.
+// Generated statically at build time.
 export default function OpenGraphImage() {
   const mark = readFileSync(
-    join(process.cwd(), "public", "brand", "dockentra-logo-mark-transparent.png"),
+    join(process.cwd(), "public", "brand", "dockentra-logo-mark-badge.png"),
   ).toString("base64");
 
   return new ImageResponse(
