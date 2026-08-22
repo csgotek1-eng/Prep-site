@@ -21,7 +21,8 @@ export default function AboutPage() {
               About Dockentra
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Local fulfilment for growing e-commerce businesses.
+              An Irish fulfilment and prep business built around small and
+              growing online sellers.
             </p>
           </div>
         </Container>
@@ -68,7 +69,7 @@ export default function AboutPage() {
                 href="/contact"
                 className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
-                Talk to Us
+                Get a Quote
               </Link>
             </div>
           </div>

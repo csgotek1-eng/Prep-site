@@ -63,7 +63,7 @@ export default function PricingPage() {
               href="/pricing-calculator"
               className="mt-6 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
-              Try the Fulfilment Cost Calculator
+              Pricing Calculator
             </Link>
           </div>
         </Container>

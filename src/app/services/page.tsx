@@ -5,7 +5,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "Fulfilment & Prep Services",
   description:
-    "Goods receiving, product inspection, prep, storage, pick & pack and returns handling in Ireland — plus fulfilment support for TikTok Shop, Amazon FBA, Shopify, eBay and WooCommerce sellers.",
+    "Receiving, inspection, labelling, prep, storage, pick & pack, kitting and returns in Ireland — plus fulfilment support for TikTok Shop, Amazon FBA, Shopify, eBay and WooCommerce sellers.",
   alternates: {
     canonical: "/services",
   },
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const coreServices = [
   {
     id: "receiving",
-    title: "Goods Receiving",
+    title: "Receiving",
     intro:
       "Your stock is checked in properly the moment it arrives, so problems are caught early.",
     items: [
@@ -27,7 +27,7 @@ const coreServices = [
   },
   {
     id: "inspection",
-    title: "Product Inspection",
+    title: "Inspection & Quality Check",
     intro:
       "Basic quality control before your products go into storage or out to customers.",
     items: [
@@ -38,18 +38,35 @@ const coreServices = [
     ],
   },
   {
-    id: "prep",
-    title: "Product Prep",
+    id: "labelling",
+    title: "Labelling",
     intro:
-      "Products prepared to the standard your sales channel requires.",
+      "Products labelled correctly for their sales channel.",
     items: [
-      "Labelling",
-      "FNSKU labelling",
+      "Product labelling",
+      "FNSKU labelling for Amazon",
+      "Barcode labelling",
+    ],
+  },
+  {
+    id: "prep",
+    title: "Prep",
+    intro:
+      "Products protected and packaged to the standard your channel requires.",
+    items: [
       "Polybagging",
       "Bubble wrapping",
       "Repacking",
-      "Bundling",
-      "Kitting",
+    ],
+  },
+  {
+    id: "kitting",
+    title: "Kitting & Bundling",
+    intro:
+      "Multiple products combined into sets that are ready to sell.",
+    items: [
+      "Product bundles prepared",
+      "Kitting to your specification",
     ],
   },
   {
@@ -144,8 +161,8 @@ export default function ServicesPage() {
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Everything your stock needs between your supplier and your
-              customer — receiving, inspection, prep, storage, pick &amp; pack
-              and returns, all handled locally in Ireland.
+              customer — from receiving to returns, all handled locally in
+              Ireland.
             </p>
           </div>
         </Container>

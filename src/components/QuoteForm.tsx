@@ -407,7 +407,7 @@ export default function QuoteForm() {
         disabled={state === "submitting"}
         className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
-        {state === "submitting" ? "Sending…" : "Send Quote Request"}
+        {state === "submitting" ? "Sending…" : "Request a Quote"}
       </button>
     </form>
   );

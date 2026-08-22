@@ -11,7 +11,7 @@ export const siteConfig = {
   title: "Dockentra | Fulfilment & Prep Centre Ireland",
   tagline: "Local fulfilment for growing e-commerce businesses.",
   description:
-    "Dockentra is an Irish e-commerce fulfilment and prep centre offering receiving, storage, product prep, Amazon FBA prep, pick & pack and returns handling for TikTok Shop, Amazon, Shopify, eBay and WooCommerce sellers in Ireland.",
+    "Dockentra is an Irish fulfilment and prep centre for e-commerce sellers — receiving, inspection, labelling, prep, storage, pick & pack and returns, handled locally in Ireland.",
   url: siteUrl,
 };
 
@@ -37,13 +37,13 @@ export const salesChannels = [
 
 export const serviceOptions = [
   "Receiving",
-  "Storage",
-  "Inspection",
+  "Inspection & Quality Check",
   "Labelling",
+  "Prep",
   "Amazon FBA Prep",
   "Pick & Pack",
-  "Order Fulfilment",
+  "Storage",
+  "Kitting & Bundling",
   "Returns",
-  "Bundling / Kitting",
   "Other",
 ] as const;

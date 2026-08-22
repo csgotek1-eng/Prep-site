@@ -6,21 +6,21 @@ const marketplaces = ["TikTok Shop", "Amazon", "Shopify", "eBay", "WooCommerce"]
 const services = [
   {
     id: "receiving",
-    title: "Goods Receiving",
+    title: "Receiving",
     description:
       "Supplier deliveries received, cartons and units counted, barcodes verified and discrepancies reported.",
   },
   {
     id: "inspection",
-    title: "Product Inspection",
+    title: "Inspection & Quality Check",
     description:
-      "Visible condition, packaging, quantity and barcode checks before your stock goes any further.",
+      "Condition, packaging, quantity and barcode checks before stock goes any further.",
   },
   {
     id: "prep",
-    title: "Product Prep",
+    title: "Prep",
     description:
-      "Labelling, FNSKU labelling, polybagging, bubble wrapping, repacking, bundling and kitting.",
+      "Polybagging, bubble wrapping, repacking, labelling and kitting to your channel's standard.",
   },
   {
     id: "storage",
@@ -174,22 +174,53 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Small business note */}
-      <section aria-labelledby="small-business-heading" className="bg-brand-mint-soft">
+      {/* How it works teaser */}
+      <section aria-labelledby="process-heading" className="bg-brand-mint-soft">
         <Container className="py-14 sm:py-16">
-          <div className="max-w-3xl">
-            <h2
-              id="small-business-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+          <h2
+            id="process-heading"
+            className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+          >
+            How it works
+          </h2>
+          <ol className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {[
+              "Send your stock",
+              "We receive and prepare it",
+              "Orders are picked, packed and dispatched",
+            ].map((step, index) => (
+              <li key={step} className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-teal text-sm font-bold text-white"
+                >
+                  {index + 1}
+                </span>
+                <span className="pt-1 text-base font-semibold text-brand-navy">
+                  {step}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2">
+            <Link
+              href="/how-it-works"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
             >
-              Built for Small and Growing Businesses
-            </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
-              You don&apos;t need to ship thousands of orders to work with a
-              fulfilment centre. Whether you&apos;re sending a few orders per
-              day or growing quickly, we can discuss a fulfilment setup that
-              fits your business.
-            </p>
+              See the full process
+              <span aria-hidden="true" className="ml-1">
+                →
+              </span>
+            </Link>
+            <Link
+              href="/pricing-calculator"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+            >
+              Estimate costs with the Pricing Calculator
+              <span aria-hidden="true" className="ml-1">
+                →
+              </span>
+            </Link>
           </div>
         </Container>
       </section>
@@ -244,8 +275,8 @@ export default function HomePage() {
                 Ready to hand over your fulfilment?
               </h2>
               <p className="mt-2 text-base text-slate-300">
-                Tell us about your business and we&apos;ll come back with a
-                setup that fits.
+                Send a few details about your products and volumes and
+                we&apos;ll propose a setup that fits.
               </p>
             </div>
             <Link

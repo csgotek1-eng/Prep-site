@@ -13,44 +13,19 @@ export const metadata: Metadata = {
 
 const steps = [
   {
-    title: "Tell us about your business",
+    title: "Send your stock",
     description:
-      "Share what you sell, where you sell it and roughly how many orders you handle.",
-  },
-  {
-    title: "Agree the fulfilment requirements",
-    description:
-      "Together we agree what services you need — receiving, prep, storage, fulfilment, returns.",
-  },
-  {
-    title: "Send us your stock",
-    description:
-      "Your supplier or you send stock to Dockentra in Ireland.",
+      "Tell us what you sell and roughly how many orders you handle. We agree the services you need, and you — or your supplier — send stock to Dockentra in Ireland.",
   },
   {
     title: "We receive and prepare it",
     description:
-      "Deliveries are counted, checked and prepared to your requirements.",
+      "Deliveries are counted and checked, products are prepared to your requirements, and inventory goes into local storage, ready for orders.",
   },
   {
-    title: "Inventory goes into storage",
+    title: "Orders are picked, packed and dispatched",
     description:
-      "Your stock is stored locally in Ireland, ready for orders.",
-  },
-  {
-    title: "Orders are picked and packed",
-    description:
-      "As orders come in, items are picked, checked and packed.",
-  },
-  {
-    title: "Parcels are prepared for dispatch",
-    description:
-      "Packed orders are made ready to leave the building.",
-  },
-  {
-    title: "You focus on growing your business",
-    description:
-      "Marketing, products and customers — the fulfilment is handled.",
+      "As orders come in, items are picked, checked, packed and made ready for dispatch. You focus on products and customers — the fulfilment is handled.",
   },
 ];
 
@@ -64,8 +39,7 @@ export default function HowItWorksPage() {
               How It Works
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              A simple, practical process from first conversation to daily
-              fulfilment.
+              Three steps from first conversation to daily fulfilment.
             </p>
           </div>
         </Container>

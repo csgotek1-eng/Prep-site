@@ -4,8 +4,8 @@ import Container from "@/components/Container";
 import { navLinks, siteConfig } from "@/lib/site";
 
 const serviceLinks = [
-  { href: "/services#receiving", label: "Goods Receiving" },
-  { href: "/services#prep", label: "Product Prep" },
+  { href: "/services#receiving", label: "Receiving" },
+  { href: "/services#prep", label: "Prep" },
   { href: "/services#storage", label: "Storage" },
   { href: "/services#pick-pack", label: "Pick & Pack" },
   { href: "/services#returns", label: "Returns" },
