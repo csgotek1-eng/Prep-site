@@ -4,44 +4,43 @@ The site's visual system is built around the owner-approved Dockentra
 logo: a stylised capital **D** in a dark-green → emerald → mint gradient
 with a deep-navy wordmark on a white/light-neutral surface.
 
-## IMPORTANT — official brand name and logo asset status
+## Official logo — ACTIVE
 
-**The authoritative owner-approved brand name is `Dockentra`** (owner
-decision, final). The approved logo's wordmark uses exactly this
-spelling. The earlier working name "Dockcentra" is retired; it survives
-only in git history, the un-applied SQL migration's comment header, and
-the documented placeholder domain fallback (see below).
+**Official wordmark: `Dockentra`** (owner decision, final). The earlier
+working name "Dockcentra" survives only in git history, the un-applied
+SQL migration's comment header, and the documented placeholder domain
+fallback (see below).
 
-One item still blocks committing the logo as the site's asset file:
-the artwork has so far arrived only as a pasted chat image, not as a
-file, so the exact asset could not be placed in `public/brand/` (and
-per the redesign rules it must never be redrawn or approximated).
+**Official logo: ACTIVE. Interim gradient tile: REMOVED.**
 
-**Current treatment (interim, by design):** the site uses the official
-COLOUR SYSTEM extracted from the approved artwork, a typographic navy
-"Dockentra" wordmark, and a simple generated gradient "D" tile in the
-official palette for the header/footer/favicon/OG. The tile does not
-attempt to reproduce the official mark's geometry.
+Asset paths:
+
+| Asset | Path | Notes |
+| --- | --- | --- |
+| Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254, stacked D mark + "Dockentra" wordmark |
+| Official D mark | `public/brand/dockentra-logo-mark.png` | 512×512, derived from the full logo by pixel-bbox CROP + resample only — never redrawn |
+| Favicon | `src/app/icon.png` | 64×64 crop/resample of the official mark |
+| Apple touch icon | `src/app/apple-icon.png` | 180×180 crop/resample of the official mark |
+| OG image | `src/app/opengraph-image.tsx` | embeds the exact mark on a light card |
+
+Usage:
+
+- **Header**: official mark (`next/image`, 40px, accessible name
+  "Dockentra" via alt) + typographic navy wordmark. The full stacked
+  lockup is not used in the 64px header bar because its wordmark would
+  render unreadably small — the task's mark-only rule applies at all
+  header sizes.
+- **Footer**: official mark on a small white card (the asset has a
+  near-white background, so the card keeps it clearly visible on the
+  deep navy footer without altering the artwork) + wordmark text.
+- The mark asset keeps its original near-white background (`#fefefe`);
+  no background removal was performed to avoid touching the artwork's
+  anti-aliased edges.
 
 **Domain note:** the site-URL fallback `https://dockcentra.com` in
 `src/lib/site.ts` / `.env.example` is a deliberate placeholder retained
-until the real production domain is confirmed — it was NOT renamed as
-part of the brand alignment to avoid inventing DNS assumptions; setting
+until the real production domain is confirmed — setting
 `NEXT_PUBLIC_SITE_URL` at deploy time overrides it.
-
-**Drop-in plan once the logo file arrives** (transparent PNG or SVG,
-wordmark "Dockentra"):
-
-1. Add `public/brand/dockentra-logo.png` (full lockup) and
-   `public/brand/dockentra-logo-mark.png` (D mark alone).
-2. Header (`src/components/Header.tsx`): replace the gradient tile +
-   text lockup with `next/image` rendering the full logo (mark-only on
-   the smallest screens). Alt text: "Dockentra".
-3. Footer (`src/components/Footer.tsx`): same swap, compact.
-4. Favicon: replace `src/app/icon.svg` and `src/app/apple-icon.tsx`
-   with versions derived from the official mark.
-5. OG image (`src/app/opengraph-image.tsx`): replace the tile with the
-   official mark.
 
 ## Colour tokens
 

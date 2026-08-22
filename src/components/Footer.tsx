@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Container from "@/components/Container";
 import { navLinks, siteConfig } from "@/lib/site";
 
@@ -18,11 +19,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <p className="flex items-center gap-2 text-lg font-bold text-white">
-              <span
-                aria-hidden="true"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-mint text-sm font-extrabold text-white"
-              >
-                D
+              {/* Official Dockentra D mark on a light card so the exact
+                  asset stays visible on the deep navy footer. */}
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white p-0.5">
+                <Image
+                  src="/brand/dockentra-logo-mark.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 object-contain"
+                />
               </span>
               {siteConfig.name}
             </p>

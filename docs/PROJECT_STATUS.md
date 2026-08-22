@@ -12,12 +12,12 @@ card/button/step systems, calculator total emphasis, favicon +
 apple-icon + OG in the official palette; Calculator added to main nav.
 BRAND NAME: the authoritative owner-approved name is Dockentra (final
 decision); the site, SEO, docs and package metadata are aligned to it.
-PENDING: the official logo FILE — the artwork has arrived only as a
-chat image, so per the no-redraw rule an interim palette-true gradient
-D tile is used; drop-in swap plan in docs/BRAND_SYSTEM.md. The
-https://dockcentra.com site-URL fallback is a documented placeholder
-kept until the real domain is confirmed. No logic/security/route
-changes.
+OFFICIAL LOGO: ACTIVE — the exact owner-approved asset is committed
+(public/brand/dockentra-logo.png; mark, favicon, apple icon and the OG
+card are pixel crops of it — never redrawn); the interim gradient tile
+is REMOVED. The https://dockcentra.com site-URL fallback remains a
+documented placeholder until the real domain is confirmed. No
+logic/security/route changes.
 
 CURRENT STAGE:
 Stage 5 — Supabase auth readiness (complete; remote Supabase NOT

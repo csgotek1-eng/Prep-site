@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site";
 
@@ -9,11 +11,15 @@ export const size = {
 export const contentType = "image/png";
 
 // Open Graph image in the official Dockentra brand system: deep navy
-// surface, dark-green → emerald → mint gradient accents, white text.
-// The D tile is an interim generated treatment in the official palette —
-// swapped for the approved logo mark once the corrected asset file is
-// supplied (docs/BRAND_SYSTEM.md).
+// surface, dark-green → emerald → mint gradient accents, white text, and
+// the EXACT official D mark (public/brand/dockentra-logo-mark.png,
+// derived by pixel crop from the owner-approved logo — never redrawn)
+// on a light card. Generated statically at build time.
 export default function OpenGraphImage() {
+  const mark = readFileSync(
+    join(process.cwd(), "public", "brand", "dockentra-logo-mark.png"),
+  ).toString("base64");
+
   return new ImageResponse(
     (
       <div
@@ -56,19 +62,21 @@ export default function OpenGraphImage() {
         <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
           <div
             style={{
-              width: 68,
-              height: 68,
+              width: 76,
+              height: 76,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               borderRadius: 16,
-              backgroundImage:
-                "linear-gradient(135deg, #14533f 0%, #1e7d61 55%, #86e7ae 100%)",
-              fontSize: 42,
-              fontWeight: 700,
+              backgroundColor: "#ffffff",
             }}
           >
-            D
+            <img
+              src={`data:image/png;base64,${mark}`}
+              alt=""
+              width={66}
+              height={66}
+            />
           </div>
           <div style={{ fontSize: 46, fontWeight: 700 }}>
             {siteConfig.name}

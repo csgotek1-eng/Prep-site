@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Container from "@/components/Container";
 import { navLinks, siteConfig } from "@/lib/site";
@@ -16,23 +17,22 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <Container>
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Brand lockup: gradient D tile (interim treatment in the
-              official palette — swapped for the approved logo image the
-              moment the corrected asset file is supplied, see
-              docs/BRAND_SYSTEM.md) + navy wordmark. */}
+          {/* Brand lockup: the official Dockentra D mark (exact asset,
+              public/brand/dockentra-logo-mark.png) + navy wordmark. */}
           <Link
             href="/"
             onClick={closeMenu}
-            className="flex min-h-11 items-center gap-2.5 text-xl font-bold tracking-tight text-brand-navy"
-            aria-label={`${siteConfig.name} — home`}
+            className="flex min-h-11 items-center gap-2 text-xl font-bold tracking-tight text-brand-navy"
           >
-            <span
-              aria-hidden="true"
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-mint text-base font-extrabold text-white shadow-sm"
-            >
-              D
-            </span>
-            {siteConfig.name}
+            <Image
+              src="/brand/dockentra-logo-mark.png"
+              alt={siteConfig.name}
+              width={40}
+              height={40}
+              priority
+              className="h-10 w-10 shrink-0 object-contain"
+            />
+            <span aria-hidden="true">{siteConfig.name}</span>
           </Link>
 
           {/* Desktop navigation */}
