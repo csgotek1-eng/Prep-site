@@ -49,7 +49,7 @@ const pricingFactors = [
 export default function PricingPage() {
   return (
     <>
-      <section className="bg-slate-900">
+      <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -61,7 +61,7 @@ export default function PricingPage() {
             </p>
             <Link
               href="/pricing-calculator"
-              className="mt-6 inline-flex min-h-12 items-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+              className="mt-6 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
               Try the Fulfilment Cost Calculator
             </Link>
@@ -74,7 +74,7 @@ export default function PricingPage() {
           <div className="max-w-3xl">
             <h2
               id="pricing-factors-heading"
-              className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               What your quote depends on
             </h2>
@@ -90,7 +90,7 @@ export default function PricingPage() {
                 key={factor.title}
                 className="rounded-lg border border-slate-200 p-6"
               >
-                <dt className="text-base font-semibold text-slate-900">
+                <dt className="text-base font-semibold text-brand-navy">
                   {factor.title}
                 </dt>
                 <dd className="mt-2 text-sm leading-6 text-slate-600">
@@ -100,10 +100,10 @@ export default function PricingPage() {
             ))}
           </dl>
 
-          <div className="mt-12 rounded-lg bg-emerald-50 p-6 sm:p-8">
+          <div className="mt-12 rounded-lg bg-brand-mint-soft p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-lg font-semibold text-slate-900">
+                <p className="text-lg font-semibold text-brand-navy">
                   Get a quote tailored to your business
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
@@ -113,7 +113,7 @@ export default function PricingPage() {
               </div>
               <Link
                 href="/contact"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
                 Get a Quote
               </Link>

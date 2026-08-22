@@ -1,17 +1,48 @@
 @import "tailwindcss";
 
+/*
+ * Dockcentra brand system — see docs/BRAND_SYSTEM.md.
+ * Colours are derived from the owner-approved logo (dark green →
+ * emerald → mint gradient D mark, deep navy wordmark, light surfaces).
+ */
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* Navy — headings, strong text, navigation, footer */
+  --color-brand-navy: #16254c;
+  --color-brand-navy-deep: #0d1730;
+
+  /* Green / teal — primary CTA, highlights, interactive states */
+  --color-brand-green-dark: #14533f;
+  --color-brand-green: #1e7d61;
+  --color-brand-teal: #2b9c77;
+
+  /* Mint — subtle highlights, gradients, decorative elements */
+  --color-brand-mint: #86e7ae;
+  --color-brand-mint-soft: #e9f8f0;
+
+  /* Surfaces and neutrals */
+  --color-brand-surface: #ffffff;
+  --color-brand-surface-soft: #f5f9f7;
+  --color-brand-border: #e2eae6;
+  --color-brand-text: #24324e;
+  --color-brand-text-muted: #5b6779;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
-  background-color: var(--color-white);
-  color: var(--color-slate-800);
+  background-color: var(--color-brand-surface);
+  color: var(--color-brand-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -19,7 +50,7 @@ body {
 
 /* Visible focus states for keyboard navigation */
 :focus-visible {
-  outline: 2px solid var(--color-emerald-600);
+  outline: 2px solid var(--color-brand-green);
   outline-offset: 2px;
   border-radius: 2px;
 }

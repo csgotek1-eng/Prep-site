@@ -136,7 +136,7 @@ const marketplaceServices = [
 export default function ServicesPage() {
   return (
     <>
-      <section className="bg-slate-900">
+      <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -155,7 +155,7 @@ export default function ServicesPage() {
         <Container className="py-16 sm:py-20">
           <h2
             id="core-services-heading"
-            className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+            className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
           >
             Core services
           </h2>
@@ -167,7 +167,7 @@ export default function ServicesPage() {
                 id={service.id}
                 className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
               >
-                <h3 className="text-xl font-semibold text-slate-900">
+                <h3 className="text-xl font-semibold text-brand-navy">
                   {service.title}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -181,7 +181,7 @@ export default function ServicesPage() {
                     >
                       <span
                         aria-hidden="true"
-                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600"
+                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green"
                       />
                       {item}
                     </li>
@@ -201,7 +201,7 @@ export default function ServicesPage() {
           <div className="max-w-3xl">
             <h2
               id="marketplace-services-heading"
-              className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               Fulfilment by sales channel
             </h2>
@@ -219,7 +219,7 @@ export default function ServicesPage() {
                 id={service.id}
                 className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
               >
-                <h3 className="text-xl font-semibold text-slate-900">
+                <h3 className="text-xl font-semibold text-brand-navy">
                   {service.title}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -233,7 +233,7 @@ export default function ServicesPage() {
                     >
                       <span
                         aria-hidden="true"
-                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600"
+                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green"
                       />
                       {item}
                     </li>
@@ -243,7 +243,7 @@ export default function ServicesPage() {
             ))}
           </div>
 
-          <div className="mt-12 rounded-lg bg-slate-900 p-6 sm:p-8">
+          <div className="mt-12 rounded-lg bg-brand-navy p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-semibold text-white">
                 Not sure which services you need? Tell us how you sell and
@@ -251,7 +251,7 @@ export default function ServicesPage() {
               </p>
               <Link
                 href="/contact"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
                 Get a Quote
               </Link>

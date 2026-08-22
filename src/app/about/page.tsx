@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <section className="bg-slate-900">
+      <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -48,7 +48,7 @@ export default function AboutPage() {
               stay close to your stock and to the people looking after it.
             </p>
 
-            <h2 className="pt-4 text-2xl font-bold tracking-tight text-slate-900">
+            <h2 className="pt-4 text-2xl font-bold tracking-tight text-brand-navy">
               Built for Small and Growing Businesses
             </h2>
             <p>
@@ -59,14 +59,14 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-12 max-w-3xl rounded-lg bg-slate-900 p-6 sm:p-8">
+          <div className="mx-auto mt-12 max-w-3xl rounded-lg bg-brand-navy p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-semibold text-white">
                 Want to know if we&apos;re a fit? Just ask.
               </p>
               <Link
                 href="/contact"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
                 Talk to Us
               </Link>

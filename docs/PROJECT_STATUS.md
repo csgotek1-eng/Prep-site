@@ -3,6 +3,19 @@
 PROJECT:
 Dockcentra Website
 
+BRAND REDESIGN (branch claude/website-official-brand-redesign):
+COMPLETE (visual layer) — site-wide brand system derived from the
+owner-approved logo palette (navy #16254c / dark green #14533f /
+emerald #1e7d61 / teal #2b9c77 / mint #86e7ae) via Tailwind @theme
+tokens; header/footer lockups, light branded hero with calculator CTA,
+card/button/step systems, calculator total emphasis, favicon +
+apple-icon + OG in the official palette; Calculator added to main nav.
+PENDING: the official logo FILE — the supplied artwork reads
+"Dockentra" (name is Dockcentra) and arrived only as a chat image, so
+per the no-redraw rule an interim palette-true gradient D tile is used;
+drop-in swap plan in docs/BRAND_SYSTEM.md. No logic/security/route
+changes.
+
 CURRENT STAGE:
 Stage 5 — Supabase auth readiness (complete; remote Supabase NOT
 activated, nothing deployed)

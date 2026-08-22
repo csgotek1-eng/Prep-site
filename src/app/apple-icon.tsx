@@ -6,7 +6,9 @@ export const size = {
 };
 export const contentType = "image/png";
 
-// Apple touch icon: same neutral Dockcentra "D" mark as the favicon.
+// Apple touch icon in the official Dockcentra brand palette (dark green →
+// emerald → mint gradient, white D). Interim generated treatment until the
+// approved logo mark file is supplied — see docs/BRAND_SYSTEM.md.
 // iOS applies its own corner mask, so the background stays square.
 export default function AppleIcon() {
   return new ImageResponse(
@@ -18,7 +20,8 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#059669",
+          backgroundImage:
+            "linear-gradient(135deg, #14533f 0%, #1e7d61 55%, #86e7ae 100%)",
           color: "#ffffff",
           fontSize: 110,
           fontWeight: 700,

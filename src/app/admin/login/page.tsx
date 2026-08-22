@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
     <div className="py-12 sm:py-16">
       <Container>
         <div className="mx-auto max-w-md">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-brand-navy">
             Admin sign-in
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">

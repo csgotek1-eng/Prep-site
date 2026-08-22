@@ -72,17 +72,25 @@ const whyDockcentra = [
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <section className="bg-slate-900">
-        <Container className="py-16 sm:py-20 lg:py-28">
+      {/* Hero — light branded surface with subtle D-inspired shapes */}
+      <section className="relative overflow-hidden bg-brand-surface-soft">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+        >
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-brand-mint/40 to-brand-teal/15 blur-2xl" />
+          <div className="absolute -bottom-32 right-1/4 hidden h-72 w-72 rounded-full bg-gradient-to-tr from-brand-green/10 to-brand-mint/25 blur-2xl lg:block" />
+          <div className="absolute right-10 top-16 hidden h-40 w-40 rounded-[2.5rem] rotate-12 border-2 border-brand-mint/50 lg:block" />
+        </div>
+        <Container className="relative py-16 sm:py-20 lg:py-28">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-wider text-emerald-400">
+            <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
               Dockcentra — Fulfilment &amp; Prep Centre
             </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
               Fulfilment &amp; Prep Services in Ireland
             </h1>
-            <p className="mt-5 text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-brand-text-muted sm:text-lg sm:leading-8">
               Dockcentra provides flexible fulfilment, prep, storage and
               returns services for growing e-commerce businesses.
             </p>
@@ -91,7 +99,7 @@ export default function HomePage() {
               {marketplaces.map((name) => (
                 <li
                   key={name}
-                  className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-200"
+                  className="rounded-full border border-brand-border bg-white px-3 py-1.5 text-sm font-medium text-brand-navy"
                 >
                   {name}
                 </li>
@@ -101,15 +109,15 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/contact"
-                className="inline-flex min-h-12 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
+                className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
               >
                 Get a Quote
               </Link>
               <Link
-                href="/contact"
-                className="inline-flex min-h-12 items-center justify-center rounded-md border border-slate-600 px-6 text-base font-semibold text-white transition-colors hover:bg-slate-800"
+                href="/pricing-calculator"
+                className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
               >
-                Talk to Us
+                Pricing Calculator
               </Link>
             </div>
           </div>
@@ -122,7 +130,7 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <h2
               id="services-heading"
-              className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               Fulfilment services under one roof
             </h2>
@@ -136,9 +144,15 @@ export default function HomePage() {
             {services.map((service) => (
               <article
                 key={service.id}
-                className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+                className="rounded-lg border border-brand-border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
-                <h3 className="text-lg font-semibold text-slate-900">
+                <span
+                  aria-hidden="true"
+                  className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-mint-soft"
+                >
+                  <span className="h-3.5 w-3.5 rounded-md bg-gradient-to-br from-brand-green to-brand-teal" />
+                </span>
+                <h3 className="text-lg font-semibold text-brand-navy">
                   {service.title}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -146,7 +160,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href={`/services#${service.id}`}
-                  className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                  className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
                 >
                   Learn more
                   <span aria-hidden="true" className="ml-1">
@@ -161,12 +175,12 @@ export default function HomePage() {
       </section>
 
       {/* Small business note */}
-      <section aria-labelledby="small-business-heading" className="bg-emerald-50">
+      <section aria-labelledby="small-business-heading" className="bg-brand-mint-soft">
         <Container className="py-14 sm:py-16">
           <div className="max-w-3xl">
             <h2
               id="small-business-heading"
-              className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               Built for Small and Growing Businesses
             </h2>
@@ -186,7 +200,7 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <h2
               id="why-heading"
-              className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               Why Dockcentra
             </h2>
@@ -200,9 +214,13 @@ export default function HomePage() {
             {whyDockcentra.map((item) => (
               <div
                 key={item.title}
-                className="rounded-lg border border-slate-200 p-6"
+                className="rounded-lg border border-brand-border bg-white p-6"
               >
-                <dt className="text-lg font-semibold text-slate-900">
+                <dt className="flex items-center gap-2.5 text-lg font-semibold text-brand-navy">
+                  <span
+                    aria-hidden="true"
+                    className="h-2.5 w-2.5 shrink-0 rounded-full bg-gradient-to-br from-brand-green to-brand-mint"
+                  />
                   {item.title}
                 </dt>
                 <dd className="mt-2 text-sm leading-6 text-slate-600">
@@ -215,7 +233,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section aria-labelledby="cta-heading" className="bg-slate-900">
+      <section aria-labelledby="cta-heading" className="bg-brand-navy">
         <Container className="py-14 sm:py-16">
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -232,7 +250,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/contact"
-              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
+              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
               Get a Quote
             </Link>

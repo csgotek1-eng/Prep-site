@@ -108,7 +108,7 @@ export default function PricingCalculator() {
   if (services.length === 0) {
     return (
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 sm:p-8">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-brand-navy">
           Calculator prices are being finalised
         </h2>
         <p className="mt-2 text-base leading-7 text-slate-600">
@@ -118,7 +118,7 @@ export default function PricingCalculator() {
         </p>
         <a
           href="/contact"
-          className="mt-4 inline-flex min-h-12 items-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+          className="mt-4 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
         >
           Get a Quote
         </a>
@@ -149,7 +149,7 @@ export default function PricingCalculator() {
                       key={service.id}
                       className={`rounded-lg border p-4 transition-colors ${
                         selected
-                          ? "border-emerald-600 bg-emerald-50/50"
+                          ? "border-brand-green bg-brand-mint-soft/50"
                           : "border-slate-200 bg-white"
                       }`}
                     >
@@ -158,11 +158,11 @@ export default function PricingCalculator() {
                           type="checkbox"
                           checked={selected}
                           onChange={() => toggleService(service)}
-                          className="mt-1 h-5 w-5 rounded border-slate-300 accent-emerald-600"
+                          className="mt-1 h-5 w-5 rounded border-slate-300 accent-brand-green"
                         />
                         <span className="flex-1">
                           <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                            <span className="text-base font-semibold text-slate-900">
+                            <span className="text-base font-semibold text-brand-navy">
                               {service.name}
                             </span>
                             <span className="text-sm font-medium text-slate-700">
@@ -207,7 +207,7 @@ export default function PricingCalculator() {
                             onChange={(event) =>
                               setQuantity(service.id, event.target.value)
                             }
-                            className="h-11 w-28 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+                            className="h-11 w-28 rounded-md border border-slate-300 bg-white px-3 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
                           />
                           {service.minimumCharge !== null && (
                             <span className="text-xs text-slate-500">
@@ -230,7 +230,7 @@ export default function PricingCalculator() {
         aria-label="Estimate summary"
         className="h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24"
       >
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-brand-navy">
           Your estimate
         </h2>
 
@@ -243,7 +243,7 @@ export default function PricingCalculator() {
                     <span className="text-sm font-medium text-slate-800">
                       {line.name}
                     </span>
-                    <span className="whitespace-nowrap text-sm font-semibold text-slate-900">
+                    <span className="whitespace-nowrap text-sm font-semibold text-brand-navy">
                       {line.customQuote
                         ? "Custom quote"
                         : formatEuro(line.lineTotal ?? 0)}
@@ -264,11 +264,11 @@ export default function PricingCalculator() {
               ))}
             </ul>
 
-            <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4">
-              <span className="text-base font-semibold text-slate-900">
+            <div className="mt-4 flex items-baseline justify-between rounded-lg bg-gradient-to-r from-brand-mint-soft to-brand-mint/30 px-4 py-3">
+              <span className="text-base font-semibold text-brand-navy">
                 Estimated total
               </span>
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-2xl font-bold tracking-tight text-brand-green-dark">
                 {formatEuro(estimate.subtotal)}
               </span>
             </div>
@@ -282,7 +282,7 @@ export default function PricingCalculator() {
             <button
               type="button"
               onClick={requestQuote}
-              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
               Request This Quote
             </button>

@@ -17,7 +17,7 @@ export default function PricingCalculatorPage() {
     <div className="py-12 sm:py-16">
       <Container>
         <div className="max-w-3xl">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
             Fulfilment Cost Calculator
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600">
@@ -35,7 +35,7 @@ export default function PricingCalculatorPage() {
           Prefer to talk it through?{" "}
           <Link
             href="/contact"
-            className="font-semibold text-emerald-700 underline-offset-2 hover:underline"
+            className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
           >
             Contact us directly
           </Link>{" "}

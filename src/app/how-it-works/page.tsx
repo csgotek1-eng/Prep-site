@@ -57,7 +57,7 @@ const steps = [
 export default function HowItWorksPage() {
   return (
     <>
-      <section className="bg-slate-900">
+      <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -73,17 +73,19 @@ export default function HowItWorksPage() {
 
       <section aria-label="Fulfilment process steps" className="bg-white">
         <Container className="py-16 sm:py-20">
-          <ol className="mx-auto max-w-3xl space-y-8">
+          <ol className="mx-auto max-w-3xl">
             {steps.map((step, index) => (
               <li key={step.title} className="flex gap-4 sm:gap-6">
-                <span
-                  aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-base font-bold text-white"
-                >
-                  {index + 1}
-                </span>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">
+                <div aria-hidden="true" className="flex flex-col items-center">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-teal text-base font-bold text-white shadow-sm">
+                    {index + 1}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <span className="my-1.5 w-px flex-1 bg-gradient-to-b from-brand-teal/50 to-brand-mint/60" />
+                  )}
+                </div>
+                <div className="pb-8">
+                  <h2 className="text-lg font-semibold text-brand-navy">
                     {step.title}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
@@ -94,14 +96,14 @@ export default function HowItWorksPage() {
             ))}
           </ol>
 
-          <div className="mx-auto mt-14 max-w-3xl rounded-lg bg-emerald-50 p-6 sm:p-8">
+          <div className="mx-auto mt-14 max-w-3xl rounded-lg bg-brand-mint-soft p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-lg font-semibold text-brand-navy">
                 Ready for step one? Tell us about your business.
               </p>
               <Link
                 href="/contact"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
                 Get a Quote
               </Link>

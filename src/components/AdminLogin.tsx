@@ -15,7 +15,7 @@ import {
 } from "@/lib/supabase-browser";
 
 const inputClasses =
-  "mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30";
+  "mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25";
 const labelClasses = "block text-sm font-medium text-slate-700";
 
 /**
@@ -83,7 +83,7 @@ export default function AdminLogin() {
           In development you can use the token form at{" "}
           <Link
             href="/admin/pricing"
-            className="font-semibold text-emerald-700 underline-offset-2 hover:underline"
+            className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
           >
             /admin/pricing
           </Link>
@@ -180,7 +180,7 @@ export default function AdminLogin() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? "Signing in…" : "Sign in"}
       </button>

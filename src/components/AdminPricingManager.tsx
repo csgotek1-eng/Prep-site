@@ -20,7 +20,7 @@ import {
 } from "@/lib/pricing/types";
 
 const inputClasses =
-  "mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30";
+  "mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25";
 const labelClasses = "block text-sm font-medium text-slate-700";
 const buttonClasses =
   "inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors";
@@ -256,7 +256,7 @@ function ServiceForm({
             type="checkbox"
             checked={values.isActive}
             onChange={(e) => set("isActive", e.target.checked)}
-            className="h-5 w-5 rounded border-slate-300 accent-emerald-600"
+            className="h-5 w-5 rounded border-slate-300 accent-brand-green"
           />
           Active (visible in public calculator)
         </label>
@@ -265,7 +265,7 @@ function ServiceForm({
             type="checkbox"
             checked={values.isFeatured}
             onChange={(e) => set("isFeatured", e.target.checked)}
-            className="h-5 w-5 rounded border-slate-300 accent-emerald-600"
+            className="h-5 w-5 rounded border-slate-300 accent-brand-green"
           />
           Featured
         </label>
@@ -274,7 +274,7 @@ function ServiceForm({
         <button
           type="submit"
           disabled={busy}
-          className={`${buttonClasses} bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60`}
+          className={`${buttonClasses} bg-brand-green text-white hover:bg-brand-green-dark disabled:opacity-60`}
         >
           {busy ? "Saving…" : submitLabel}
         </button>
@@ -466,7 +466,7 @@ export default function AdminPricingManager() {
         )}
         <button
           type="submit"
-          className={`${buttonClasses} mt-4 bg-emerald-600 text-white hover:bg-emerald-700`}
+          className={`${buttonClasses} mt-4 bg-brand-green text-white hover:bg-brand-green-dark`}
         >
           Unlock admin
         </button>
@@ -511,7 +511,7 @@ export default function AdminPricingManager() {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-brand-navy">
           Services ({services.length})
         </h2>
         <button
@@ -520,15 +520,15 @@ export default function AdminPricingManager() {
             setAdding((current) => !current);
             setEditingId(null);
           }}
-          className={`${buttonClasses} bg-emerald-600 text-white hover:bg-emerald-700`}
+          className={`${buttonClasses} bg-brand-green text-white hover:bg-brand-green-dark`}
         >
           {adding ? "Close" : "Add service"}
         </button>
       </div>
 
       {adding && (
-        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5">
-          <h3 className="text-base font-semibold text-slate-900">
+        <div className="mt-4 rounded-lg border border-brand-mint/70 bg-brand-mint-soft/40 p-4 sm:p-5">
+          <h3 className="text-base font-semibold text-brand-navy">
             New service
           </h3>
           <ServiceForm
@@ -559,13 +559,13 @@ export default function AdminPricingManager() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="flex flex-wrap items-center gap-2">
-                  <span className="text-base font-semibold text-slate-900">
+                  <span className="text-base font-semibold text-brand-navy">
                     {service.name}
                   </span>
                   <span
                     className={`rounded px-2 py-0.5 text-xs font-medium ${
                       service.isActive
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-brand-mint/40 text-brand-green-dark"
                         : "bg-slate-100 text-slate-600"
                     }`}
                   >
@@ -607,7 +607,7 @@ export default function AdminPricingManager() {
                   className={`${buttonClasses} border ${
                     service.isActive
                       ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                      : "border-emerald-600 bg-white text-emerald-700 hover:bg-emerald-50"
+                      : "border-brand-green bg-white text-brand-green-dark hover:bg-brand-mint-soft"
                   }`}
                 >
                   {service.isActive ? "Deactivate" : "Activate"}
@@ -645,7 +645,7 @@ export default function AdminPricingManager() {
 
       {priceHistory.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-brand-navy">
             Price history
           </h2>
           <ul className="mt-3 space-y-1 text-sm text-slate-600">

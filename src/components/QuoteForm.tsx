@@ -9,7 +9,7 @@ import type { Estimate, EstimateSelection } from "@/lib/pricing/types";
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
 const inputClasses =
-  "mt-1.5 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30";
+  "mt-1.5 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25";
 
 const labelClasses = "block text-sm font-medium text-slate-700";
 
@@ -140,9 +140,9 @@ export default function QuoteForm() {
     return (
       <div
         role="status"
-        className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 sm:p-8"
+        className="rounded-lg border border-brand-mint/70 bg-brand-mint-soft p-6 sm:p-8"
       >
-        <h2 className="text-xl font-semibold text-slate-900">
+        <h2 className="text-xl font-semibold text-brand-navy">
           Thanks — your request has been sent
         </h2>
         <p className="mt-2 text-base leading-7 text-slate-700">
@@ -163,9 +163,9 @@ export default function QuoteForm() {
   return (
     <form onSubmit={handleSubmit} noValidate={false}>
       {calculatorEstimate && (
-        <div className="mb-8 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
+        <div className="mb-8 rounded-lg border border-brand-mint/70 bg-brand-mint-soft/60 p-4 sm:p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-brand-navy">
               Your calculator estimate
             </h2>
             <button
@@ -193,7 +193,7 @@ export default function QuoteForm() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 flex justify-between gap-3 border-t border-emerald-200 pt-2 text-sm font-semibold text-slate-900">
+          <p className="mt-2 flex justify-between gap-3 border-t border-brand-mint/70 pt-2 text-sm font-semibold text-brand-navy">
             <span>Estimated total</span>
             <span>{formatEuro(calculatorEstimate.subtotal)}</span>
           </p>
@@ -306,7 +306,7 @@ export default function QuoteForm() {
                 type="checkbox"
                 name="salesChannels"
                 value={channel}
-                className="h-5 w-5 rounded border-slate-300 accent-emerald-600"
+                className="h-5 w-5 rounded border-slate-300 accent-brand-green"
               />
               {channel}
             </label>
@@ -372,7 +372,7 @@ export default function QuoteForm() {
                 type="checkbox"
                 name="servicesNeeded"
                 value={service}
-                className="h-5 w-5 rounded border-slate-300 accent-emerald-600"
+                className="h-5 w-5 rounded border-slate-300 accent-brand-green"
               />
               {service}
             </label>
@@ -405,7 +405,7 @@ export default function QuoteForm() {
       <button
         type="submit"
         disabled={state === "submitting"}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {state === "submitting" ? "Sending…" : "Send Quote Request"}
       </button>

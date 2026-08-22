@@ -13,14 +13,14 @@ const serviceLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-900 text-slate-300">
+    <footer className="bg-brand-navy-deep text-slate-300">
       <Container className="py-12">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <p className="flex items-center gap-2 text-lg font-bold text-white">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-600 text-xs font-extrabold text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-mint text-sm font-extrabold text-white"
               >
                 D
               </span>
@@ -43,7 +43,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex min-h-11 items-center text-sm text-slate-300 hover:text-white"
+                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
                   >
                     {link.label}
                   </Link>
@@ -61,7 +61,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex min-h-11 items-center text-sm text-slate-300 hover:text-white"
+                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
                   >
                     {link.label}
                   </Link>
@@ -71,7 +71,7 @@ export default function Footer() {
           </nav>
         </div>
 
-        <div className="mt-10 border-t border-slate-800 pt-6">
+        <div className="mt-10 border-t border-white/10 pt-6">
           <p className="text-xs text-slate-500">
             &copy; {new Date().getFullYear()} {siteConfig.name}. Fulfilment
             &amp; Prep Centre, Ireland. Dockcentra supports sellers on TikTok

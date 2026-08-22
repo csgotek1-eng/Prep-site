@@ -16,15 +16,19 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <Container>
         <div className="flex h-16 items-center justify-between gap-4">
+          {/* Brand lockup: gradient D tile (interim treatment in the
+              official palette — swapped for the approved logo image the
+              moment the corrected asset file is supplied, see
+              docs/BRAND_SYSTEM.md) + navy wordmark. */}
           <Link
             href="/"
             onClick={closeMenu}
-            className="flex min-h-11 items-center gap-2 text-xl font-bold tracking-tight text-slate-900"
+            className="flex min-h-11 items-center gap-2.5 text-xl font-bold tracking-tight text-brand-navy"
             aria-label={`${siteConfig.name} — home`}
           >
             <span
               aria-hidden="true"
-              className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600 text-sm font-extrabold text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-mint text-base font-extrabold text-white shadow-sm"
             >
               D
             </span>
@@ -39,9 +43,9 @@ export default function Header() {
                   <Link
                     href={link.href}
                     aria-current={pathname === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-900 ${
+                    className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-brand-navy ${
                       pathname === link.href
-                        ? "text-emerald-700"
+                        ? "text-brand-green-dark"
                         : "text-slate-600"
                     }`}
                   >
@@ -55,7 +59,7 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <Link
               href="/contact"
-              className="hidden min-h-11 items-center rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-md bg-brand-green px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark sm:inline-flex"
             >
               Get a Quote
             </Link>
@@ -114,7 +118,7 @@ export default function Header() {
                     aria-current={pathname === link.href ? "page" : undefined}
                     className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium hover:bg-slate-100 ${
                       pathname === link.href
-                        ? "text-emerald-700"
+                        ? "text-brand-green-dark"
                         : "text-slate-700"
                     }`}
                   >
@@ -126,7 +130,7 @@ export default function Header() {
                 <Link
                   href="/contact"
                   onClick={closeMenu}
-                  className="flex min-h-12 items-center justify-center rounded-md bg-emerald-600 px-4 text-base font-semibold text-white hover:bg-emerald-700"
+                  className="flex min-h-12 items-center justify-center rounded-md bg-brand-green px-4 text-base font-semibold text-white hover:bg-brand-green-dark"
                 >
                   Get a Quote
                 </Link>
