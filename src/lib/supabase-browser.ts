@@ -39,7 +39,7 @@ export type AuthAttempt =
   | { session: AdminSession; error?: never }
   | { session?: never; error: string };
 
-const SESSION_STORAGE_KEY = "dockcentra-admin-session";
+const SESSION_STORAGE_KEY = "dockentra-admin-session";
 const GENERIC_ERROR = "Sign-in failed. Please try again.";
 
 /** Public browser config; null when this build has no Supabase set up. */

@@ -116,7 +116,7 @@ describe("deliverQuoteRequest — webhook mode", () => {
     let signature: string | null = null;
     globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
       requestBody = String(init?.body);
-      signature = new Headers(init?.headers).get("X-Dockcentra-Signature");
+      signature = new Headers(init?.headers).get("X-Dockentra-Signature");
       return new Response("", { status: 200 });
     }) as typeof fetch;
 

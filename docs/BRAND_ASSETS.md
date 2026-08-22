@@ -1,8 +1,8 @@
 # BRAND ASSETS
 
-No approved graphical Dockcentra logo exists in this repository yet. Until
+No approved graphical Dockentra logo exists in this repository yet. Until
 one is approved, the site intentionally uses a neutral text wordmark
-("Dockcentra" with an emerald "D" tile) in the header, favicon, Apple touch
+("Dockentra" with an emerald "D" tile) in the header, favicon, Apple touch
 icon and Open Graph image. Nothing claims trademark affiliation with any
 marketplace, and no marketplace logos are used anywhere.
 
@@ -22,7 +22,7 @@ are approved.
 | --- | --- | --- |
 | Favicon | `src/app/icon.svg` | Emerald rounded square with white "D" |
 | Apple touch icon | `src/app/apple-icon.tsx` | 180×180 PNG generated at build time |
-| Open Graph image | `src/app/opengraph-image.tsx` | 1200×630 PNG generated at build time, Dockcentra-only branding |
+| Open Graph image | `src/app/opengraph-image.tsx` | 1200×630 PNG generated at build time, Dockentra-only branding |
 
 ## How to swap in an approved logo later
 

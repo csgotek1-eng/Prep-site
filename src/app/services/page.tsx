@@ -94,7 +94,7 @@ const marketplaceServices = [
     id: "tiktok-shop",
     title: "TikTok Shop Fulfilment",
     description:
-      "Selling on TikTok Shop from Ireland or into Ireland? Dockcentra can support TikTok Shop sellers with the day-to-day fulfilment work behind their store:",
+      "Selling on TikTok Shop from Ireland or into Ireland? Dockentra can support TikTok Shop sellers with the day-to-day fulfilment work behind their store:",
     items: ["Receiving", "Storage", "Prep", "Pick & pack", "Returns"],
   },
   {
@@ -206,7 +206,7 @@ export default function ServicesPage() {
               Fulfilment by sales channel
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
-              Dockcentra works with sellers across the main e-commerce
+              Dockentra works with sellers across the main e-commerce
               platforms. We are an independent fulfilment centre and not
               affiliated with or endorsed by any marketplace.
             </p>

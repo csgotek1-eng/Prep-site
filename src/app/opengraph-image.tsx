@@ -8,7 +8,7 @@ export const size = {
 };
 export const contentType = "image/png";
 
-// Open Graph image in the official Dockcentra brand system: deep navy
+// Open Graph image in the official Dockentra brand system: deep navy
 // surface, dark-green → emerald → mint gradient accents, white text.
 // The D tile is an interim generated treatment in the official palette —
 // swapped for the approved logo mark once the corrected asset file is

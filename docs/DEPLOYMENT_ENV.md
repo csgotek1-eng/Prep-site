@@ -1,6 +1,6 @@
 # DEPLOYMENT ENVIRONMENTS
 
-Environment-variable plan for the Dockcentra website. No real secrets in
+Environment-variable plan for the Dockentra website. No real secrets in
 this file or anywhere in the repository — values are set in `.env.local`
 (local) and in Vercel Project → Settings → Environment Variables
 (Preview / Production).
@@ -96,14 +96,14 @@ request to `QUOTE_WEBHOOK_URL`:
 ```
 POST <QUOTE_WEBHOOK_URL>
 Content-Type: application/json
-X-Dockcentra-Signature: sha256=<hex hmac>   (only when QUOTE_WEBHOOK_SECRET is set)
+X-Dockentra-Signature: sha256=<hex hmac>   (only when QUOTE_WEBHOOK_SECRET is set)
 ```
 
 Body schema (example values, not real customer data):
 
 ```json
 {
-  "source": "dockcentra-website",
+  "source": "dockentra-website",
   "type": "quote-request",
   "quote": {
     "name": "Jane Example",

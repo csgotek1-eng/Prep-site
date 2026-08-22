@@ -6,7 +6,7 @@ import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
 import { formatEuro } from "@/lib/pricing/money";
 import type { PricingService } from "@/lib/pricing/types";
 
-export const CALCULATOR_STORAGE_KEY = "dockcentra-calculator-selections";
+export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
 
 interface SelectionState {
   [serviceId: string]: number; // quantity

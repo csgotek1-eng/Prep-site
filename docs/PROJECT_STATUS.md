@@ -1,7 +1,7 @@
 # PROJECT STATUS
 
 PROJECT:
-Dockcentra Website
+Dockentra Website
 
 BRAND REDESIGN (branch claude/website-official-brand-redesign):
 COMPLETE (visual layer) — site-wide brand system derived from the
@@ -10,10 +10,13 @@ emerald #1e7d61 / teal #2b9c77 / mint #86e7ae) via Tailwind @theme
 tokens; header/footer lockups, light branded hero with calculator CTA,
 card/button/step systems, calculator total emphasis, favicon +
 apple-icon + OG in the official palette; Calculator added to main nav.
-PENDING: the official logo FILE — the supplied artwork reads
-"Dockentra" (name is Dockcentra) and arrived only as a chat image, so
-per the no-redraw rule an interim palette-true gradient D tile is used;
-drop-in swap plan in docs/BRAND_SYSTEM.md. No logic/security/route
+BRAND NAME: the authoritative owner-approved name is Dockentra (final
+decision); the site, SEO, docs and package metadata are aligned to it.
+PENDING: the official logo FILE — the artwork has arrived only as a
+chat image, so per the no-redraw rule an interim palette-true gradient
+D tile is used; drop-in swap plan in docs/BRAND_SYSTEM.md. The
+https://dockcentra.com site-URL fallback is a documented placeholder
+kept until the real domain is confirmed. No logic/security/route
 changes.
 
 CURRENT STAGE:
@@ -186,9 +189,9 @@ COMPLETED (STAGE 2):
   docs/BRAND_ASSETS.md documenting where an approved logo goes later; no
   logo invented, neutral text wordmark kept
 - Favicon (src/app/icon.svg) and Apple touch icon (src/app/apple-icon.tsx),
-  neutral Dockcentra "D" mark, no marketplace affiliation claims
+  neutral Dockentra "D" mark, no marketplace affiliation claims
 - Open Graph image 1200×630 generated at build time
-  (src/app/opengraph-image.tsx) with Dockcentra-only branding; twitter card
+  (src/app/opengraph-image.tsx) with Dockentra-only branding; twitter card
   upgraded to summary_large_image
 - Production quote delivery layer (src/lib/quote-delivery.ts):
   QUOTE_DELIVERY_MODE=log (default) and QUOTE_DELIVERY_MODE=webhook with
@@ -231,7 +234,7 @@ NEXT / BLOCKERS:
 - Create the admin user (app_metadata.role=admin, service-role only)
 - Supabase admin sign-in UI: DONE (Stage 5) — first remote verification
   happens during activation
-- Enter real Dockcentra prices (owner) — none entered yet
+- Enter real Dockentra prices (owner) — none entered yet
 - Activate pricing services once prices are confirmed
 - Provide legal/privacy user inputs (docs/LEGAL_INPUTS_REQUIRED.md) and
   finalize/publish the legal pages
@@ -243,7 +246,7 @@ NEXT / BLOCKERS:
   with genuinely unique content
 
 KNOWN ISSUES:
-- GitHub default branch still reports as claude/dockcentra-ireland-site-x9dacq
+- GitHub default branch still reports as claude/dockentra-ireland-site-x9dacq
   via the API — switch/confirm main manually in repository settings
 - Production domain not confirmed; site URL falls back to
   https://dockcentra.com until NEXT_PUBLIC_SITE_URL is set (documented)

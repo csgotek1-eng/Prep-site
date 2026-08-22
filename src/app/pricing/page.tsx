@@ -5,7 +5,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Flexible fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote from Dockcentra.",
+    "Flexible fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote from Dockentra.",
   alternates: {
     canonical: "/pricing",
   },

@@ -74,7 +74,7 @@ export default function Footer() {
         <div className="mt-10 border-t border-white/10 pt-6">
           <p className="text-xs text-slate-500">
             &copy; {new Date().getFullYear()} {siteConfig.name}. Fulfilment
-            &amp; Prep Centre, Ireland. Dockcentra supports sellers on TikTok
+            &amp; Prep Centre, Ireland. Dockentra supports sellers on TikTok
             Shop, Amazon, Shopify, eBay and WooCommerce and is not affiliated
             with or endorsed by these platforms.
           </p>

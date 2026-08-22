@@ -1,39 +1,42 @@
-# DOCKCENTRA BRAND SYSTEM
+# DOCKENTRA BRAND SYSTEM
 
-The site's visual system is built around the owner-approved Dockcentra
+The site's visual system is built around the owner-approved Dockentra
 logo: a stylised capital **D** in a dark-green → emerald → mint gradient
 with a deep-navy wordmark on a white/light-neutral surface.
 
-## IMPORTANT — official logo asset status
+## IMPORTANT — official brand name and logo asset status
 
-The approved logo was shown to the team as an image, but two things
-block committing it as the site's logo file:
+**The authoritative owner-approved brand name is `Dockentra`** (owner
+decision, final). The approved logo's wordmark uses exactly this
+spelling. The earlier working name "Dockcentra" is retired; it survives
+only in git history, the un-applied SQL migration's comment header, and
+the documented placeholder domain fallback (see below).
 
-1. **Spelling**: the supplied artwork's wordmark reads "Dockentra",
-   while the official brand name everywhere (TZ, documents, site,
-   legal direction) is **Dockcentra**. Publishing the misspelled
-   wordmark site-wide is not acceptable without an explicit owner
-   decision.
-2. **No binary file**: the artwork was pasted as a chat image, not
-   delivered as a file, so the exact asset could not be placed in
-   `public/brand/` (and per the redesign rules it must never be
-   redrawn or approximated).
+One item still blocks committing the logo as the site's asset file:
+the artwork has so far arrived only as a pasted chat image, not as a
+file, so the exact asset could not be placed in `public/brand/` (and
+per the redesign rules it must never be redrawn or approximated).
 
 **Current treatment (interim, by design):** the site uses the official
 COLOUR SYSTEM extracted from the approved artwork, a typographic navy
-"Dockcentra" wordmark (correct spelling), and a simple generated
-gradient "D" tile in the official palette for the header/footer/
-favicon/OG. The tile does not attempt to reproduce the official mark's
-geometry.
+"Dockentra" wordmark, and a simple generated gradient "D" tile in the
+official palette for the header/footer/favicon/OG. The tile does not
+attempt to reproduce the official mark's geometry.
 
-**Drop-in plan once the corrected file arrives** (transparent PNG or
-SVG, wordmark spelled "Dockcentra"):
+**Domain note:** the site-URL fallback `https://dockcentra.com` in
+`src/lib/site.ts` / `.env.example` is a deliberate placeholder retained
+until the real production domain is confirmed — it was NOT renamed as
+part of the brand alignment to avoid inventing DNS assumptions; setting
+`NEXT_PUBLIC_SITE_URL` at deploy time overrides it.
 
-1. Add `public/brand/dockcentra-logo.png` (full lockup) and
-   `public/brand/dockcentra-logo-mark.png` (D mark alone).
+**Drop-in plan once the logo file arrives** (transparent PNG or SVG,
+wordmark "Dockentra"):
+
+1. Add `public/brand/dockentra-logo.png` (full lockup) and
+   `public/brand/dockentra-logo-mark.png` (D mark alone).
 2. Header (`src/components/Header.tsx`): replace the gradient tile +
    text lockup with `next/image` rendering the full logo (mark-only on
-   the smallest screens). Alt text: "Dockcentra".
+   the smallest screens). Alt text: "Dockentra".
 3. Footer (`src/components/Footer.tsx`): same swap, compact.
 4. Favicon: replace `src/app/icon.svg` and `src/app/apple-icon.tsx`
    with versions derived from the official mark.

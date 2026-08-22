@@ -33,7 +33,7 @@ services at any time before an agreement is in place.
 
 ## 5. Intellectual property
 
-The content of this website (text, layout, graphics, the Dockcentra
+The content of this website (text, layout, graphics, the Dockentra
 name and wordmark) belongs to [LEGAL ENTITY NAME] and may not be
 reproduced without permission. Marketplace names (TikTok Shop, Amazon,
 Shopify, eBay, WooCommerce) are trademarks of their respective owners

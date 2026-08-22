@@ -91,7 +91,7 @@ DB check. No blocker for activation.
 4. Set production secrets in Vercel (`NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
    `PRICING_PERSISTENCE=supabase`, `ADMIN_AUTH_PROVIDER=supabase`).
-5. Later: enter real Dockcentra prices and activate services.
+5. Later: enter real Dockentra prices and activate services.
 6. Later: legal/privacy inputs and the production domain.
 
 Until then: remote Supabase NOT ACTIVATED, migration NOT APPLIED, real

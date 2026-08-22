@@ -42,7 +42,7 @@ const services = [
   },
 ];
 
-const whyDockcentra = [
+const whyDockentra = [
   {
     title: "Ireland-based",
     description:
@@ -85,13 +85,13 @@ export default function HomePage() {
         <Container className="relative py-16 sm:py-20 lg:py-28">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
-              Dockcentra — Fulfilment &amp; Prep Centre
+              Dockentra — Fulfilment &amp; Prep Centre
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
               Fulfilment &amp; Prep Services in Ireland
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-brand-text-muted sm:text-lg sm:leading-8">
-              Dockcentra provides flexible fulfilment, prep, storage and
+              Dockentra provides flexible fulfilment, prep, storage and
               returns services for growing e-commerce businesses.
             </p>
 
@@ -194,7 +194,7 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Why Dockcentra */}
+      {/* Why Dockentra */}
       <section aria-labelledby="why-heading" className="bg-white">
         <Container className="py-16 sm:py-20">
           <div className="max-w-2xl">
@@ -202,7 +202,7 @@ export default function HomePage() {
               id="why-heading"
               className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
-              Why Dockcentra
+              Why Dockentra
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
               A practical fulfilment partner in Ireland, built around how
@@ -211,7 +211,7 @@ export default function HomePage() {
           </div>
 
           <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {whyDockcentra.map((item) => (
+            {whyDockentra.map((item) => (
               <div
                 key={item.title}
                 className="rounded-lg border border-brand-border bg-white p-6"

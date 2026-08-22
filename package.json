@@ -1,8 +1,8 @@
 {
-  "name": "dockcentra-website",
+  "name": "dockentra-website",
   "version": "0.1.0",
   "private": true,
-  "description": "Dockcentra — Fulfilment & Prep Services in Ireland",
+  "description": "Dockentra — Fulfilment & Prep Services in Ireland",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

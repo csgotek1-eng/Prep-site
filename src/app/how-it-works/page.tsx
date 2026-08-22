@@ -5,7 +5,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "How fulfilment with Dockcentra works — from telling us about your business to your orders being picked, packed and prepared for dispatch in Ireland.",
+    "How fulfilment with Dockentra works — from telling us about your business to your orders being picked, packed and prepared for dispatch in Ireland.",
   alternates: {
     canonical: "/how-it-works",
   },
@@ -25,7 +25,7 @@ const steps = [
   {
     title: "Send us your stock",
     description:
-      "Your supplier or you send stock to Dockcentra in Ireland.",
+      "Your supplier or you send stock to Dockentra in Ireland.",
   },
   {
     title: "We receive and prepare it",

@@ -63,7 +63,7 @@ navigation, and included in the sitemap in a small follow-up stage.
 Once the Privacy Policy route exists (and not before), a short notice is
 added to the quote form. Suggested wording concept for the future UI:
 
-> "By submitting this form, you agree that Dockcentra may use the
+> "By submitting this form, you agree that Dockentra may use the
 > information provided to respond to your enquiry. See our Privacy
 > Policy."
 

@@ -5,7 +5,7 @@ import QuoteForm from "@/components/QuoteForm";
 export const metadata: Metadata = {
   title: "Contact / Get a Quote",
   description:
-    "Get a fulfilment quote from Dockcentra. Tell us about your products, sales channels and order volumes and we'll propose a fulfilment setup that fits your business.",
+    "Get a fulfilment quote from Dockentra. Tell us about your products, sales channels and order volumes and we'll propose a fulfilment setup that fits your business.",
   alternates: {
     canonical: "/contact",
   },

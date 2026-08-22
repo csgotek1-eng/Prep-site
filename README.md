@@ -1,6 +1,6 @@
-# Dockcentra Website
+# Dockentra Website
 
-Official marketing website for **Dockcentra** — a Fulfilment & Prep Centre in Ireland serving e-commerce sellers on TikTok Shop, Amazon, Shopify, eBay and WooCommerce.
+Official marketing website for **Dockentra** — a Fulfilment & Prep Centre in Ireland serving e-commerce sellers on TikTok Shop, Amazon, Shopify, eBay and WooCommerce.
 
 > Local fulfilment for growing e-commerce businesses.
 
@@ -8,7 +8,7 @@ Official marketing website for **Dockcentra** — a Fulfilment & Prep Centre in 
 
 A public marketing website built mobile-first:
 
-- Homepage with hero, services preview, small-business section, "Why Dockcentra" and CTAs
+- Homepage with hero, services preview, small-business section, "Why Dockentra" and CTAs
 - Services page (core services + fulfilment by sales channel)
 - How It Works (8-step process)
 - Pricing (flexible, quote-based — no fixed prices published)
@@ -82,7 +82,7 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph, robots and the sitemap. Falls back to `https://dockcentra.com` until the production domain is confirmed — always set it explicitly in production. |
 | `QUOTE_DELIVERY_MODE` | Quote form delivery mode: `log` (default — submissions are logged server-side) or `webhook` (submissions are POSTed as JSON to `QUOTE_WEBHOOK_URL`). Server-side only. |
 | `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
-| `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockcentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
+| `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
 | `QUOTE_WEBHOOK_TIMEOUT_MS` | Optional webhook timeout in milliseconds (default 8000). |
 | `PRICING_PERSISTENCE` | Pricing store: `file` (development only) or `supabase` (production). Fail closed — unset in production or misconfigured `supabase` disables the store; no silent file fallback. |
 | `ADMIN_AUTH_PROVIDER` | Admin auth: `dev-token` (development only; refused in production builds) or `supabase` (Supabase Auth, server-side validation). |
@@ -99,7 +99,7 @@ The quote form posts to `/api/quote`. The route validates input, drops honeypot 
 
 ## Brand assets
 
-See [docs/BRAND_ASSETS.md](docs/BRAND_ASSETS.md). Favicon, Apple touch icon and the 1200×630 Open Graph image are generated from source (`src/app/icon.svg`, `apple-icon.tsx`, `opengraph-image.tsx`) with neutral Dockcentra-only branding; `public/brand/` and `public/og/` are reserved for approved logo files.
+See [docs/BRAND_ASSETS.md](docs/BRAND_ASSETS.md). Favicon, Apple touch icon and the 1200×630 Open Graph image are generated from source (`src/app/icon.svg`, `apple-icon.tsx`, `opengraph-image.tsx`) with neutral Dockentra-only branding; `public/brand/` and `public/og/` are reserved for approved logo files.
 
 ## Deployment to Vercel
 

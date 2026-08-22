@@ -6,7 +6,7 @@ export const size = {
 };
 export const contentType = "image/png";
 
-// Apple touch icon in the official Dockcentra brand palette (dark green →
+// Apple touch icon in the official Dockentra brand palette (dark green →
 // emerald → mint gradient, white D). Interim generated treatment until the
 // approved logo mark file is supplied — see docs/BRAND_SYSTEM.md.
 // iOS applies its own corner mask, so the background stays square.

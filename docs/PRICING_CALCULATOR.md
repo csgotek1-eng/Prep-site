@@ -60,7 +60,7 @@ price or total):
 
 `src/lib/pricing/seed.ts` seeds the catalogue with **price = 0 and
 isActive = false** for every service (custom-quote services included).
-No real Dockcentra prices have been invented; nothing appears in the
+No real Dockentra prices have been invented; nothing appears in the
 public calculator until an admin sets a price and activates the service.
 Until then `/pricing-calculator` shows a "prices are being finalised"
 message with a quote-form CTA.

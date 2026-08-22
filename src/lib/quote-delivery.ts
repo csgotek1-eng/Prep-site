@@ -12,7 +12,7 @@ import type { Estimate } from "./pricing/types";
  *           destination is configured.
  *   webhook submissions are POSTed as JSON to QUOTE_WEBHOOK_URL. If
  *           QUOTE_WEBHOOK_SECRET is set, an HMAC-SHA256 signature of the
- *           request body is sent in the X-Dockcentra-Signature header so
+ *           request body is sent in the X-Dockentra-Signature header so
  *           the receiver can verify authenticity.
  *
  * All configuration comes from environment variables; nothing is hardcoded.
@@ -78,7 +78,7 @@ async function deliverToWebhook(
   }
 
   const body = JSON.stringify({
-    source: "dockcentra-website",
+    source: "dockentra-website",
     type: "quote-request",
     quote,
     // Present only when the visitor came from the pricing calculator.
@@ -92,7 +92,7 @@ async function deliverToWebhook(
   const secret = process.env.QUOTE_WEBHOOK_SECRET;
   if (secret) {
     const signature = createHmac("sha256", secret).update(body).digest("hex");
-    headers["X-Dockcentra-Signature"] = `sha256=${signature}`;
+    headers["X-Dockentra-Signature"] = `sha256=${signature}`;
   }
 
   const controller = new AbortController();

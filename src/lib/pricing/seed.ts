@@ -3,7 +3,7 @@ import type { PricingService } from "./types";
 /**
  * Initial service catalogue.
  *
- * IMPORTANT: no real Dockcentra prices exist yet, so every priced service
+ * IMPORTANT: no real Dockentra prices exist yet, so every priced service
  * is seeded with price = 0 and isActive = false. Nothing here appears in
  * the public calculator until an admin sets a real price and activates
  * the service. Do NOT invent commercial prices in this file.

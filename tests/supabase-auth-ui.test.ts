@@ -161,7 +161,7 @@ describe("session storage", () => {
   it("returns null for corrupt stored data and without sessionStorage", () => {
     assert.equal(loadStoredSession(), null); // no sessionStorage at all
     const store = installSessionStorage();
-    store.set("dockcentra-admin-session", "{not json");
+    store.set("dockentra-admin-session", "{not json");
     assert.equal(loadStoredSession(), null);
   });
 

@@ -14,7 +14,7 @@
 
 [LEGAL ENTITY NAME], [LEGAL FORM], of [REGISTERED ADDRESS]
 ([CRO NUMBER — if applicable], [VAT NUMBER — if applicable]) operates
-the Dockcentra website and is the data controller for the personal data
+the Dockentra website and is the data controller for the personal data
 described in this policy.
 
 Privacy contact: [PRIVACY EMAIL]
