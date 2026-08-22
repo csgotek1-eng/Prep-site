@@ -15,10 +15,10 @@ public/og/      # reserved for designed social images (none yet)
 
 | Asset | Path | Notes |
 | --- | --- | --- |
-| Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254, opaque near-white background |
-| Full logo, transparent | `public/brand/dockentra-logo-transparent.png` | background removed by alpha extraction only |
-| D mark (opaque) | `public/brand/dockentra-logo-mark.png` | 512×512 crop/resample |
-| D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512, source for the badge |
+| Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254 RGBA, native transparency — owner-supplied master |
+| Full logo, content-cropped | `public/brand/dockentra-logo-transparent.png` | crop to content bbox + 4% padding |
+| D mark (on white) | `public/brand/dockentra-logo-mark.png` | 512×512 crop/resample composited on white |
+| D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512 crop/resample, source for the badge |
 | Circular badge mark | `public/brand/dockentra-logo-mark-badge.png` | 512×512 — "How It Works" circle style; used in header, footer and OG image |
 | Favicon | `src/app/icon.png` | 64×64 badge, transparent outside the circle |
 | Apple touch icon | `src/app/apple-icon.png` | 180×180 badge on opaque deep-navy square (iOS requirement) |

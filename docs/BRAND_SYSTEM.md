@@ -17,23 +17,20 @@ Asset paths:
 
 | Asset | Path | Notes |
 | --- | --- | --- |
-| Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254, stacked D mark + "Dockentra" wordmark, opaque near-white background |
-| Full logo, transparent | `public/brand/dockentra-logo-transparent.png` | content-cropped derivation with the near-white background removed (alpha extraction only — artwork pixels untouched) |
-| Official D mark (opaque) | `public/brand/dockentra-logo-mark.png` | 512×512, pixel-bbox crop + resample of the full logo — never redrawn |
-| Official D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512, same crop with background/counter alpha extraction |
+| Full official logo (exact, untouched bytes) | `public/brand/dockentra-logo.png` | 1254×1254 RGBA, stacked D mark + "Dockentra" wordmark, native transparent background — owner-supplied master (sha256 `2e324690…ac80b9`) |
+| Full logo, content-cropped | `public/brand/dockentra-logo-transparent.png` | crop of the master to its content bbox + 4% padding (crop only — artwork pixels untouched) |
+| Official D mark (on white) | `public/brand/dockentra-logo-mark.png` | 512×512, pixel-bbox crop + resample of the master composited on white — never redrawn |
+| Official D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512, pixel-bbox crop + resample using the master's own alpha channel |
 | Circular badge mark | `public/brand/dockentra-logo-mark-badge.png` | 512×512 — the exact transparent mark composed into the "How It Works" circle style (deep-navy circular ground + ring in the HIW gradient); **this is the version used across the site** |
 | Favicon | `src/app/icon.png` | 64×64 badge, transparent outside the circle (no white square on dark browser tabs) |
 | Apple touch icon | `src/app/apple-icon.png` | 180×180 badge on an opaque deep-navy square (iOS requires opaque icons) |
 | OG image | `src/app/opengraph-image.tsx` | embeds the badge directly on the deep-navy surface — no white card |
 
-Transparency derivation (allowed ops only): near-white pixels
-(min channel ≥ 236, chroma ≤ 16 — the background and the D's negative-space
-counter) get alpha 0; the first ring of white-matte-blended edge pixels is
-dropped (a 1px erode at full 1254px resolution, re-antialiased by the
-downscale) so no pale halo appears on dark surfaces; the remaining edge
-band gets a soft alpha fade with white-matte defringe. Every other pixel
-is copied verbatim. No shape or colour of the artwork was changed; the
-logo was never redrawn.
+Derivation (allowed ops only): the owner-supplied master already carries
+a professional alpha channel, so no background extraction is performed
+any more — every derived asset is produced purely by crop, proportional
+resample and composition from the master's own pixels. No shape or
+colour of the artwork was changed; the logo was never redrawn.
 
 **Circular badge system** (owner request): the mark's site-wide
 presentation matches the "How It Works" numbered circles — rounded-full,
