@@ -54,3 +54,47 @@ body {
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/*
+ * Dockentra wordmark — subtle premium depth treatment.
+ * Restrained by design: a soft vertical tone shift plus one gentle
+ * shadow. Solid brand colour is the fallback wherever gradient text
+ * is unsupported, so readability never depends on the effect.
+ */
+.brand-wordmark {
+  color: var(--color-brand-navy);
+  letter-spacing: -0.02em;
+}
+
+.brand-wordmark-light {
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .brand-wordmark {
+    background-image: linear-gradient(
+      180deg,
+      #2e4074 0%,
+      var(--color-brand-navy) 55%,
+      var(--color-brand-navy-deep) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 1px rgba(13, 23, 48, 0.22));
+  }
+
+  .brand-wordmark-light {
+    background-image: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f2fbf6 60%,
+      #cfe9db 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  }
+}

@@ -12,12 +12,12 @@ export const contentType = "image/png";
 
 // Open Graph image in the official Dockentra brand system: deep navy
 // surface, dark-green → emerald → mint gradient accents, white text, and
-// the EXACT official D mark (public/brand/dockentra-logo-mark.png,
-// derived by pixel crop from the owner-approved logo — never redrawn)
-// on a light card. Generated statically at build time.
+// the EXACT official D mark (transparent derivation of the owner-approved
+// logo — never redrawn) sitting directly on the navy surface, no white
+// card. Generated statically at build time.
 export default function OpenGraphImage() {
   const mark = readFileSync(
-    join(process.cwd(), "public", "brand", "dockentra-logo-mark.png"),
+    join(process.cwd(), "public", "brand", "dockentra-logo-mark-transparent.png"),
   ).toString("base64");
 
   return new ImageResponse(
@@ -60,25 +60,20 @@ export default function OpenGraphImage() {
         />
 
         <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+          <img
+            src={`data:image/png;base64,${mark}`}
+            alt=""
+            width={80}
+            height={80}
+          />
           <div
             style={{
-              width: 76,
-              height: 76,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 16,
-              backgroundColor: "#ffffff",
+              fontSize: 46,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              textShadow: "0 2px 4px rgba(0, 0, 0, 0.35)",
             }}
           >
-            <img
-              src={`data:image/png;base64,${mark}`}
-              alt=""
-              width={66}
-              height={66}
-            />
-          </div>
-          <div style={{ fontSize: 46, fontWeight: 700 }}>
             {siteConfig.name}
           </div>
         </div>

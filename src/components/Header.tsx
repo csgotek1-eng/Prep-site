@@ -17,22 +17,25 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <Container>
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Brand lockup: the official Dockentra D mark (exact asset,
-              public/brand/dockentra-logo-mark.png) + navy wordmark. */}
+          {/* Brand lockup: the official Dockentra D mark (transparent
+              derivation of the exact asset — no white tile) + wordmark
+              with a subtle depth treatment. */}
           <Link
             href="/"
             onClick={closeMenu}
-            className="flex min-h-11 items-center gap-2 text-xl font-bold tracking-tight text-brand-navy"
+            className="flex min-h-11 items-center gap-2.5 text-xl font-bold text-brand-navy"
           >
             <Image
-              src="/brand/dockentra-logo-mark.png"
+              src="/brand/dockentra-logo-mark-transparent.png"
               alt={siteConfig.name}
               width={40}
               height={40}
               priority
               className="h-10 w-10 shrink-0 object-contain"
             />
-            <span aria-hidden="true">{siteConfig.name}</span>
+            <span aria-hidden="true" className="brand-wordmark">
+              {siteConfig.name}
+            </span>
           </Link>
 
           {/* Desktop navigation */}

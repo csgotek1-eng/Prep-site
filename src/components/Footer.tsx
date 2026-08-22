@@ -18,19 +18,17 @@ export default function Footer() {
       <Container className="py-12">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <p className="flex items-center gap-2 text-lg font-bold text-white">
-              {/* Official Dockentra D mark on a light card so the exact
-                  asset stays visible on the deep navy footer. */}
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white p-0.5">
-                <Image
-                  src="/brand/dockentra-logo-mark.png"
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 object-contain"
-                />
-              </span>
-              {siteConfig.name}
+            <p className="flex items-center gap-2.5 text-lg font-bold text-white">
+              {/* Official Dockentra D mark, transparent derivation — sits
+                  directly on the deep navy footer, no white card. */}
+              <Image
+                src="/brand/dockentra-logo-mark-transparent.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+              <span className="brand-wordmark-light">{siteConfig.name}</span>
             </p>
             <p className="mt-3 max-w-xs text-sm leading-6 text-slate-400">
               Fulfilment &amp; prep services in Ireland. {siteConfig.tagline}
