@@ -63,8 +63,8 @@ export default function OpenGraphImage() {
           <img
             src={`data:image/png;base64,${mark}`}
             alt=""
-            width={80}
-            height={80}
+            width={60}
+            height={60}
           />
           <div
             style={{

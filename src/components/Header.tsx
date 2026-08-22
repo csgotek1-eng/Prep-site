@@ -28,10 +28,10 @@ export default function Header() {
             <Image
               src="/brand/dockentra-logo-mark-transparent.png"
               alt={siteConfig.name}
-              width={40}
-              height={40}
+              width={32}
+              height={32}
               priority
-              className="h-10 w-10 shrink-0 object-contain"
+              className="h-8 w-8 shrink-0 object-contain"
             />
             <span aria-hidden="true" className="brand-wordmark">
               {siteConfig.name}

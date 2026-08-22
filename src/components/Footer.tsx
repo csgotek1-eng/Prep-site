@@ -24,9 +24,9 @@ export default function Footer() {
               <Image
                 src="/brand/dockentra-logo-mark-transparent.png"
                 alt=""
-                width={36}
-                height={36}
-                className="h-9 w-9 shrink-0 object-contain"
+                width={28}
+                height={28}
+                className="h-7 w-7 shrink-0 object-contain"
               />
               <span className="brand-wordmark-light">{siteConfig.name}</span>
             </p>
