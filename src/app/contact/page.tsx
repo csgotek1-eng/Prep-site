@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
+import { MapPin, Phone } from "lucide-react";
 import Container from "@/components/Container";
 import QuoteForm from "@/components/QuoteForm";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from "@/components/SocialIcons";
+import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact / Get a Quote",
@@ -29,10 +37,129 @@ export default function ContactPage() {
         </Container>
       </section>
 
-      <section aria-label="Quote request form" className="bg-white">
-        <Container className="py-14 sm:py-20">
+      {/* Direct contact: phone + WhatsApp first (easiest on mobile),
+          then the social profiles. All data comes from siteConfig —
+          the single source of truth for business contacts. */}
+      <section aria-labelledby="direct-contact-heading" className="bg-white">
+        <Container className="py-12 sm:py-14">
           <div className="mx-auto max-w-3xl">
-            <QuoteForm />
+            <h2
+              id="direct-contact-heading"
+              className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
+            >
+              Talk to us directly
+            </h2>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <a
+                href={siteConfig.contact.phoneHref}
+                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep hover:shadow-md"
+              >
+                <Phone aria-hidden="true" className="h-5 w-5" />
+                Call Dockentra
+              </a>
+              <a
+                href={siteConfig.social.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+              >
+                <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+                WhatsApp Us
+              </a>
+            </div>
+            <p className="mt-3 text-sm text-slate-600">
+              Phone &amp; WhatsApp:{" "}
+              <a
+                href={siteConfig.contact.phoneHref}
+                className="font-medium text-brand-navy underline-offset-2 hover:underline"
+              >
+                {siteConfig.contact.phone}
+              </a>
+            </p>
+
+            <ul
+              className="mt-6 flex flex-wrap gap-x-6 gap-y-1"
+              aria-label="Dockentra on social media"
+            >
+              <li>
+                <a
+                  href={siteConfig.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-brand-green-dark"
+                >
+                  <InstagramIcon aria-hidden="true" className="h-4.5 w-4.5" />
+                  Instagram — Dockentra
+                </a>
+              </li>
+              <li>
+                <a
+                  href={siteConfig.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-brand-green-dark"
+                >
+                  <FacebookIcon aria-hidden="true" className="h-4.5 w-4.5" />
+                  Facebook — Dockentra
+                </a>
+              </li>
+              <li>
+                <a
+                  href={siteConfig.social.tiktok}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-brand-green-dark"
+                >
+                  <TikTokIcon aria-hidden="true" className="h-4.5 w-4.5" />
+                  TikTok — {siteConfig.social.tiktokHandle}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </Container>
+      </section>
+
+      {/* Warehouse location — rendered only once the owner supplies the
+          real address / Google Maps link in siteConfig.location. No
+          address or coordinates are ever invented. */}
+      {siteConfig.location.address && siteConfig.location.googleMapsUrl && (
+        <section aria-labelledby="warehouse-heading" className="bg-white">
+          <Container className="pb-12 sm:pb-14">
+            <div className="mx-auto max-w-3xl rounded-xl border border-brand-border bg-brand-surface-soft p-6 sm:p-8">
+              <h2
+                id="warehouse-heading"
+                className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
+              >
+                <MapPin aria-hidden="true" className="h-6 w-6 text-brand-green" />
+                Find our warehouse
+              </h2>
+              <p className="mt-3 text-base leading-7 text-slate-700">
+                {siteConfig.location.address}
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={siteConfig.location.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark"
+                >
+                  Open in Google Maps
+                </a>
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      <section aria-label="Quote request form" className="bg-white">
+        <Container className="pb-14 pt-2 sm:pb-20">
+          <div className="mx-auto max-w-3xl border-t border-brand-border pt-10">
+            <h2 className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl">
+              Request a quote
+            </h2>
+            <div className="mt-6">
+              <QuoteForm />
+            </div>
           </div>
         </Container>
       </section>

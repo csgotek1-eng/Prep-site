@@ -109,11 +109,16 @@ export default function HomePage() {
         >
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-brand-mint/40 to-brand-teal/15 blur-2xl" />
           <div className="absolute -bottom-32 right-1/4 hidden h-72 w-72 rounded-full bg-gradient-to-tr from-brand-green/10 to-brand-mint/25 blur-2xl lg:block" />
+          {/* unoptimized: rendered at 460px from a 512px source, the
+              optimizer would upscale — and its upscale+avif path has
+              shown a nondeterministic hang. The raw PNG is served
+              as-is; decorative, lg+ only. */}
           <Image
             src="/brand/dockentra-logo-mark-transparent.png"
             alt=""
             width={460}
             height={460}
+            unoptimized
             className="absolute -right-16 top-1/2 hidden -translate-y-1/2 select-none opacity-[0.06] lg:block"
           />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-mint/70 to-transparent" />

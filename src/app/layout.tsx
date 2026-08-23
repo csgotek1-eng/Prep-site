@@ -52,6 +52,20 @@ const organizationJsonLd = {
   name: siteConfig.name,
   url: siteUrl,
   description: siteConfig.description,
+  telephone: "+353851584185",
+  // Public profile pages only — WhatsApp/Telegram chat links are not
+  // profiles, so they are deliberately not listed in sameAs.
+  sameAs: [
+    siteConfig.social.instagram,
+    siteConfig.social.facebook,
+    siteConfig.social.tiktok,
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+353851584185",
+    contactType: "customer service",
+    areaServed: "IE",
+  },
   areaServed: {
     "@type": "Country",
     name: "Ireland",

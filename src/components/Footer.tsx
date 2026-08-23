@@ -1,7 +1,37 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Phone } from "lucide-react";
 import Container from "@/components/Container";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from "@/components/SocialIcons";
 import { navLinks, siteConfig } from "@/lib/site";
+
+const socialLinks = [
+  {
+    label: "Dockentra on Instagram",
+    href: siteConfig.social.instagram,
+    Icon: InstagramIcon,
+  },
+  {
+    label: "Dockentra on Facebook",
+    href: siteConfig.social.facebook,
+    Icon: FacebookIcon,
+  },
+  {
+    label: "Dockentra on TikTok",
+    href: siteConfig.social.tiktok,
+    Icon: TikTokIcon,
+  },
+  {
+    label: "Chat with Dockentra on WhatsApp",
+    href: siteConfig.social.whatsapp,
+    Icon: WhatsAppIcon,
+  },
+];
 
 const serviceLinks = [
   { href: "/services#receiving", label: "Receiving" },
@@ -16,7 +46,7 @@ export default function Footer() {
   return (
     <footer className="bg-brand-navy-deep text-slate-300">
       <Container className="py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className="flex items-center gap-2.5 text-lg font-bold text-white">
               {/* Official Dockentra D mark exactly as supplied by the
@@ -70,6 +100,49 @@ export default function Footer() {
               ))}
             </ul>
           </nav>
+
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
+              Contact
+            </h2>
+            <ul className="mt-4 space-y-1">
+              <li>
+                <a
+                  href={siteConfig.contact.phoneHref}
+                  className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
+                >
+                  <Phone aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  {siteConfig.contact.phone}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={siteConfig.social.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
+                >
+                  <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                  Chat on WhatsApp
+                </a>
+              </li>
+            </ul>
+            <ul className="mt-3 flex gap-1" aria-label="Dockentra on social media">
+              {socialLinks.map(({ label, href, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/5 hover:text-brand-mint"
+                  >
+                    <Icon aria-hidden="true" className="h-5 w-5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-6">
