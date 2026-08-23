@@ -15,7 +15,7 @@ const serviceLinks = [
 export default function Footer() {
   return (
     <footer className="bg-brand-navy-deep text-slate-300">
-      <Container className="py-12">
+      <Container className="py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <p className="flex items-center gap-2.5 text-lg font-bold text-white">
@@ -30,11 +30,8 @@ export default function Footer() {
               />
               <span className="brand-wordmark-light">{siteConfig.name}</span>
             </p>
-            <p className="mt-3 max-w-xs text-sm leading-6 text-slate-400">
+            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-400">
               Fulfilment &amp; prep services in Ireland. {siteConfig.tagline}
-            </p>
-            <p className="mt-3 text-sm text-slate-400">
-              Store. Prep. Pack. Ship. Grow.
             </p>
           </div>
 

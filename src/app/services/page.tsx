@@ -1,5 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  Boxes,
+  ClipboardCheck,
+  PackageCheck,
+  PackageOpen,
+  RefreshCcw,
+  Tags,
+  Truck,
+  Warehouse,
+} from "lucide-react";
 import Container from "@/components/Container";
 
 export const metadata: Metadata = {
@@ -14,6 +24,7 @@ export const metadata: Metadata = {
 const coreServices = [
   {
     id: "receiving",
+    Icon: Truck,
     title: "Receiving",
     intro:
       "Your stock is checked in properly the moment it arrives, so problems are caught early.",
@@ -27,6 +38,7 @@ const coreServices = [
   },
   {
     id: "inspection",
+    Icon: ClipboardCheck,
     title: "Inspection & Quality Check",
     intro:
       "Basic quality control before your products go into storage or out to customers.",
@@ -39,6 +51,7 @@ const coreServices = [
   },
   {
     id: "labelling",
+    Icon: Tags,
     title: "Labelling",
     intro:
       "Products labelled correctly for their sales channel.",
@@ -50,6 +63,7 @@ const coreServices = [
   },
   {
     id: "prep",
+    Icon: PackageOpen,
     title: "Prep",
     intro:
       "Products protected and packaged to the standard your channel requires.",
@@ -61,6 +75,7 @@ const coreServices = [
   },
   {
     id: "kitting",
+    Icon: Boxes,
     title: "Kitting & Bundling",
     intro:
       "Multiple products combined into sets that are ready to sell.",
@@ -71,6 +86,7 @@ const coreServices = [
   },
   {
     id: "storage",
+    Icon: Warehouse,
     title: "Storage",
     intro:
       "Local inventory storage in Ireland, keeping your stock close to your customers and ready to move.",
@@ -81,6 +97,7 @@ const coreServices = [
   },
   {
     id: "pick-pack",
+    Icon: PackageCheck,
     title: "Pick & Pack",
     intro:
       "Orders handled accurately from shelf to parcel.",
@@ -93,6 +110,7 @@ const coreServices = [
   },
   {
     id: "returns",
+    Icon: RefreshCcw,
     title: "Returns",
     intro:
       "Returns dealt with properly instead of piling up.",
@@ -182,12 +200,20 @@ export default function ServicesPage() {
               <article
                 key={service.id}
                 id={service.id}
-                className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+                className="group scroll-mt-24 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-brand-green/30 hover:shadow-md sm:p-8"
               >
-                <h3 className="text-xl font-semibold text-brand-navy">
-                  {service.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                <div className="flex items-center gap-4">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#2E7D5A] transition-colors group-hover:text-[#1E6F4F]"
+                  >
+                    <service.Icon className="h-7 w-7" strokeWidth={1.75} />
+                  </span>
+                  <h3 className="text-xl font-semibold tracking-tight text-brand-navy">
+                    {service.title}
+                  </h3>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
                   {service.intro}
                 </p>
                 <ul className="mt-4 space-y-2">
@@ -234,9 +260,9 @@ export default function ServicesPage() {
               <article
                 key={service.id}
                 id={service.id}
-                className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+                className="scroll-mt-24 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
               >
-                <h3 className="text-xl font-semibold text-brand-navy">
+                <h3 className="text-xl font-semibold tracking-tight text-brand-navy">
                   {service.title}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -260,7 +286,7 @@ export default function ServicesPage() {
             ))}
           </div>
 
-          <div className="mt-12 rounded-lg bg-brand-navy p-6 sm:p-8">
+          <div className="mt-12 rounded-2xl bg-gradient-to-br from-brand-navy-deep via-brand-navy to-brand-navy-deep p-7 sm:p-9">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-semibold text-white">
                 Not sure which services you need? Tell us how you sell and

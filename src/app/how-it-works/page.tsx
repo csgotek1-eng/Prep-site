@@ -49,20 +49,20 @@ export default function HowItWorksPage() {
         <Container className="py-16 sm:py-20">
           <ol className="mx-auto max-w-3xl">
             {steps.map((step, index) => (
-              <li key={step.title} className="flex gap-4 sm:gap-6">
+              <li key={step.title} className="flex gap-5 sm:gap-7">
                 <div aria-hidden="true" className="flex flex-col items-center">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-teal text-base font-bold text-white shadow-sm">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-teal text-base font-bold text-white shadow-sm">
                     {index + 1}
                   </span>
                   {index < steps.length - 1 && (
-                    <span className="my-1.5 w-px flex-1 bg-gradient-to-b from-brand-teal/50 to-brand-mint/60" />
+                    <span className="my-2 w-0.5 flex-1 rounded-full bg-gradient-to-b from-brand-teal/50 to-brand-mint/60" />
                   )}
                 </div>
-                <div className="pb-8">
-                  <h2 className="text-lg font-semibold text-brand-navy">
+                <div className={index < steps.length - 1 ? "pb-10" : "pb-2"}>
+                  <h2 className="pt-2 text-lg font-semibold tracking-tight text-brand-navy sm:text-xl">
                     {step.title}
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
                     {step.description}
                   </p>
                 </div>
