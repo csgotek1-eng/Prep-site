@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  ClipboardCheck,
+  PackageCheck,
+  PackageOpen,
+  RefreshCcw,
+  Truck,
+  Warehouse,
+} from "lucide-react";
 import Container from "@/components/Container";
 
 const marketplaces = ["TikTok Shop", "Amazon", "Shopify", "eBay", "WooCommerce"];
@@ -7,36 +15,42 @@ const services = [
   {
     id: "receiving",
     title: "Receiving",
+    Icon: Truck,
     description:
       "Supplier deliveries received, cartons and units counted, barcodes verified and discrepancies reported.",
   },
   {
     id: "inspection",
     title: "Inspection & Quality Check",
+    Icon: ClipboardCheck,
     description:
       "Condition, packaging, quantity and barcode checks before stock goes any further.",
   },
   {
     id: "prep",
     title: "Prep",
+    Icon: PackageOpen,
     description:
       "Polybagging, bubble wrapping, repacking, labelling and kitting to your channel's standard.",
   },
   {
     id: "storage",
     title: "Storage",
+    Icon: Warehouse,
     description:
       "Local inventory storage in Ireland, so your stock is close to your customers and your marketplaces.",
   },
   {
     id: "pick-pack",
     title: "Pick & Pack",
+    Icon: PackageCheck,
     description:
       "Orders picked, checked, packed and prepared for shipment as they come in.",
   },
   {
     id: "returns",
     title: "Returns",
+    Icon: RefreshCcw,
     description:
       "Returns received and inspected, photos taken if required, items restocked and damaged stock separated.",
   },
@@ -144,13 +158,19 @@ export default function HomePage() {
             {services.map((service) => (
               <article
                 key={service.id}
-                className="rounded-lg border border-brand-border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                className="group rounded-lg border border-brand-border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
+                {/* Service icon: line icon on a soft rounded tile, per the
+                    owner's icon brief (48px icon in a 64px, 16px-radius
+                    tile; hover darkens + subtle scale). */}
                 <span
                   aria-hidden="true"
-                  className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-mint-soft"
+                  className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8F5EE] text-[#2E7D5A] transition-colors group-hover:text-[#1E6F4F]"
                 >
-                  <span className="h-3.5 w-3.5 rounded-md bg-gradient-to-br from-brand-green to-brand-teal" />
+                  <service.Icon
+                    className="h-12 w-12 transition-transform motion-safe:group-hover:scale-[1.03]"
+                    strokeWidth={1.75}
+                  />
                 </span>
                 <h3 className="text-lg font-semibold text-brand-navy">
                   {service.title}
