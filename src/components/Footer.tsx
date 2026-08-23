@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Phone } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import Container from "@/components/Container";
 import {
   FacebookIcon,
@@ -126,6 +126,20 @@ export default function Footer() {
                   Chat on WhatsApp
                 </a>
               </li>
+              {siteConfig.location.googleMapsUrl && (
+                <li>
+                  <a
+                    href={siteConfig.location.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Dockentra warehouse location in Google Maps"
+                    className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
+                  >
+                    <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />
+                    {siteConfig.location.shortLabel}
+                  </a>
+                </li>
+              )}
             </ul>
             <ul className="mt-3 flex gap-1" aria-label="Dockentra on social media">
               {socialLinks.map(({ label, href, Icon }) => (

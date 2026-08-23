@@ -66,6 +66,15 @@ const organizationJsonLd = {
     contactType: "customer service",
     areaServed: "IE",
   },
+  address: {
+    "@type": "PostalAddress",
+    streetAddress:
+      "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd",
+    addressLocality: "Limerick",
+    postalCode: "V94 PX6A",
+    addressCountry: "IE",
+  },
+  hasMap: siteConfig.location.googleMapsUrl,
   areaServed: {
     "@type": "Country",
     name: "Ireland",

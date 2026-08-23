@@ -119,9 +119,8 @@ export default function ContactPage() {
         </Container>
       </section>
 
-      {/* Warehouse location — rendered only once the owner supplies the
-          real address / Google Maps link in siteConfig.location. No
-          address or coordinates are ever invented. */}
+      {/* Warehouse location — owner-approved address only; rendered
+          from siteConfig.location, the single source of truth. */}
       {siteConfig.location.address && siteConfig.location.googleMapsUrl && (
         <section aria-labelledby="warehouse-heading" className="bg-white">
           <Container className="pb-12 sm:pb-14">
@@ -133,17 +132,31 @@ export default function ContactPage() {
                 <MapPin aria-hidden="true" className="h-6 w-6 text-brand-green" />
                 Find our warehouse
               </h2>
-              <p className="mt-3 text-base leading-7 text-slate-700">
-                {siteConfig.location.address}
-              </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <address className="mt-4 text-base not-italic leading-7 text-slate-700">
+                {siteConfig.location.addressLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </address>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={siteConfig.location.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark"
+                  aria-label="Open the Dockentra warehouse location in Google Maps"
+                  className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
                 >
                   Open in Google Maps
+                </a>
+                <a
+                  href={siteConfig.location.directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Get directions to the Dockentra warehouse in Google Maps"
+                  className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+                >
+                  Get Directions
                 </a>
               </div>
             </div>

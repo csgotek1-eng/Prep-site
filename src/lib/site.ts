@@ -30,12 +30,30 @@ export const siteConfig = {
     // Never invent one — keep null until the owner provides the URL.
     telegram: null as string | null,
   },
-  // Warehouse location — AWAITING OWNER INPUT. The Contact page renders
-  // the "Find our warehouse" section only when these are filled in.
-  // Never invent an address, Maps link or coordinates.
+  // Owner-approved public warehouse location (Contact page + JSON-LD).
   location: {
-    address: null as string | null,
-    googleMapsUrl: null as string | null,
+    address:
+      "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd, Courtbrack, Limerick, V94 PX6A, Ireland" as
+        | string
+        | null,
+    addressLines: [
+      "Unit 10",
+      "StorageWise Self Storage Limerick",
+      "Docklands Business Park",
+      "Dock Rd, Courtbrack",
+      "Limerick, V94 PX6A",
+      "Ireland",
+    ],
+    shortLabel: "Limerick, Ireland",
+    googleMapsUrl: "https://maps.app.goo.gl/9KfbifwwTPZjVmEj9" as
+      | string
+      | null,
+    // Universal Maps directions deep link — no API key, no billing.
+    directionsUrl:
+      "https://www.google.com/maps/dir/?api=1&destination=" +
+      encodeURIComponent(
+        "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd, Courtbrack, Limerick, V94 PX6A, Ireland",
+      ),
   },
 };
 
