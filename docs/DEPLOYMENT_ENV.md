@@ -163,3 +163,35 @@ ANALYTICS: NOT CONFIGURED — deliberately. No Google Analytics, Meta
 Pixel, TikTok Pixel or other tracking is included, which keeps the site
 free of cookie-consent complexity at launch. Adding any tracker later is
 a separate decision that must come with a cookie-consent review.
+
+## Enquiries from the contact/help modal
+
+The site-wide "Need help?" launcher posts to `POST /api/enquiry` with one
+of three types: `client`, `partnership`, `general`. Enquiries deliberately
+reuse the SAME delivery configuration as quote requests
+(`QUOTE_DELIVERY_MODE`, `QUOTE_WEBHOOK_URL`, `QUOTE_WEBHOOK_SECRET`,
+`QUOTE_WEBHOOK_TIMEOUT_MS`) so one destination configured once receives
+both. Payloads are distinguished by their fields:
+
+| Payload | `type` | Extra |
+| --- | --- | --- |
+| Quote form | `quote-request` | optional server-recalculated `estimate` |
+| Contact/help modal | `enquiry` | `enquiryType`: client / partnership / general |
+
+**Not configured yet.** With `QUOTE_DELIVERY_MODE=log` (the default and
+the current state) nothing is emailed or messaged anywhere — submissions
+are written to the server log only. The UI never tells a visitor their
+message was emailed; it only confirms it was sent. Still required for
+production:
+
+1. Choose a destination (webhook → email/CRM/Telegram bridge, or a new
+   delivery mode added in `src/lib/quote-delivery.ts` +
+   `src/lib/enquiry-delivery.ts`).
+2. Set `QUOTE_DELIVERY_MODE=webhook`, `QUOTE_WEBHOOK_URL` and
+   `QUOTE_WEBHOOK_SECRET` as server-side environment variables
+   (never `NEXT_PUBLIC_`).
+3. Verify the HMAC signature header `X-Dockentra-Signature` at the
+   receiving end.
+
+No email provider credentials, WhatsApp API tokens or Telegram bot
+tokens exist in this repository, and none may be committed.

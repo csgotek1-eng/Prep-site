@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { MapPin, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import Container from "@/components/Container";
 import QuoteForm from "@/components/QuoteForm";
+import WarehouseLocation from "@/components/WarehouseLocation";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -119,50 +120,15 @@ export default function ContactPage() {
         </Container>
       </section>
 
-      {/* Warehouse location — owner-approved address only; rendered
-          from siteConfig.location, the single source of truth. */}
-      {siteConfig.location.address && siteConfig.location.googleMapsUrl && (
-        <section aria-labelledby="warehouse-heading" className="bg-white">
-          <Container className="pb-12 sm:pb-14">
-            <div className="mx-auto max-w-3xl rounded-xl border border-brand-border bg-brand-surface-soft p-6 sm:p-8">
-              <h2
-                id="warehouse-heading"
-                className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
-              >
-                <MapPin aria-hidden="true" className="h-6 w-6 text-brand-green" />
-                Find our warehouse
-              </h2>
-              <address className="mt-4 text-base not-italic leading-7 text-slate-700">
-                {siteConfig.location.addressLines.map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-              </address>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={siteConfig.location.googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Open the Dockentra warehouse location in Google Maps"
-                  className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
-                >
-                  Open in Google Maps
-                </a>
-                <a
-                  href={siteConfig.location.directionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Get directions to the Dockentra warehouse in Google Maps"
-                  className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
-                >
-                  Get Directions
-                </a>
-              </div>
-            </div>
-          </Container>
-        </section>
-      )}
+      {/* Warehouse location — shared component, reads the approved
+          address from siteConfig.location (single source of truth). */}
+      <section aria-label="Warehouse location" className="bg-white">
+        <Container className="pb-12 sm:pb-14">
+          <div className="mx-auto max-w-3xl">
+            <WarehouseLocation />
+          </div>
+        </Container>
+      </section>
 
       <section aria-label="Quote request form" className="bg-white">
         <Container className="pb-14 pt-2 sm:pb-20">

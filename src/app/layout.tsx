@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import ContactLauncher from "@/components/ContactLauncher";
 import Header from "@/components/Header";
+import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import "./globals.css";
@@ -95,11 +97,13 @@ export default function RootLayout({
             __html: JSON.stringify(organizationJsonLd),
           }}
         />
+        <UtilityBar />
         <Header />
         <main id="main-content" className="flex-1">
           {children}
         </main>
         <Footer />
+        <ContactLauncher />
       </body>
     </html>
   );
