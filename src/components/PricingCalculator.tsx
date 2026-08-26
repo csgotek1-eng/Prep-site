@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
+import { hasPricedLines } from "@/lib/pricing/estimate-display";
 import { formatEuro } from "@/lib/pricing/money";
 import type { PricingService } from "@/lib/pricing/types";
 import {
@@ -269,19 +270,29 @@ export default function PricingCalculator() {
               ))}
             </ul>
 
-            <div className="mt-4 flex items-baseline justify-between rounded-lg bg-gradient-to-r from-brand-mint-soft to-brand-mint/30 px-4 py-3">
-              <span className="text-base font-semibold text-brand-navy">
-                Estimated total
-              </span>
-              <span className="font-mono-data text-2xl font-bold tracking-tight text-brand-green-dark">
-                {formatEuro(estimate.subtotal)}
-              </span>
-            </div>
-            {estimate.hasCustomQuoteItems && (
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                Custom-quote services are not included in this total and
-                will be priced individually.
-              </p>
+            {/* A monetary total is shown only when a real priced line
+                produced it. With custom-quote services alone there is
+                no total to state, and "€0.00" would read as free —
+                the per-line "Custom quote / priced individually"
+                labels above already say what is happening, so no total
+                row and no note about a total that does not exist. */}
+            {hasPricedLines(estimate) && (
+              <>
+                <div className="mt-4 flex items-baseline justify-between rounded-lg bg-gradient-to-r from-brand-mint-soft to-brand-mint/30 px-4 py-3">
+                  <span className="text-base font-semibold text-brand-navy">
+                    Estimated total
+                  </span>
+                  <span className="font-mono-data text-2xl font-bold tracking-tight text-brand-green-dark">
+                    {formatEuro(estimate.subtotal)}
+                  </span>
+                </div>
+                {estimate.hasCustomQuoteItems && (
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    Custom-quote services are not included in this total
+                    and will be priced individually.
+                  </p>
+                )}
+              </>
             )}
 
             <button

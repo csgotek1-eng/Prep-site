@@ -1,3 +1,4 @@
+import { hasPricedLines } from "./pricing/estimate-display.ts";
 import { formatEuro } from "./pricing/money.ts";
 import type { Estimate } from "./pricing/types";
 import { siteConfig } from "./site.ts";
@@ -34,9 +35,11 @@ export function buildWhatsAppEstimateMessage(estimate: Estimate): string {
     );
   }
 
-  const hasPricedLine = estimate.lines.some((line) => !line.customQuote);
+  // Same predicate the calculator UI uses to decide whether a
+  // monetary total may be shown — one rule, so the message and the
+  // screen can never disagree.
   lines.push("");
-  if (hasPricedLine) {
+  if (hasPricedLines(estimate)) {
     lines.push(`Estimated total: ${formatEuro(estimate.subtotal)}`);
     if (estimate.hasCustomQuoteItems) {
       lines.push("(excludes services priced individually)");
