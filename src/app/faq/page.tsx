@@ -78,12 +78,15 @@ export default function FaqPage() {
                     — by phone, WhatsApp or the quote form.
                   </p>
                 </div>
-                <Link
-                  href="/contact"
+                {/* Opens the shared Help panel (ContactLauncher listens
+                    for this hash) instead of introducing a second
+                    support system. Visible wording is unchanged. */}
+                <a
+                  href="#contact-enquiry"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
                 >
                   Contact Support
-                </Link>
+                </a>
               </div>
             </div>
 

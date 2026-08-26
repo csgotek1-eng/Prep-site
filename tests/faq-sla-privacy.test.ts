@@ -41,7 +41,11 @@ describe("FAQ page", () => {
 
   it("renders the FAQ route with a support action", () => {
     assert.ok(page.includes("FaqAccordion"));
-    assert.ok(page.includes('href="/contact"'));
+    // Since the unified-UX integration the support action opens the
+    // shared Help panel rather than navigating to /contact. Either
+    // target is a real support route — what must never happen is the
+    // FAQ growing a support system of its own.
+    assert.ok(page.includes('href="#contact-enquiry"') || page.includes('href="/contact"'));
     assert.ok(page.includes("Contact Support") || page.includes("Need more help"));
   });
 

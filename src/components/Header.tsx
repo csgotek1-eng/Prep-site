@@ -1,20 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLockup from "@/components/BrandLockup";
 import Container from "@/components/Container";
 import { navLinks } from "@/lib/site";
 
+/** On the homepage the nav scrolls to the matching section; everywhere
+ *  else it navigates to the standalone route, which always stays live. */
+const HOME_ANCHORS: Record<string, string> = {
+  "/services": "/#services",
+  "/how-it-works": "/#how-it-works",
+  "/pricing": "/#pricing",
+  "/pricing-calculator": "/#pricing-calculator",
+  "/about": "/#about",
+  "/contact": "/#contact",
+};
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const onHome = pathname === "/";
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const closeMenu = () => setMenuOpen(false);
+  const hrefFor = (href: string) =>
+    onHome && HOME_ANCHORS[href] ? HOME_ANCHORS[href] : href;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header
+      className={`sticky top-0 z-50 border-b backdrop-blur-md transition-colors ${
+        scrolled
+          ? "border-brand-border bg-white/85"
+          : "border-transparent bg-white/60"
+      }`}
+    >
       <Container>
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Brand lockup: the official Dockentra D mark exactly as
@@ -34,9 +62,9 @@ export default function Header() {
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
-                    href={link.href}
+                    href={hrefFor(link.href)}
                     aria-current={pathname === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-brand-navy ${
+                    className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-brand-mint-soft hover:text-brand-navy ${
                       pathname === link.href
                         ? "text-brand-green-dark"
                         : "text-slate-600"
@@ -52,7 +80,7 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <Link
               href="/contact"
-              className="hidden min-h-11 items-center rounded-md bg-brand-green px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-md bg-brand-green px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark sm:inline-flex"
             >
               Get a Quote
             </Link>
@@ -64,7 +92,7 @@ export default function Header() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 lg:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-700 hover:bg-brand-mint-soft lg:hidden"
             >
               {menuOpen ? (
                 <svg
@@ -99,17 +127,17 @@ export default function Header() {
         <nav
           id="mobile-menu"
           aria-label="Mobile navigation"
-          className="border-t border-slate-200 bg-white lg:hidden"
+          className="border-t border-brand-border bg-white lg:hidden"
         >
           <Container className="py-3">
             <ul className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
-                    href={link.href}
+                    href={hrefFor(link.href)}
                     onClick={closeMenu}
                     aria-current={pathname === link.href ? "page" : undefined}
-                    className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium hover:bg-slate-100 ${
+                    className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium hover:bg-brand-mint-soft ${
                       pathname === link.href
                         ? "text-brand-green-dark"
                         : "text-slate-700"

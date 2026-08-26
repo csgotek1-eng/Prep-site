@@ -43,7 +43,12 @@ export default function PhoneAction({
         {icon}
         {label}
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Talk to Dockentra">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Talk to Dockentra"
+        size="compact"
+      >
         <TeamContactCard member={member} />
       </Modal>
     </>
