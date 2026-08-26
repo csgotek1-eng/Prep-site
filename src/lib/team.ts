@@ -1,12 +1,10 @@
 /**
- * Real Dockentra prep/support staff shown in the phone contact card.
+ * Real Dockentra prep/support contact shown in the phone contact card.
  *
- * OWNER ASSET REQUIRED: no real, owner-approved employee photo exists in
- * this repository yet. This list stays empty until the owner supplies
- * one — a stock photo, an AI-generated person or a random warehouse
- * photo must NEVER be used here. While empty, PhoneAction renders the
- * plain tel: link exactly as before; nothing regresses because of the
- * missing photo.
+ * The photo is an owner-approved real photograph (owner confirmation
+ * received in chat) — not a stock photo, not AI-generated, not a random
+ * warehouse photo. Per the owner's choice, the card identifies the role
+ * rather than a personal name ("Dockentra Support").
  */
 export interface TeamMember {
   name: string;
@@ -15,4 +13,10 @@ export interface TeamMember {
   photoUrl: string;
 }
 
-export const teamMembers: TeamMember[] = [];
+export const teamMembers: TeamMember[] = [
+  {
+    name: "Dockentra",
+    role: "Support Team",
+    photoUrl: "/team/dockentra-contact.jpg",
+  },
+];

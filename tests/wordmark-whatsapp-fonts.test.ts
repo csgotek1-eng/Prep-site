@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { calculateEstimate } from "../src/lib/pricing/calculate.ts";
 import {
@@ -67,12 +67,10 @@ describe("wordmark wired into header and footer", () => {
 });
 
 describe("employee contact card safety", () => {
-  it("ships with an empty team list — no fabricated employee", () => {
-    const team = read("src/lib/team.ts");
-    assert.ok(/teamMembers:\s*TeamMember\[\]\s*=\s*\[\s*\]/.test(team));
-  });
-
-  it("falls back to the plain tel: link when no approved photo exists", () => {
+  it("PhoneAction still falls back to the plain tel: link when no team entry exists", () => {
+    // Architecture-level guard: the fallback path must keep working
+    // regardless of whether a team member is currently configured, so
+    // the site never regresses if the list is ever emptied again.
     const phoneAction = read("src/components/PhoneAction.tsx");
     assert.ok(phoneAction.includes("if (!member)"));
     assert.ok(phoneAction.includes("siteConfig.contact.phoneHref"));
@@ -82,6 +80,29 @@ describe("employee contact card safety", () => {
     const card = read("src/components/TeamContactCard.tsx");
     assert.ok(card.includes("siteConfig.contact.phoneHref"));
     assert.ok(card.includes("siteConfig.social.whatsapp"));
+  });
+
+  it("uses the real owner-approved photo asset, not a stock/AI placeholder path", () => {
+    const team = read("src/lib/team.ts");
+    assert.ok(team.includes("/team/dockentra-contact.jpg"));
+    for (const banned of ["unsplash", "pexels", "placeholder", "lorem", "avatar.com", "dicebear"]) {
+      assert.equal(team.toLowerCase().includes(banned), false);
+    }
+  });
+
+  it("does not fabricate a personal name — uses the owner-chosen role label", () => {
+    const team = read("src/lib/team.ts");
+    assert.ok(team.includes('role: "Support Team"'));
+  });
+
+  it("gives the portrait a meaningful, non-empty alt text", () => {
+    const card = read("src/components/TeamContactCard.tsx");
+    assert.equal(/alt=""/.test(card), false);
+    assert.ok(card.includes("alt={`"));
+  });
+
+  it("the approved photo asset actually exists in public/team", () => {
+    assert.ok(existsSync("public/team/dockentra-contact.jpg"));
   });
 });
 

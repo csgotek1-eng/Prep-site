@@ -16,10 +16,10 @@ export default function TeamContactCard({ member }: { member: TeamMember }) {
       <div className="flex items-center gap-4">
         <Image
           src={member.photoUrl}
-          alt=""
-          width={64}
-          height={64}
-          className="h-16 w-16 shrink-0 rounded-full object-cover"
+          alt={`${member.role}, Dockentra`}
+          width={80}
+          height={80}
+          className="h-20 w-20 shrink-0 rounded-full object-cover shadow-sm"
         />
         <div>
           <p className="text-base font-semibold text-brand-navy">{member.name}</p>
