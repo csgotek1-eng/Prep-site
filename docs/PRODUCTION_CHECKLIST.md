@@ -6,37 +6,88 @@ variables, webhook contract), [LEGAL_REQUIREMENTS.md](LEGAL_REQUIREMENTS.md)
 (inputs needed for legal pages) and the "Deployment to Vercel" section in
 the README.
 
+## Where the build stands
+
+Verified on `main` at commit `2244792` (2026-08-26), from a clean
+`npm ci` in this repository:
+
+- `npm test` 158/158 · `npm run lint` clean · `npm run typecheck` clean
+- `npm run build` 24/24 routes · `npm audit` 0 vulnerabilities
+- 10 public routes live in the build: `/`, `/services`, `/how-it-works`,
+  `/pricing`, `/pricing-calculator`, `/about`, `/contact`, `/faq`,
+  `/sla`, `/privacy` — all present in `sitemap.ts`
+- Responsive sweep clean at 320/375/390/430/768/1024/1280/1440: no
+  horizontal overflow, no sticky/modal collisions, no duplicate element
+  ids, exactly one persistent support system (the floating Help panel)
+
+This says the code is ready to deploy. It does **not** say anything
+about the live site — see "Not verifiable from the build" below.
+
+## Already done — no action needed
+
+- [x] GitHub default branch is `main` (confirmed via the GitHub API,
+      2026-08-26)
+- [x] Vercel project connected — the repository's homepage field points
+      at `https://prep-site-five.vercel.app`
+- [x] Security headers configured in `next.config.ts`
+      (X-Content-Type-Options, X-Frame-Options, Referrer-Policy;
+      `poweredByHeader: false`)
+- [x] No secrets committed — every credential is read from the
+      environment, and no client component reads `process.env`
+- [x] Pricing fails closed: with no pricing store configured the public
+      calculator shows its safe unavailable state instead of prices
+- [x] Enquiry and quote delivery default to `log` mode, and no page
+      claims a message was emailed anywhere
+
 ## Blocking items — must all be resolved before production launch
 
 None of these may be marked complete until they are actually done:
 
-- [ ] GitHub default branch is `main`
 - [ ] Production domain chosen
+- [ ] Real service prices entered via `/admin/pricing` — until then the
+      public calculator stays in its unavailable state by design. Launching
+      without them is a valid choice, but it is a choice.
 - [ ] Privacy/legal inputs supplied
-      ([LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md))
-- [ ] Privacy Policy finalized (from
-      [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md)) and published
+      ([LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md)) — `/privacy`
+      is published but opens with a notice saying it "has not yet been
+      reviewed by a legal professional", and it contains no company
+      registration number, VAT number or dedicated privacy email,
+      because none have been supplied
+- [ ] Privacy Policy reviewed by a lawyer and the pending-review notice
+      removed (source: [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md))
 - [ ] Website Terms finalized (from
       [WEBSITE_TERMS_DRAFT.md](WEBSITE_TERMS_DRAFT.md)) and published
 - [ ] Quote-form privacy notice added (plan in
       [LEGAL_REQUIREMENTS.md](LEGAL_REQUIREMENTS.md))
 - [ ] Production webhook destination chosen (or explicit decision to
-      launch in `log` mode)
+      launch in `log` mode, in which case enquiries and quote requests
+      reach the server log only)
 - [ ] Production env vars configured in Vercel
       ([DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md))
 - [ ] Preview deployment tested end-to-end
 - [ ] Production deployment explicitly authorized by the owner
 
+## Decide before launch
+
+- [ ] Repository visibility — `csgotek1-eng/Prep-site` is currently
+      **public**. Nothing secret is committed, so this is not a
+      vulnerability, but the source, the docs and the commit history are
+      readable by anyone. Make it a deliberate choice.
+- [ ] Public Telegram link — `siteConfig.social.telegram` is `null` and
+      no `t.me` URL appears anywhere. Supply a real username or leave it
+      out.
+
 ## Before deploying
 
-- [ ] GitHub default branch is `main` (Settings → General → Default branch)
-- [ ] Vercel project imported from `csgotek1-eng/Prep-site` with `main`
-      selected as the production branch
+- [ ] Vercel project has `main` selected as the production branch
 - [ ] Environment variables configured in Vercel per
       [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) (`QUOTE_DELIVERY_MODE`, and
       webhook URL/secret if using webhook mode) — no secrets committed
 - [ ] Production domain added in Vercel (Settings → Domains)
-- [ ] `NEXT_PUBLIC_SITE_URL` set to the production domain (then redeploy)
+- [ ] `NEXT_PUBLIC_SITE_URL` set to the production domain (then redeploy).
+      Until this is set the site falls back to the documented
+      `https://dockcentra.com` placeholder, which would put the wrong
+      host in the sitemap, canonicals and OG tags.
 - [ ] Local verification green on the deployed commit: `npm ci`,
       `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`,
       `npm audit` (0 vulnerabilities)
@@ -46,29 +97,84 @@ None of these may be marked complete until they are actually done:
 
 ## After deploying — smoke test on the live URL
 
+Core:
+
 - [ ] Vercel build passed
 - [ ] Homepage loads over HTTPS (SSL certificate active, no warnings)
 - [ ] Mobile nav: hamburger opens, links navigate, menu closes (test at
       ~375px wide)
-- [ ] Quote form: valid submission returns the success state
-- [ ] Webhook (if enabled): receiver got the request, signature verifies,
-      payload matches the documented schema
-- [ ] Quote form error state: shows a readable error (e.g. temporarily
-      point `QUOTE_WEBHOOK_URL` at an endpoint that returns 500, or
-      submit with the network throttled offline in devtools)
+- [ ] Homepage anchors scroll to the right section and the sticky header
+      does not cover the heading
+- [ ] `/services`, `/how-it-works`, `/pricing`, `/about`, `/contact`,
+      `/faq`, `/sla`, `/privacy` all load
+
+Contact and support:
+
+- [ ] Utility bar: phone and WhatsApp links open the right app
+- [ ] Floating Help panel opens; all three modes appear (fulfilment,
+      partnership, general); ESC closes it
+- [ ] An enquiry submits and returns the success state — and the message
+      actually arrives wherever `QUOTE_DELIVERY_MODE` points (server log
+      in `log` mode)
+- [ ] Phone contact card: the owner-approved photo loads, Call is
+      `tel:+353851584185`, WhatsApp is `https://wa.me/353851584185`
+- [ ] Only one persistent support element is visible on mobile — no
+      stacked floating buttons
+
+Calculator:
+
+- [ ] Calculator opens both at `/pricing-calculator` and from the
+      homepage modal, and both show the same thing
+- [ ] With no prices configured: the safe unavailable state, never a
+      price of zero
+- [ ] With prices configured: a priced selection shows a monetary total;
+      a custom-quote-only selection shows **no** "Estimated total €0.00";
+      a mixed selection shows the priced subtotal with custom lines still
+      marked "priced individually"
+- [ ] "Send Result on WhatsApp" opens WhatsApp with the same figures the
+      screen shows, and no euro amount at all for custom-quote-only
+
+FAQ / SLA / Privacy:
+
+- [ ] FAQ accordion opens and closes; each category's items are
+      independent
+- [ ] FAQ "Contact Support" opens the shared Help panel without leaving
+      the page, and opens again on a second click
+- [ ] `/sla` states no numeric guarantees; `/privacy` still shows the
+      "not yet reviewed by a legal professional" notice until sign-off
+
+SEO, assets and security:
+
 - [ ] `/sitemap.xml` loads and every URL uses the production domain
+      (should list all 10 public routes)
 - [ ] `/robots.txt` loads and its sitemap line uses the production domain
-- [ ] Favicon shows in the browser tab (`/icon.svg`)
-- [ ] Apple touch icon responds at `/apple-icon` (image/png)
+- [ ] Favicon shows in the browser tab (`/icon.png`)
+- [ ] Apple touch icon responds at `/apple-icon.png`
 - [ ] OG image responds at `/opengraph-image` (1200×630 PNG) and a link
       preview (paste the URL into Slack/WhatsApp) renders it
 - [ ] View page source: canonical + og:url point at the production domain
+- [ ] Wordmark renders as one word and a screen reader announces
+      "Dockentra", not "D ockentra"
 - [ ] No secrets exposed: view source and the JS bundles contain no
       `QUOTE_WEBHOOK_` values; `curl -I` shows the security headers
       (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) and no
       `X-Powered-By`
 - [ ] `/api/quote` rejects garbage: invalid JSON → 400, oversized body →
       413, >5 rapid submissions from one IP → 429
+- [ ] `/api/enquiry` rejects the same way (same limits, plus a honeypot
+      that returns success while delivering nothing)
+- [ ] `/api/admin/*` refuses unauthenticated requests, and the dev-token
+      provider is refused entirely by a production server
+
+## Not verifiable from the build
+
+These need someone with access to the live site or the Vercel dashboard;
+they cannot be confirmed from this repository:
+
+- Which commit Vercel is currently serving
+- Whether the last production deployment succeeded
+- Vercel environment variables, domains and DNS
+- Whether the live site is reachable at all
 
 ## After the smoke test
 

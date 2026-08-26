@@ -1,5 +1,40 @@
 # PROJECT STATUS
 
+## CURRENT STATE (2026-08-26)
+
+MAIN: `2244792` — the FAQ/SLA/support branch and the unified
+homepage/contact-UX branch were combined on
+`claude/final-website-feature-integration` and fast-forwarded into
+`main`. Both source branches are preserved.
+
+ON MAIN NOW, in addition to everything described further down:
+unified long-scroll homepage with section anchors, slim utility contact
+bar, translucent header, one floating Help panel (client / partnership /
+general enquiry) served by `/api/enquiry`, calculator modal reusing the
+single PricingCalculator, marketplace platform badges (no logo files, no
+partnership claims), `/faq` (+ FAQPage JSON-LD), `/sla`, `/privacy`, the
+[D mark]ockentra lockup, the Manrope / Inter / IBM Plex Mono trial, the
+owner-approved phone contact card, calculator → WhatsApp sharing, and
+suppression of the misleading "Estimated total €0.00" for custom-quote-
+only estimates.
+
+VERIFIED ON THIS COMMIT: 158/158 tests, lint clean, typecheck clean,
+build 24/24 routes, `npm audit` 0 vulnerabilities, responsive sweep
+clean at 320–1440.
+
+PRODUCTION DEPLOYMENT: NOT CONFIRMED. GitHub's default branch is `main`
+and the repository homepage points at
+`https://prep-site-five.vercel.app`, but the live site cannot be
+reached from the build environment, so which commit is actually served
+is unverified. Real prices, the production domain, legal details and a
+delivery destination are all still outstanding — see
+[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md), which is the
+authoritative launch list.
+
+NOTE: the sections below predate this merge. They remain accurate about
+the stages they describe, but their totals (for example test counts and
+"current stage") are historical — this block is the current one.
+
 PROJECT:
 Dockentra Website
 
