@@ -91,8 +91,28 @@ describe("SLA page", () => {
     }
   });
 
-  it("explains that targets are agreed per client rather than fixed", () => {
-    assert.ok(/agreed (directly )?with (you|each client)/i.test(page));
+  it("explains that targets are discussed per client rather than fixed", () => {
+    assert.ok(/can be discussed (directly )?with dockentra/i.test(page));
+  });
+
+  it("never asserts an unverified onboarding/agreement business policy", () => {
+    // Correction round: statements implying an established formal
+    // process ("agreed with you", "as part of onboarding", "case by
+    // case") were replaced with neutral "can be discussed" wording —
+    // SLA UNVERIFIED CLAIMS must stay at 0.
+    for (const banned of [
+      "onboarding",
+      "agreed with",
+      "agreed directly",
+      "case by case",
+      "set out for your account",
+    ]) {
+      assert.equal(
+        page.toLowerCase().includes(banned.toLowerCase()),
+        false,
+        `SLA page must not assert unverified policy: "${banned}"`,
+      );
+    }
   });
 });
 

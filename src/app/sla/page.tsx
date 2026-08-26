@@ -5,7 +5,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "Service Levels",
   description:
-    "How Dockentra's fulfilment service levels are structured and agreed with clients — receiving, storage, order processing, dispatch, returns and support.",
+    "How Dockentra's fulfilment service levels are structured — receiving, storage, order processing, dispatch, returns and support.",
   alternates: {
     canonical: "/sla",
   },
@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: "1. Receiving",
-    body: "Incoming stock is checked in, counted and inspected before it is stored or prepared. The specific handling steps for your stock are agreed with you as part of onboarding.",
+    body: "Incoming stock is checked in, counted and inspected before it is stored or prepared. Exact handling steps can vary by product and can be discussed with Dockentra directly.",
   },
   {
     title: "2. Inventory / storage",
-    body: "Inventory is stored locally in Ireland and kept ready for prep, fulfilment or forwarding. Storage arrangements are set out for your account based on the volume and type of stock involved.",
+    body: "Inventory is stored locally in Ireland and kept ready for prep, fulfilment or forwarding. How storage is arranged depends on the volume and type of stock involved, and can be discussed with Dockentra directly.",
   },
   {
     title: "3. Order processing",
-    body: "Orders are picked, checked and packed as they are received. How order processing fits your sales channel and order volume is discussed and agreed with you directly.",
+    body: "Orders are picked, checked and packed as they are received. How order processing fits your sales channel and order volume can be discussed with Dockentra directly.",
   },
   {
     title: "4. Picking and packing",
@@ -30,7 +30,7 @@ const sections = [
   },
   {
     title: "5. Dispatch handover",
-    body: "Packed orders are made ready and handed over for onward shipment. Carrier arrangements and dispatch scheduling are part of the setup agreed with your account.",
+    body: "Packed orders are made ready and handed over for onward shipment. Carrier arrangements and dispatch scheduling can be discussed with Dockentra directly.",
   },
   {
     title: "6. Returns",
@@ -42,11 +42,11 @@ const sections = [
   },
   {
     title: "8. Exceptions / peak periods",
-    body: "Unusual volumes, seasonal peaks or exceptional circumstances are handled case by case and discussed with affected clients directly rather than through a fixed public formula.",
+    body: "This page does not set out a fixed public formula for unusual volumes or seasonal peaks. Anything like this can be raised directly with Dockentra.",
   },
   {
-    title: "9. How service levels are agreed with a client",
-    body: "Dockentra does not publish fixed numeric turnaround guarantees on this page, because the right targets genuinely depend on your products, order volumes and sales channels. Specific service-level targets — such as processing windows or handling commitments — are agreed directly with you during onboarding, based on the services you actually use.",
+    title: "9. Discussing service levels",
+    body: "Dockentra does not publish fixed numeric turnaround guarantees on this page, because the right targets genuinely depend on your products, order volumes and sales channels. Specific service-level expectations — such as processing windows or handling commitments — can be discussed directly with Dockentra, based on the services you actually use.",
   },
 ];
 
@@ -61,7 +61,7 @@ export default function SlaPage() {
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               How Dockentra structures fulfilment service levels, and what
-              is agreed directly with each client.
+              you can discuss directly.
             </p>
           </div>
         </Container>
@@ -78,8 +78,8 @@ export default function SlaPage() {
               levels across fulfilment operations. It intentionally does
               not state fixed numeric guarantees — cut-off times, delivery
               windows or accuracy percentages — because those depend on
-              the services, volumes and sales channels agreed with each
-              individual client.
+              the services, volumes and sales channels involved for each
+              client.
             </p>
 
             <dl className="mt-10 space-y-8">
@@ -98,7 +98,7 @@ export default function SlaPage() {
             <div className="mt-12 rounded-xl bg-brand-mint-soft p-6 sm:p-8">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-lg font-semibold text-brand-navy">
-                  Want service-level targets agreed for your account?
+                  Want to discuss service levels for your account?
                 </p>
                 <Link
                   href="/contact"
