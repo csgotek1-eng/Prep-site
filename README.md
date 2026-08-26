@@ -79,7 +79,7 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph, robots and the sitemap. Falls back to `https://dockcentra.com` until the production domain is confirmed — always set it explicitly in production. |
+| `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph, robots and the sitemap. Optional: when unset, a Vercel deployment uses its real `*.vercel.app` host (`VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`) and local development uses `http://localhost:3000`. Set it explicitly once the production domain is confirmed. |
 | `QUOTE_DELIVERY_MODE` | Quote form delivery mode: `log` (default — submissions are logged server-side) or `webhook` (submissions are POSTed as JSON to `QUOTE_WEBHOOK_URL`). Server-side only. |
 | `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
 | `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |

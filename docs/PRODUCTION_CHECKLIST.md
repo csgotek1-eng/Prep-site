@@ -85,9 +85,10 @@ None of these may be marked complete until they are actually done:
       webhook URL/secret if using webhook mode) — no secrets committed
 - [ ] Production domain added in Vercel (Settings → Domains)
 - [ ] `NEXT_PUBLIC_SITE_URL` set to the production domain (then redeploy).
-      Until this is set the site falls back to the documented
-      `https://dockcentra.com` placeholder, which would put the wrong
-      host in the sitemap, canonicals and OG tags.
+      Until this is set, a Vercel deployment resolves to its real
+      `*.vercel.app` host — a URL that genuinely serves the site — so
+      the sitemap, canonicals and OG tags are never wrong, just not on
+      the final domain yet.
 - [ ] Local verification green on the deployed commit: `npm ci`,
       `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`,
       `npm audit` (0 vulnerabilities)

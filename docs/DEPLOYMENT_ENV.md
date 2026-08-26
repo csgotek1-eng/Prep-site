@@ -9,7 +9,7 @@ this file or anywhere in the repository — values are set in `.env.local`
 
 | Variable | LOCAL (`.env.local`) | PREVIEW (Vercel) | PRODUCTION (Vercel) |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | optional (falls back to the documented placeholder) | optional — leave unset; preview URLs vary per deploy | **REQUIRED — the production website URL.** Not confirmed yet; set it once the real domain is decided. Until then the build falls back to the documented placeholder `https://dockcentra.com`. |
+| `NEXT_PUBLIC_SITE_URL` | optional (localhost fallback) | optional — leave unset; each deploy resolves to its own `VERCEL_URL` host | **Set it once the real domain is decided.** Until then leave it unset: production resolves to the project's real `*.vercel.app` host via `VERCEL_PROJECT_PRODUCTION_URL`, which always serves the site. Never guess a domain. |
 | `QUOTE_DELIVERY_MODE` | `log` | `log` (keeps previews from posting to the real destination) | `webhook` once a real endpoint exists; `log` is a safe interim value |
 | `QUOTE_WEBHOOK_URL` | unset (or a test endpoint) | unset | required when mode is `webhook` |
 | `QUOTE_WEBHOOK_SECRET` | unset (or a test value) | unset | strongly recommended when mode is `webhook`; generate a long random value |

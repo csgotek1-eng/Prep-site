@@ -1,10 +1,10 @@
-// Production URL must be set via NEXT_PUBLIC_SITE_URL (see .env.example).
-// The fallback below is a documented placeholder used only until the real
-// domain is confirmed and configured in the hosting environment. It was
-// deliberately NOT renamed during the Dockentra brand alignment — no DNS
-// assumption is invented until the owner confirms the production domain.
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://dockcentra.com";
+import { resolveSiteUrl } from "./site-url.ts";
+
+// Public site URL — set NEXT_PUBLIC_SITE_URL once the production domain
+// is confirmed (see .env.example). Without it a Vercel deployment
+// resolves to its real *.vercel.app host and local development to
+// localhost; no placeholder domain is ever emitted. See site-url.ts.
+export const siteUrl = resolveSiteUrl();
 
 export const siteConfig = {
   name: "Dockentra",

@@ -50,9 +50,10 @@ decision); the site, SEO, docs and package metadata are aligned to it.
 OFFICIAL LOGO: ACTIVE — the exact owner-approved asset is committed
 (public/brand/dockentra-logo.png; mark, favicon, apple icon and the OG
 card are pixel crops of it — never redrawn); the interim gradient tile
-is REMOVED. The https://dockcentra.com site-URL fallback remains a
-documented placeholder until the real domain is confirmed. No
-logic/security/route changes.
+is REMOVED. (Historical note: at this stage the site URL used a
+documented placeholder-domain fallback; that fallback was later removed
+in favour of resolving the deployment's real host — see
+src/lib/site-url.ts.) No logic/security/route changes.
 
 CURRENT STAGE:
 Stage 5 — Supabase auth readiness (complete; remote Supabase NOT
@@ -281,10 +282,11 @@ NEXT / BLOCKERS:
   with genuinely unique content
 
 KNOWN ISSUES:
-- GitHub default branch still reports as claude/dockentra-ireland-site-x9dacq
-  via the API — switch/confirm main manually in repository settings
-- Production domain not confirmed; site URL falls back to
-  https://dockcentra.com until NEXT_PUBLIC_SITE_URL is set (documented)
+- ~~GitHub default branch~~ RESOLVED 2026-08-26: the API confirms the
+  default branch is main
+- Production domain not confirmed; until NEXT_PUBLIC_SITE_URL is set
+  the site URL resolves to the deployment's real Vercel host (the old
+  placeholder-domain fallback was removed — see src/lib/site-url.ts)
 - Legal/privacy pages not published — inputs required
   (docs/LEGAL_REQUIREMENTS.md, docs/LEGAL_INPUTS_REQUIRED.md)
 - In-memory rate limiter is per-instance (documented in

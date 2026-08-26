@@ -49,10 +49,10 @@ Usage:
 - The wordmark depth effect is deliberately restrained: no bevel, no
   gloss, no heavy shadow. It must stay readable at all sizes.
 
-**Domain note:** the site-URL fallback `https://dockcentra.com` in
-`src/lib/site.ts` / `.env.example` is a deliberate placeholder retained
-until the real production domain is confirmed — setting
-`NEXT_PUBLIC_SITE_URL` at deploy time overrides it.
+**Domain note:** no production domain is hardcoded anywhere. Until the
+owner confirms one, the site URL resolves to the deployment's real
+Vercel host (see `src/lib/site-url.ts`); setting `NEXT_PUBLIC_SITE_URL`
+at deploy time overrides it.
 
 ## Colour tokens
 
