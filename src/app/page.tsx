@@ -73,7 +73,7 @@ export default function HomePage() {
                 href="/contact"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
               >
-                Get a Quote
+                Get Pricing
               </Link>
               <CalculatorModal variant="secondary" />
             </div>
@@ -118,7 +118,7 @@ export default function HomePage() {
                   href="/contact"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
                 >
-                  Get a Quote
+                  Get Pricing
                 </Link>
                 <CalculatorModal variant="onDark" />
               </div>

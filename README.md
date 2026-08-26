@@ -13,7 +13,7 @@ A public marketing website built mobile-first:
 - How It Works (8-step process)
 - Pricing (flexible, quote-based — no fixed prices published)
 - About
-- Contact / Get a Quote form with modular server-side delivery (log or webhook mode, configured via environment variables)
+- Contact / Get Pricing form with modular server-side delivery (log or webhook mode, configured via environment variables)
 
 No marketplace APIs, payment systems, customer portal or WMS integrations are connected yet — the architecture is kept ready for them.
 

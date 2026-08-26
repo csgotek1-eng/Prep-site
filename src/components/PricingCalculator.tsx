@@ -144,7 +144,7 @@ export default function PricingCalculator() {
           href="/contact"
           className="mt-4 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
         >
-          Get a Quote
+          Get Pricing
         </a>
       </div>
     );

@@ -82,7 +82,7 @@ export default function Header() {
               href="/contact"
               className="hidden min-h-11 items-center rounded-md bg-brand-green px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark sm:inline-flex"
             >
-              Get a Quote
+              Get Pricing
             </Link>
 
             {/* Mobile menu button */}
@@ -153,7 +153,7 @@ export default function Header() {
                   onClick={closeMenu}
                   className="flex min-h-12 items-center justify-center rounded-md bg-brand-green px-4 text-base font-semibold text-white hover:bg-brand-green-dark"
                 >
-                  Get a Quote
+                  Get Pricing
                 </Link>
               </li>
             </ul>

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { siteConfig } from "../src/lib/site.ts";
 
@@ -114,9 +114,9 @@ describe("homepage structure", () => {
     assert.ok(scrollMargins.length >= sectionIds.length);
   });
 
-  it("keeps CTA blocks sparse — no more than three Get a Quote actions", () => {
-    const occurrences = home.match(/Get a Quote/g) ?? [];
-    assert.ok(occurrences.length <= 3, `too many Get a Quote CTAs: ${occurrences.length}`);
+  it("keeps CTA blocks sparse — no more than three primary CTA actions", () => {
+    const occurrences = home.match(/Get Pricing/g) ?? [];
+    assert.ok(occurrences.length <= 3, `too many Get Pricing CTAs: ${occurrences.length}`);
   });
 });
 
@@ -163,5 +163,50 @@ describe("no tracking added in this round", () => {
     ]) {
       assert.equal(sources.includes(tracker), false, `unexpected tracker: ${tracker}`);
     }
+  });
+});
+
+describe("primary CTA label", () => {
+  const ctaSurfaces = [
+    "src/components/Header.tsx",
+    "src/app/page.tsx",
+    "src/app/services/page.tsx",
+    "src/app/how-it-works/page.tsx",
+    "src/app/pricing/page.tsx",
+    "src/app/about/page.tsx",
+    "src/app/sla/page.tsx",
+    "src/app/contact/page.tsx",
+  ];
+
+  it("uses the approved label on every public CTA surface", () => {
+    for (const path of ctaSurfaces) {
+      assert.ok(read(path).includes("Get Pricing"), `${path} must use the approved CTA label`);
+    }
+  });
+
+  it("the retired label is gone from public surfaces", () => {
+    for (const path of [...ctaSurfaces, "src/components/PricingCalculator.tsx"]) {
+      assert.equal(
+        read(path).includes("Get a Quote"),
+        false,
+        `${path} still shows the retired CTA label`,
+      );
+    }
+  });
+
+  it("does not touch the separate quote-request wording or internals", () => {
+    // These mean something different and were deliberately left alone.
+    assert.ok(read("src/components/QuoteForm.tsx").includes("Request a Quote"));
+    assert.ok(read("src/components/PricingCalculator.tsx").includes("Request This Quote"));
+    assert.ok(read("src/components/PricingCalculator.tsx").includes("Custom quote"));
+    assert.ok(read("src/lib/pricing/types.ts").includes("CUSTOM_QUOTE"));
+    assert.ok(existsSync("src/app/api/quote/route.ts"));
+  });
+
+  it("keeps every CTA pointing where it already pointed", () => {
+    // A label change must not silently move a button.
+    const header = read("src/components/Header.tsx");
+    assert.ok(header.includes('href="/contact"'));
+    assert.equal(/Get Pricing[\s\S]{0,80}href="\/pricing"/.test(header), false);
   });
 });

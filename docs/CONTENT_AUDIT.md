@@ -30,6 +30,11 @@ logic changes in this round).
 
 ## Standard CTAs
 
+> SUPERSEDED 2026-08-26: the owner replaced the primary CTA label with
+> **Get Pricing**. The destination (/contact) is unchanged. The wording
+> below records what was decided during this audit and is kept as a
+> historical record, not as current state.
+
 - Primary everywhere: **Get a Quote** (→ /contact)
 - Calculator entry: **Pricing Calculator** (hero secondary button, nav
   item "Calculator", pricing-page button — previously "Try the
