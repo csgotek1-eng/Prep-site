@@ -30,6 +30,13 @@ export const siteConfig = {
     // Never invent one — keep null until the owner provides the URL.
     telegram: null as string | null,
   },
+  // Legal/privacy contact details — AWAITING OWNER INPUT. The Privacy
+  // page reads this config directly and falls back to the general
+  // contact channel when a field is not yet provided. Never invent a
+  // company registration number, VAT number or dedicated privacy email.
+  legal: {
+    privacyEmail: null as string | null,
+  },
   // Owner-approved public warehouse location (Contact page + JSON-LD).
   location: {
     address:

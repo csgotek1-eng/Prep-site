@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+import BrandLockup from "@/components/BrandLockup";
 import Container from "@/components/Container";
-import { navLinks, siteConfig } from "@/lib/site";
+import { navLinks } from "@/lib/site";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,19 +23,9 @@ export default function Header() {
           <Link
             href="/"
             onClick={closeMenu}
-            className="flex min-h-11 items-center gap-2.5 text-xl font-bold text-brand-navy"
+            className="flex min-h-11 items-center text-xl font-bold text-brand-navy"
           >
-            <Image
-              src="/brand/dockentra-logo-mark-transparent.png"
-              alt={siteConfig.name}
-              width={26}
-              height={26}
-              priority
-              className="h-[26px] w-[26px] shrink-0 object-contain"
-            />
-            <span aria-hidden="true" className="brand-wordmark">
-              {siteConfig.name}
-            </span>
+            <BrandLockup markSize={20} priority />
           </Link>
 
           {/* Desktop navigation */}

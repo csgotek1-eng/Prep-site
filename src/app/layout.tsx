@@ -1,8 +1,35 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, Inter, Manrope } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import "./globals.css";
+
+/*
+ * Owner-approved typography experiment (Brand Book fonts round): Manrope
+ * for display/headings, Inter for body/interface text, IBM Plex Mono as
+ * a small accent for data/labels only. Self-hosted at build time via
+ * next/font/google — no runtime request to fonts.googleapis.com. Only
+ * the weights actually used are downloaded.
+ */
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+});
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -87,7 +114,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-IE">
+    <html
+      lang="en-IE"
+      className={`${manrope.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+    >
       <body className="flex min-h-screen flex-col">
         <script
           type="application/ld+json"

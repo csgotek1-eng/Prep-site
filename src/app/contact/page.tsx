@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MapPin, Phone } from "lucide-react";
 import Container from "@/components/Container";
+import PhoneAction from "@/components/PhoneAction";
 import QuoteForm from "@/components/QuoteForm";
 import {
   FacebookIcon,
@@ -50,13 +51,11 @@ export default function ContactPage() {
               Talk to us directly
             </h2>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={siteConfig.contact.phoneHref}
+              <PhoneAction
+                label="Call Dockentra"
                 className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep hover:shadow-md"
-              >
-                <Phone aria-hidden="true" className="h-5 w-5" />
-                Call Dockentra
-              </a>
+                icon={<Phone aria-hidden="true" className="h-5 w-5" />}
+              />
               <a
                 href={siteConfig.social.whatsapp}
                 target="_blank"

@@ -6,8 +6,20 @@
  * emerald → mint gradient D mark, deep navy wordmark, light surfaces).
  */
 @theme {
+  /*
+   * Typography (owner-approved Brand Book font experiment): Manrope for
+   * display/headings, Inter for body/interface text, IBM Plex Mono as a
+   * small accent for data/labels. Each variable falls back to the
+   * system stack if the Google font ever fails to load.
+   */
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
 
   /* Navy — headings, strong text, navigation, footer */
   --color-brand-navy: #16254c;
@@ -43,9 +55,27 @@ html {
 body {
   background-color: var(--color-brand-surface);
   color: var(--color-brand-text);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/* Display typeface on headings only — palette, spacing, button and
+   card systems are untouched; this round changes typography alone. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
+/* Small data/label accent font — used narrowly (e.g. calculator price
+   figures), never for ordinary paragraphs. */
+.font-mono-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Visible focus states for keyboard navigation */

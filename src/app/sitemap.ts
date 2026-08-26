@@ -3,7 +3,13 @@ import { navLinks, siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [
-    ...new Set([...navLinks.map((link) => link.href), "/pricing-calculator"]),
+    ...new Set([
+      ...navLinks.map((link) => link.href),
+      "/pricing-calculator",
+      "/faq",
+      "/sla",
+      "/privacy",
+    ]),
   ];
   return pages.map((href) => ({
     url: `${siteUrl}${href === "/" ? "" : href}`,

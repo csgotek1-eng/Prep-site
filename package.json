@@ -2,14 +2,14 @@
   "name": "dockentra-website",
   "version": "0.1.0",
   "private": true,
-  "description": "Dockentra — Fulfilment & Prep Services in Ireland",
+  "description": "Dockentra \u2014 Fulfilment & Prep Services in Ireland",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/quote.test.ts tests/pricing.test.ts tests/pricing-production.test.ts tests/supabase-auth-ui.test.ts"
+    "test": "node --test tests/quote.test.ts tests/pricing.test.ts tests/pricing-production.test.ts tests/supabase-auth-ui.test.ts tests/faq-sla-privacy.test.ts tests/wordmark-whatsapp-fonts.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.33.0",

@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
 import { formatEuro } from "@/lib/pricing/money";
 import type { PricingService } from "@/lib/pricing/types";
+import {
+  buildWhatsAppEstimateUrl,
+  canShareEstimateOnWhatsApp,
+} from "@/lib/whatsapp-message";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 
 export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
 
@@ -268,7 +273,7 @@ export default function PricingCalculator() {
               <span className="text-base font-semibold text-brand-navy">
                 Estimated total
               </span>
-              <span className="text-2xl font-bold tracking-tight text-brand-green-dark">
+              <span className="font-mono-data text-2xl font-bold tracking-tight text-brand-green-dark">
                 {formatEuro(estimate.subtotal)}
               </span>
             </div>
@@ -286,6 +291,22 @@ export default function PricingCalculator() {
             >
               Request This Quote
             </button>
+
+            {/* Sent only when there is something real to share — the
+                message is built from THIS estimate state, never a second
+                calculation. No name/email/phone is added unless the
+                visitor already typed it elsewhere and chose to send it. */}
+            {canShareEstimateOnWhatsApp(estimate) && (
+              <a
+                href={buildWhatsAppEstimateUrl(estimate)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+              >
+                <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+                Send Result on WhatsApp
+              </a>
+            )}
           </>
         ) : (
           <p className="mt-3 text-sm leading-6 text-slate-600">

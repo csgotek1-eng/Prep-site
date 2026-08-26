@@ -1,7 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin } from "lucide-react";
+import BrandLockup from "@/components/BrandLockup";
 import Container from "@/components/Container";
+import PhoneAction from "@/components/PhoneAction";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -48,17 +49,8 @@ export default function Footer() {
       <Container className="py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="flex items-center gap-2.5 text-lg font-bold text-white">
-              {/* Official Dockentra D mark exactly as supplied by the
-                  owner — directly on the deep navy footer, unmodified. */}
-              <Image
-                src="/brand/dockentra-logo-mark-transparent.png"
-                alt=""
-                width={28}
-                height={28}
-                className="h-7 w-7 shrink-0 object-contain"
-              />
-              <span className="brand-wordmark-light">{siteConfig.name}</span>
+            <p className="text-lg font-bold text-white">
+              <BrandLockup markSize={22} textClassName="brand-wordmark-light" />
             </p>
             <p className="mt-4 max-w-xs text-sm leading-6 text-slate-400">
               Fulfilment &amp; prep services in Ireland. {siteConfig.tagline}
@@ -107,13 +99,10 @@ export default function Footer() {
             </h2>
             <ul className="mt-4 space-y-1">
               <li>
-                <a
-                  href={siteConfig.contact.phoneHref}
+                <PhoneAction
+                  label={siteConfig.contact.phone}
                   className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
-                >
-                  <Phone aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  {siteConfig.contact.phone}
-                </a>
+                />
               </li>
               <li>
                 <a
@@ -159,13 +148,39 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6">
-          <p className="text-xs text-slate-500">
+        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-3xl text-xs text-slate-500">
             &copy; {new Date().getFullYear()} {siteConfig.name}. Fulfilment
             &amp; Prep Centre, Ireland. Dockentra supports sellers on TikTok
             Shop, Amazon, Shopify, eBay and WooCommerce and is not affiliated
             with or endorsed by these platforms.
           </p>
+          <ul className="flex shrink-0 flex-wrap gap-x-5 gap-y-1 text-xs">
+            <li>
+              <Link
+                href="/faq"
+                className="inline-flex min-h-11 items-center text-slate-400 transition-colors hover:text-brand-mint sm:min-h-0"
+              >
+                FAQ
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/sla"
+                className="inline-flex min-h-11 items-center text-slate-400 transition-colors hover:text-brand-mint sm:min-h-0"
+              >
+                Service Levels
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/privacy"
+                className="inline-flex min-h-11 items-center text-slate-400 transition-colors hover:text-brand-mint sm:min-h-0"
+              >
+                Privacy
+              </Link>
+            </li>
+          </ul>
         </div>
       </Container>
     </footer>
