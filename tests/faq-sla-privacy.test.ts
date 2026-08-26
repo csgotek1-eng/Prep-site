@@ -68,6 +68,14 @@ describe("FaqAccordion accessibility", () => {
     assert.ok(accordion.includes("aria-controls={panelId}"));
     assert.ok(accordion.includes('type="button"'));
   });
+
+  it("scopes ids per instance so the per-category accordions never collide", () => {
+    // One accordion is rendered per FAQ category; a bare index would
+    // emit faq-button-0 several times on the same page.
+    assert.ok(accordion.includes("useId"));
+    assert.ok(accordion.includes("faq-panel-${instanceId}-${index}"));
+    assert.ok(accordion.includes("faq-button-${instanceId}-${index}"));
+  });
 });
 
 describe("SLA page", () => {

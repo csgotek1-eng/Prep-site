@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { FaqItem } from "@/lib/faq";
 
@@ -12,6 +12,10 @@ import type { FaqItem } from "@/lib/faq";
  */
 export default function FaqAccordion({ items }: { items: FaqItem[] }) {
   const [open, setOpen] = useState<Set<number>>(new Set());
+  // The FAQ page renders one accordion per category, so a plain index
+  // would repeat ids across instances and leave aria-controls pointing
+  // at an ambiguous target.
+  const instanceId = useId();
 
   function toggle(index: number) {
     setOpen((current) => {
@@ -29,8 +33,8 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
     <ul className="divide-y divide-brand-border rounded-xl border border-brand-border bg-white">
       {items.map((item, index) => {
         const expanded = open.has(index);
-        const panelId = `faq-panel-${index}`;
-        const buttonId = `faq-button-${index}`;
+        const panelId = `faq-panel-${instanceId}-${index}`;
+        const buttonId = `faq-button-${instanceId}-${index}`;
         return (
           <li key={item.question}>
             <h3>
