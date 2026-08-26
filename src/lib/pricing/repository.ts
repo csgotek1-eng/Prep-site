@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { SEED_SERVICES } from "./seed.ts";
+import { SEED_SERVICES, SEED_VOLUME_TIERS } from "./seed.ts";
 import { slugify } from "./validate.ts";
 import { PricingUnavailableError } from "./errors.ts";
 import { SupabasePricingRepository } from "./supabase-repository.ts";
@@ -9,6 +9,7 @@ import type {
   PriceChange,
   PricingService,
   PricingServiceInput,
+  VolumeTier,
 } from "./types";
 
 /**
@@ -40,11 +41,17 @@ export interface PricingRepository {
   setServiceActive(id: string, active: boolean): Promise<PricingService | null>;
   recordPriceChange(change: PriceChange): Promise<void>;
   listPriceHistory(): Promise<PriceChange[]>;
+  /**
+   * Monthly-order-volume bands for services whose rate is tiered.
+   * Authoritative data, same as prices — never hardcoded in the UI.
+   */
+  listVolumeTiers(): Promise<VolumeTier[]>;
 }
 
 interface StoreShape {
   services: PricingService[];
   priceHistory: PriceChange[];
+  volumeTiers: VolumeTier[];
 }
 
 function sortServices(services: PricingService[]): PricingService[] {
@@ -78,6 +85,12 @@ export class FilePricingRepository implements PricingRepository {
           priceHistory: Array.isArray(parsed.priceHistory)
             ? parsed.priceHistory
             : [],
+          // A store written before volume tiers existed has none; fall
+          // back to the approved bands rather than to no tiers at all,
+          // which would silently price every volume at the entry rate.
+          volumeTiers: Array.isArray(parsed.volumeTiers)
+            ? parsed.volumeTiers
+            : SEED_VOLUME_TIERS.map((tier) => ({ ...tier })),
         };
         return this.cache;
       }
@@ -87,6 +100,7 @@ export class FilePricingRepository implements PricingRepository {
     this.cache = {
       services: SEED_SERVICES.map((service) => ({ ...service })),
       priceHistory: [],
+      volumeTiers: SEED_VOLUME_TIERS.map((tier) => ({ ...tier })),
     };
     return this.cache;
   }
@@ -108,6 +122,10 @@ export class FilePricingRepository implements PricingRepository {
 
   async listActiveServices(): Promise<PricingService[]> {
     return sortServices(this.load().services.filter((s) => s.isActive));
+  }
+
+  async listVolumeTiers(): Promise<VolumeTier[]> {
+    return this.load().volumeTiers.map((tier) => ({ ...tier }));
   }
 
   async listAllServices(): Promise<PricingService[]> {
@@ -229,6 +247,9 @@ export class UnavailablePricingRepository implements PricingRepository {
     throw new PricingUnavailableError();
   }
   async listActiveServices(): Promise<PricingService[]> {
+    return this.fail();
+  }
+  async listVolumeTiers(): Promise<VolumeTier[]> {
     return this.fail();
   }
   async listAllServices(): Promise<PricingService[]> {

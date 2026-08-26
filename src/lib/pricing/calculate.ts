@@ -1,8 +1,15 @@
+import {
+  findTierForVolume,
+  formatTierLabel,
+  parseMonthlyOrders,
+  tiersForService,
+} from "./tiers.ts";
 import type {
   Estimate,
   EstimateLine,
   EstimateSelection,
   PricingService,
+  VolumeTier,
 } from "./types";
 
 export const MAX_QUANTITY = 1_000_000;
@@ -51,11 +58,25 @@ export function parseSelections(value: unknown): EstimateSelection[] {
  * CUSTOM_QUOTE services produce an unpriced line and never contribute to
  * the subtotal.
  */
+export interface EstimateOptions {
+  /**
+   * Monthly order volume used ONLY to select the volume band for
+   * tiered services. It never derives from item counts, storage
+   * quantities or any other service's quantity.
+   */
+  monthlyOrders?: unknown;
+  /** Authoritative volume bands from the pricing store. */
+  volumeTiers?: readonly VolumeTier[];
+}
+
 export function calculateEstimate(
   services: readonly PricingService[],
   selections: readonly EstimateSelection[],
+  options: EstimateOptions = {},
 ): Estimate {
   const byId = new Map(services.filter((s) => s.isActive).map((s) => [s.id, s]));
+  const allTiers = options.volumeTiers ?? [];
+  const monthlyOrders = parseMonthlyOrders(options.monthlyOrders);
 
   const lines: EstimateLine[] = [];
   let subtotal = 0;
@@ -67,7 +88,28 @@ export function calculateEstimate(
       continue;
     }
 
-    if (service.pricingType === "CUSTOM_QUOTE") {
+    // Volume-tiered services resolve their unit rate from the band
+    // containing the monthly order volume. A band may itself be
+    // custom-quote (the top band), and a service whose bands do not
+    // cover this volume falls back to a custom quote rather than to a
+    // guessed or extrapolated rate.
+    const serviceTiers = tiersForService(allTiers, service.id);
+    let unitPrice: number | null = service.price;
+    let volumeTierLabel: string | null = null;
+    let tieredCustomQuote = false;
+
+    if (serviceTiers.length > 0) {
+      const tier = findTierForVolume(serviceTiers, monthlyOrders);
+      if (!tier || tier.customQuote || tier.price === null) {
+        tieredCustomQuote = true;
+        volumeTierLabel = tier ? formatTierLabel(tier) : null;
+      } else {
+        unitPrice = tier.price;
+        volumeTierLabel = formatTierLabel(tier);
+      }
+    }
+
+    if (service.pricingType === "CUSTOM_QUOTE" || tieredCustomQuote) {
       hasCustomQuoteItems = true;
       lines.push({
         serviceId: service.id,
@@ -79,11 +121,12 @@ export function calculateEstimate(
         lineTotal: null,
         minimumApplied: false,
         customQuote: true,
+        volumeTierLabel,
       });
       continue;
     }
 
-    const raw = selection.quantity * service.price;
+    const raw = selection.quantity * unitPrice!;
     const minimumApplied =
       service.minimumCharge !== null && raw < service.minimumCharge;
     const lineTotal = minimumApplied ? service.minimumCharge! : raw;
@@ -95,12 +138,19 @@ export function calculateEstimate(
       category: service.category,
       unitLabel: service.unitLabel,
       quantity: selection.quantity,
-      unitPrice: service.price,
+      unitPrice: unitPrice!,
       lineTotal,
       minimumApplied,
       customQuote: false,
+      volumeTierLabel,
     });
   }
 
-  return { lines, subtotal, currency: "EUR", hasCustomQuoteItems };
+  return {
+    lines,
+    subtotal,
+    currency: "EUR",
+    hasCustomQuoteItems,
+    monthlyOrders: allTiers.length > 0 ? monthlyOrders : null,
+  };
 }

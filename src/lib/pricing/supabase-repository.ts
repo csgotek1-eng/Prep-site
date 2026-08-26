@@ -5,6 +5,7 @@ import type {
   PriceChange,
   PricingService,
   PricingServiceInput,
+  VolumeTier,
 } from "./types";
 
 /**
@@ -42,6 +43,16 @@ interface ServiceRow {
   sort_order: number;
 }
 
+interface VolumeTierRow {
+  id: string;
+  service_id: string;
+  min_orders: number;
+  max_orders: number | null;
+  price_cents: number | null;
+  custom_quote: boolean;
+  sort_order: number;
+}
+
 interface HistoryRow {
   service_id: string;
   old_price_cents: number;
@@ -64,6 +75,18 @@ function rowToService(row: ServiceRow): PricingService {
     minimumCharge: row.minimum_charge_cents,
     isActive: row.is_active,
     isFeatured: row.is_featured,
+    sortOrder: row.sort_order,
+  };
+}
+
+function rowToVolumeTier(row: VolumeTierRow): VolumeTier {
+  return {
+    id: row.id,
+    serviceId: row.service_id,
+    minOrders: row.min_orders,
+    maxOrders: row.max_orders,
+    price: row.price_cents,
+    customQuote: row.custom_quote,
     sortOrder: row.sort_order,
   };
 }
@@ -135,6 +158,14 @@ export class SupabasePricingRepository implements PricingRepository {
       "pricing_services?is_active=eq.true&order=sort_order.asc,name.asc",
     );
     return rows.map(rowToService);
+  }
+
+  async listVolumeTiers(): Promise<VolumeTier[]> {
+    const rows = await this.request<VolumeTierRow[]>(
+      "GET",
+      "pricing_volume_tiers?order=service_id.asc,sort_order.asc",
+    );
+    return rows.map(rowToVolumeTier);
   }
 
   async listAllServices(): Promise<PricingService[]> {

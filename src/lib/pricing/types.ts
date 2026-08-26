@@ -67,6 +67,31 @@ export interface PricingServiceInput {
   sortOrder: number;
 }
 
+/**
+ * A monthly-order-volume band for a service whose unit rate depends on
+ * how many orders the client ships per month (Pick & Pack).
+ *
+ * Bands are authoritative data held in the pricing store — never
+ * hardcoded in UI components — so rates can be changed without a code
+ * release. `minOrders`/`maxOrders` are INCLUSIVE; `maxOrders: null`
+ * means the band is open-ended at the top.
+ *
+ * A band with `customQuote: true` carries no price at all: that volume
+ * is quoted individually rather than calculated.
+ */
+export interface VolumeTier {
+  id: string;
+  serviceId: string;
+  /** Inclusive lower bound of monthly orders. */
+  minOrders: number;
+  /** Inclusive upper bound, or null for the open-ended top band. */
+  maxOrders: number | null;
+  /** Unit price in integer euro cents; null when customQuote is true. */
+  price: number | null;
+  customQuote: boolean;
+  sortOrder: number;
+}
+
 export interface PriceChange {
   serviceId: string;
   oldPrice: number;
@@ -99,6 +124,12 @@ export interface EstimateLine {
   /** True when the line's minimum charge was applied. */
   minimumApplied: boolean;
   customQuote: boolean;
+  /**
+   * Human-readable volume band this line's rate came from, e.g.
+   * "1,500-4,999 orders/month". Null for services that are not
+   * volume-tiered.
+   */
+  volumeTierLabel: string | null;
 }
 
 export interface Estimate {
@@ -108,4 +139,10 @@ export interface Estimate {
   currency: "EUR";
   /** True when at least one selected service requires a custom quote. */
   hasCustomQuoteItems: boolean;
+  /**
+   * Monthly order volume the tiered rates were resolved against, echoed
+   * back so the UI and the shared WhatsApp message state the same
+   * number the prices were based on.
+   */
+  monthlyOrders: number | null;
 }

@@ -94,3 +94,78 @@ first REAL remote verification.
 If a second role is ever needed: `app_metadata.role = "manager"` could
 allow read-only access to `/api/admin/services` GET while mutations
 stay ADMIN-only. Do not implement until a real need exists.
+
+## Approved pricing (2026-08-26)
+
+The owner approved a commercial price list. It lives in the pricing
+store, not in the site's source: `src/lib/pricing/seed.ts` is the
+development catalogue and the origin of the production import, but a
+running production site reads Supabase.
+
+### Activating it in production
+
+1. Apply `supabase/migrations/0001_pricing_schema.sql` (if not already
+   applied), then `supabase/migrations/0002_pricing_volume_tiers.sql`.
+2. Run `supabase/seed/0002_approved_pricing.sql` once. It is idempotent
+   (upsert by slug) and records the activation in
+   `pricing_price_history`.
+3. Set `PRICING_PERSISTENCE=supabase` plus `NEXT_PUBLIC_SUPABASE_URL`
+   and `SUPABASE_SERVICE_ROLE_KEY`, then redeploy.
+4. Verify with the queries at the bottom of the seed file.
+
+Until step 3 the public calculator fails closed and shows its safe
+unavailable state. Do NOT set `PRICING_PERSISTENCE=file` in production
+to work around this: on serverless the file store is per-instance and
+ephemeral, so prices would silently differ between requests.
+
+### Volume bands
+
+Pick & pack and the additional-item rate are priced by MONTHLY ORDER
+VOLUME, held in `pricing_volume_tiers`:
+
+| Monthly orders | First item | Additional item |
+| --- | --- | --- |
+| 0–399 | €2.60 | €0.60 |
+| 400–1,499 | €2.30 | €0.50 |
+| 1,500–4,999 | €2.05 | €0.42 |
+| 5,000–9,999 | €1.80 | €0.36 |
+| 10,000+ | custom quote | custom quote |
+
+The band is selected by monthly orders alone — never by item counts,
+storage quantities or any other service's quantity. Nothing is
+interpolated: the 10,000+ band carries no rate, and a volume that no
+band covers falls back to a custom quote rather than to a guess.
+
+### Flat approved rates
+
+| Service | Rate |
+| --- | --- |
+| Simple goods-in (single-SKU carton) | €1.60 per carton |
+| Pallet storage | €35.00 per pallet per month |
+| Dockentra standard mailer | €0.24 per mailer |
+
+The mailer is charged only when Dockentra supplies the packaging; there
+is no material charge for packaging the client sends in.
+
+### Deliberately NOT priced
+
+These were given as a range, a "from" figure, or more than one possible
+model, so they are `CUSTOM_QUOTE` and carry no amount: returns
+processing, medium box with fill, mixed-SKU goods-in, courier handling,
+custom branded packaging, tissue/stickers/inserts, premium unboxing,
+detailed QC, and kitting/subscription boxes. Do not pick a number
+inside a range — the owner has to approve one exact amount first.
+
+Bin storage, FNSKU labelling, polybagging and bubble wrapping have no
+approved rate at all and stay INACTIVE at price 0, so a zero-price line
+can never reach the calculator.
+
+### Not implemented: the €275 monthly minimum
+
+The approved €275 minimum monthly invoice is a whole-account rule. The
+calculator is an indicative per-selection estimator, not a monthly
+invoice: it cannot tell which lines recur monthly (storage does,
+one-off goods-in may not), so applying the minimum to every estimate
+would overstate small enquiries and understate nothing. Implementing it
+needs a product decision about what the calculator represents. Until
+then it is not applied anywhere, and no page mentions it.

@@ -21,6 +21,9 @@ export default function QuoteForm() {
   >([]);
   const [calculatorEstimate, setCalculatorEstimate] =
     useState<Estimate | null>(null);
+  const [calculatorMonthlyOrders, setCalculatorMonthlyOrders] = useState<
+    number | null
+  >(null);
 
   // Pick up selections handed over from the pricing calculator. The
   // displayed estimate is fetched from the server, which prices the
@@ -29,12 +32,27 @@ export default function QuoteForm() {
   useEffect(() => {
     let cancelled = false;
     let selections: EstimateSelection[] = [];
+    let monthlyOrders: number | null = null;
     try {
       const raw = sessionStorage.getItem(CALCULATOR_STORAGE_KEY);
       if (raw) {
         const parsed: unknown = JSON.parse(raw);
+        // Current shape is {selections, monthlyOrders}; a bare array is
+        // the older shape and still read so an in-flight handover from
+        // a previously loaded tab is not lost.
         if (Array.isArray(parsed)) {
           selections = parsed as EstimateSelection[];
+        } else if (parsed && typeof parsed === "object") {
+          const payload = parsed as {
+            selections?: unknown;
+            monthlyOrders?: unknown;
+          };
+          if (Array.isArray(payload.selections)) {
+            selections = payload.selections as EstimateSelection[];
+          }
+          if (typeof payload.monthlyOrders === "number") {
+            monthlyOrders = payload.monthlyOrders;
+          }
         }
       }
     } catch {
@@ -46,13 +64,14 @@ export default function QuoteForm() {
     fetch("/api/pricing/estimate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ selections }),
+      body: JSON.stringify({ selections, monthlyOrders }),
     })
       .then((response) => response.json())
       .then((result: { ok: boolean; estimate?: Estimate }) => {
         if (!cancelled && result.ok && result.estimate?.lines.length) {
           setCalculatorSelections(selections);
           setCalculatorEstimate(result.estimate);
+          setCalculatorMonthlyOrders(monthlyOrders);
         }
       })
       .catch(() => {
@@ -85,6 +104,9 @@ export default function QuoteForm() {
       company: formData.get("company"),
       calculatorSelections:
         calculatorSelections.length > 0 ? calculatorSelections : undefined,
+      // Sent so the server recalculates against the SAME volume band the
+      // visitor saw; the server still prices from its own catalogue.
+      calculatorMonthlyOrders: calculatorMonthlyOrders ?? undefined,
       name: formData.get("name"),
       businessName: formData.get("businessName"),
       email: formData.get("email"),

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
 import { hasPricedLines } from "@/lib/pricing/estimate-display";
 import { formatEuro } from "@/lib/pricing/money";
-import type { PricingService } from "@/lib/pricing/types";
+import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
+import type { PricingService, VolumeTier } from "@/lib/pricing/types";
 import {
   buildWhatsAppEstimateUrl,
   canShareEstimateOnWhatsApp,
@@ -21,22 +22,35 @@ interface SelectionState {
 export default function PricingCalculator() {
   const router = useRouter();
   const [services, setServices] = useState<PricingService[] | null>(null);
+  const [volumeTiers, setVolumeTiers] = useState<VolumeTier[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [selections, setSelections] = useState<SelectionState>({});
+  // Monthly order volume selects the Pick & Pack band. It is a rate
+  // input only — it never becomes a line quantity of its own.
+  const [monthlyOrders, setMonthlyOrders] = useState(MIN_MONTHLY_ORDERS);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/pricing/services")
       .then((response) => response.json())
-      .then((data: { ok: boolean; services?: PricingService[] }) => {
-        if (!cancelled) {
-          if (data.ok && Array.isArray(data.services)) {
-            setServices(data.services);
-          } else {
-            setLoadError(true);
+      .then(
+        (data: {
+          ok: boolean;
+          services?: PricingService[];
+          volumeTiers?: VolumeTier[];
+        }) => {
+          if (!cancelled) {
+            if (data.ok && Array.isArray(data.services)) {
+              setServices(data.services);
+              setVolumeTiers(
+                Array.isArray(data.volumeTiers) ? data.volumeTiers : [],
+              );
+            } else {
+              setLoadError(true);
+            }
           }
-        }
-      })
+        },
+      )
       .catch(() => {
         if (!cancelled) setLoadError(true);
       });
@@ -57,8 +71,9 @@ export default function PricingCalculator() {
         serviceId,
         quantity,
       })),
+      { monthlyOrders, volumeTiers },
     );
-  }, [services, selections]);
+  }, [services, selections, monthlyOrders, volumeTiers]);
 
   function toggleService(service: PricingService) {
     setSelections((current) => {
@@ -82,9 +97,12 @@ export default function PricingCalculator() {
   }
 
   function requestQuote() {
-    const payload = Object.entries(selections).map(
-      ([serviceId, quantity]) => ({ serviceId, quantity }),
-    );
+    const payload = {
+      selections: Object.entries(selections).map(
+        ([serviceId, quantity]) => ({ serviceId, quantity }),
+      ),
+      monthlyOrders,
+    };
     try {
       sessionStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
     } catch {
@@ -139,6 +157,40 @@ export default function PricingCalculator() {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
       {/* Service selector */}
       <div>
+        {/* Volume band input. Shown only when the catalogue actually has
+            tiered services, so it never appears as an unexplained field. */}
+        {volumeTiers.length > 0 && (
+          <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
+            <label
+              htmlFor="monthly-orders"
+              className="block text-sm font-semibold text-brand-navy"
+            >
+              How many orders do you ship per month?
+            </label>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Pick &amp; pack rates depend on your monthly volume, so this
+              sets which rate the estimate uses.
+            </p>
+            <input
+              id="monthly-orders"
+              type="number"
+              inputMode="numeric"
+              min={MIN_MONTHLY_ORDERS}
+              step={1}
+              value={monthlyOrders}
+              onChange={(event) => {
+                const parsed = Number(event.target.value);
+                setMonthlyOrders(
+                  Number.isInteger(parsed) && parsed >= MIN_MONTHLY_ORDERS
+                    ? Math.min(parsed, MAX_MONTHLY_ORDERS)
+                    : MIN_MONTHLY_ORDERS,
+                );
+              }}
+              className="mt-3 block w-full max-w-[12rem] rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+            />
+          </div>
+        )}
+
         {categories.map((category) => (
           <fieldset key={category} className="mb-8">
             <legend className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -264,6 +316,9 @@ export default function PricingCalculator() {
                         {line.unitLabel}
                         {line.minimumApplied && " (minimum charge applied)"}
                       </>
+                    )}
+                    {line.volumeTierLabel && (
+                      <span className="block">{line.volumeTierLabel}</span>
                     )}
                   </div>
                 </li>

@@ -75,14 +75,23 @@ export async function POST(request: Request) {
   // Calculator integration: the browser sends only {serviceId, quantity}
   // selections. All prices and totals are recalculated here from the
   // server-side catalogue — client-computed totals are never trusted.
-  const selections = parseSelections(
-    (data as { calculatorSelections?: unknown }).calculatorSelections,
-  );
+  const calculatorBody = data as {
+    calculatorSelections?: unknown;
+    calculatorMonthlyOrders?: unknown;
+  };
+  const selections = parseSelections(calculatorBody.calculatorSelections);
   let estimate = null;
   if (selections.length > 0) {
     try {
-      const services = await getPricingRepository().listActiveServices();
-      const calculated = calculateEstimate(services, selections);
+      const repository = getPricingRepository();
+      const [services, volumeTiers] = await Promise.all([
+        repository.listActiveServices(),
+        repository.listVolumeTiers(),
+      ]);
+      const calculated = calculateEstimate(services, selections, {
+        monthlyOrders: calculatorBody.calculatorMonthlyOrders,
+        volumeTiers,
+      });
       if (calculated.lines.length > 0) {
         estimate = calculated;
       }

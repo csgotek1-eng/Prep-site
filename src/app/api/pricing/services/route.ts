@@ -8,8 +8,12 @@ import { getPricingRepository } from "@/lib/pricing/repository";
 // or admin-only information exists on the service objects.
 export async function GET() {
   try {
-    const services = await getPricingRepository().listActiveServices();
-    return NextResponse.json({ ok: true, services });
+    const repository = getPricingRepository();
+    const [services, volumeTiers] = await Promise.all([
+      repository.listActiveServices(),
+      repository.listVolumeTiers(),
+    ]);
+    return NextResponse.json({ ok: true, services, volumeTiers });
   } catch (error) {
     if (error instanceof PricingUnavailableError) {
       return NextResponse.json(

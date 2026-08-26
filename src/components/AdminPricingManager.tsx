@@ -17,6 +17,7 @@ import {
   SERVICE_CATEGORIES,
   type PriceChange,
   type PricingService,
+  type VolumeTier,
 } from "@/lib/pricing/types";
 
 const inputClasses =
@@ -309,6 +310,7 @@ export default function AdminPricingManager() {
   const [authError, setAuthError] = useState("");
   const [services, setServices] = useState<PricingService[] | null>(null);
   const [priceHistory, setPriceHistory] = useState<PriceChange[]>([]);
+  const [volumeTiers, setVolumeTiers] = useState<VolumeTier[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -322,6 +324,7 @@ export default function AdminPricingManager() {
         error?: string;
         services?: PricingService[];
         priceHistory?: PriceChange[];
+        volumeTiers?: VolumeTier[];
       };
       if (!response.ok || !data.ok) {
         const error = new Error(data.error ?? "Request failed.");
@@ -330,6 +333,7 @@ export default function AdminPricingManager() {
       }
       setServices(data.services ?? []);
       setPriceHistory(data.priceHistory ?? []);
+      setVolumeTiers(data.volumeTiers ?? []);
     },
     [],
   );
@@ -642,6 +646,55 @@ export default function AdminPricingManager() {
           </li>
         ))}
       </ul>
+
+      {volumeTiers.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-brand-navy">
+            Volume bands
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Rates for these services depend on the client&apos;s monthly
+            order volume. The band is chosen by monthly orders only. These
+            bands are stored with the catalogue, not in the site&apos;s
+            source code.
+          </p>
+          {[...new Set(volumeTiers.map((tier) => tier.serviceId))].map(
+            (serviceId) => {
+              const service = services.find((s) => s.id === serviceId);
+              const bands = volumeTiers
+                .filter((tier) => tier.serviceId === serviceId)
+                .sort((a, b) => a.minOrders - b.minOrders);
+              return (
+                <div key={serviceId} className="mt-4">
+                  <h3 className="text-sm font-semibold text-brand-navy">
+                    {service?.name ?? serviceId}
+                  </h3>
+                  <ul className="mt-1.5 space-y-1 text-sm text-slate-600">
+                    {bands.map((tier) => (
+                      <li key={tier.id}>
+                        {tier.minOrders.toLocaleString("en-IE")}
+                        {tier.maxOrders === null
+                          ? "+"
+                          : `–${tier.maxOrders.toLocaleString("en-IE")}`}{" "}
+                        orders/month —{" "}
+                        {tier.customQuote || tier.price === null ? (
+                          <span className="font-medium text-brand-navy">
+                            custom quote
+                          </span>
+                        ) : (
+                          <span className="font-medium text-brand-navy">
+                            {formatEuro(tier.price)}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            },
+          )}
+        </div>
+      )}
 
       {priceHistory.length > 0 && (
         <div className="mt-10">

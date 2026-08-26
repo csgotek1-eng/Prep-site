@@ -24,11 +24,12 @@ export async function GET(request: Request) {
   }
   try {
     const repository = getPricingRepository();
-    const [services, priceHistory] = await Promise.all([
+    const [services, priceHistory, volumeTiers] = await Promise.all([
       repository.listAllServices(),
       repository.listPriceHistory(),
+      repository.listVolumeTiers(),
     ]);
-    return NextResponse.json({ ok: true, services, priceHistory });
+    return NextResponse.json({ ok: true, services, priceHistory, volumeTiers });
   } catch (error) {
     return unavailable(error);
   }

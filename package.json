@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/quote.test.ts tests/pricing.test.ts tests/pricing-production.test.ts tests/supabase-auth-ui.test.ts tests/faq-sla-privacy.test.ts tests/wordmark-whatsapp-fonts.test.ts tests/enquiry.test.ts tests/site-ux.test.ts tests/integration-ux.test.ts tests/estimate-display.test.ts tests/site-url.test.ts"
+    "test": "node --test tests/quote.test.ts tests/pricing.test.ts tests/pricing-production.test.ts tests/supabase-auth-ui.test.ts tests/faq-sla-privacy.test.ts tests/wordmark-whatsapp-fonts.test.ts tests/enquiry.test.ts tests/site-ux.test.ts tests/integration-ux.test.ts tests/estimate-display.test.ts tests/site-url.test.ts tests/volume-pricing.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.33.0",

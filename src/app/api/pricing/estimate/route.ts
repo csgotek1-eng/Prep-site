@@ -35,12 +35,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const selections = parseSelections(
-    (data as { selections?: unknown })?.selections,
-  );
+  const body = data as { selections?: unknown; monthlyOrders?: unknown };
+  const selections = parseSelections(body?.selections);
   try {
-    const services = await getPricingRepository().listActiveServices();
-    const estimate = calculateEstimate(services, selections);
+    const repository = getPricingRepository();
+    const [services, volumeTiers] = await Promise.all([
+      repository.listActiveServices(),
+      repository.listVolumeTiers(),
+    ]);
+    // Tier bands come from the server catalogue; the browser supplies
+    // only the monthly order count, which is validated in calculate().
+    const estimate = calculateEstimate(services, selections, {
+      monthlyOrders: body?.monthlyOrders,
+      volumeTiers,
+    });
     return NextResponse.json({ ok: true, estimate });
   } catch (error) {
     if (error instanceof PricingUnavailableError) {

@@ -23,9 +23,13 @@ export function buildWhatsAppEstimateMessage(estimate: Estimate): string {
     "Hello Dockentra,",
     "",
     "I calculated my fulfilment estimate on your website.",
-    "",
-    "Services:",
   ];
+
+  if (estimate.monthlyOrders !== null) {
+    lines.push("", `Monthly orders: ${estimate.monthlyOrders}`);
+  }
+
+  lines.push("", "Services:");
 
   for (const line of estimate.lines) {
     lines.push(
