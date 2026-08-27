@@ -5,6 +5,10 @@ import { SEED_SERVICES, SEED_VOLUME_TIERS } from "./seed.ts";
 import { slugify } from "./validate.ts";
 import { PricingUnavailableError } from "./errors.ts";
 import { SupabasePricingRepository } from "./supabase-repository.ts";
+import {
+  getSupabaseServiceRoleKey,
+  getSupabaseUrl,
+} from "../supabase-config.ts";
 import type {
   PriceChange,
   PricingService,
@@ -201,10 +205,7 @@ export class FilePricingRepository implements PricingRepository {
 export type PricingPersistenceMode = "file" | "supabase" | "unconfigured";
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
-  );
+  return Boolean(getSupabaseUrl() && getSupabaseServiceRoleKey());
 }
 
 /**
@@ -285,8 +286,8 @@ export function createPricingRepository(): PricingRepository {
   }
   if (mode === "supabase") {
     return new SupabasePricingRepository({
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-      serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
+      url: getSupabaseUrl(),
+      serviceRoleKey: getSupabaseServiceRoleKey(),
     });
   }
   console.error(

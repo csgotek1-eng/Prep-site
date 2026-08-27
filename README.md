@@ -88,7 +88,7 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `ADMIN_AUTH_PROVIDER` | Admin auth: `dev-token` (development only; refused in production builds) or `supabase` (Supabase Auth, server-side validation). |
 | `ADMIN_ACCESS_TOKEN` | Dev-token provider's shared secret; verified server-side on every admin request. Unset = admin disabled. Never valid in production. Server-side only. |
 | `PRICING_STORE_FILE` | Optional path for the development pricing store JSON file (default `./data/pricing-store.json`, gitignored). |
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project URL and publishable anon key (needed only for the supabase modes). |
+| `SUPABASE_PUBLIC_URL` / `SUPABASE_PUBLISHABLE_KEY` | Supabase project URL and publishable key (needed only for the supabase modes). Read server-side and passed to the admin login as props — deliberately not `NEXT_PUBLIC_`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service-role key for the pricing repository. Never `NEXT_PUBLIC_`, never committed. |
 
 The quote form posts to `/api/quote`. The route validates input, drops honeypot (bot) submissions, applies a light per-IP rate limit and then hands off to the delivery layer in `src/lib/quote-delivery.ts`. Email / CRM / Supabase adapters can be added there later as new modes behind their own environment variables.

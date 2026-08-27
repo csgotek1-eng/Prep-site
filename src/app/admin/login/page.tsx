@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
 import AdminLogin from "@/components/AdminLogin";
+import { getSupabasePublicConfig } from "@/lib/supabase-config";
 
 export const metadata: Metadata = {
   title: "Admin Sign-in",
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
 // UX shell only: real authorization happens server-side on every
 // /api/admin/* request via AdminAuthProvider.
 export default function AdminLoginPage() {
+  // Server component: the public Supabase pair is read here and handed
+  // to the client explicitly. Nothing secret crosses this boundary.
+  const config = getSupabasePublicConfig();
   return (
     <div className="py-12 sm:py-16">
       <Container>
@@ -25,7 +29,7 @@ export default function AdminLoginPage() {
             services and prices.
           </p>
           <div className="mt-6">
-            <AdminLogin />
+            <AdminLogin config={config} />
           </div>
         </div>
       </Container>

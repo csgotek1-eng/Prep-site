@@ -4,7 +4,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  getSupabaseAuthClientConfig,
   isSessionExpiring,
   loadStoredSession,
   refreshSession,
@@ -12,6 +11,7 @@ import {
   signOut,
   storeSession,
   type AdminSession,
+  type SupabaseAuthClientConfig,
 } from "@/lib/supabase-browser";
 
 const inputClasses =
@@ -36,9 +36,17 @@ async function verifyAdmin(session: AdminSession): Promise<200 | 401 | 403 | 0> 
   }
 }
 
-export default function AdminLogin() {
+/**
+ * `config` is read server-side (lib/supabase-config) and passed in by
+ * the page. Only the public URL and publishable key ever cross to the
+ * browser — the service-role key is never a prop.
+ */
+export default function AdminLogin({
+  config,
+}: {
+  config: SupabaseAuthClientConfig | null;
+}) {
   const router = useRouter();
-  const config = getSupabaseAuthClientConfig();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -75,9 +83,9 @@ export default function AdminLogin() {
     return (
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-700">
         <p>
-          Production sign-in is not configured on this build
-          (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are
-          not set). See docs/PRICING_PRODUCTION_SETUP.md.
+          Production sign-in is not configured on this build. See
+          docs/PRICING_PRODUCTION_SETUP.md for the server configuration
+          this page needs.
         </p>
         <p className="mt-2">
           In development you can use the token form at{" "}

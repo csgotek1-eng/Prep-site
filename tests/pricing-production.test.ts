@@ -24,8 +24,8 @@ const ENV_KEYS = [
   "PRICING_STORE_FILE",
   "ADMIN_AUTH_PROVIDER",
   "ADMIN_ACCESS_TOKEN",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_PUBLIC_URL",
+  "SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
 ];
 const env = process.env as Record<string, string | undefined>;
@@ -72,7 +72,7 @@ describe("persistence mode resolution (fail closed)", () => {
 
   it("supabase mode with missing config is unconfigured, not file", () => {
     process.env.PRICING_PERSISTENCE = "supabase";
-    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.SUPABASE_PUBLIC_URL;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     assert.equal(resolvePricingPersistence(), "unconfigured");
     assert.ok(createPricingRepository() instanceof UnavailablePricingRepository);
@@ -80,7 +80,7 @@ describe("persistence mode resolution (fail closed)", () => {
 
   it("supabase mode with config resolves to supabase", () => {
     process.env.PRICING_PERSISTENCE = "supabase";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://project.supabase.example";
+    process.env.SUPABASE_PUBLIC_URL = "https://project.supabase.example";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "srv-key";
     assert.equal(resolvePricingPersistence(), "supabase");
     assert.ok(createPricingRepository() instanceof SupabasePricingRepository);
@@ -150,7 +150,7 @@ describe("admin auth — dev token provider", () => {
 describe("admin auth — supabase provider", () => {
   const config = {
     url: "https://project.supabase.example",
-    anonKey: "anon-key",
+    publishableKey: "publishable-key",
   };
 
   it("accepts a valid token whose app_metadata.role is admin", async () => {
@@ -203,8 +203,8 @@ describe("admin auth — supabase provider", () => {
 
   it("resolveAdminAuthProvider fails closed when supabase is selected but unconfigured", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "supabase";
-    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.SUPABASE_PUBLIC_URL;
+    delete process.env.SUPABASE_PUBLISHABLE_KEY;
     const result = await resolveAdminAuthProvider().authenticate(
       adminRequest({ authorization: "Bearer whatever" }),
     );

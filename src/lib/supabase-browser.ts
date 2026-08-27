@@ -1,9 +1,12 @@
 /**
  * Browser-side Supabase Auth helper for the admin area.
  *
- * Uses ONLY the public URL + publishable anon key (NEXT_PUBLIC_*, safe
- * in the browser by design). The service-role key is never referenced
- * here and never reaches any client bundle.
+ * Uses ONLY the public URL + publishable key, which a server component
+ * reads via lib/supabase-config and passes in as a prop. This module
+ * NEVER reads process.env itself: anything reaching the browser has to
+ * be handed over explicitly at a call site, so the exposure is visible
+ * in the code rather than injected by the framework. The service-role
+ * key is never referenced here and never reaches any client bundle.
  *
  * Session model: the Supabase access token is held in memory and
  * mirrored to sessionStorage for restoration within the browser session;
@@ -24,7 +27,7 @@
 
 export interface SupabaseAuthClientConfig {
   url: string;
-  anonKey: string;
+  publishableKey: string;
 }
 
 export interface AdminSession {
@@ -41,16 +44,6 @@ export type AuthAttempt =
 
 const SESSION_STORAGE_KEY = "dockentra-admin-session";
 const GENERIC_ERROR = "Sign-in failed. Please try again.";
-
-/** Public browser config; null when this build has no Supabase set up. */
-export function getSupabaseAuthClientConfig(): SupabaseAuthClientConfig | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  if (!url || !anonKey) {
-    return null;
-  }
-  return { url, anonKey };
-}
 
 function parseSession(data: unknown): AdminSession | null {
   if (typeof data !== "object" || data === null) return null;
@@ -92,7 +85,7 @@ async function tokenRequest(
       {
         method: "POST",
         headers: {
-          apikey: config.anonKey,
+          apikey: config.publishableKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -148,7 +141,7 @@ export async function signOut(
     await fetch(`${config.url.replace(/\/$/, "")}/auth/v1/logout`, {
       method: "POST",
       headers: {
-        apikey: config.anonKey,
+        apikey: config.publishableKey,
         Authorization: `Bearer ${accessToken}`,
       },
     });

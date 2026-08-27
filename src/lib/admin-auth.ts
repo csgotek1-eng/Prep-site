@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { getSupabasePublicConfig } from "./supabase-config.ts";
 
 /**
  * Admin authentication/authorization abstraction.
@@ -99,7 +100,7 @@ export class DevTokenAdminAuthProvider implements AdminAuthProvider {
 
 interface SupabaseAuthConfig {
   url: string;
-  anonKey: string;
+  publishableKey: string;
 }
 
 /**
@@ -127,7 +128,7 @@ export class SupabaseAdminAuthProvider implements AdminAuthProvider {
         `${this.config.url.replace(/\/$/, "")}/auth/v1/user`,
         {
           headers: {
-            apikey: this.config.anonKey,
+            apikey: this.config.publishableKey,
             Authorization: `Bearer ${token}`,
           },
         },
@@ -193,14 +194,13 @@ export function resolveAdminAuthProvider(): AdminAuthProvider {
   const raw = process.env.ADMIN_AUTH_PROVIDER?.trim().toLowerCase();
 
   if (raw === "supabase") {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-    if (!url || !anonKey) {
+    const config = getSupabasePublicConfig();
+    if (!config) {
       return new UnconfiguredAdminAuthProvider(
         "Admin access is disabled: Supabase auth is selected but not configured.",
       );
     }
-    return new SupabaseAdminAuthProvider({ url, anonKey });
+    return new SupabaseAdminAuthProvider(config);
   }
 
   if (raw && raw !== "dev-token") {

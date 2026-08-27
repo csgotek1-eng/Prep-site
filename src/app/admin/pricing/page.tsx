@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
 import AdminPricingManager from "@/components/AdminPricingManager";
+import { getSupabasePublicConfig } from "@/lib/supabase-config";
 
 export const metadata: Metadata = {
   title: "Admin — Pricing",
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 // the server-side token check. Hiding this page is not the security
 // boundary — requireAdmin() on the API is.
 export default function AdminPricingPage() {
+  // Same boundary as /admin/login: public pair only, resolved on the
+  // server and passed down as a prop.
+  const supabaseConfig = getSupabasePublicConfig();
   return (
     <div className="py-12 sm:py-16">
       <Container>
@@ -27,7 +31,7 @@ export default function AdminPricingPage() {
           token.
         </p>
         <div className="mt-8">
-          <AdminPricingManager />
+          <AdminPricingManager supabaseConfig={supabaseConfig} />
         </div>
       </Container>
     </div>

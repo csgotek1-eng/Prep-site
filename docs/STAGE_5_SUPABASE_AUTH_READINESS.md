@@ -1,5 +1,14 @@
 # STAGE 5 — SUPABASE AUTH READINESS
 
+> SUPERSEDED 2026-08-27 (environment names only): the Supabase public
+> pair is now `SUPABASE_PUBLIC_URL` + `SUPABASE_PUBLISHABLE_KEY`, read
+> server-side and passed to the admin client as props. The
+> `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` names
+> below are historical and no longer used by any code. The auth model
+> itself (server-verified `app_metadata.role`) is unchanged. See
+> docs/PRICING_PRODUCTION_SETUP.md for the current variable list.
+
+
 Production-capable admin sign-in for /admin/pricing, built on the
 existing server-side AdminAuthProvider contract. **No remote Supabase
 project exists; nothing was activated.**

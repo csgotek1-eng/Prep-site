@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getSupabaseAuthClientConfig,
   isSessionExpiring,
   loadStoredSession,
   refreshSession,
   signOut,
   storeSession,
   type AdminSession,
+  type SupabaseAuthClientConfig,
 } from "@/lib/supabase-browser";
 import { formatEuro } from "@/lib/pricing/money";
 import {
@@ -293,17 +293,26 @@ function ServiceForm({
   );
 }
 
-export default function AdminPricingManager() {
+/**
+ * `supabaseConfig` is resolved server-side (lib/supabase-config) and
+ * passed in by the page. Only the public URL and publishable key reach
+ * the browser; the service-role key never does. Null means this build
+ * has no Supabase auth, and the dev-token form is shown instead.
+ */
+export default function AdminPricingManager({
+  supabaseConfig,
+}: {
+  supabaseConfig: SupabaseAuthClientConfig | null;
+}) {
   const router = useRouter();
   // Two auth modes for the SAME server-verified API:
-  //  - Supabase mode (production): this build has NEXT_PUBLIC_SUPABASE_*
-  //    set; the session comes from /admin/login and every request sends
-  //    Authorization: Bearer, re-validated server-side.
-  //  - Dev-token mode: no Supabase config in the build; the existing
+  //  - Supabase mode (production): the page passed a supabaseConfig
+  //    prop; the session comes from /admin/login and every request
+  //    sends Authorization: Bearer, re-validated server-side.
+  //  - Dev-token mode: supabaseConfig is null; the existing
   //    ADMIN_ACCESS_TOKEN form (refused by the server in production).
   // In both modes the UI is only UX — authorization lives in
   // AdminAuthProvider on the server.
-  const supabaseConfig = getSupabaseAuthClientConfig();
   const [session, setSession] = useState<AdminSession | null>(null);
   const [token, setToken] = useState("");
   const [tokenInput, setTokenInput] = useState("");

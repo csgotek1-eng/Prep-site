@@ -40,10 +40,12 @@ go-ahead. No credentials belong in this repository — ever.
    services.
 3. **Configure environment variables** in Vercel (Production scope) and
    locally for testing (see `.env.example`):
-   - `NEXT_PUBLIC_SUPABASE_URL` — project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — publishable anon key
-   - `SUPABASE_SERVICE_ROLE_KEY` — service-role key. Server-only; never
-     `NEXT_PUBLIC_`; never committed.
+   - `SUPABASE_PUBLIC_URL` — project URL. Public information.
+   - `SUPABASE_PUBLISHABLE_KEY` — publishable key. Browser-safe by
+     design; read server-side and passed to the admin login as a prop.
+   - `SUPABASE_SERVICE_ROLE_KEY` — service-role key. SERVER SECRET:
+     never a prop, never rendered, never logged, never `NEXT_PUBLIC_`,
+     never committed.
 4. **Configure Supabase Auth**: enable email/password (or magic link)
    sign-in; disable public sign-ups so only invited users get accounts.
 5. **Create the admin user**: invite the business owner's email from
@@ -81,8 +83,8 @@ go-ahead. No credentials belong in this repository — ever.
 IMPLEMENTED (Stage 5): `/admin/login` provides Supabase email/password
 sign-in (loading/error states, session restoration, logout with
 server-side revocation), and `/admin/pricing` automatically uses the
-Bearer-token flow whenever the build carries `NEXT_PUBLIC_SUPABASE_URL`
-+ `NEXT_PUBLIC_SUPABASE_ANON_KEY` (unauthenticated → redirected to
+Bearer-token flow whenever the server has `SUPABASE_PUBLIC_URL`
++ `SUPABASE_PUBLISHABLE_KEY` (unauthenticated → redirected to
 login; non-admin → denied server-side). Without that public config the
 page falls back to the development token form, which production builds
 always refuse. Verified locally against a mock Supabase Auth API — see
@@ -109,7 +111,7 @@ running production site reads Supabase.
 2. Run `supabase/seed/0002_approved_pricing.sql` once. It is idempotent
    (upsert by slug) and records the activation in
    `pricing_price_history`.
-3. Set `PRICING_PERSISTENCE=supabase` plus `NEXT_PUBLIC_SUPABASE_URL`
+3. Set `PRICING_PERSISTENCE=supabase` plus `SUPABASE_PUBLIC_URL`
    and `SUPABASE_SERVICE_ROLE_KEY`, then redeploy.
 4. Verify with the queries at the bottom of the seed file.
 
@@ -169,3 +171,29 @@ one-off goods-in may not), so applying the minimum to every estimate
 would overstate small enquiries and understate nothing. Implementing it
 needs a product decision about what the calculator represents. Until
 then it is not applied anywhere, and no page mentions it.
+
+## Production environment variables
+
+Exactly five, none of them prefixed `NEXT_PUBLIC_`:
+
+| Variable | Scope | What it is |
+| --- | --- | --- |
+| `PRICING_PERSISTENCE=supabase` | server | selects the durable pricing store |
+| `ADMIN_AUTH_PROVIDER=supabase` | server | selects Supabase Auth for the admin area |
+| `SUPABASE_PUBLIC_URL` | server → browser | the project URL. Public information. |
+| `SUPABASE_PUBLISHABLE_KEY` | server → browser | the publishable key. Browser-safe by design. |
+| `SUPABASE_SERVICE_ROLE_KEY` | server ONLY | **secret.** Never a prop, never rendered, never logged, never in a client bundle. |
+
+### Why no NEXT_PUBLIC_ prefix
+
+The prefix makes Next.js inline a value into every client bundle
+automatically, and Vercel treats such names as framework-public, which
+conflicts with variables already saved as Secret. Instead, the two
+browser-safe values are read on the server in
+`src/lib/supabase-config.ts` and passed explicitly as props from
+`/admin/login` and `/admin/pricing` to their client components. The
+exposure is then visible at the call site rather than implied by a
+name, and `src/lib/supabase-browser.ts` reads no environment at all.
+
+The service-role key stays server-side and is used only by the pricing
+repository.
