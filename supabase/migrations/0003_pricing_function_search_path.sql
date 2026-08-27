@@ -1,0 +1,47 @@
+-- ============================================================
+-- DOCKENTRA PRICING — LOCK THE TRIGGER FUNCTION SEARCH PATH
+-- ============================================================
+-- Addresses the Supabase Security Advisor warning
+-- `function_search_path_mutable` on public.set_pricing_updated_at().
+--
+-- Requires 0001_pricing_schema.sql.
+--
+-- WHY THIS IS SAFE
+-- The function body does exactly one thing:
+--     new.updated_at = now();
+--     return new;
+-- It never resolves an application table, type or operator by an
+-- unqualified name, so it needs nothing on the search path. `now()`
+-- lives in pg_catalog, which PostgreSQL searches implicitly even when
+-- search_path is empty — so the empty path is sufficient and is the
+-- tightest setting available. Nothing about the trigger's behaviour
+-- changes.
+--
+-- WHY EMPTY RATHER THAN 'public'
+-- Pinning to 'public' would still leave the function resolving names
+-- through a schema that other roles may be able to create objects in.
+-- An empty path removes that surface entirely. Do not widen it unless a
+-- future body actually needs an unqualified lookup — in which case
+-- schema-qualify the reference instead.
+--
+-- IDEMPOTENT: re-running this file is a no-op.
+--
+-- IMPORTANT — ORDERING: `create or replace function` DISCARDS a
+-- function's configuration settings. 0001 contains such a statement, so
+-- if 0001 is ever re-applied after this migration, the search_path lock
+-- is silently dropped and this file must be re-applied afterwards.
+-- Always finish a re-run of 0001 by running 0003 again.
+-- ============================================================
+
+alter function public.set_pricing_updated_at() set search_path = '';
+
+-- ------------------------------------------------------------
+-- Verification (read-only)
+-- ------------------------------------------------------------
+-- Expect one row: proconfig = {search_path=""}
+--
+--   select p.proname, p.proconfig
+--     from pg_proc p
+--     join pg_namespace n on n.oid = p.pronamespace
+--    where n.nspname = 'public'
+--      and p.proname = 'set_pricing_updated_at';
