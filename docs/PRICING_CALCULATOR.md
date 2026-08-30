@@ -31,13 +31,16 @@ subtotal  = sum of priced lineTotals
   fractional and non-numeric quantities are rejected.
 - Inactive or unknown services are silently ignored — they can never be
   priced publicly.
-- `CUSTOM_QUOTE` services show "Custom quote required", carry no price
-  and are excluded from the subtotal (the UI says so explicitly).
+- `CUSTOM_QUOTE` services are marked "Individual quote", carry no price
+  and are excluded from the internal subtotal.
 - **VAT is NOT applied** and the UI makes no VAT-inclusive or
   VAT-exclusive claims. Add VAT handling only after the business VAT
   treatment is confirmed.
-- The estimate always carries the disclaimer: estimated price only, not
-  a binding quotation.
+- **These calculated values are INTERNAL ONLY.** Pricing is private:
+  the visitor-facing UI, the public API responses and the WhatsApp
+  handoff message never contain a monetary value. The calculated price
+  reaches the client privately — in the WhatsApp conversation or the
+  quote reply — and the UI states exactly that.
 
 ## Price authority & quote integration
 
@@ -50,12 +53,22 @@ price or total):
   volume tiers (only names, descriptions, categories, unit labels and
   custom-quote / volume-tiered flags). The internal rate table is never
   publicly downloadable.
-- `POST /api/pricing/estimate` — public; server prices the selections
-  from its own catalogue.
+- `POST /api/pricing/estimate` — public; the server validates the
+  selection against its own catalogue and echoes back the confirmed
+  line list ONLY (service, quantity, unit label, custom-quote flag,
+  monthly volume). The response contains **no monetary field at all** —
+  no line totals, no subtotal (see `toPublicEstimate` and
+  `tests/private-pricing.test.ts`).
+- "Get My Price on WhatsApp" (primary CTA) opens the business WhatsApp
+  chat pre-filled with the selection — services, quantities, monthly
+  volume, never a price; the team replies with the personalised price
+  in that private conversation.
 - "Request This Quote" stores the selections in `sessionStorage` and
   opens `/contact`; the quote form attaches them as
-  `calculatorSelections`. `/api/quote` **recalculates the estimate
-  server-side** from authoritative prices before delivery — the final
+  `calculatorSelections` (displayed without prices). `/api/quote`
+  **recalculates the INTERNAL estimate server-side** from authoritative
+  prices and stores it on the lead — so the team and the admin inbox
+  see the priced version while the browser never does. The final
   monetary total is never accepted from the browser. When present, the
   webhook/log delivery payload gains an `estimate` field
   (lines + subtotal in cents).

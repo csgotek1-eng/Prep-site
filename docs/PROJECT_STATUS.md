@@ -1,5 +1,41 @@
 # PROJECT STATUS
 
+## PRIVATE WHATSAPP PRICING + FLOATING HELP (2026-08-30, branch claude/final-calculator-brand-ux)
+
+Architecture change on owner instruction: **prices are no longer shown
+publicly at all** — not in the UI, not in any public API response, not
+in the WhatsApp handoff text. The personalised price reaches the client
+privately.
+
+- **Public projection fully redacted** — `PublicEstimate` now carries
+  only the visitor's own confirmed selection (service, quantity, unit
+  label, custom-quote flag, monthly volume). `subtotal`, `lineTotal`,
+  `minimumApplied`, `volumeTierLabel` and `currency` were removed from
+  the public shape entirely, so no `/api/pricing/*` response contains a
+  monetary value. The INTERNAL `Estimate` (with prices) is unchanged:
+  `/api/quote` still recalculates and stores the priced estimate on the
+  lead, so the team and the admin inbox always see the number.
+- **Result goes to the client via WhatsApp** — the calculator's primary
+  CTA is now "Get My Price on WhatsApp": it opens the business WhatsApp
+  chat pre-filled with the selection (services, quantities, monthly
+  volume — never a price); the team replies with the personalised
+  price inside that private conversation. "Request This Quote" remains
+  as the secondary form path; the quote form attaches the selection
+  with no subtotal and states that pricing arrives in the reply.
+  `hasPricedLines`/estimate-display was retired — nothing public may
+  render money, so the "when may a total show" rule no longer exists.
+- **Floating Help is draggable and collapsible** — the launcher can be
+  dragged anywhere (pointer events, 6px tap-vs-drag threshold, always
+  clamped fully inside the viewport, re-clamped on resize/rotation) and
+  minimised to a compact icon button; position and collapsed state
+  persist in localStorage (guarded for private mode). Buttons stay
+  ordinary keyboard-operable buttons; a drag never opens the panel.
+- Verified: 307 unit tests (new `private-pricing` + `floating-help`
+  suites), lint/typecheck/build clean, live Playwright QA (no "€" in
+  any page text or observed API body across the site with all services
+  selected; drag/clamp/persist/collapse cycles; layout-shift and
+  sticky-action regression suites; hero + responsive sweeps).
+
 ## UX ROUND (2026-08-31, branch claude/final-calculator-brand-ux)
 
 Owner-driven visual round on top of the code-complete base:

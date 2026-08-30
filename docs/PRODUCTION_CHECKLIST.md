@@ -158,14 +158,20 @@ Calculator:
 
 - [ ] Calculator opens both at `/pricing-calculator` and from the
       homepage modal, and both show the same thing
-- [ ] With no prices configured: the safe unavailable state, never a
-      price of zero
-- [ ] With prices configured: a priced selection shows a monetary total;
-      a custom-quote-only selection shows **no** "Estimated total €0.00";
-      a mixed selection shows the priced subtotal with custom lines still
-      marked "priced individually"
-- [ ] "Send Result on WhatsApp" opens WhatsApp with the same figures the
-      screen shows, and no euro amount at all for custom-quote-only
+- [ ] With no prices configured: the safe unavailable state
+- [ ] PRICING IS PRIVATE: no euro amount appears anywhere in the
+      calculator, the quote form, any public page or any
+      `/api/pricing/*` response body (check the network tab too) — the
+      panel shows "N services ready to price" and the private-pricing
+      note instead
+- [ ] "Get My Price on WhatsApp" opens the business WhatsApp chat with
+      the selection (services, quantities, monthly volume) and NO
+      monetary value in the pre-filled text
+- [ ] The lead stored by "Request This Quote" still carries the
+      internally calculated priced estimate (admin inbox shows it)
+- [ ] Help launcher: drags anywhere but never off screen, a drag does
+      not open the panel, minimise/expand works, and position +
+      collapsed state survive a reload
 
 FAQ / SLA / Privacy:
 
