@@ -76,7 +76,9 @@ export default function ContactLauncher() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!mode) return;
+    // Re-entry guard: the button is disabled while sending, but a fast
+    // double-tap or Enter keypress can still fire before React re-renders.
+    if (!mode || status === "sending") return;
     const form = new FormData(event.currentTarget);
     setStatus("sending");
     setError("");
@@ -334,10 +336,23 @@ export default function ContactLauncher() {
               </p>
             )}
 
+            {/* Same factual privacy notice as the quote form. */}
+            <p className="mt-4 text-xs leading-5 text-slate-500">
+              By submitting this form you agree that Dockentra may use
+              these details to respond to your enquiry. See our{" "}
+              <a
+                href="/privacy"
+                className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
+              >
+                Privacy Policy
+              </a>
+              .
+            </p>
+
             <button
               type="submit"
               disabled={status === "sending"}
-              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:opacity-60"
+              className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:opacity-60"
             >
               {status === "sending" ? "Sending…" : submitLabel}
             </button>

@@ -444,10 +444,25 @@ export default function QuoteForm() {
         </p>
       )}
 
+      {/* Factual privacy notice: responding to the enquiry is the only
+          use we claim, matching /privacy. No marketing consent is
+          implied or collected. */}
+      <p className="mt-6 text-xs leading-5 text-slate-500">
+        By submitting this form you agree that Dockentra may use these
+        details to respond to your enquiry. See our{" "}
+        <a
+          href="/privacy"
+          className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
+        >
+          Privacy Policy
+        </a>
+        .
+      </p>
+
       <button
         type="submit"
         disabled={state === "submitting"}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {state === "submitting" ? "Sending…" : "Request a Quote"}
       </button>

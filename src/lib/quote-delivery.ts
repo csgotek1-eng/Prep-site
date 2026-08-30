@@ -149,11 +149,12 @@ export async function deliverQuoteRequest(
     return deliverToWebhook(quote, estimate);
   }
 
-  // Log mode: the server log IS the delivery destination, so the full
-  // submission is written out. Switch to a real mode for production.
+  // Log mode: intake stores the lead durably (the source of truth), so
+  // the log carries only safe operational metadata — never the
+  // visitor's contact details or message (PII does not belong in
+  // platform logs).
   console.log(
-    "New quote request received:",
-    JSON.stringify(estimate ? { quote, estimate } : quote, null, 2),
+    `New quote request received (stored durably; log mode, no external delivery). channels=${quote.salesChannels.length} services=${quote.servicesNeeded.length} hasEstimate=${estimate !== null}`,
   );
   return { ok: true };
 }

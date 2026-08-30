@@ -125,9 +125,10 @@ export async function deliverEnquiry(
     return deliverToWebhook(enquiry);
   }
 
+  // Log mode: safe operational metadata only — the durable lead row is
+  // the record, and PII does not belong in platform logs.
   console.log(
-    `New ${enquiry.type} enquiry received:`,
-    JSON.stringify(enquiry, null, 2),
+    `New ${enquiry.type} enquiry received (stored durably; log mode, no external delivery).`,
   );
   return { ok: true };
 }

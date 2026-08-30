@@ -260,7 +260,9 @@ export default function AdminLeadsManager({
               className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+                {/* min-w-0 + break-words so long emails/business names
+                    wrap instead of blowing out the mobile layout. */}
+                <div className="min-w-0 break-words">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[lead.status]}`}
@@ -317,7 +319,7 @@ export default function AdminLeadsManager({
               </button>
 
               {expanded && (
-                <div className="mt-2 space-y-3 border-t border-slate-100 pt-3 text-sm text-slate-700">
+                <div className="mt-2 space-y-3 break-words border-t border-slate-100 pt-3 text-sm text-slate-700">
                   {lead.website && (
                     <p>
                       <span className="font-medium">Website/Store:</span>{" "}
