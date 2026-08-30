@@ -29,18 +29,20 @@ describe("one support system, not two", () => {
   it("keeps exactly one floating launcher in the app shell", () => {
     const launcher = read("src/components/ContactLauncher.tsx");
     // The launcher button's className is a template literal because its
-    // bottom offset is coordinated with FloatingChrome (it moves out of
-    // the way of the calculator's fixed quote bar) — but there must
-    // still be exactly ONE floating launcher.
+    // visibility is coordinated with FloatingChrome (it yields to the
+    // calculator's sticky quote dock) — but there must still be exactly
+    // ONE floating launcher.
     const floating = launcher.match(/fixed right-4 z-50/g) ?? [];
     assert.equal(floating.length, 1);
   });
 
-  it("moves out of the way of a registered bottom action bar instead of covering it", () => {
+  it("yields to a registered bottom action bar instead of covering it", () => {
     const launcher = read("src/components/ContactLauncher.tsx");
     assert.ok(launcher.includes("useBottomBarPresent"));
-    assert.ok(launcher.includes("bottom-24"));
-    // The calculator registers its fixed mobile CTA bar with the same
+    // Below lg the launcher hides entirely while a bar is registered —
+    // no dock height or viewport width can produce an overlap.
+    assert.ok(launcher.includes("hidden lg:inline-flex"));
+    // The calculator registers its sticky CTA dock with the same
     // coordination layer.
     const calculator = read("src/components/PricingCalculator.tsx");
     assert.ok(calculator.includes("useBottomBarRegistration"));

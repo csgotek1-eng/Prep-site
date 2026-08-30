@@ -29,8 +29,20 @@ interface SelectionState {
  * computed server-side by POST /api/pricing/estimate from the
  * authoritative store. The browser only ever holds the visitor's own
  * selections and the calculated results for them.
+ *
+ * `variant` only adjusts LAYOUT to the rendering context; every piece
+ * of pricing behaviour is identical in both:
+ *  - "page"  (default): /pricing-calculator below the sticky site
+ *    header — the summary sticks 6rem down to clear it.
+ *  - "modal": inside the homepage calculator dialog, which has its own
+ *    header and scroll container — the summary sticks near the top of
+ *    that container and is capped to the dialog's height.
  */
-export default function PricingCalculator() {
+export default function PricingCalculator({
+  variant = "page",
+}: {
+  variant?: "page" | "modal";
+} = {}) {
   const router = useRouter();
   const [services, setServices] = useState<PublicCatalogueService[] | null>(
     null,
@@ -170,10 +182,12 @@ export default function PricingCalculator() {
     router.push("/contact?from=calculator");
   }
 
-  const showBottomBar = Boolean(estimate && estimate.lines.length > 0);
-  // Tell the floating chrome (Help launcher) a bottom bar is present so
-  // it moves out of the way instead of covering the primary CTA.
-  useBottomBarRegistration(showBottomBar);
+  // Below lg the summary sits after the long service list, so a sticky
+  // bottom dock keeps the estimated total and the primary CTA in reach
+  // the whole time. Registering it with FloatingChrome hides the Help
+  // launcher below lg so it can never cover the CTA.
+  const showStickyBar = Boolean(estimate && estimate.lines.length > 0);
+  useBottomBarRegistration(showStickyBar);
 
   if (loadError) {
     return (
@@ -218,7 +232,7 @@ export default function PricingCalculator() {
   const pricedLines = estimate ? hasPricedLines(estimate) : false;
 
   return (
-    <div className="pb-24 lg:pb-0">
+    <div>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
         {/* Service selector */}
         <div>
@@ -354,7 +368,15 @@ export default function PricingCalculator() {
         {/* Estimate summary */}
         <aside
           aria-label="Estimate summary"
-          className="h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
+          className={`h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:overflow-y-auto ${
+            variant === "modal"
+              ? // Inside the dialog the scroll container is the modal
+                // body (its own header, no site header), so stick near
+                // its top and never exceed the dialog's height.
+                "lg:top-2 lg:max-h-[calc(88dvh-10rem)]"
+              : // On the page, clear the sticky site header.
+                "lg:top-24 lg:max-h-[calc(100vh-7rem)]"
+          }`}
         >
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-navy">
@@ -458,7 +480,11 @@ export default function PricingCalculator() {
                 </a>
               )}
 
-              <div className="sticky bottom-0 z-10 -mx-5 mt-4 border-t border-slate-100 bg-white/95 px-5 pb-1 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
+              {/* Sticky only on lg+ (inside the summary's own scroll
+                  area). Below lg the sticky bottom dock is the pinned
+                  CTA — two pinned copies of the same button would be
+                  confusing. */}
+              <div className="-mx-5 mt-4 border-t border-slate-100 bg-white/95 px-5 pb-1 pt-4 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:bottom-0 lg:z-10">
                 <button
                   type="button"
                   onClick={requestQuote}
@@ -486,20 +512,48 @@ export default function PricingCalculator() {
         </aside>
       </div>
 
-      {/* On phones and tablets the service list is long, so the estimate
-          summary sits below it. Keep the primary action permanently in
-          reach as soon as the visitor has an estimate. */}
-      {showBottomBar && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.10)] backdrop-blur lg:hidden">
-          <div className="mx-auto max-w-6xl">
+      {/* Below lg the service list is long and the summary sits after
+          it, so the estimated total and the primary CTA ride along in a
+          sticky bottom dock while the visitor scrolls. `sticky` (not
+          `fixed`) keeps it inside whatever scroll container renders the
+          calculator — the page OR the homepage modal — and lets it
+          settle into the flow at the calculator's end instead of
+          covering unrelated content below. Totals follow the same
+          hasPricedLines rule as the summary, so a custom-quote-only
+          estimate can never show €0.00 here either. */}
+      {showStickyBar && estimate && (
+        <div className="sticky bottom-2 z-30 mt-6 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_30px_rgba(15,23,42,0.16)] backdrop-blur lg:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="min-w-0">
+              {pricedLines ? (
+                <>
+                  <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                    Estimated total
+                  </span>
+                  <span className="font-mono-data block text-xl font-bold leading-6 tracking-tight text-brand-green-dark">
+                    {formatEuro(estimate.subtotal)}
+                  </span>
+                </>
+              ) : (
+                <span className="block text-sm font-semibold leading-5 text-brand-navy">
+                  Custom pricing required
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={requestQuote}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+              className="inline-flex min-h-12 min-w-[11rem] flex-1 items-center justify-center rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:flex-none"
             >
               Request This Quote
             </button>
           </div>
+          {pricedLines && estimate.hasCustomQuoteItems && (
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
+              Excludes custom-quote services — they will be priced
+              individually.
+            </p>
+          )}
         </div>
       )}
     </div>

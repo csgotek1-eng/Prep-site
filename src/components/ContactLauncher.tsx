@@ -38,10 +38,11 @@ export default function ContactLauncher() {
   const [mode, setMode] = useState<Mode>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
-  // When a fixed bottom action bar is on screen (the calculator's
-  // mobile "Request This Quote" bar), move the launcher up so it can
-  // never cover the primary CTA. The bar only exists below lg, so the
-  // shift is scoped the same way.
+  // While a bottom action bar is on screen (the calculator's sticky
+  // "Request This Quote" dock), the launcher hides below lg so it can
+  // never cover the primary CTA or the estimated total — at any
+  // viewport width or dock height. The dock only exists below lg, so
+  // on desktop the launcher stays put.
   const bottomBarPresent = useBottomBarPresent();
 
   // Any link to #contact-enquiry opens the modal instead of jumping.
@@ -123,10 +124,10 @@ export default function ContactLauncher() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open the Dockentra contact and help panel"
-        className={`fixed right-4 z-50 inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-green px-4 text-sm font-semibold text-white shadow-lg transition-all hover:bg-brand-green-dark sm:right-6 sm:px-5 sm:text-base ${
+        className={`fixed right-4 z-50 min-h-12 items-center gap-2 rounded-full bg-brand-green px-4 text-sm font-semibold text-white shadow-lg transition-all hover:bg-brand-green-dark sm:right-6 sm:px-5 sm:text-base ${
           bottomBarPresent
-            ? "bottom-24 lg:bottom-6"
-            : "bottom-4 sm:bottom-6"
+            ? "hidden lg:inline-flex lg:bottom-6"
+            : "inline-flex bottom-4 sm:bottom-6"
         }`}
       >
         <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
