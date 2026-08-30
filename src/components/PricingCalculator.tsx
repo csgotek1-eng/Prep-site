@@ -236,16 +236,14 @@ export default function PricingCalculator({
     estimate && hasEstimateLines ? (
       <div>
         <div className="flex items-baseline justify-between gap-3">
-          <div>
-            <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              Your price request
-            </span>
-            <span className="block text-base font-semibold leading-7 text-brand-navy">
-              {estimate.lines.length}{" "}
-              {estimate.lines.length === 1 ? "service" : "services"} ready
-              to price
-            </span>
-          </div>
+          {/* The heading itself comes from the surrounding container
+              (sr-only h2 on mobile, the panel h2 on desktop) — repeating
+              it here would print it twice next to the desktop header. */}
+          <span className="block text-base font-semibold leading-7 text-brand-navy">
+            {estimate.lines.length}{" "}
+            {estimate.lines.length === 1 ? "service" : "services"} ready
+            to price
+          </span>
           {/* Always-reserved slot: the label toggles visibility, so the
               panel never changes height (no layout shift) while the
               server re-checks the selection. */}
