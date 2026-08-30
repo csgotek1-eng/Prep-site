@@ -94,29 +94,36 @@ describe("public estimate projection", () => {
   );
   const publicEstimate = toPublicEstimate(estimate);
 
-  it("carries calculated line totals but never the unit price", () => {
+  it("carries NO monetary value of any kind (pricing is private)", () => {
+    // Neither the unit rate nor the calculated result: prices are not
+    // published, they are delivered privately (WhatsApp / quote reply).
     for (const line of publicEstimate.lines) {
-      assert.equal(
-        "unitPrice" in line,
-        false,
-        "public estimate lines must not expose the unit rate",
-      );
+      for (const banned of [
+        "unitPrice",
+        "lineTotal",
+        "minimumApplied",
+        "volumeTierLabel",
+      ]) {
+        assert.equal(
+          banned in line,
+          false,
+          `public estimate lines must not expose ${banned}`,
+        );
+      }
     }
-    const priced = publicEstimate.lines.find((line) => !line.customQuote);
-    assert.ok(priced);
-    assert.equal(typeof priced.lineTotal, "number");
+    assert.equal("subtotal" in publicEstimate, false);
+    assert.equal("currency" in publicEstimate, false);
+    assert.equal("hasCustomQuoteItems" in publicEstimate, false);
   });
 
-  it("keeps custom-quote lines unpriced with their quantity", () => {
+  it("still marks custom-quote lines and keeps their quantity", () => {
     const custom = publicEstimate.lines.find((line) => line.customQuote);
     assert.ok(custom);
-    assert.equal(custom.lineTotal, null);
     assert.equal(custom.quantity, 25);
   });
 
-  it("echoes subtotal, custom flag and monthly volume", () => {
-    assert.equal(publicEstimate.subtotal, estimate.subtotal);
-    assert.equal(publicEstimate.hasCustomQuoteItems, true);
+  it("echoes the visitor's own selection and monthly volume", () => {
+    assert.equal(publicEstimate.lines.length, estimate.lines.length);
     assert.equal(publicEstimate.monthlyOrders, 500);
   });
 });

@@ -304,7 +304,7 @@ describe("one engine, server-authoritative", () => {
     assert.ok(route.includes("calculatorMonthlyOrders"));
   });
 
-  it("the WhatsApp message states the volume the rates came from", () => {
+  it("the WhatsApp message states the volume but NEVER a price", () => {
     const estimate = calculateEstimate(
       SEED_SERVICES,
       [{ serviceId: PICK_PACK, quantity: 100 }],
@@ -312,6 +312,8 @@ describe("one engine, server-authoritative", () => {
     );
     const message = buildWhatsAppEstimateMessage(estimate);
     assert.ok(message.includes("Monthly orders: 2000"));
-    assert.ok(message.includes("Estimated total: €205.00")); // 100 × €2.05
+    // Pricing is private: the team replies with the number (the server
+    // still calculated €205.00 internally for them).
+    assert.equal(message.includes("€"), false);
   });
 });

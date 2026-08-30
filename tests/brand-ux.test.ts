@@ -25,7 +25,7 @@ describe("calculator primary actions stay reachable", () => {
       calculator.indexOf("const actionsPanel"),
       calculator.indexOf("const linesList"),
     );
-    assert.ok(panel.includes("Send Result on WhatsApp"));
+    assert.ok(panel.includes("Get My Price on WhatsApp"));
     assert.ok(panel.includes("Request This Quote"));
     // The line list contains neither action.
     const lines = calculator.slice(
@@ -51,9 +51,10 @@ describe("calculator primary actions stay reachable", () => {
     assert.ok(calculator.includes("min-h-0 flex-1 overflow-y-auto"));
   });
 
-  it("custom-only estimates keep 'Custom pricing required' and never €0.00", () => {
-    assert.ok(calculator.includes("Custom pricing required"));
-    assert.ok(calculator.includes("hasPricedLines(estimate)"));
+  it("the action area never renders a monetary value (pricing is private)", () => {
+    assert.equal(calculator.includes("formatEuro"), false);
+    assert.equal(calculator.includes("€"), false);
+    assert.equal(calculator.includes("Estimated total"), false);
   });
 
   it("the updating state reserves layout space (no button jumping)", () => {

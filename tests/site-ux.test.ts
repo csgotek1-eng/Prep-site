@@ -198,7 +198,7 @@ describe("primary CTA label", () => {
     // These mean something different and were deliberately left alone.
     assert.ok(read("src/components/QuoteForm.tsx").includes("Request a Quote"));
     assert.ok(read("src/components/PricingCalculator.tsx").includes("Request This Quote"));
-    assert.ok(read("src/components/PricingCalculator.tsx").includes("Custom quote"));
+    assert.ok(read("src/components/PricingCalculator.tsx").includes("Individual quote"));
     assert.ok(read("src/lib/pricing/types.ts").includes("CUSTOM_QUOTE"));
     assert.ok(existsSync("src/app/api/quote/route.ts"));
   });

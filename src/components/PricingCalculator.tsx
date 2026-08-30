@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MAX_QUANTITY } from "@/lib/pricing/calculate";
-import { hasPricedLines } from "@/lib/pricing/estimate-display";
-import { formatEuro } from "@/lib/pricing/money";
 import type {
   PublicCatalogueService,
   PublicEstimate,
@@ -23,11 +21,15 @@ interface SelectionState {
 }
 
 /**
- * The calculator NEVER receives the rate table. The catalogue endpoint
- * returns services with no monetary data at all, and every estimate is
- * computed server-side by POST /api/pricing/estimate from the
- * authoritative store. The browser only ever holds the visitor's own
- * selections and the calculated results for them.
+ * PRICING IS PRIVATE. The calculator never receives ANY monetary value:
+ * the catalogue endpoint returns services with no monetary data, and
+ * POST /api/pricing/estimate validates the visitor's selection
+ * server-side and echoes back the confirmed line list ONLY — no totals,
+ * no line prices. The personalised price is delivered to the visitor
+ * privately: on WhatsApp (the primary CTA opens the chat with their
+ * selection pre-filled) or in the reply to their quote request. The
+ * server keeps calculating internally so the team always has the
+ * number ready — it just never ships it to the browser.
  *
  * `variant` only adjusts LAYOUT to the rendering context; every piece
  * of pricing behaviour is identical in both:
@@ -221,36 +223,32 @@ export default function PricingCalculator({
 
   const categories = [...new Set(services.map((s) => s.category))];
   const selectedCount = Object.keys(selections).length;
-  const pricedLines = estimate ? hasPricedLines(estimate) : false;
   const hasEstimateLines = Boolean(estimate && estimate.lines.length > 0);
 
-  // ONE logical primary-action area (estimated total / custom-pricing
-  // state + WhatsApp + Request This Quote). It renders responsively:
-  // sticky near the TOP of the calculator below lg, and as the fixed
-  // header of the summary panel on lg+ — never below the growing list
-  // of selected services, so the actions can never scroll out of reach.
-  // Only one instance is visible at any breakpoint.
+  // ONE logical primary-action area (private-pricing state + WhatsApp +
+  // Request This Quote). It renders responsively: sticky near the TOP
+  // of the calculator below lg, and as the fixed header of the summary
+  // panel on lg+ — never below the growing list of selected services,
+  // so the actions can never scroll out of reach. Only one instance is
+  // visible at any breakpoint. It never shows a monetary value:
+  // pricing is private and is sent to the visitor on WhatsApp.
   const actionsPanel =
     estimate && hasEstimateLines ? (
       <div>
         <div className="flex items-baseline justify-between gap-3">
-          {pricedLines ? (
-            <div>
-              <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                Estimated total
-              </span>
-              <span className="font-mono-data block text-2xl font-bold leading-7 tracking-tight text-brand-green-dark">
-                {formatEuro(estimate.subtotal)}
-              </span>
-            </div>
-          ) : (
-            <p className="text-base font-semibold leading-7 text-brand-navy">
-              Custom pricing required
-            </p>
-          )}
+          <div>
+            <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+              Your price request
+            </span>
+            <span className="block text-base font-semibold leading-7 text-brand-navy">
+              {estimate.lines.length}{" "}
+              {estimate.lines.length === 1 ? "service" : "services"} ready
+              to price
+            </span>
+          </div>
           {/* Always-reserved slot: the label toggles visibility, so the
               panel never changes height (no layout shift) while the
-              server recalculates. */}
+              server re-checks the selection. */}
           <span
             role="status"
             className={`shrink-0 text-xs text-slate-400 ${
@@ -260,26 +258,19 @@ export default function PricingCalculator({
             Updating…
           </span>
         </div>
-        {pricedLines && estimate.hasCustomQuoteItems && (
-          <p className="mt-1 text-xs leading-5 text-slate-500">
-            Custom-quote services are not included in this total and will
-            be priced individually.
-          </p>
-        )}
-        {!pricedLines && (
-          <p className="mt-1 text-xs leading-5 text-slate-500">
-            Every selected service is priced individually — request the
-            quote and we&apos;ll come back with your pricing.
-          </p>
-        )}
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          We price every operation individually and don&apos;t publish
+          prices online. Send your selection and we&apos;ll reply with
+          your personalised price on WhatsApp.
+        </p>
         {estimateError && (
           <p
             role="alert"
             className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900"
           >
-            The estimate couldn&apos;t be updated just now. Your
-            selections are kept — try again in a moment, or request the
-            quote and we&apos;ll price it for you.
+            Your selection couldn&apos;t be re-checked just now. It is
+            kept — try again in a moment, or send it anyway and
+            we&apos;ll sort it out with you.
           </p>
         )}
         <div className="mt-3 flex flex-col gap-2">
@@ -288,16 +279,16 @@ export default function PricingCalculator({
               href={buildWhatsAppEstimateUrl(estimate)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-white px-5 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
             >
               <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
-              Send Result on WhatsApp
+              Get My Price on WhatsApp
             </a>
           )}
           <button
             type="button"
             onClick={requestQuote}
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-brand-border bg-white px-5 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
           >
             Request This Quote
           </button>
@@ -316,24 +307,14 @@ export default function PricingCalculator({
               <span className="text-sm font-medium text-slate-800">
                 {line.name}
               </span>
-              <span className="whitespace-nowrap text-sm font-semibold text-brand-navy">
-                {line.customQuote
-                  ? "Custom quote"
-                  : formatEuro(line.lineTotal ?? 0)}
-              </span>
+              {line.customQuote && (
+                <span className="whitespace-nowrap rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  Individual quote
+                </span>
+              )}
             </div>
             <div className="mt-0.5 text-xs text-slate-500">
-              {line.customQuote ? (
-                <>Qty {line.quantity} — priced individually</>
-              ) : (
-                <>
-                  Qty {line.quantity} — {line.unitLabel}
-                  {line.minimumApplied && " (minimum charge applied)"}
-                </>
-              )}
-              {line.volumeTierLabel && (
-                <span className="block">{line.volumeTierLabel}</span>
-              )}
+              Qty {line.quantity} — {line.unitLabel}
             </div>
           </li>
         ))}
@@ -341,12 +322,12 @@ export default function PricingCalculator({
     ) : (
       <p className="text-sm leading-6 text-slate-600">
         {selectedCount > 0 && estimating
-          ? "Calculating your estimate…"
-          : "Select services to build your estimate."}
+          ? "Preparing your price request…"
+          : "Select services to build your price request."}
         {selectedCount === 0 && " Nothing is selected yet."}
         {selectedCount > 0 && estimateError && (
           <span className="mt-2 block text-amber-800">
-            The estimate couldn&apos;t be loaded just now — please try
+            Your selection couldn&apos;t be loaded just now — please try
             again in a moment.
           </span>
         )}
@@ -355,9 +336,10 @@ export default function PricingCalculator({
 
   const disclaimer = (
     <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
-      Estimated price only. Final pricing may vary depending on product
-      dimensions, handling requirements, storage profile, packaging and
-      agreed service terms. This estimate is not a binding quotation.
+      We don&apos;t publish prices on the website — every operation is
+      priced individually and your personalised price is sent to you
+      directly. Final pricing depends on product dimensions, handling
+      requirements, storage profile, packaging and agreed service terms.
     </p>
   );
 
@@ -375,7 +357,7 @@ export default function PricingCalculator({
             variant === "modal" ? "top-2" : "top-[4.5rem]"
           }`}
         >
-          <h2 className="sr-only">Your estimate</h2>
+          <h2 className="sr-only">Your price request</h2>
           {actionsPanel}
         </div>
       )}
@@ -395,7 +377,7 @@ export default function PricingCalculator({
               </label>
               <p className="mt-1 text-sm leading-6 text-slate-600">
                 Pick &amp; pack rates depend on your monthly volume, so this
-                sets which rate your estimate uses.
+                sets which rate we use when preparing your price.
               </p>
               <input
                 id="monthly-orders"
@@ -451,12 +433,12 @@ export default function PricingCalculator({
                               <span className="text-sm font-medium">
                                 {service.customQuote ? (
                                   <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
-                                    Custom quote
+                                    Individual quote
                                   </span>
                                 ) : (
                                   <span className="text-slate-500">
-                                    {service.unitLabel} — calculated in your
-                                    estimate
+                                    {service.unitLabel} — priced in your
+                                    personal quote
                                   </span>
                                 )}
                               </span>
@@ -518,7 +500,7 @@ export default function PricingCalculator({
             view. Contained by the page/modal via sticky — never
             position:fixed against the browser viewport. */}
         <aside
-          aria-label="Estimate summary"
+          aria-label="Price request summary"
           className={`hidden h-fit rounded-lg border border-slate-200 bg-white lg:sticky lg:flex lg:flex-col ${
             variant === "modal"
               ? // Inside the dialog the scroll container is the modal
@@ -531,7 +513,7 @@ export default function PricingCalculator({
         >
           <div className="shrink-0 border-b border-slate-100 p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-brand-navy">
-              Your estimate
+              Your price request
             </h2>
             {actionsPanel && <div className="mt-3">{actionsPanel}</div>}
           </div>
@@ -547,7 +529,7 @@ export default function PricingCalculator({
           may grow freely and scroll with the page. */}
       <div className="mt-8 rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:hidden">
         <h2 className="text-lg font-semibold text-brand-navy">
-          Estimate details
+          Selected services
         </h2>
         <div className="mt-3">{linesList}</div>
         {disclaimer}

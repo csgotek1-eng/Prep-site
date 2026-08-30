@@ -8,20 +8,24 @@ import type {
 /**
  * PUBLIC projections of the pricing domain.
  *
- * The full internal rate table (unit prices, minimum charges and every
- * volume band) is commercial data and is NOT downloadable from any
- * public endpoint. A visitor gets:
+ * PRICING IS PRIVATE. No monetary value — unit prices, minimum charges,
+ * volume bands, calculated line totals OR subtotals — ever leaves the
+ * server through a public endpoint. A visitor gets:
  *
  *  - the service CATALOGUE: enough to build the selector (names,
  *    descriptions, categories, unit labels, whether a service is
  *    custom-quoted or volume-tiered) — with no monetary values at all;
- *  - an ESTIMATE for the exact services/quantities/volume THEY chose,
- *    calculated server-side from the authoritative store. Estimate
- *    lines state the calculated line total, never the underlying rate
- *    table.
+ *  - a CONFIRMED QUOTE REQUEST for the exact services/quantities/volume
+ *    THEY chose, validated server-side against the authoritative store.
+ *    It names the services and quantities only. The calculated price is
+ *    delivered to the client privately (WhatsApp or the quote reply),
+ *    never rendered on the website or in an API response.
  *
- * Admin endpoints (server-verified admin identity) continue to see the
- * full internal model; nothing here restricts them.
+ * The INTERNAL Estimate (with subtotals and line totals) continues to
+ * exist server-side: the quote intake recalculates and stores it on the
+ * lead so the team and the admin inbox see the priced version. Admin
+ * endpoints (server-verified admin identity) continue to see the full
+ * internal model; nothing here restricts them.
  */
 
 export interface PublicCatalogueService {
@@ -75,9 +79,11 @@ export function toPublicCatalogue(
 }
 
 /**
- * One line of a public estimate. Deliberately does NOT carry the unit
- * price: the visitor sees what their selection would cost, not the
- * internal rate that produced it.
+ * One line of a public estimate: the visitor's own selection, echoed
+ * back after server-side validation. Deliberately carries NO monetary
+ * field of any kind — no unit price, no calculated line total, no
+ * minimum-charge or volume-band information. Adding a monetary field
+ * here would republish pricing; see tests/private-pricing.test.ts.
  */
 export interface PublicEstimateLine {
   serviceId: string;
@@ -85,21 +91,13 @@ export interface PublicEstimateLine {
   category: ServiceCategory;
   unitLabel: string;
   quantity: number;
-  /** Calculated line total in cents; null for custom-quote lines. */
-  lineTotal: number | null;
-  minimumApplied: boolean;
+  /** True when the service is always priced individually. */
   customQuote: boolean;
-  /** e.g. "400-1,499 orders/month" for volume-tiered lines. */
-  volumeTierLabel: string | null;
 }
 
 export interface PublicEstimate {
   lines: PublicEstimateLine[];
-  /** Sum of priced line totals in cents; custom-quote lines excluded. */
-  subtotal: number;
-  currency: "EUR";
-  hasCustomQuoteItems: boolean;
-  /** Echo of the monthly volume the tiered rates were resolved against. */
+  /** Echo of the monthly volume the request was made for. */
   monthlyOrders: number | null;
 }
 
@@ -111,20 +109,8 @@ export function toPublicEstimate(estimate: Estimate): PublicEstimate {
       category: line.category,
       unitLabel: line.unitLabel,
       quantity: line.quantity,
-      lineTotal: line.lineTotal,
-      minimumApplied: line.minimumApplied,
       customQuote: line.customQuote,
-      volumeTierLabel: line.volumeTierLabel,
     })),
-    subtotal: estimate.subtotal,
-    currency: estimate.currency,
-    hasCustomQuoteItems: estimate.hasCustomQuoteItems,
     monthlyOrders: estimate.monthlyOrders,
   };
 }
-
-// NOTE: the "may a monetary total be shown?" predicate deliberately
-// lives ONLY in ./estimate-display.ts (hasPricedLines), which accepts
-// both the internal Estimate and this PublicEstimate structurally — one
-// rule for every surface, so €0.00 can never stand in for "custom
-// quote" on one screen but not another.

@@ -124,13 +124,15 @@ describe("calculator WhatsApp share — message safety", () => {
     assert.equal(canShareEstimateOnWhatsApp(estimate), false);
   });
 
-  it("uses the exact estimate values — no second pricing engine", () => {
+  it("carries the visitor's selection with NO monetary value at all", () => {
+    // Pricing is private: the message hands the selection to the team,
+    // who reply with the personalised price inside the conversation.
     const estimate = calculateEstimate([priced], [{ serviceId: "pack", quantity: 3 }]);
     const message = buildWhatsAppEstimateMessage(estimate);
     assert.ok(message.includes("Pick & Pack"));
     assert.ok(message.includes("qty 3"));
-    assert.ok(message.includes("€7.50")); // 3 * 250 cents, formatted
-    assert.ok(message.includes("Estimated total: €7.50"));
+    assert.equal(message.includes("€"), false);
+    assert.equal(message.toLowerCase().includes("total"), false);
   });
 
   it("never invents a euro amount for custom-quote-only selections", () => {
@@ -138,10 +140,9 @@ describe("calculator WhatsApp share — message safety", () => {
     const message = buildWhatsAppEstimateMessage(estimate);
     assert.equal(message.includes("€"), false);
     assert.ok(message.includes("priced individually"));
-    assert.ok(message.includes("individual quote"));
   });
 
-  it("labels custom-quote lines without a price when mixed with priced lines", () => {
+  it("labels custom-quote lines distinctly when mixed with priced lines", () => {
     const estimate = calculateEstimate(
       [priced, custom],
       [
@@ -151,7 +152,7 @@ describe("calculator WhatsApp share — message safety", () => {
     );
     const message = buildWhatsAppEstimateMessage(estimate);
     assert.ok(message.includes("Bespoke Kitting — qty 1 — priced individually"));
-    assert.ok(message.includes("(excludes services priced individually)"));
+    assert.equal(message.includes("€"), false);
   });
 
   it("never includes name, email, phone or address the visitor did not choose to share", () => {

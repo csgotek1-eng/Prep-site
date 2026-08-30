@@ -1,36 +1,31 @@
-import { hasPricedLines } from "./pricing/estimate-display.ts";
-import { formatEuro } from "./pricing/money.ts";
 import { siteConfig } from "./site.ts";
 
 /**
- * The minimal estimate shape the share message needs. Both the internal
- * Estimate and the public API's PublicEstimate satisfy it structurally
- * — deliberately free of unit prices, which are never shared.
+ * The minimal estimate shape the WhatsApp handoff needs. Both the
+ * internal Estimate and the public API's PublicEstimate satisfy it
+ * structurally — deliberately free of every monetary field. Pricing is
+ * PRIVATE: the message that opens the WhatsApp conversation carries the
+ * visitor's own selection only, and the calculated price is sent back
+ * to them by the team inside that private conversation.
  */
 export interface ShareableEstimate {
   lines: readonly {
     name: string;
+    unitLabel: string;
     quantity: number;
     customQuote: boolean;
-    lineTotal: number | null;
   }[];
-  subtotal: number;
-  hasCustomQuoteItems: boolean;
   monthlyOrders: number | null;
 }
 
 /**
- * Builds the pre-filled WhatsApp message and share URL for a calculator
- * result. Pure and testable: it reads ONLY the already-computed Estimate
- * from PricingCalculator's own state — there is no second pricing engine
- * and no value here is invented or recalculated.
+ * Builds the pre-filled WhatsApp message and URL that hand the
+ * visitor's calculator selection to the Dockentra WhatsApp number.
+ * Pure and testable.
  *
  * Safety:
- *  - custom-quote lines are shared as "priced individually", never as a
- *    euro amount
- *  - the "Estimated total" line is included only when at least one
- *    priced (non-custom-quote) line contributed to it — a request made
- *    only of custom-quote services never shows an invented €0.00 total
+ *  - contains NO monetary value, ever — no totals, no line prices, no
+ *    rates. The personalised price is replied privately on WhatsApp.
  *  - nothing the visitor did not choose to share is included: no name,
  *    email, phone or address is read from any other form
  */
@@ -38,7 +33,7 @@ export function buildWhatsAppEstimateMessage(estimate: ShareableEstimate): strin
   const lines: string[] = [
     "Hello Dockentra,",
     "",
-    "I calculated my fulfilment estimate on your website.",
+    "I built my fulfilment setup in your website calculator and would like my personalised price.",
   ];
 
   if (estimate.monthlyOrders !== null) {
@@ -51,24 +46,11 @@ export function buildWhatsAppEstimateMessage(estimate: ShareableEstimate): strin
     lines.push(
       line.customQuote
         ? `- ${line.name} — qty ${line.quantity} — priced individually`
-        : `- ${line.name} — qty ${line.quantity} — ${formatEuro(line.lineTotal ?? 0)}`,
+        : `- ${line.name} — qty ${line.quantity} (${line.unitLabel})`,
     );
   }
 
-  // Same predicate the calculator UI uses to decide whether a
-  // monetary total may be shown — one rule, so the message and the
-  // screen can never disagree.
-  lines.push("");
-  if (hasPricedLines(estimate)) {
-    lines.push(`Estimated total: ${formatEuro(estimate.subtotal)}`);
-    if (estimate.hasCustomQuoteItems) {
-      lines.push("(excludes services priced individually)");
-    }
-  } else {
-    lines.push("All selected services require an individual quote.");
-  }
-
-  lines.push("", "I'd like to discuss this estimate.");
+  lines.push("", "Please send me the price for this setup.");
   return lines.join("\n");
 }
 
