@@ -1,0 +1,209 @@
+import { LeadStoreUnavailableError } from "./errors.ts";
+import type { LeadStore } from "./store.ts";
+import type {
+  LeadDeliveryStatus,
+  LeadInput,
+  LeadStatus,
+  StoredLead,
+} from "./types";
+import type { Estimate, EstimateSelection } from "../pricing/types";
+
+/**
+ * Production lead persistence: the website_leads table in the WEBSITE
+ * Supabase project (migration 0004), via PostgREST with the server-only
+ * service-role key — the same zero-dependency pattern as the pricing
+ * repository. RLS is deny-all, so this server-side connection is the
+ * only way in or out.
+ *
+ * Fail closed: any upstream error becomes LeadStoreUnavailableError
+ * with a safe message (no URL, key or upstream body ever leaks).
+ */
+
+interface SupabaseConfig {
+  url: string;
+  serviceRoleKey: string;
+}
+
+interface LeadRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  source: string;
+  type: string;
+  status: string;
+  name: string;
+  business: string;
+  email: string;
+  phone: string;
+  website: string;
+  sales_channels: unknown;
+  services_needed: unknown;
+  sku_count: string;
+  monthly_orders: string;
+  stock_quantity: string;
+  platform: string;
+  weekly_orders: string;
+  partnership_type: string;
+  subject: string;
+  message: string;
+  calculator_selections: unknown;
+  calculator_estimate: unknown;
+  delivery_status: string;
+  delivery_error: string | null;
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function rowToLead(row: LeadRow): StoredLead {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    source: row.source as StoredLead["source"],
+    type: row.type as StoredLead["type"],
+    status: row.status as LeadStatus,
+    name: row.name,
+    business: row.business,
+    email: row.email,
+    phone: row.phone,
+    website: row.website,
+    salesChannels: asStringArray(row.sales_channels),
+    servicesNeeded: asStringArray(row.services_needed),
+    skuCount: row.sku_count,
+    monthlyOrders: row.monthly_orders,
+    stockQuantity: row.stock_quantity,
+    platform: row.platform,
+    weeklyOrders: row.weekly_orders,
+    partnershipType: row.partnership_type,
+    subject: row.subject,
+    message: row.message,
+    calculatorSelections: Array.isArray(row.calculator_selections)
+      ? (row.calculator_selections as EstimateSelection[])
+      : null,
+    calculatorEstimate:
+      row.calculator_estimate && typeof row.calculator_estimate === "object"
+        ? (row.calculator_estimate as Estimate)
+        : null,
+    deliveryStatus: row.delivery_status as LeadDeliveryStatus,
+    deliveryError: row.delivery_error,
+  };
+}
+
+function inputToRow(input: LeadInput) {
+  return {
+    source: input.source,
+    type: input.type,
+    name: input.name,
+    business: input.business,
+    email: input.email,
+    phone: input.phone,
+    website: input.website,
+    sales_channels: input.salesChannels,
+    services_needed: input.servicesNeeded,
+    sku_count: input.skuCount,
+    monthly_orders: input.monthlyOrders,
+    stock_quantity: input.stockQuantity,
+    platform: input.platform,
+    weekly_orders: input.weeklyOrders,
+    partnership_type: input.partnershipType,
+    subject: input.subject,
+    message: input.message,
+    calculator_selections: input.calculatorSelections,
+    calculator_estimate: input.calculatorEstimate,
+  };
+}
+
+export class SupabaseLeadStore implements LeadStore {
+  private readonly config: SupabaseConfig;
+
+  constructor(config: SupabaseConfig) {
+    this.config = config;
+  }
+
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<T> {
+    let response: Response;
+    try {
+      response = await fetch(
+        `${this.config.url.replace(/\/$/, "")}/rest/v1/${path}`,
+        {
+          method,
+          headers: {
+            apikey: this.config.serviceRoleKey,
+            Authorization: `Bearer ${this.config.serviceRoleKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: body === undefined ? undefined : JSON.stringify(body),
+        },
+      );
+    } catch {
+      console.error("Lead store request failed with a network error.");
+      throw new LeadStoreUnavailableError();
+    }
+    if (!response.ok) {
+      console.error(
+        `Lead store request failed with status ${response.status}.`,
+      );
+      throw new LeadStoreUnavailableError();
+    }
+    try {
+      return (await response.json()) as T;
+    } catch {
+      console.error("Lead store returned an unreadable response.");
+      throw new LeadStoreUnavailableError();
+    }
+  }
+
+  async createLead(input: LeadInput): Promise<{ id: string }> {
+    const rows = await this.request<LeadRow[]>(
+      "POST",
+      "website_leads",
+      inputToRow(input),
+    );
+    if (rows.length === 0 || typeof rows[0]?.id !== "string") {
+      throw new LeadStoreUnavailableError();
+    }
+    return { id: rows[0].id };
+  }
+
+  async setDeliveryResult(
+    id: string,
+    status: LeadDeliveryStatus,
+    error: string | null = null,
+  ): Promise<void> {
+    await this.request<LeadRow[]>(
+      "PATCH",
+      `website_leads?id=eq.${encodeURIComponent(id)}`,
+      { delivery_status: status, delivery_error: error },
+    );
+  }
+
+  async listLeads(limit: number): Promise<StoredLead[]> {
+    const safeLimit = Math.min(500, Math.max(1, Math.floor(limit)));
+    const rows = await this.request<LeadRow[]>(
+      "GET",
+      `website_leads?order=created_at.desc&limit=${safeLimit}`,
+    );
+    return rows.map(rowToLead);
+  }
+
+  async setLeadStatus(
+    id: string,
+    status: LeadStatus,
+  ): Promise<StoredLead | null> {
+    const rows = await this.request<LeadRow[]>(
+      "PATCH",
+      `website_leads?id=eq.${encodeURIComponent(id)}`,
+      { status },
+    );
+    return rows.length > 0 ? rowToLead(rows[0]) : null;
+  }
+}

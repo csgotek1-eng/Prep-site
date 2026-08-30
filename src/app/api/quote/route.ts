@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import { isSpamSubmission, validateQuoteRequest } from "@/lib/quote";
-import { deliverQuoteRequest } from "@/lib/quote-delivery";
-import { createMemoryRateLimiter } from "@/lib/rate-limit";
+import { processLead } from "@/lib/leads/intake";
+import { notifyQuoteLead } from "@/lib/leads/notify";
+import { createDurableRateLimiter, requestClientKey } from "@/lib/rate-limit";
 import { calculateEstimate, parseSelections } from "@/lib/pricing/calculate";
 import { getPricingRepository } from "@/lib/pricing/repository";
+import type { LeadInput } from "@/lib/leads/types";
 
 // A full quote form submission is a few KB at most; anything bigger is abuse.
 const MAX_BODY_BYTES = 50_000;
 
-const rateLimiter = createMemoryRateLimiter({ limit: 5, windowMs: 60_000 });
-
-function clientKey(request: Request): string {
-  // Vercel and most proxies set x-forwarded-for; the first entry is the client.
-  const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() || "unknown";
-}
+// Shared across serverless instances via the Supabase-backed window
+// (see lib/rate-limit.ts); the in-memory layer still catches bursts.
+const rateLimiter = createDurableRateLimiter({
+  scope: "quote",
+  limit: 5,
+  windowMs: 60_000,
+});
 
 export async function POST(request: Request) {
   const contentLength = Number(request.headers.get("content-length"));
@@ -51,14 +53,15 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!rateLimiter.allow(clientKey(request))) {
+  if (!(await rateLimiter.allow(requestClientKey(request)))) {
     return NextResponse.json(
       { ok: false, error: "Too many requests. Please try again in a minute." },
       { status: 429 },
     );
   }
 
-  // Honeypot: pretend success so bots get no signal, but deliver nothing.
+  // Honeypot: pretend success so bots get no signal, but store and
+  // deliver nothing.
   if (isSpamSubmission(data)) {
     console.warn("Quote submission dropped: honeypot field was filled in.");
     return NextResponse.json({ ok: true });
@@ -71,6 +74,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  const quote = validated.quote;
 
   // Calculator integration: the browser sends only {serviceId, quantity}
   // selections. All prices and totals are recalculated here from the
@@ -96,13 +100,40 @@ export async function POST(request: Request) {
         estimate = calculated;
       }
     } catch {
-      // Pricing store unavailable: deliver the quote without an estimate
+      // Pricing store unavailable: capture the quote without an estimate
       // rather than losing the enquiry.
       console.error("Quote estimate skipped: pricing store unavailable.");
     }
   }
 
-  const result = await deliverQuoteRequest(validated.quote, estimate);
+  // SAVE FIRST, NOTIFY SECOND (see lib/leads/intake.ts): the durable
+  // website_leads row is the source of truth; the webhook/log
+  // notification is best-effort on top and its outcome is recorded.
+  const lead: LeadInput = {
+    source: "quote-form",
+    type: "quote",
+    name: quote.name,
+    business: quote.businessName,
+    email: quote.email,
+    phone: quote.phone,
+    website: quote.website,
+    salesChannels: quote.salesChannels,
+    servicesNeeded: quote.servicesNeeded,
+    skuCount: quote.skuCount,
+    monthlyOrders: quote.monthlyOrders,
+    stockQuantity: quote.stockQuantity,
+    platform: "",
+    weeklyOrders: "",
+    partnershipType: "",
+    subject: "",
+    message: quote.message,
+    calculatorSelections: selections.length > 0 ? selections : null,
+    calculatorEstimate: estimate,
+  };
+
+  const result = await processLead(lead, () =>
+    notifyQuoteLead(quote, estimate),
+  );
   if (!result.ok) {
     return NextResponse.json(
       { ok: false, error: "Something went wrong. Please try again." },

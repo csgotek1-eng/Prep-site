@@ -39,7 +39,12 @@ function getWebhookUrl(): URL | null {
   }
   try {
     const url = new URL(raw);
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
+    // Same posture as quote-delivery: HTTPS only in production; plain
+    // http is tolerated only outside production builds.
+    if (url.protocol !== "https:") {
+      if (url.protocol === "http:" && process.env.NODE_ENV !== "production") {
+        return url;
+      }
       return null;
     }
     return url;
@@ -54,7 +59,14 @@ async function deliverToWebhook(
   const url = getWebhookUrl();
   if (!url) {
     console.error(
-      "Enquiry webhook delivery is enabled but QUOTE_WEBHOOK_URL is missing or invalid.",
+      "Enquiry webhook delivery is enabled but QUOTE_WEBHOOK_URL is missing, invalid, or not HTTPS.",
+    );
+    return { ok: false, error: "Delivery is not configured." };
+  }
+  const secret = process.env.QUOTE_WEBHOOK_SECRET?.trim();
+  if (process.env.NODE_ENV === "production" && !secret) {
+    console.error(
+      "Enquiry webhook delivery requires QUOTE_WEBHOOK_SECRET in production.",
     );
     return { ok: false, error: "Delivery is not configured." };
   }
@@ -69,7 +81,6 @@ async function deliverToWebhook(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const secret = process.env.QUOTE_WEBHOOK_SECRET;
   if (secret) {
     const signature = createHmac("sha256", secret).update(body).digest("hex");
     headers["X-Dockentra-Signature"] = `sha256=${signature}`;

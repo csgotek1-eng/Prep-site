@@ -56,7 +56,13 @@ function getWebhookUrl(): URL | null {
   }
   try {
     const url = new URL(raw);
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
+    // Production destinations must be HTTPS — leads carry personal data
+    // and must never travel in plaintext. Plain http is tolerated only
+    // outside production builds (local webhook testing).
+    if (url.protocol !== "https:") {
+      if (url.protocol === "http:" && process.env.NODE_ENV !== "production") {
+        return url;
+      }
       return null;
     }
     return url;
@@ -72,7 +78,16 @@ async function deliverToWebhook(
   const url = getWebhookUrl();
   if (!url) {
     console.error(
-      "Quote webhook delivery is enabled but QUOTE_WEBHOOK_URL is missing or invalid.",
+      "Quote webhook delivery is enabled but QUOTE_WEBHOOK_URL is missing, invalid, or not HTTPS.",
+    );
+    return { ok: false, error: "Delivery is not configured." };
+  }
+  const secret = process.env.QUOTE_WEBHOOK_SECRET?.trim();
+  if (process.env.NODE_ENV === "production" && !secret) {
+    // In production the receiver must be able to authenticate the
+    // payload; an unsigned webhook is a misconfiguration, not a mode.
+    console.error(
+      "Quote webhook delivery requires QUOTE_WEBHOOK_SECRET in production.",
     );
     return { ok: false, error: "Delivery is not configured." };
   }
@@ -89,7 +104,6 @@ async function deliverToWebhook(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const secret = process.env.QUOTE_WEBHOOK_SECRET;
   if (secret) {
     const signature = createHmac("sha256", secret).update(body).digest("hex");
     headers["X-Dockentra-Signature"] = `sha256=${signature}`;
