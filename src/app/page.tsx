@@ -32,7 +32,7 @@ export default function HomePage() {
             width={460}
             height={460}
             unoptimized
-            className="absolute -right-16 top-1/2 hidden -translate-y-1/2 select-none opacity-[0.06] lg:block"
+            className="absolute right-6 top-1/2 hidden h-auto w-[340px] -translate-y-1/2 select-none opacity-[0.06] lg:block xl:right-12 xl:w-[460px]"
           />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-mint/70 to-transparent" />
         </div>

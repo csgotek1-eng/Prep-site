@@ -1,5 +1,24 @@
 # PROJECT STATUS
 
+## UPDATE (2026-08-30, consolidation round on this branch)
+
+- **P0 durability invariant enforced:** `processLead` now returns
+  `ok === saved` — SAVE FAIL + DELIVERED/SKIPPED/FAILED are all
+  failures; a webhook receipt or a log line never counts as capturing a
+  lead. Consequence: migration 0004 + a configured lead store are now a
+  HARD production prerequisite (see PRODUCTION_CHECKLIST).
+- **Approved calculator CTA UX ported** from the reviewed
+  claude/calculator-cta-visibility branch onto the hardened
+  (server-priced) calculator: layout-only `variant` prop
+  (page/modal sticky offsets), in-flow sticky bottom dock below lg
+  showing the estimated total or "Custom pricing required" beside the
+  CTA, single pinned CTA below lg, Help launcher hides below lg while
+  the dock is active. All server-side pricing, redaction, debounce and
+  custom-quantity behaviour preserved unchanged.
+- **Hero decorative D fixed:** no longer cropped by the right edge
+  (right-6 / xl:right-12, 340px on lg growing to 460px on xl); verified
+  fully visible, centred and clear of the headline at 1024–1720px.
+
 ## CURRENT STATE (2026-08-30) — PRODUCTION HARDENING
 
 BRANCH: `claude/website-production-hardening` (NOT merged to main;
