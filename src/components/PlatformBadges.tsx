@@ -1,18 +1,21 @@
+import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import Container from "@/components/Container";
 
 /**
- * Supported sales channels. Presented as recognisable text badges with a
- * restrained brand-colour accent (a small dot + hover border) rather than
- * platform logo files: no trademarked logo assets are bundled, and the
- * Dockentra mark is never combined with a platform mark. Wording states
- * support only — no partnership, certification or endorsement is implied.
+ * Supported sales channels as recognisable badges: the real brand glyph
+ * (via the canonical BrandIcon mapping) beside the platform name.
+ * Wording states support only — no partnership, certification or
+ * endorsement is implied, and the Dockentra mark is never combined with
+ * a platform mark. There is no official "TikTok Shop" logo asset, so
+ * that badge deliberately uses the recognisable TikTok glyph + the
+ * words "TikTok Shop" rather than an invented composite.
  */
-const platforms = [
-  { name: "TikTok Shop", accent: "#00F2EA" },
-  { name: "Amazon", accent: "#FF9900" },
-  { name: "Shopify", accent: "#95BF47" },
-  { name: "eBay", accent: "#E53238" },
-  { name: "WooCommerce", accent: "#7F54B3" },
+const platforms: { name: string; brand: BrandName }[] = [
+  { name: "TikTok Shop", brand: "tiktok" },
+  { name: "Amazon", brand: "amazon" },
+  { name: "Shopify", brand: "shopify" },
+  { name: "eBay", brand: "ebay" },
+  { name: "WooCommerce", brand: "woocommerce" },
 ];
 
 export default function PlatformBadges() {
@@ -29,12 +32,12 @@ export default function PlatformBadges() {
           {platforms.map((platform) => (
             <li
               key={platform.name}
-              className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-white px-4 py-2 text-sm font-semibold text-brand-navy shadow-sm transition-colors hover:border-brand-green/40"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-brand-border bg-white px-4 text-sm font-semibold text-brand-navy shadow-sm transition-colors hover:border-brand-green/40"
             >
-              <span
-                aria-hidden="true"
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: platform.accent }}
+              <BrandIcon
+                brand={platform.brand}
+                colored
+                className="h-4 w-4 shrink-0"
               />
               {platform.name}
             </li>

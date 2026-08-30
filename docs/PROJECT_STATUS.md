@@ -1,5 +1,31 @@
 # PROJECT STATUS
 
+## UX ROUND (2026-08-31, branch claude/final-calculator-brand-ux)
+
+Owner-driven visual round on top of the code-complete base:
+
+- **Calculator actions always visible** — ONE logical action area
+  (Estimated total / "Custom pricing required" + WhatsApp + Request
+  This Quote) now renders ABOVE the line list: sticky near the top
+  below lg, and as the fixed header of the summary panel on lg+ with
+  the selected-service details scrolling independently beneath it. The
+  growing list can never push the actions out of view; the "Updating…"
+  state reserves its space so nothing jumps during recalculation. The
+  old bottom dock is removed (FloatingChrome stays available; the Help
+  launcher can no longer collide by construction). No pricing/lead
+  logic touched.
+- **Brand icons standardised** — new canonical
+  src/components/BrandIcon.tsx (react-icons: Simple Icons glyphs +
+  Font Awesome's Amazon, which Simple Icons removed upstream) used by
+  the platform badges, hero chips and all social icons (SocialIcons.tsx
+  is now thin wrappers). Colored brand glyphs on light badges,
+  currentColor elsewhere; "TikTok Shop" = TikTok glyph + text (no
+  invented composite logo); all icons aria-hidden beside text,
+  icon-only links keep their labels.
+- **Hero D re-verified** at 1024–1920 incl. a glyph-pixel-level crop
+  check (canvas alpha bounds) — fully visible, centred, never under the
+  headline text, no negative offsets.
+
 ## FINAL TECHNICAL COMPLETION (2026-08-30) — CODE COMPLETE
 
 This branch is engineering-complete. The authoritative map of what is
