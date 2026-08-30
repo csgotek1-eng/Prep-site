@@ -112,26 +112,42 @@ describe("lead intake — save first, notify second", () => {
     assert.equal(calls.delivery[0]?.status, "SKIPPED");
   });
 
-  it("falls back to notification when the store is down", async () => {
-    const { store } = makeStore({ failCreate: true });
-    const result = await processLead(
-      sampleLead,
-      notifyWith({ status: "DELIVERED" }),
-      store,
-    );
-    assert.equal(result.ok, true);
-    assert.equal(result.saved, false);
-    assert.equal(result.leadId, null);
+  it("DURABILITY INVARIANT: ok === true requires saved === true", async () => {
+    // SAVE FAIL + DELIVERED / SKIPPED / FAILED are ALL failures — a
+    // webhook receipt or a log line is not durable custody of a lead.
+    const outcomes: LeadNotificationResult[] = [
+      { status: "DELIVERED" },
+      { status: "SKIPPED" },
+      { status: "FAILED", error: "down" },
+    ];
+    for (const outcome of outcomes) {
+      const { store } = makeStore({ failCreate: true });
+      const result = await processLead(sampleLead, notifyWith(outcome), store);
+      assert.equal(
+        result.ok,
+        false,
+        `save fail + ${outcome.status} must be a failure`,
+      );
+      assert.equal(result.saved, false);
+      assert.equal(result.leadId, null);
+    }
   });
 
-  it("fails only when BOTH the store and the notification fail", async () => {
-    const { store } = makeStore({ failCreate: true });
-    const result = await processLead(
-      sampleLead,
-      notifyWith({ status: "FAILED", error: "down" }),
-      store,
-    );
-    assert.equal(result.ok, false);
+  it("every ok result in the matrix is a saved result", async () => {
+    for (const outcome of ["DELIVERED", "SKIPPED", "FAILED"] as const) {
+      const { store } = makeStore();
+      const result = await processLead(
+        sampleLead,
+        notifyWith(
+          outcome === "FAILED"
+            ? { status: outcome, error: "x" }
+            : { status: outcome },
+        ),
+        store,
+      );
+      assert.equal(result.ok, true);
+      assert.equal(result.saved, true, "ok implies saved");
+    }
   });
 
   it("a notify() crash is contained and treated as FAILED", async () => {

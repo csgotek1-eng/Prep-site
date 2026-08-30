@@ -10,10 +10,15 @@ import type { LeadDeliveryStatus, LeadInput } from "./types";
  * 2. The secondary notification (webhook, or the log fallback) is then
  *    attempted, and its outcome is recorded on the stored row.
  *
- * A notification failure never loses a saved lead. If the store itself
- * is down, the notification still runs so the lead has one remaining
- * path to the owner; only when BOTH fail does intake report failure —
- * the visitor is never told "sent" when nothing was captured anywhere.
+ * DURABILITY INVARIANT: `ok === true` REQUIRES `saved === true`. A
+ * notification failure never loses a saved lead — but a submission that
+ * could not be saved durably is a FAILURE even if a webhook happened to
+ * accept it, because a webhook receipt is not durable custody of the
+ * lead. The visitor is asked to try again (their typed content is still
+ * on their screen) rather than being told "sent" for a lead the
+ * business cannot reliably retrieve. The notification is still
+ * attempted on a failed save purely as a best-effort trace for the
+ * owner; it never upgrades the result.
  */
 
 export interface LeadNotificationResult {
@@ -28,7 +33,10 @@ export interface LeadNotificationResult {
 }
 
 export interface LeadIntakeResult {
-  /** True when the lead is captured somewhere the owner can see it. */
+  /**
+   * True ONLY when the lead was saved durably (ok implies saved).
+   * Notification status never substitutes for durable storage.
+   */
   ok: boolean;
   leadId: string | null;
   saved: boolean;
@@ -47,7 +55,7 @@ export async function processLead(
     leadId = created.id;
   } catch {
     console.error(
-      "Lead could not be saved durably — falling back to notification only.",
+      "Lead could not be saved durably — the submission will be reported as failed. A best-effort notification is still attempted as a trace.",
     );
   }
 
@@ -71,12 +79,14 @@ export async function processLead(
     }
   }
 
+  // ok === saved, by design: SAVE FAIL + DELIVERED, SAVE FAIL + SKIPPED
+  // and SAVE FAIL + FAILED are all failures. Durable storage is the
+  // only thing that counts as capturing a lead.
   const saved = leadId !== null;
-  const ok = saved || notification.status !== "FAILED";
-  if (!ok) {
+  if (!saved) {
     console.error(
-      "Lead intake failed completely: not saved and notification failed.",
+      `Lead intake FAILED: lead not saved durably (notification: ${notification.status}).`,
     );
   }
-  return { ok, leadId, saved, notification };
+  return { ok: saved, leadId, saved, notification };
 }

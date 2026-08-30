@@ -22,15 +22,23 @@ processLead()  (lib/leads/intake.ts)
       3. Record the notification outcome on the stored row
 ```
 
-Failure matrix (what the visitor is told):
+Failure matrix (what the visitor is told). **DURABILITY INVARIANT:
+`ok === true` requires `saved === true`** — a webhook receipt or a log
+line is never durable custody of a lead:
 
 | Lead saved | Notification | Visitor response | Why |
 | ---------- | ------------ | ---------------- | --- |
 | yes | DELIVERED | success | normal path |
 | yes | FAILED | success | the lead is safe in the DB; failure is recorded (`delivery_status=FAILED`) and visible in /admin/leads |
 | yes | SKIPPED (log mode) | success | no external destination configured; DB row is the record |
-| no (store down) | DELIVERED | success | webhook carried it |
-| no | FAILED | **error 500** | nothing captured anywhere — the visitor must not be told "sent" |
+| no | DELIVERED | **error 500** | not durably captured; the notification is only a best-effort trace |
+| no | SKIPPED | **error 500** | nothing durable exists |
+| no | FAILED | **error 500** | nothing captured anywhere |
+
+Consequence: the durable lead store is a HARD production prerequisite
+for this branch — apply migration 0004 and configure Supabase
+persistence before deploying, or every submission will (correctly)
+fail rather than silently rely on logs.
 
 ## Storage
 

@@ -18,10 +18,14 @@ Changes on top of the state described below — see
 - Durable leads: every valid quote/enquiry is saved to `website_leads`
   BEFORE notification (save first, notify second); `/admin/leads` inbox
   added with a NEW→CONTACTED→QUALIFIED→WON/LOST workflow.
-- **New required step:** apply migration
+- **New REQUIRED step:** apply migration
   `supabase/migrations/0004_website_leads_and_rate_limits.sql` to the
-  website Supabase project (additive; apply ONCE) when activating
-  Supabase persistence.
+  website Supabase project (additive; apply ONCE) and configure
+  Supabase persistence BEFORE deploying this branch. The durability
+  invariant (`ok` requires `saved`) means a production deployment
+  without a working lead store correctly refuses submissions instead of
+  silently relying on logs — so the store is now a hard launch
+  prerequisite, not an optional upgrade.
 - Durable shared rate limiting (hashed keys, Supabase-backed) on
   `/api/quote` and `/api/enquiry`.
 - Webhook mode now REQUIRES `QUOTE_WEBHOOK_SECRET` and an HTTPS
