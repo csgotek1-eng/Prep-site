@@ -6,6 +6,34 @@ variables, webhook contract), [LEGAL_REQUIREMENTS.md](LEGAL_REQUIREMENTS.md)
 (inputs needed for legal pages) and the "Deployment to Vercel" section in
 the README.
 
+## Production hardening round (2026-08-30, branch claude/website-production-hardening)
+
+Changes on top of the state described below — see
+[LEAD_INTAKE_ARCHITECTURE.md](LEAD_INTAKE_ARCHITECTURE.md) and
+[ADMIN_SETUP.md](ADMIN_SETUP.md):
+
+- Public pricing API redacted: `/api/pricing/services` no longer exposes
+  unit prices, minimum charges or the volume-tier table; estimates are
+  server-calculated only.
+- Durable leads: every valid quote/enquiry is saved to `website_leads`
+  BEFORE notification (save first, notify second); `/admin/leads` inbox
+  added with a NEW→CONTACTED→QUALIFIED→WON/LOST workflow.
+- **New required step:** apply migration
+  `supabase/migrations/0004_website_leads_and_rate_limits.sql` to the
+  website Supabase project (additive; apply ONCE) when activating
+  Supabase persistence.
+- Durable shared rate limiting (hashed keys, Supabase-backed) on
+  `/api/quote` and `/api/enquiry`.
+- Webhook mode now REQUIRES `QUOTE_WEBHOOK_SECRET` and an HTTPS
+  destination in production.
+- Content-Security-Policy shipped in `next.config.ts`. Follow-up (not
+  blocking): move `script-src` from 'unsafe-inline' to nonces, which
+  requires middleware + dynamic rendering of currently-static pages.
+- `/privacy` developer notes removed; `/sla` wording renamed to
+  "Service Standards" (informational, not a contract). `/terms` remains
+  UNPUBLISHED — blocked on owner legal inputs
+  ([LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md)).
+
 ## Where the build stands
 
 Verified on `main` at commit `2244792` (2026-08-26), from a clean
@@ -49,10 +77,10 @@ None of these may be marked complete until they are actually done:
       without them is a valid choice, but it is a choice.
 - [ ] Privacy/legal inputs supplied
       ([LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md)) — `/privacy`
-      is published but opens with a notice saying it "has not yet been
-      reviewed by a legal professional", and it contains no company
-      registration number, VAT number or dedicated privacy email,
-      because none have been supplied
+      now contains only factually supported statements (the developer
+      notice was removed in the hardening round), but it still carries
+      no company registration number, VAT number or dedicated privacy
+      email, because none have been supplied
 - [ ] Privacy Policy reviewed by a lawyer and the pending-review notice
       removed (source: [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md))
 - [ ] Website Terms finalized (from

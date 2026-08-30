@@ -45,7 +45,11 @@ The browser only ever sends `{serviceId, quantity}` pairs
 (`parseSelections()` strips everything else, including any client-sent
 price or total):
 
-- `GET /api/pricing/services` — public, read-only, active services only.
+- `GET /api/pricing/services` — public, read-only, active services only,
+  REDACTED: the response carries no unit prices, minimum charges or
+  volume tiers (only names, descriptions, categories, unit labels and
+  custom-quote / volume-tiered flags). The internal rate table is never
+  publicly downloadable.
 - `POST /api/pricing/estimate` — public; server prices the selections
   from its own catalogue.
 - "Request This Quote" stores the selections in `sessionStorage` and

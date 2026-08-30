@@ -82,7 +82,9 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `NEXT_PUBLIC_SITE_URL` | Public site URL used for canonical links, Open Graph, robots and the sitemap. Optional: when unset, a Vercel deployment uses its real `*.vercel.app` host (`VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`) and local development uses `http://localhost:3000`. Set it explicitly once the production domain is confirmed. |
 | `QUOTE_DELIVERY_MODE` | Quote form delivery mode: `log` (default — submissions are logged server-side) or `webhook` (submissions are POSTed as JSON to `QUOTE_WEBHOOK_URL`). Server-side only. |
 | `QUOTE_WEBHOOK_URL` | Destination http(s) URL for `webhook` mode. Server-side only. |
-| `QUOTE_WEBHOOK_SECRET` | Optional. When set, webhook requests carry an `X-Dockentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
+| `QUOTE_WEBHOOK_SECRET` | REQUIRED in production when webhook mode is enabled (and the URL must be HTTPS). Webhook requests carry an `X-Dockentra-Signature: sha256=<hmac>` header (HMAC-SHA256 of the body) for verification. Server-side only — never exposed to the client. |
+| `LEADS_PERSISTENCE` | Durable lead storage: usually unset (follows `PRICING_PERSISTENCE`, so `supabase` in production); explicit `file` / `supabase` override. See docs/LEAD_INTAKE_ARCHITECTURE.md. |
+| `LEADS_STORE_FILE` | Optional path for the development lead store JSON file (default `./data/leads-store.json`, gitignored). |
 | `QUOTE_WEBHOOK_TIMEOUT_MS` | Optional webhook timeout in milliseconds (default 8000). |
 | `PRICING_PERSISTENCE` | Pricing store: `file` (development only) or `supabase` (production). Fail closed — unset in production or misconfigured `supabase` disables the store; no silent file fallback. |
 | `ADMIN_AUTH_PROVIDER` | Admin auth: `dev-token` (development only; refused in production builds) or `supabase` (Supabase Auth, server-side validation). |
@@ -91,11 +93,11 @@ Copy `.env.example` to `.env.local` and adjust as needed. Never commit `.env*` f
 | `SUPABASE_PUBLIC_URL` / `SUPABASE_PUBLISHABLE_KEY` | Supabase project URL and publishable key (needed only for the supabase modes). Read server-side and passed to the admin login as props — deliberately not `NEXT_PUBLIC_`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service-role key for the pricing repository. Never `NEXT_PUBLIC_`, never committed. |
 
-The quote form posts to `/api/quote`. The route validates input, drops honeypot (bot) submissions, applies a light per-IP rate limit and then hands off to the delivery layer in `src/lib/quote-delivery.ts`. Email / CRM / Supabase adapters can be added there later as new modes behind their own environment variables.
+The quote form posts to `/api/quote` and the help panel to `/api/enquiry`. Both routes validate input, drop honeypot (bot) submissions, apply a durable per-IP rate limit (hashed keys, shared across serverless instances when Supabase is configured), then **save the lead durably first** and attempt the webhook/log notification second — a notification failure can never lose a lead. Stored leads are reviewed in the admin inbox at `/admin/leads`. See [docs/LEAD_INTAKE_ARCHITECTURE.md](docs/LEAD_INTAKE_ARCHITECTURE.md).
 
 ## Pricing calculator
 
-`/pricing-calculator` is a public fulfilment cost calculator backed by a configurable service catalogue; `/admin/pricing` manages services and prices (server-side token auth, disabled unless `ADMIN_ACCESS_TOKEN` is set). Prices are authoritative on the server — submitted estimates are always recalculated server-side. See [docs/PRICING_CALCULATOR.md](docs/PRICING_CALCULATOR.md) for the model, admin workflow, and the production persistence/auth requirements.
+`/pricing-calculator` is a public fulfilment cost calculator backed by a configurable service catalogue; `/admin/pricing` manages services and prices (see [docs/ADMIN_SETUP.md](docs/ADMIN_SETUP.md) for production Supabase admin auth; a dev-only token mode exists locally). Prices are authoritative on the server and are **not** exposed publicly: the catalogue endpoint returns no unit prices, minimum charges or volume tiers, and every estimate is calculated server-side from the visitor's own selections. See [docs/PRICING_CALCULATOR.md](docs/PRICING_CALCULATOR.md) for the model and admin workflow.
 
 ## Brand assets
 

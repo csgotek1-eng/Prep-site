@@ -1,6 +1,62 @@
 # PROJECT STATUS
 
-## CURRENT STATE (2026-08-26)
+## CURRENT STATE (2026-08-30) — PRODUCTION HARDENING
+
+BRANCH: `claude/website-production-hardening` (NOT merged to main;
+awaiting independent review).
+
+What this round changed (full details:
+[LEAD_INTAKE_ARCHITECTURE.md](LEAD_INTAKE_ARCHITECTURE.md),
+[ADMIN_SETUP.md](ADMIN_SETUP.md)):
+
+- **P0 price exposure closed** — the public catalogue endpoint no
+  longer exposes unit prices, minimum charges or the volume-tier
+  table. The calculator fetches server-calculated estimates (debounced,
+  stale-response-safe); service cards read "calculated in your
+  estimate" / "Custom quote". Estimate responses carry line totals but
+  never unit rates.
+- **No lost leads** — new `website_leads` table (additive migration
+  0004, deny-all RLS, NOT applied yet) + save-first/notify-second
+  intake on /api/quote and /api/enquiry. Log mode is recorded as
+  SKIPPED, never claimed as delivery. Both save AND notify must fail
+  before a visitor sees an error.
+- **/admin/leads inbox** — newest-first list with contact details,
+  server-recalculated calculator estimate, delivery status and a
+  NEW/CONTACTED/QUALIFIED/WON/LOST workflow; same server-verified
+  Supabase admin auth as pricing; AdminNav links the two admin areas.
+- **Calculator correctness** — custom-quote services now take an
+  approximate quantity (carried through handoff → quote → lead →
+  admin); custom-only estimates say "Custom pricing required" (never
+  €0.00); 10,000+ volume presents as custom quote. Boundary matrix
+  0/1/399/400/1499/1500/4999/5000/9999/10000/10001 verified against
+  approved rates (2.60/2.30/2.05/1.80/custom) — values unchanged.
+- **Abuse hardening** — durable shared rate limiting (hashed client
+  keys, Supabase RPC, fail-open, auto-expiry) on the lead endpoints;
+  webhook mode requires HTTPS + QUOTE_WEBHOOK_SECRET in production;
+  Content-Security-Policy added (script-src nonce migration documented
+  as follow-up); Help launcher now coordinates with the calculator's
+  mobile CTA bar via FloatingChrome so it can never cover it; help
+  panel uses native form validation.
+- **Legal/content** — /privacy developer notes removed (facts only;
+  registration details still owner-blocked); /sla renamed on-page to
+  "Service Standards"; 2 supported FAQ answers added; /terms NOT
+  published (placeholders only — see
+  [FAQ_INPUTS_REQUIRED.md](FAQ_INPUTS_REQUIRED.md),
+  [LEGAL_INPUTS_REQUIRED.md](LEGAL_INPUTS_REQUIRED.md)).
+- New docs: ADMIN_SETUP, LEAD_INTAKE_ARCHITECTURE, ANALYTICS_PLAN
+  (design only — still no trackers), FAQ_INPUTS_REQUIRED.
+
+VERIFIED THIS ROUND: 266/266 tests, lint clean, typecheck clean,
+build 26/26 routes, browser QA: responsive sweep 13 pages ×
+320–1440px clean, calculator/lead/admin flows pass, admin APIs deny
+anonymous + dev-token in production builds, no service-role key in any
+client bundle.
+
+OWNER ACTIONS REQUIRED BEFORE THIS IS LIVE END-TO-END: apply migration
+0004 to the website Supabase project; create the Supabase admin user
+per ADMIN_SETUP.md; supply legal inputs.
+
+## PREVIOUS STATE (2026-08-26)
 
 MAIN: `2244792` — the FAQ/SLA/support branch and the unified
 homepage/contact-UX branch were combined on
