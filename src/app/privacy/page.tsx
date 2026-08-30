@@ -32,23 +32,21 @@ export default function PrivacyPage() {
       <section aria-label="Privacy policy" className="bg-white">
         <Container className="py-14 sm:py-20">
           <div className="mx-auto max-w-3xl space-y-10 text-base leading-7 text-slate-700">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              This notice describes the website&apos;s actual technical
-              behaviour as accurately as possible. It has not yet been
-              reviewed by a legal professional and should not be treated
-              as final legal advice until the business owner completes
-              that review.
-            </div>
-
             <div>
               <h2 className="text-xl font-bold tracking-tight text-brand-navy">
                 Who operates this website
               </h2>
               <p className="mt-3">
                 This website is operated by Dockentra, an Irish e-commerce
-                fulfilment and prep business. Full registered company
-                details will be added here once confirmed by the business
-                owner.
+                fulfilment and prep business. You can reach Dockentra
+                using the details on the{" "}
+                <Link
+                  href="/contact"
+                  className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                >
+                  Contact page
+                </Link>
+                .
               </p>
             </div>
 
@@ -78,14 +76,17 @@ export default function PrivacyPage() {
                 The pricing calculator
               </h2>
               <p className="mt-3">
-                The pricing calculator runs in your browser and stores
-                your selected services temporarily in your browser&apos;s
-                session storage, only on your own device, so that your
-                estimate can be carried over if you choose to send it as a
-                quote request. This is cleared when you submit or leave
-                the quote form, and automatically when you close your
-                browser session. It is never sent anywhere until you
-                choose to request a quote.
+                The pricing calculator stores your selected services
+                temporarily in your browser&apos;s session storage, only
+                on your own device, so that your estimate can be carried
+                over if you choose to send it as a quote request. This is
+                cleared when you submit or leave the quote form, and
+                automatically when you close your browser session. To
+                calculate an estimate, your selected services, quantities
+                and monthly order volume are sent to this website&apos;s
+                own server, which prices them and returns the result;
+                they contain no personal details and are not kept unless
+                you choose to submit a quote request.
               </p>
             </div>
 
@@ -107,11 +108,13 @@ export default function PrivacyPage() {
               </h2>
               <p className="mt-3">
                 Submissions are protected by a spam filter and a request
-                rate limit before being delivered to Dockentra for review.
-                Depending on how the website is configured at any given
-                time, this delivery is either logged for the team to
-                review or sent securely to a delivery endpoint Dockentra
-                controls. No submission is published publicly.
+                rate limit, then stored securely in Dockentra&apos;s own
+                systems so your enquiry cannot be lost, and reviewed by
+                Dockentra. Depending on how the website is configured at
+                any given time, a copy may also be sent securely to a
+                delivery endpoint Dockentra controls. Submissions are
+                never published publicly and are only accessible to
+                Dockentra.
               </p>
             </div>
 
@@ -154,9 +157,9 @@ export default function PrivacyPage() {
               <p className="mt-3">
                 Quote and enquiry submissions are retained only for as
                 long as needed to respond to your enquiry and manage the
-                resulting business relationship. A specific retention
-                period will be documented here once set by the business
-                owner.
+                resulting business relationship. You can ask for your
+                submission to be deleted at any time using the contact
+                details on this website.
               </p>
             </div>
 

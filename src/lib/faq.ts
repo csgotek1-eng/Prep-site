@@ -62,6 +62,18 @@ export const faqItems: FaqItem[] = [
       "As orders come in, items are picked, checked, packed and prepared for shipment.",
   },
   {
+    category: "Orders",
+    question: "Does Dockentra arrange couriers and dispatch?",
+    answer:
+      "Packed orders are made ready and handed over for onward shipment. Carrier arrangements and dispatch scheduling are agreed per client — raise them with Dockentra directly and we'll work out what fits your channels and volumes.",
+  },
+  {
+    category: "Getting started",
+    question: "What does getting set up with Dockentra look like?",
+    answer:
+      "Tell us about your business, agree the fulfilment requirements, then send us your stock. We receive and prepare it, your inventory goes into storage, and orders are picked, packed and prepared for dispatch as they come in — while you focus on growing your business.",
+  },
+  {
     category: "Returns",
     question: "Does Dockentra handle returns?",
     answer:

@@ -67,11 +67,15 @@ export default function SlaPage() {
         </Container>
       </section>
 
-      <section aria-label="Service Level Agreement" className="bg-white">
+      {/* Deliberately titled "Service Standards", not "Service Level
+          Agreement": this page is informational and contains no fixed
+          contractual service levels, so it must not present itself as a
+          contract. The /sla URL is kept for existing links. */}
+      <section aria-label="Service standards" className="bg-white">
         <Container className="py-14 sm:py-20">
           <div className="mx-auto max-w-3xl">
             <h2 className="text-2xl font-bold tracking-tight text-brand-navy">
-              Service Level Agreement
+              Service Standards
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-700">
               This page explains the framework Dockentra uses for service
