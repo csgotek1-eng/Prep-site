@@ -10,16 +10,16 @@ A public marketing website built mobile-first:
 
 - Homepage with hero, services preview, small-business section, "Why Dockentra" and CTAs
 - Services page (core services + fulfilment by sales channel)
-- How It Works (8-step process)
-- Pricing (flexible, quote-based — no fixed prices published)
-- About
-- Contact / Get Pricing form with modular server-side delivery (log or webhook mode, configured via environment variables)
+- How It Works (3-step process)
+- Pricing (quote-based) + a public Pricing Calculator with server-side estimates
+- About, FAQ, Service Standards (/sla) and Privacy pages
+- Contact / Get Pricing form and a site-wide Help panel — every valid submission is stored durably as a lead and reviewable at /admin/leads
 
 No marketplace APIs, payment systems, customer portal or WMS integrations are connected yet — the architecture is kept ready for them.
 
 ## Tech stack
 
-- [Next.js 15](https://nextjs.org/) (App Router)
+- [Next.js 16](https://nextjs.org/) (App Router)
 - [React 19](https://react.dev/)
 - [TypeScript 5](https://www.typescriptlang.org/)
 - [Tailwind CSS 4](https://tailwindcss.com/)
@@ -115,7 +115,7 @@ The site is a standard Next.js app; Vercel is the recommended host. Do not deplo
 6. Set `NEXT_PUBLIC_SITE_URL` to that domain (e.g. `https://www.example.ie`).
 7. Redeploy so canonical URLs, sitemap, robots and Open Graph pick up the domain.
 
-Notes: requires Node.js 20.9+ (declared in `package.json` engines; Vercel default is fine); all pages are static except `/api/quote`, which runs as a serverless function. No `vercel.json` is needed — zero-config Next.js support covers everything, including the security headers set in `next.config.ts`. The in-memory rate limit on `/api/quote` is per-instance — swap in a shared store (see `src/lib/rate-limit.ts`) if abuse ever becomes a problem. Any platform that runs `npm run build` + `npm run start` also works.
+Notes: requires Node.js 20.9+ (declared in `package.json` engines; Vercel default is fine); pages are static except the API routes, which run as serverless functions. No `vercel.json` is needed — zero-config Next.js support covers everything, including the security headers and CSP set in `next.config.ts`. Rate limiting on the lead endpoints is durable and shared across serverless instances via Supabase (`src/lib/rate-limit.ts`, migration 0004), with an in-memory burst layer per instance. Any platform that runs `npm run build` + `npm run start` also works. `GET /api/health` reports configuration readiness (`{ok, pricing, leadStore}`) without touching the database.
 
 Deployment docs:
 

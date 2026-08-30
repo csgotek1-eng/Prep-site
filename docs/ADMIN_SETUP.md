@@ -47,7 +47,23 @@ does not force a re-login. Reviewed trade-offs:
    unique password (a password manager's generated one). Confirm the
    email if the project requires confirmation.
 2. **Grant the admin role** — the role must be in `app_metadata`
-   (NOT `user_metadata`). In Supabase Dashboard → SQL Editor, run:
+   (NOT `user_metadata`). Use the bundled operator utility (no SQL and
+   no code edits needed). In an environment where `SUPABASE_PUBLIC_URL`
+   and `SUPABASE_SERVICE_ROLE_KEY` are set (never pasted on the command
+   line):
+
+   ```bash
+   npm run admin:check  -- --email YOUR-ADMIN-EMAIL   # shows current state
+   npm run admin:grant  -- --email YOUR-ADMIN-EMAIL   # grants app_metadata.role=admin
+   npm run admin:revoke -- --email YOUR-ADMIN-EMAIL   # removes the role
+   ```
+
+   The utility (scripts/admin-user.mjs) only modifies the single `role`
+   key on an EXISTING user, refuses ambiguous matches, never creates
+   users or touches passwords, and never prints key material. The role
+   change applies from the user's next sign-in / token refresh.
+
+   Equivalent SQL, if you prefer the Dashboard's SQL Editor:
 
    ```sql
    update auth.users

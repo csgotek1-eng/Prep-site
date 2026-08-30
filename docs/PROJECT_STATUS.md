@@ -1,5 +1,22 @@
 # PROJECT STATUS
 
+## FINAL TECHNICAL COMPLETION (2026-08-30) — CODE COMPLETE
+
+This branch is engineering-complete. The authoritative map of what is
+done, what remains as production ACTIVATION, what is blocked on
+LEGAL/BUSINESS inputs, and the deferred CUSTOM DOMAIN step is
+[FINAL_TECHNICAL_HANDOFF.md](FINAL_TECHNICAL_HANDOFF.md). Sections
+below are the round-by-round history.
+
+Final round added: factual privacy notice (+ /privacy link) on both
+forms; enquiry re-entry guard (double-submit); PII removed from
+log-mode operational logs; `GET /api/health` configuration-readiness
+endpoint; `scripts/admin-user.mjs` operator utility
+(admin:check/grant/revoke — role management without SQL or code edits);
+admin-inbox long-content wrapping; stale docs corrected (Next.js 16,
+3-step process, durable rate limiting, approved seed catalogue,
+Supabase-first admin workflow); final-completion test guards.
+
 ## UPDATE (2026-08-30, consolidation round on this branch)
 
 - **P0 durability invariant enforced:** `processLead` now returns

@@ -62,36 +62,40 @@ price or total):
 
 ## Initial data
 
-`src/lib/pricing/seed.ts` seeds the catalogue with **price = 0 and
-isActive = false** for every service (custom-quote services included).
-No real Dockentra prices have been invented; nothing appears in the
-public calculator until an admin sets a price and activates the service.
-Until then `/pricing-calculator` shows a "prices are being finalised"
-message with a quote-form CTA.
+`src/lib/pricing/seed.ts` carries the OWNER-APPROVED commercial
+catalogue: services with confirmed prices are active with those exact
+amounts; anything the owner priced as a range or left unconfirmed is
+CUSTOM_QUOTE (or inactive). This file feeds the development store and
+the production import (`supabase/seed/0002_approved_pricing.sql`).
+Production reads from the durable store, not from this file. If the
+store is ever empty/unavailable, `/pricing-calculator` shows its safe
+"prices are being finalised" state — never a zero price.
 
 ## Admin workflow (`/admin/pricing`)
 
-1. Set `ADMIN_ACCESS_TOKEN` in the server environment (`.env.local` in
-   development). With no token configured, all `/api/admin/*` endpoints
-   return 503 — a deployment without the variable exposes no mutation
-   surface.
-2. Open `/admin/pricing`, enter the token (kept in `sessionStorage`,
-   sent as the `x-admin-token` header and verified server-side with a
-   constant-time comparison on **every** request).
-3. Manage services: list (name, category, pricing type, price, unit,
+1. Authenticate. PRODUCTION: sign in at `/admin/login` with a Supabase
+   Auth user whose `app_metadata.role` is `admin` (activation:
+   [ADMIN_SETUP.md](ADMIN_SETUP.md)). DEVELOPMENT ONLY: with
+   `ADMIN_AUTH_PROVIDER=dev-token`, `ADMIN_ACCESS_TOKEN` is entered in
+   the page and verified server-side with a constant-time comparison on
+   **every** request; that provider refuses all requests in production
+   builds. With nothing configured, all `/api/admin/*` endpoints return
+   503 — no mutation surface exists.
+2. Manage services: list (name, category, pricing type, price, unit,
    active state, sort order), add, edit, activate/deactivate
    (soft-disable — nothing is destructively deleted).
-4. Every price change is recorded in the price history
+3. Every price change is recorded in the price history
    (`serviceId`, `oldPrice`, `newPrice`, `changedAt`) and shown in the
    admin UI. Historical submitted quotes are never rewritten — price
    changes affect future estimates only.
-5. All admin input is validated server-side
+4. All admin input is validated server-side
    (`validateServiceInput`): negative/fractional prices rejected,
    unknown categories/pricing types rejected, control characters
    stripped, lengths capped.
 
-`/admin` and `/api` are disallowed in `robots.txt` and the admin page
-sets `noindex`.
+`/admin` and `/api` are disallowed in `robots.txt` and every admin page
+sets `noindex`. Stored website leads are reviewed at `/admin/leads`
+(same auth) — see [LEAD_INTAKE_ARCHITECTURE.md](LEAD_INTAKE_ARCHITECTURE.md).
 
 ## Persistence
 
