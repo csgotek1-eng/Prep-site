@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
+import AdminNav from "@/components/AdminNav";
 import AdminPricingManager from "@/components/AdminPricingManager";
 import { getSupabasePublicConfig } from "@/lib/supabase-config";
 
@@ -22,13 +23,14 @@ export default function AdminPricingPage() {
   return (
     <div className="py-12 sm:py-16">
       <Container>
+        <AdminNav active="/admin/pricing" />
         <h1 className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
           Pricing administration
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          Manage the services and prices shown in the public fulfilment
-          cost calculator. Access requires the server-configured admin
-          token.
+          Manage the services and prices used by the public fulfilment
+          cost calculator. Access requires an administrator sign-in
+          (Supabase Auth in production; a development token locally).
         </p>
         <div className="mt-8">
           <AdminPricingManager supabaseConfig={supabaseConfig} />
