@@ -40,7 +40,7 @@ export default function CalculatorModal({
         description="Build a non-binding estimate, then send it to us as a quote request."
         size="wide"
       >
-        {open && <PricingCalculator />}
+        {open && <PricingCalculator variant="modal" />}
       </Modal>
     </>
   );

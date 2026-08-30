@@ -36,11 +36,13 @@ describe("one support system, not two", () => {
     assert.equal(floating.length, 1);
   });
 
-  it("moves out of the way of a registered bottom action bar instead of covering it", () => {
+  it("yields to a registered bottom action bar instead of covering it", () => {
     const launcher = read("src/components/ContactLauncher.tsx");
     assert.ok(launcher.includes("useBottomBarPresent"));
-    assert.ok(launcher.includes("bottom-24"));
-    // The calculator registers its fixed mobile CTA bar with the same
+    // Below lg the launcher hides entirely while a bar is registered —
+    // no dock height or viewport width can produce an overlap.
+    assert.ok(launcher.includes("hidden lg:inline-flex"));
+    // The calculator registers its sticky CTA dock with the same
     // coordination layer.
     const calculator = read("src/components/PricingCalculator.tsx");
     assert.ok(calculator.includes("useBottomBarRegistration"));
