@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MessageCircleQuestion, Phone } from "lucide-react";
+import { useBottomBarPresent } from "@/components/FloatingChrome";
 import Modal from "@/components/Modal";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { PARTNERSHIP_TYPES, type EnquiryType } from "@/lib/enquiry";
@@ -37,6 +38,11 @@ export default function ContactLauncher() {
   const [mode, setMode] = useState<Mode>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  // When a fixed bottom action bar is on screen (the calculator's
+  // mobile "Request This Quote" bar), move the launcher up so it can
+  // never cover the primary CTA. The bar only exists below lg, so the
+  // shift is scoped the same way.
+  const bottomBarPresent = useBottomBarPresent();
 
   // Any link to #contact-enquiry opens the modal instead of jumping.
   useEffect(() => {
@@ -117,7 +123,11 @@ export default function ContactLauncher() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open the Dockentra contact and help panel"
-        className="fixed bottom-4 right-4 z-50 inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-green px-4 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-green-dark sm:bottom-6 sm:right-6 sm:px-5 sm:text-base"
+        className={`fixed right-4 z-50 inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-green px-4 text-sm font-semibold text-white shadow-lg transition-all hover:bg-brand-green-dark sm:right-6 sm:px-5 sm:text-base ${
+          bottomBarPresent
+            ? "bottom-24 lg:bottom-6"
+            : "bottom-4 sm:bottom-6"
+        }`}
       >
         <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
         <span className="hidden sm:inline">Need help?</span>
@@ -194,7 +204,10 @@ export default function ContactLauncher() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate>
+          // Native browser validation (required/email) runs before the
+          // server round-trip; the server stays authoritative and
+          // re-validates everything.
+          <form onSubmit={handleSubmit}>
             <button
               type="button"
               onClick={() => setMode(null)}

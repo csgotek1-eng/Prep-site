@@ -28,8 +28,22 @@ describe("one support system, not two", () => {
 
   it("keeps exactly one floating launcher in the app shell", () => {
     const launcher = read("src/components/ContactLauncher.tsx");
-    const floating = launcher.match(/className="fixed bottom-/g) ?? [];
+    // The launcher button's className is a template literal because its
+    // bottom offset is coordinated with FloatingChrome (it moves out of
+    // the way of the calculator's fixed quote bar) — but there must
+    // still be exactly ONE floating launcher.
+    const floating = launcher.match(/fixed right-4 z-50/g) ?? [];
     assert.equal(floating.length, 1);
+  });
+
+  it("moves out of the way of a registered bottom action bar instead of covering it", () => {
+    const launcher = read("src/components/ContactLauncher.tsx");
+    assert.ok(launcher.includes("useBottomBarPresent"));
+    assert.ok(launcher.includes("bottom-24"));
+    // The calculator registers its fixed mobile CTA bar with the same
+    // coordination layer.
+    const calculator = read("src/components/PricingCalculator.tsx");
+    assert.ok(calculator.includes("useBottomBarRegistration"));
   });
 
   it("adds no competing persistent mobile action bar or floating WhatsApp button", () => {
