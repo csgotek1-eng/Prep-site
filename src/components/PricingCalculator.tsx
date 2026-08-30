@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useBottomBarRegistration } from "@/components/FloatingChrome";
 import { MAX_QUANTITY } from "@/lib/pricing/calculate";
 import { hasPricedLines } from "@/lib/pricing/estimate-display";
 import { formatEuro } from "@/lib/pricing/money";
@@ -182,13 +181,6 @@ export default function PricingCalculator({
     router.push("/contact?from=calculator");
   }
 
-  // Below lg the summary sits after the long service list, so a sticky
-  // bottom dock keeps the estimated total and the primary CTA in reach
-  // the whole time. Registering it with FloatingChrome hides the Help
-  // launcher below lg so it can never cover the CTA.
-  const showStickyBar = Boolean(estimate && estimate.lines.length > 0);
-  useBottomBarRegistration(showStickyBar);
-
   if (loadError) {
     return (
       <p className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-base text-slate-700">
@@ -230,9 +222,164 @@ export default function PricingCalculator({
   const categories = [...new Set(services.map((s) => s.category))];
   const selectedCount = Object.keys(selections).length;
   const pricedLines = estimate ? hasPricedLines(estimate) : false;
+  const hasEstimateLines = Boolean(estimate && estimate.lines.length > 0);
+
+  // ONE logical primary-action area (estimated total / custom-pricing
+  // state + WhatsApp + Request This Quote). It renders responsively:
+  // sticky near the TOP of the calculator below lg, and as the fixed
+  // header of the summary panel on lg+ — never below the growing list
+  // of selected services, so the actions can never scroll out of reach.
+  // Only one instance is visible at any breakpoint.
+  const actionsPanel =
+    estimate && hasEstimateLines ? (
+      <div>
+        <div className="flex items-baseline justify-between gap-3">
+          {pricedLines ? (
+            <div>
+              <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                Estimated total
+              </span>
+              <span className="font-mono-data block text-2xl font-bold leading-7 tracking-tight text-brand-green-dark">
+                {formatEuro(estimate.subtotal)}
+              </span>
+            </div>
+          ) : (
+            <p className="text-base font-semibold leading-7 text-brand-navy">
+              Custom pricing required
+            </p>
+          )}
+          {/* Always-reserved slot: the label toggles visibility, so the
+              panel never changes height (no layout shift) while the
+              server recalculates. */}
+          <span
+            role="status"
+            className={`shrink-0 text-xs text-slate-400 ${
+              estimating ? "" : "invisible"
+            }`}
+          >
+            Updating…
+          </span>
+        </div>
+        {pricedLines && estimate.hasCustomQuoteItems && (
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Custom-quote services are not included in this total and will
+            be priced individually.
+          </p>
+        )}
+        {!pricedLines && (
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Every selected service is priced individually — request the
+            quote and we&apos;ll come back with your pricing.
+          </p>
+        )}
+        {estimateError && (
+          <p
+            role="alert"
+            className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900"
+          >
+            The estimate couldn&apos;t be updated just now. Your
+            selections are kept — try again in a moment, or request the
+            quote and we&apos;ll price it for you.
+          </p>
+        )}
+        <div className="mt-3 flex flex-col gap-2">
+          {canShareEstimateOnWhatsApp(estimate) && (
+            <a
+              href={buildWhatsAppEstimateUrl(estimate)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-white px-5 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+            >
+              <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+              Send Result on WhatsApp
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={requestQuote}
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+          >
+            Request This Quote
+          </button>
+        </div>
+      </div>
+    ) : null;
+
+  // Selected-service details, shared by the desktop panel's scroll area
+  // and the mobile details card.
+  const linesList =
+    estimate && hasEstimateLines ? (
+      <ul className="divide-y divide-slate-100">
+        {estimate.lines.map((line) => (
+          <li key={line.serviceId} className="py-3 first:pt-0">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm font-medium text-slate-800">
+                {line.name}
+              </span>
+              <span className="whitespace-nowrap text-sm font-semibold text-brand-navy">
+                {line.customQuote
+                  ? "Custom quote"
+                  : formatEuro(line.lineTotal ?? 0)}
+              </span>
+            </div>
+            <div className="mt-0.5 text-xs text-slate-500">
+              {line.customQuote ? (
+                <>Qty {line.quantity} — priced individually</>
+              ) : (
+                <>
+                  Qty {line.quantity} — {line.unitLabel}
+                  {line.minimumApplied && " (minimum charge applied)"}
+                </>
+              )}
+              {line.volumeTierLabel && (
+                <span className="block">{line.volumeTierLabel}</span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-sm leading-6 text-slate-600">
+        {selectedCount > 0 && estimating
+          ? "Calculating your estimate…"
+          : "Select services to build your estimate."}
+        {selectedCount === 0 && " Nothing is selected yet."}
+        {selectedCount > 0 && estimateError && (
+          <span className="mt-2 block text-amber-800">
+            The estimate couldn&apos;t be loaded just now — please try
+            again in a moment.
+          </span>
+        )}
+      </p>
+    );
+
+  const disclaimer = (
+    <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+      Estimated price only. Final pricing may vary depending on product
+      dimensions, handling requirements, storage profile, packaging and
+      agreed service terms. This estimate is not a binding quotation.
+    </p>
+  );
 
   return (
     <div>
+      {/* MOBILE/TABLET (below lg): the primary actions stay pinned near
+          the TOP of the calculator while the service list scrolls below
+          them — they can never be pushed out of view by a growing
+          estimate. Sticky (not fixed) so the panel stays inside the
+          page or the CalculatorModal's own scroll container and never
+          covers the modal header/close button. */}
+      {actionsPanel && (
+        <div
+          className={`sticky z-30 mb-6 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden ${
+            variant === "modal" ? "top-2" : "top-[4.5rem]"
+          }`}
+        >
+          <h2 className="sr-only">Your estimate</h2>
+          {actionsPanel}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
         {/* Service selector */}
         <div>
@@ -365,10 +512,14 @@ export default function PricingCalculator({
           ))}
         </div>
 
-        {/* Estimate summary */}
+        {/* DESKTOP (lg+) estimate panel: fixed action header on top,
+            selected-service details scrolling independently below it.
+            The growing line list can never push the actions out of
+            view. Contained by the page/modal via sticky — never
+            position:fixed against the browser viewport. */}
         <aside
           aria-label="Estimate summary"
-          className={`h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:overflow-y-auto ${
+          className={`hidden h-fit rounded-lg border border-slate-200 bg-white lg:sticky lg:flex lg:flex-col ${
             variant === "modal"
               ? // Inside the dialog the scroll container is the modal
                 // body (its own header, no site header), so stick near
@@ -378,184 +529,29 @@ export default function PricingCalculator({
                 "lg:top-24 lg:max-h-[calc(100vh-7rem)]"
           }`}
         >
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="shrink-0 border-b border-slate-100 p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-brand-navy">
               Your estimate
             </h2>
-            {estimating && (
-              <span className="text-xs text-slate-400" role="status">
-                Updating…
-              </span>
-            )}
+            {actionsPanel && <div className="mt-3">{actionsPanel}</div>}
           </div>
-
-          {selectedCount > 0 && estimateError && (
-            <p
-              role="alert"
-              className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
-            >
-              The estimate couldn&apos;t be updated just now. Your
-              selections are kept — try again in a moment, or request the
-              quote and we&apos;ll price it for you.
-            </p>
-          )}
-
-          {estimate && estimate.lines.length > 0 ? (
-            <>
-              <ul className="mt-4 divide-y divide-slate-100">
-                {estimate.lines.map((line) => (
-                  <li key={line.serviceId} className="py-3">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-sm font-medium text-slate-800">
-                        {line.name}
-                      </span>
-                      <span className="whitespace-nowrap text-sm font-semibold text-brand-navy">
-                        {line.customQuote
-                          ? "Custom quote"
-                          : formatEuro(line.lineTotal ?? 0)}
-                      </span>
-                    </div>
-                    <div className="mt-0.5 text-xs text-slate-500">
-                      {line.customQuote ? (
-                        <>Qty {line.quantity} — priced individually</>
-                      ) : (
-                        <>
-                          Qty {line.quantity} — {line.unitLabel}
-                          {line.minimumApplied && " (minimum charge applied)"}
-                        </>
-                      )}
-                      {line.volumeTierLabel && (
-                        <span className="block">{line.volumeTierLabel}</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              {/* A monetary total renders only when a real priced line
-                  produced it. With custom-quote services alone there is
-                  no total to state — showing €0.00 would read as free. */}
-              {pricedLines ? (
-                <>
-                  <div className="mt-4 flex items-baseline justify-between rounded-lg bg-gradient-to-r from-brand-mint-soft to-brand-mint/30 px-4 py-3">
-                    <span className="text-base font-semibold text-brand-navy">
-                      Estimated total
-                    </span>
-                    <span className="font-mono-data text-2xl font-bold tracking-tight text-brand-green-dark">
-                      {formatEuro(estimate.subtotal)}
-                    </span>
-                  </div>
-                  {estimate.hasCustomQuoteItems && (
-                    <p className="mt-2 text-xs leading-5 text-slate-500">
-                      Custom-quote services are not included in this total
-                      and will be priced individually.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3">
-                  <p className="text-base font-semibold text-brand-navy">
-                    Custom pricing required
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    Every service you selected is priced individually —
-                    request the quote and we&apos;ll come back with your
-                    pricing.
-                  </p>
-                </div>
-              )}
-
-              {/* Keep secondary sharing available in the scrollable body.
-                  The primary quote CTA is pinned separately below so it
-                  never disappears while the estimate grows. */}
-              {canShareEstimateOnWhatsApp(estimate) && (
-                <a
-                  href={buildWhatsAppEstimateUrl(estimate)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
-                >
-                  <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
-                  Send Result on WhatsApp
-                </a>
-              )}
-
-              {/* Sticky only on lg+ (inside the summary's own scroll
-                  area). Below lg the sticky bottom dock is the pinned
-                  CTA — two pinned copies of the same button would be
-                  confusing. */}
-              <div className="-mx-5 mt-4 border-t border-slate-100 bg-white/95 px-5 pb-1 pt-4 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:bottom-0 lg:z-10">
-                <button
-                  type="button"
-                  onClick={requestQuote}
-                  className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-                >
-                  Request This Quote
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              {selectedCount > 0 && estimating
-                ? "Calculating your estimate…"
-                : "Select services on the left to build your estimate."}
-              {selectedCount === 0 && " Nothing is selected yet."}
-            </p>
-          )}
-
-          <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
-            Estimated price only. Final pricing may vary depending on
-            product dimensions, handling requirements, storage profile,
-            packaging and agreed service terms. This estimate is not a
-            binding quotation.
-          </p>
+          <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4">
+            {linesList}
+            {disclaimer}
+          </div>
         </aside>
       </div>
 
-      {/* Below lg the service list is long and the summary sits after
-          it, so the estimated total and the primary CTA ride along in a
-          sticky bottom dock while the visitor scrolls. `sticky` (not
-          `fixed`) keeps it inside whatever scroll container renders the
-          calculator — the page OR the homepage modal — and lets it
-          settle into the flow at the calculator's end instead of
-          covering unrelated content below. Totals follow the same
-          hasPricedLines rule as the summary, so a custom-quote-only
-          estimate can never show €0.00 here either. */}
-      {showStickyBar && estimate && (
-        <div className="sticky bottom-2 z-30 mt-6 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_30px_rgba(15,23,42,0.16)] backdrop-blur lg:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <div className="min-w-0">
-              {pricedLines ? (
-                <>
-                  <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                    Estimated total
-                  </span>
-                  <span className="font-mono-data block text-xl font-bold leading-6 tracking-tight text-brand-green-dark">
-                    {formatEuro(estimate.subtotal)}
-                  </span>
-                </>
-              ) : (
-                <span className="block text-sm font-semibold leading-5 text-brand-navy">
-                  Custom pricing required
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={requestQuote}
-              className="inline-flex min-h-12 min-w-[11rem] flex-1 items-center justify-center rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:flex-none"
-            >
-              Request This Quote
-            </button>
-          </div>
-          {pricedLines && estimate.hasCustomQuoteItems && (
-            <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
-              Excludes custom-quote services — they will be priced
-              individually.
-            </p>
-          )}
-        </div>
-      )}
+      {/* MOBILE/TABLET selected-service details. The actions live in the
+          sticky panel at the top; this card only lists the lines, so it
+          may grow freely and scroll with the page. */}
+      <div className="mt-8 rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:hidden">
+        <h2 className="text-lg font-semibold text-brand-navy">
+          Estimate details
+        </h2>
+        <div className="mt-3">{linesList}</div>
+        {disclaimer}
+      </div>
     </div>
   );
 }

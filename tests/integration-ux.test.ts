@@ -36,16 +36,19 @@ describe("one support system, not two", () => {
     assert.equal(floating.length, 1);
   });
 
-  it("yields to a registered bottom action bar instead of covering it", () => {
+  it("cannot collide with the calculator's primary actions", () => {
+    // The calculator's primary actions now live in a sticky panel at
+    // the TOP of the calculator (below lg) / the summary header (lg+),
+    // so the bottom-right Help launcher cannot overlap them by
+    // construction — no bottom action bar exists any more.
+    const calculator = read("src/components/PricingCalculator.tsx");
+    assert.equal(calculator.includes("sticky bottom-"), false);
+    assert.equal(calculator.includes("fixed inset-x-0 bottom-0"), false);
+    // The FloatingChrome coordination layer stays available for any
+    // future bottom bar, and the launcher still honours it.
     const launcher = read("src/components/ContactLauncher.tsx");
     assert.ok(launcher.includes("useBottomBarPresent"));
-    // Below lg the launcher hides entirely while a bar is registered —
-    // no dock height or viewport width can produce an overlap.
     assert.ok(launcher.includes("hidden lg:inline-flex"));
-    // The calculator registers its sticky CTA dock with the same
-    // coordination layer.
-    const calculator = read("src/components/PricingCalculator.tsx");
-    assert.ok(calculator.includes("useBottomBarRegistration"));
   });
 
   it("adds no competing persistent mobile action bar or floating WhatsApp button", () => {
