@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import PlatformBadges from "@/components/PlatformBadges";
@@ -11,8 +12,14 @@ import ServicesSection from "@/components/sections/ServicesSection";
 import WhyDockentra from "@/components/sections/WhyDockentra";
 
 /* Hero shows the four most recognisable channels as chips; the full
-   supported list lives in the platforms section below. */
-const marketplaces = ["TikTok Shop", "Amazon", "Shopify", "eBay"];
+   supported list lives in the platforms section below. Icons come from
+   the canonical BrandIcon mapping. */
+const marketplaces: { name: string; brand: BrandName }[] = [
+  { name: "TikTok Shop", brand: "tiktok" },
+  { name: "Amazon", brand: "amazon" },
+  { name: "Shopify", brand: "shopify" },
+  { name: "eBay", brand: "ebay" },
+];
 
 export default function HomePage() {
   return (
@@ -54,11 +61,16 @@ export default function HomePage() {
                 className="flex flex-wrap gap-2"
                 aria-label="Sales channels we support"
               >
-                {marketplaces.map((name) => (
+                {marketplaces.map(({ name, brand }) => (
                   <li
                     key={name}
-                    className="rounded-full border border-brand-border bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy shadow-sm"
                   >
+                    <BrandIcon
+                      brand={brand}
+                      colored
+                      className="h-3.5 w-3.5 shrink-0"
+                    />
                     {name}
                   </li>
                 ))}
