@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { calculateEstimate, MAX_QUANTITY } from "@/lib/pricing/calculate";
+import { useBottomBarRegistration } from "@/components/FloatingChrome";
+import { MAX_QUANTITY } from "@/lib/pricing/calculate";
 import { hasPricedLines } from "@/lib/pricing/estimate-display";
 import { formatEuro } from "@/lib/pricing/money";
+import type {
+  PublicCatalogueService,
+  PublicEstimate,
+} from "@/lib/pricing/public";
 import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
-import type { PricingService, VolumeTier } from "@/lib/pricing/types";
 import {
   buildWhatsAppEstimateUrl,
   canShareEstimateOnWhatsApp,
@@ -19,15 +23,28 @@ interface SelectionState {
   [serviceId: string]: number; // quantity
 }
 
+/**
+ * The calculator NEVER receives the rate table. The catalogue endpoint
+ * returns services with no monetary data at all, and every estimate is
+ * computed server-side by POST /api/pricing/estimate from the
+ * authoritative store. The browser only ever holds the visitor's own
+ * selections and the calculated results for them.
+ */
 export default function PricingCalculator() {
   const router = useRouter();
-  const [services, setServices] = useState<PricingService[] | null>(null);
-  const [volumeTiers, setVolumeTiers] = useState<VolumeTier[]>([]);
+  const [services, setServices] = useState<PublicCatalogueService[] | null>(
+    null,
+  );
+  const [hasTieredServices, setHasTieredServices] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [selections, setSelections] = useState<SelectionState>({});
-  // Monthly order volume selects the Pick & Pack band. It is a rate
-  // input only — it never becomes a line quantity of its own.
+  // Monthly order volume selects the volume band server-side. It is a
+  // rate input only — it never becomes a line quantity of its own.
   const [monthlyOrders, setMonthlyOrders] = useState(MIN_MONTHLY_ORDERS);
+  const [estimate, setEstimate] = useState<PublicEstimate | null>(null);
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState(false);
+  const estimateRequestId = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,15 +53,13 @@ export default function PricingCalculator() {
       .then(
         (data: {
           ok: boolean;
-          services?: PricingService[];
-          volumeTiers?: VolumeTier[];
+          services?: PublicCatalogueService[];
+          hasTieredServices?: boolean;
         }) => {
           if (!cancelled) {
             if (data.ok && Array.isArray(data.services)) {
               setServices(data.services);
-              setVolumeTiers(
-                Array.isArray(data.volumeTiers) ? data.volumeTiers : [],
-              );
+              setHasTieredServices(Boolean(data.hasTieredServices));
             } else {
               setLoadError(true);
             }
@@ -59,32 +74,75 @@ export default function PricingCalculator() {
     };
   }, []);
 
-  // The on-page preview uses the same shared calculation module as the
-  // server. The server independently recalculates from authoritative
-  // prices when the quote is submitted — nothing monetary is trusted
-  // from the browser.
-  const estimate = useMemo(() => {
-    if (!services) return null;
-    return calculateEstimate(
-      services,
-      Object.entries(selections).map(([serviceId, quantity]) => ({
-        serviceId,
-        quantity,
-      })),
-      { monthlyOrders, volumeTiers },
-    );
-  }, [services, selections, monthlyOrders, volumeTiers]);
+  // Server-side estimation, debounced while the visitor edits. Stale
+  // responses are discarded by request id so a slow earlier answer can
+  // never overwrite a newer one. The empty-selection reset happens in
+  // the event handlers (clearSelectionState), not here.
+  useEffect(() => {
+    const entries = Object.entries(selections);
+    if (entries.length === 0) {
+      return;
+    }
+    const requestId = ++estimateRequestId.current;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setEstimating(true);
+      fetch("/api/pricing/estimate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          selections: entries.map(([serviceId, quantity]) => ({
+            serviceId,
+            quantity,
+          })),
+          monthlyOrders,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data: { ok: boolean; estimate?: PublicEstimate }) => {
+          if (estimateRequestId.current !== requestId) return;
+          if (data.ok && data.estimate) {
+            setEstimate(data.estimate);
+            setEstimateError(false);
+          } else {
+            setEstimateError(true);
+          }
+          setEstimating(false);
+        })
+        .catch((cause: unknown) => {
+          if (
+            estimateRequestId.current !== requestId ||
+            (cause instanceof Error && cause.name === "AbortError")
+          ) {
+            return;
+          }
+          setEstimateError(true);
+          setEstimating(false);
+        });
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [selections, monthlyOrders]);
 
-  function toggleService(service: PricingService) {
-    setSelections((current) => {
-      const next = { ...current };
-      if (service.id in next) {
-        delete next[service.id];
-      } else {
-        next[service.id] = 1;
-      }
-      return next;
-    });
+  function toggleService(service: PublicCatalogueService) {
+    const next = { ...selections };
+    if (service.id in next) {
+      delete next[service.id];
+    } else {
+      next[service.id] = 1;
+    }
+    setSelections(next);
+    if (Object.keys(next).length === 0) {
+      // Last service removed: clear the estimate immediately and make
+      // any in-flight response stale.
+      estimateRequestId.current += 1;
+      setEstimate(null);
+      setEstimating(false);
+      setEstimateError(false);
+    }
   }
 
   function setQuantity(serviceId: string, value: string) {
@@ -111,6 +169,11 @@ export default function PricingCalculator() {
     }
     router.push("/contact?from=calculator");
   }
+
+  const showBottomBar = Boolean(estimate && estimate.lines.length > 0);
+  // Tell the floating chrome (Help launcher) a bottom bar is present so
+  // it moves out of the way instead of covering the primary CTA.
+  useBottomBarRegistration(showBottomBar);
 
   if (loadError) {
     return (
@@ -152,6 +215,7 @@ export default function PricingCalculator() {
 
   const categories = [...new Set(services.map((s) => s.category))];
   const selectedCount = Object.keys(selections).length;
+  const pricedLines = estimate ? hasPricedLines(estimate) : false;
 
   return (
     <div className="pb-24 lg:pb-0">
@@ -160,7 +224,7 @@ export default function PricingCalculator() {
         <div>
           {/* Volume band input. Shown only when the catalogue actually has
               tiered services, so it never appears as an unexplained field. */}
-          {volumeTiers.length > 0 && (
+          {hasTieredServices && (
             <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
               <label
                 htmlFor="monthly-orders"
@@ -170,7 +234,7 @@ export default function PricingCalculator() {
               </label>
               <p className="mt-1 text-sm leading-6 text-slate-600">
                 Pick &amp; pack rates depend on your monthly volume, so this
-                sets which rate the estimate uses.
+                sets which rate your estimate uses.
               </p>
               <input
                 id="monthly-orders"
@@ -202,7 +266,6 @@ export default function PricingCalculator() {
                   .filter((service) => service.category === category)
                   .map((service) => {
                     const selected = service.id in selections;
-                    const isCustom = service.pricingType === "CUSTOM_QUOTE";
                     return (
                       <li
                         key={service.id}
@@ -224,18 +287,16 @@ export default function PricingCalculator() {
                               <span className="text-base font-semibold text-brand-navy">
                                 {service.name}
                               </span>
-                              <span className="text-sm font-medium text-slate-700">
-                                {isCustom ? (
+                              <span className="text-sm font-medium">
+                                {service.customQuote ? (
                                   <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
-                                    Custom quote required
+                                    Custom quote
                                   </span>
                                 ) : (
-                                  <>
-                                    {formatEuro(service.price)}{" "}
-                                    <span className="text-slate-500">
-                                      {service.unitLabel}
-                                    </span>
-                                  </>
+                                  <span className="text-slate-500">
+                                    {service.unitLabel} — calculated in your
+                                    estimate
+                                  </span>
                                 )}
                               </span>
                             </span>
@@ -244,16 +305,23 @@ export default function PricingCalculator() {
                                 {service.description}
                               </span>
                             )}
+                            {service.volumeTiered && (
+                              <span className="mt-1 block text-xs leading-5 text-slate-500">
+                                Rate depends on your monthly order volume.
+                              </span>
+                            )}
                           </span>
                         </label>
 
-                        {selected && !isCustom && (
+                        {selected && (
                           <div className="mt-3 flex flex-wrap items-center gap-3 pl-8">
                             <label
                               htmlFor={`qty-${service.id}`}
                               className="text-sm font-medium text-slate-700"
                             >
-                              Quantity
+                              {service.customQuote
+                                ? "Approx. quantity"
+                                : "Quantity"}
                             </label>
                             <input
                               id={`qty-${service.id}`}
@@ -268,10 +336,9 @@ export default function PricingCalculator() {
                               }
                               className="h-11 w-28 rounded-md border border-slate-300 bg-white px-3 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
                             />
-                            {service.minimumCharge !== null && (
+                            {service.customQuote && (
                               <span className="text-xs text-slate-500">
-                                Minimum charge{" "}
-                                {formatEuro(service.minimumCharge)}
+                                Helps us prepare your individual quote.
                               </span>
                             )}
                           </div>
@@ -289,9 +356,27 @@ export default function PricingCalculator() {
           aria-label="Estimate summary"
           className="h-fit rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
         >
-          <h2 className="text-lg font-semibold text-brand-navy">
-            Your estimate
-          </h2>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold text-brand-navy">
+              Your estimate
+            </h2>
+            {estimating && (
+              <span className="text-xs text-slate-400" role="status">
+                Updating…
+              </span>
+            )}
+          </div>
+
+          {selectedCount > 0 && estimateError && (
+            <p
+              role="alert"
+              className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+            >
+              The estimate couldn&apos;t be updated just now. Your
+              selections are kept — try again in a moment, or request the
+              quote and we&apos;ll price it for you.
+            </p>
+          )}
 
           {estimate && estimate.lines.length > 0 ? (
             <>
@@ -313,8 +398,7 @@ export default function PricingCalculator() {
                         <>Qty {line.quantity} — priced individually</>
                       ) : (
                         <>
-                          {line.quantity} × {formatEuro(line.unitPrice ?? 0)}{" "}
-                          {line.unitLabel}
+                          Qty {line.quantity} — {line.unitLabel}
                           {line.minimumApplied && " (minimum charge applied)"}
                         </>
                       )}
@@ -326,13 +410,10 @@ export default function PricingCalculator() {
                 ))}
               </ul>
 
-              {/* A monetary total is shown only when a real priced line
+              {/* A monetary total renders only when a real priced line
                   produced it. With custom-quote services alone there is
-                  no total to state, and "€0.00" would read as free —
-                  the per-line "Custom quote / priced individually"
-                  labels above already say what is happening, so no total
-                  row and no note about a total that does not exist. */}
-              {hasPricedLines(estimate) && (
+                  no total to state — showing €0.00 would read as free. */}
+              {pricedLines ? (
                 <>
                   <div className="mt-4 flex items-baseline justify-between rounded-lg bg-gradient-to-r from-brand-mint-soft to-brand-mint/30 px-4 py-3">
                     <span className="text-base font-semibold text-brand-navy">
@@ -349,6 +430,17 @@ export default function PricingCalculator() {
                     </p>
                   )}
                 </>
+              ) : (
+                <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3">
+                  <p className="text-base font-semibold text-brand-navy">
+                    Custom pricing required
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Every service you selected is priced individually —
+                    request the quote and we&apos;ll come back with your
+                    pricing.
+                  </p>
+                </div>
               )}
 
               {/* Keep secondary sharing available in the scrollable body.
@@ -378,7 +470,9 @@ export default function PricingCalculator() {
             </>
           ) : (
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Select services on the left to build your estimate.
+              {selectedCount > 0 && estimating
+                ? "Calculating your estimate…"
+                : "Select services on the left to build your estimate."}
               {selectedCount === 0 && " Nothing is selected yet."}
             </p>
           )}
@@ -394,8 +488,8 @@ export default function PricingCalculator() {
 
       {/* On phones and tablets the service list is long, so the estimate
           summary sits below it. Keep the primary action permanently in
-          reach as soon as the visitor selects at least one service. */}
-      {estimate && estimate.lines.length > 0 && (
+          reach as soon as the visitor has an estimate. */}
+      {showBottomBar && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.10)] backdrop-blur lg:hidden">
           <div className="mx-auto max-w-6xl">
             <button

@@ -4,7 +4,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { salesChannels, serviceOptions } from "@/lib/site";
 import { formatEuro } from "@/lib/pricing/money";
 import { CALCULATOR_STORAGE_KEY } from "@/components/PricingCalculator";
-import type { Estimate, EstimateSelection } from "@/lib/pricing/types";
+import { hasPricedLines } from "@/lib/pricing/estimate-display";
+import type { PublicEstimate } from "@/lib/pricing/public";
+import type { EstimateSelection } from "@/lib/pricing/types";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
@@ -20,7 +22,7 @@ export default function QuoteForm() {
     EstimateSelection[]
   >([]);
   const [calculatorEstimate, setCalculatorEstimate] =
-    useState<Estimate | null>(null);
+    useState<PublicEstimate | null>(null);
   const [calculatorMonthlyOrders, setCalculatorMonthlyOrders] = useState<
     number | null
   >(null);
@@ -67,7 +69,7 @@ export default function QuoteForm() {
       body: JSON.stringify({ selections, monthlyOrders }),
     })
       .then((response) => response.json())
-      .then((result: { ok: boolean; estimate?: Estimate }) => {
+      .then((result: { ok: boolean; estimate?: PublicEstimate }) => {
         if (!cancelled && result.ok && result.estimate?.lines.length) {
           setCalculatorSelections(selections);
           setCalculatorEstimate(result.estimate);
@@ -215,10 +217,28 @@ export default function QuoteForm() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 flex justify-between gap-3 border-t border-brand-mint/70 pt-2 text-sm font-semibold text-brand-navy">
-            <span>Estimated total</span>
-            <span>{formatEuro(calculatorEstimate.subtotal)}</span>
-          </p>
+          {/* A monetary total renders only when a real priced line
+              produced it — custom-quote-only estimates say so instead
+              of showing a misleading €0.00. */}
+          {hasPricedLines(calculatorEstimate) ? (
+            <>
+              <p className="mt-2 flex justify-between gap-3 border-t border-brand-mint/70 pt-2 text-sm font-semibold text-brand-navy">
+                <span>Estimated subtotal</span>
+                <span>{formatEuro(calculatorEstimate.subtotal)}</span>
+              </p>
+              {calculatorEstimate.hasCustomQuoteItems && (
+                <p className="mt-1 text-xs leading-5 text-slate-600">
+                  Custom-priced services are not included in this subtotal
+                  — they will be priced individually.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-2 border-t border-brand-mint/70 pt-2 text-sm font-semibold text-brand-navy">
+              Custom pricing required — we&apos;ll come back with your
+              individual quote.
+            </p>
+          )}
           <p className="mt-2 text-xs leading-5 text-slate-500">
             This estimate will be attached to your request and re-checked
             by us. It is not a binding quotation.

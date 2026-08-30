@@ -1,5 +1,3 @@
-import type { Estimate } from "./types";
-
 /**
  * Presentation-state helpers for an already-computed Estimate.
  *
@@ -22,6 +20,8 @@ import type { Estimate } from "./types";
  * `subtotal === 0`: a real priced line totalling zero is a genuine
  * result and must still display.
  */
-export function hasPricedLines(estimate: Estimate): boolean {
+export function hasPricedLines(estimate: {
+  lines: readonly { customQuote: boolean }[];
+}): boolean {
   return estimate.lines.some((line) => !line.customQuote);
 }

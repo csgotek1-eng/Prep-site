@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import { calculateEstimate, parseSelections } from "@/lib/pricing/calculate";
 import { PricingUnavailableError } from "@/lib/pricing/errors";
+import { toPublicEstimate } from "@/lib/pricing/public";
 import { getPricingRepository } from "@/lib/pricing/repository";
+import { createMemoryRateLimiter, requestClientKey } from "@/lib/rate-limit";
 
 const MAX_BODY_BYTES = 20_000;
 
-// Public: computes an estimate from {serviceId, quantity} selections.
-// Prices always come from the server-side catalogue — any price or total
-// sent by the browser is discarded by parseSelections().
+// Generous burst protection: normal calculator use produces at most a
+// few requests per second while someone edits quantities (the client
+// also debounces). This is a per-instance in-memory limiter — estimate
+// responses only ever price the caller's own selection, so the durable
+// shared limiter is reserved for the lead-writing endpoints.
+const rateLimiter = createMemoryRateLimiter({ limit: 120, windowMs: 60_000 });
+
+// Public ESTIMATE endpoint: computes an estimate from {serviceId,
+// quantity} selections plus a monthly order volume. Prices always come
+// from the server-side catalogue — any price or total sent by the
+// browser is discarded by parseSelections() — and the response is the
+// PUBLIC projection: calculated line totals only, never the underlying
+// rate table or unit prices.
 export async function POST(request: Request) {
   let raw: string;
   try {
@@ -35,6 +47,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!rateLimiter.allow(requestClientKey(request))) {
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please slow down a little." },
+      { status: 429 },
+    );
+  }
+
   const body = data as { selections?: unknown; monthlyOrders?: unknown };
   const selections = parseSelections(body?.selections);
   try {
@@ -49,7 +68,7 @@ export async function POST(request: Request) {
       monthlyOrders: body?.monthlyOrders,
       volumeTiers,
     });
-    return NextResponse.json({ ok: true, estimate });
+    return NextResponse.json({ ok: true, estimate: toPublicEstimate(estimate) });
   } catch (error) {
     if (error instanceof PricingUnavailableError) {
       return NextResponse.json(

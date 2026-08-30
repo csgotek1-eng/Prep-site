@@ -1,7 +1,23 @@
 import { hasPricedLines } from "./pricing/estimate-display.ts";
 import { formatEuro } from "./pricing/money.ts";
-import type { Estimate } from "./pricing/types";
 import { siteConfig } from "./site.ts";
+
+/**
+ * The minimal estimate shape the share message needs. Both the internal
+ * Estimate and the public API's PublicEstimate satisfy it structurally
+ * — deliberately free of unit prices, which are never shared.
+ */
+export interface ShareableEstimate {
+  lines: readonly {
+    name: string;
+    quantity: number;
+    customQuote: boolean;
+    lineTotal: number | null;
+  }[];
+  subtotal: number;
+  hasCustomQuoteItems: boolean;
+  monthlyOrders: number | null;
+}
 
 /**
  * Builds the pre-filled WhatsApp message and share URL for a calculator
@@ -18,7 +34,7 @@ import { siteConfig } from "./site.ts";
  *  - nothing the visitor did not choose to share is included: no name,
  *    email, phone or address is read from any other form
  */
-export function buildWhatsAppEstimateMessage(estimate: Estimate): string {
+export function buildWhatsAppEstimateMessage(estimate: ShareableEstimate): string {
   const lines: string[] = [
     "Hello Dockentra,",
     "",
@@ -56,11 +72,13 @@ export function buildWhatsAppEstimateMessage(estimate: Estimate): string {
   return lines.join("\n");
 }
 
-export function canShareEstimateOnWhatsApp(estimate: Estimate | null): boolean {
+export function canShareEstimateOnWhatsApp(
+  estimate: ShareableEstimate | null,
+): boolean {
   return !!estimate && estimate.lines.length > 0;
 }
 
-export function buildWhatsAppEstimateUrl(estimate: Estimate): string {
+export function buildWhatsAppEstimateUrl(estimate: ShareableEstimate): string {
   const message = buildWhatsAppEstimateMessage(estimate);
   return `${siteConfig.social.whatsapp}?text=${encodeURIComponent(message)}`;
 }
