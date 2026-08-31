@@ -1,6 +1,7 @@
+import { LeadStoreUnavailableError } from "../leads/errors.ts";
 import { processLead } from "../leads/intake.ts";
 import { getLeadStore } from "../leads/store.ts";
-import type { LeadStore } from "../leads/store.ts";
+import type { LeadStore, WhatsAppSendRecord } from "../leads/store.ts";
 import type { LeadInput } from "../leads/types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
 import { makePricingReference } from "./message.ts";
@@ -29,7 +30,79 @@ import type {
  *  - "sent" is reported ONLY when the provider ACCEPTED the message.
  *    Disabled/unconfigured delivery and provider failures are reported
  *    truthfully as not-sent; the saved request still reaches the team.
+ *
+ * KNOWN EDGE CASE — external provider + database dual write.
+ * Step 2 spans two systems that cannot commit together: Meta may
+ * ACCEPT the message and the follow-up write of that outcome to our
+ * own store may still fail. There is no ordering that removes this —
+ * sending first risks an unrecorded send, recording first risks a
+ * recorded send that never happened, and for a site this size a
+ * durable outbox/queue would cost far more than the failure it
+ * prevents. So we:
+ *   - never lie to the customer: a provider ACCEPT means the WhatsApp
+ *     message really was sent, and that is what we report;
+ *   - retry the result write a small, bounded number of times;
+ *   - if every attempt fails, emit ONE safe correlation log (ids only)
+ *     so an operator can repair the row by hand.
+ * The stored request itself is never at risk: it is committed in step
+ * 1, before the provider is contacted.
  */
+
+/** Total attempts (1 initial + 2 retries) at the result write. */
+const RESULT_WRITE_ATTEMPTS = 3;
+/** Short, bounded backoff between attempts — never a blocking wait. */
+const RESULT_WRITE_RETRY_DELAYS_MS = [50, 150];
+
+const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * A closed set of categories — never the error message, which could
+ * carry connection strings or row data into the logs.
+ */
+function storeErrorCategory(error: unknown): string {
+  return error instanceof LeadStoreUnavailableError
+    ? "LEAD_STORE_UNAVAILABLE"
+    : "STORE_WRITE_FAILED";
+}
+
+/**
+ * Records the provider outcome with a bounded retry. Returns true when
+ * the outcome was persisted.
+ *
+ * On total failure it logs ONLY correlation identifiers — lead id,
+ * reference, provider, provider message id, error category. Never the
+ * customer's number, the message text, any price, or any credential.
+ */
+async function recordSendResultWithRetry(
+  store: LeadStore,
+  leadId: string,
+  record: WhatsAppSendRecord,
+  reference: string,
+): Promise<boolean> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= RESULT_WRITE_ATTEMPTS; attempt++) {
+    try {
+      await store.recordWhatsAppSendResult(leadId, record);
+      return true;
+    } catch (error) {
+      lastError = error;
+      const backoff = RESULT_WRITE_RETRY_DELAYS_MS[attempt - 1];
+      if (attempt < RESULT_WRITE_ATTEMPTS && backoff !== undefined) {
+        await delay(backoff);
+      }
+    }
+  }
+  console.error(
+    "WhatsApp pricing: send outcome could not be recorded after " +
+      `${RESULT_WRITE_ATTEMPTS} attempts — repair this row manually. ` +
+      `leadId=${leadId} reference=${reference} ` +
+      `providerStatus=${record.status} provider=${record.provider} ` +
+      `providerMessageId=${record.providerMessageId ?? "none"} ` +
+      `errorCategory=${storeErrorCategory(lastError)}`,
+  );
+  return false;
+}
 
 export type WhatsAppPricingDeliveryOutcome = "sent" | "unavailable" | "failed";
 
@@ -134,8 +207,13 @@ export async function processWhatsAppPricingRequest(
     };
   }
 
-  try {
-    await store.recordWhatsAppSendResult(intake.leadId, {
+  // Bounded retry: the customer-facing outcome below is decided by the
+  // PROVIDER, so a lost result write never changes what we tell them —
+  // it only costs the team the record, which this tries hard to keep.
+  await recordSendResultWithRetry(
+    store,
+    intake.leadId,
+    {
       provider: sendResult.provider,
       providerMessageId: sendResult.providerMessageId,
       status:
@@ -145,13 +223,9 @@ export async function processWhatsAppPricingRequest(
             ? "FAILED"
             : "PENDING",
       errorCode: sendResult.errorCode,
-    });
-  } catch {
-    // The request row exists; a failed status write is log-only.
-    console.error(
-      "Could not record the WhatsApp send outcome on the stored request.",
-    );
-  }
+    },
+    reference,
+  );
 
   return {
     ok: true,

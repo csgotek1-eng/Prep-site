@@ -54,6 +54,9 @@ class FakeStore implements LeadStore {
   createdInputs: LeadInput[] = [];
   sendRecords: { id: string; record: WhatsAppSendRecord }[] = [];
   failCreate = false;
+  /** Make the first N result-write attempts throw (retry testing). */
+  failSendResultTimes = 0;
+  sendResultAttempts = 0;
   async createLead(input: LeadInput): Promise<{ id: string }> {
     if (this.failCreate) throw new LeadStoreUnavailableError();
     this.createdInputs.push(input);
@@ -64,6 +67,10 @@ class FakeStore implements LeadStore {
     id: string,
     record: WhatsAppSendRecord,
   ): Promise<void> {
+    this.sendResultAttempts += 1;
+    if (this.sendResultAttempts <= this.failSendResultTimes) {
+      throw new LeadStoreUnavailableError();
+    }
     this.sendRecords.push({ id, record });
   }
   async applyWhatsAppStatusUpdate(): Promise<boolean> {
@@ -379,6 +386,153 @@ describe("D. processWhatsAppPricingRequest matrix", () => {
       0,
       "pricing must never be sent for a request the business cannot retrieve",
     );
+  });
+});
+
+// ---------------------------------------------------------------------
+// D2. Provider accepted, but the result write fails (dual-write edge)
+// ---------------------------------------------------------------------
+
+/**
+ * Runs `fn` with console.error captured. Node's own process warnings
+ * ("(node:123) …") also arrive on this channel and are not application
+ * logs, so they are filtered out.
+ */
+async function captureErrors<T>(
+  fn: () => Promise<T>,
+): Promise<{ result: T; errors: string[] }> {
+  const captured: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    captured.push(args.map(String).join(" "));
+  };
+  try {
+    const result = await fn();
+    return { result, errors: captured.filter((line) => !/^\(node:\d+\)/.test(line)) };
+  } finally {
+    console.error = original;
+  }
+}
+
+describe("D2. recording the provider outcome is retried, never faked", () => {
+  const baseArgs = {
+    rawNumber: "+353 85 123 4567",
+    e164: "+353851234567",
+    selections: [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
+    estimate: PRICED,
+  };
+
+  it("ACCEPTED + first write fails + retry succeeds → sent AND persisted", async () => {
+    const store = new FakeStore();
+    store.failSendResultTimes = 1;
+    const { result, errors } = await captureErrors(() =>
+      processWhatsAppPricingRequest({
+        ...baseArgs,
+        store,
+        provider: fakeProvider(ACCEPTED),
+      }),
+    );
+    assert.equal(result.delivery, "sent");
+    assert.equal(store.sendResultAttempts, 2, "one retry was needed");
+    assert.equal(store.sendRecords.length, 1);
+    assert.equal(store.sendRecords[0].record.status, "ACCEPTED");
+    assert.equal(
+      store.sendRecords[0].record.providerMessageId,
+      "wamid.TEST123",
+    );
+    assert.deepEqual(errors, [], "a recovered write must not alarm the log");
+  });
+
+  it("ACCEPTED + every bounded attempt fails → STILL truthfully sent", async () => {
+    const store = new FakeStore();
+    store.failSendResultTimes = 99;
+    const { result, errors } = await captureErrors(() =>
+      processWhatsAppPricingRequest({
+        ...baseArgs,
+        store,
+        provider: fakeProvider(ACCEPTED),
+      }),
+    );
+    // Meta accepted the message: the customer really did receive it, so
+    // reporting anything else would be a lie.
+    assert.equal(result.ok, true);
+    assert.equal(result.delivery, "sent");
+    assert.equal(result.providerOutcome, "ACCEPTED");
+    // Bounded: a fixed number of attempts, not an unbounded loop.
+    assert.equal(store.sendResultAttempts, 3);
+    assert.equal(store.sendRecords.length, 0);
+    assert.equal(errors.length, 1, "exactly one operator-facing log line");
+  });
+
+  it("the failure log carries repair identifiers and NO customer data", async () => {
+    const store = new FakeStore();
+    store.failSendResultTimes = 99;
+    const { result, errors } = await captureErrors(() =>
+      processWhatsAppPricingRequest({
+        ...baseArgs,
+        store,
+        provider: fakeProvider(ACCEPTED),
+      }),
+    );
+    const log = errors.join("\n");
+
+    // Correlation identifiers an operator needs to repair the row.
+    assert.ok(log.includes(`leadId=${result.leadId}`));
+    assert.ok(log.includes(`reference=${result.reference}`));
+    assert.ok(log.includes("provider=fake"));
+    assert.ok(log.includes("providerMessageId=wamid.TEST123"));
+    assert.ok(log.includes("errorCategory=LEAD_STORE_UNAVAILABLE"));
+
+    // Never the customer's number, the pricing, or any credential.
+    for (const forbidden of [
+      "+353851234567",
+      "+353 85 123 4567",
+      "851234567",
+      String(PRICED.subtotal), // 20500
+      "€",
+      "Estimated total",
+      "Dockentra — Your Pricing",
+      "Bearer",
+      "token",
+    ]) {
+      assert.equal(
+        log.includes(forbidden),
+        false,
+        `the failure log must not contain "${forbidden}"`,
+      );
+    }
+  });
+
+  it("provider FAILED and SKIPPED still persist their normal states", async () => {
+    const failed = new FakeStore();
+    const failedResult = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store: failed,
+      provider: fakeProvider(REJECTED),
+    });
+    assert.equal(failedResult.delivery, "failed");
+    assert.equal(failed.sendResultAttempts, 1, "no retry needed");
+    assert.equal(failed.sendRecords[0].record.status, "FAILED");
+    assert.equal(failed.sendRecords[0].record.errorCode, "META_131026");
+
+    const skipped = new FakeStore();
+    const skippedResult = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store: skipped,
+      provider: fakeProvider(SKIPPED),
+    });
+    assert.equal(skippedResult.delivery, "unavailable");
+    assert.equal(skipped.sendRecords[0].record.status, "PENDING");
+  });
+
+  it("the retry is bounded and documented as the dual-write edge case", () => {
+    const flow = read("src/lib/whatsapp/pricing-request.ts");
+    assert.ok(flow.includes("RESULT_WRITE_ATTEMPTS"));
+    assert.ok(flow.includes("RESULT_WRITE_RETRY_DELAYS_MS"));
+    assert.ok(flow.includes("dual write"));
+    // The error category is a closed set — never the raw error message,
+    // which could carry a connection string into the logs.
+    assert.equal(flow.includes("error.message"), false);
   });
 });
 
