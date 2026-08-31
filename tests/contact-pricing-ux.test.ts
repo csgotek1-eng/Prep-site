@@ -67,9 +67,19 @@ describe("header is navigation only", () => {
 describe("homepage hero keeps the two conversion actions", () => {
   const home = withoutComments(read("src/app/page.tsx"));
 
-  it("offers Get Price and Calculator, once each", () => {
+  it("offers Get Price and Calculator, once each — on the whole page", () => {
     assert.equal((home.match(/Get Price/g) ?? []).length, 1);
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
+    // The homepage renders several section components; the hero is the
+    // only one allowed to open the calculator, so none of the others
+    // may mount a second opener.
+    const sections = readdirSync("src/components/sections").map((name) =>
+      read(`src/components/sections/${name}`),
+    );
+    for (const source of sections) {
+      assert.equal(source.includes("<CalculatorModal"), false);
+      assert.equal(source.includes("CalculatorDialog"), false);
+    }
   });
 
   it("both lead into the ONE canonical calculator", () => {

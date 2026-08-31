@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Calculator } from "lucide-react";
-import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 
 const factors = [
@@ -68,18 +67,19 @@ export default function PricingTeaser() {
               </p>
             </div>
           </div>
-          <CalculatorModal label="Calculator" />
-        </div>
-
-        <p className="mt-5 text-sm text-slate-600">
+          {/* No Calculator button here: the hero above already carries
+              Get Price + Calculator, and the floating Get Price action
+              follows the visitor down the page. This section explains
+              how pricing works and hands off to the Pricing page. */}
           <Link
             href="/pricing"
-            className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
           >
-            Read how pricing works
+            How pricing works
           </Link>
-          .
-        </p>
+        </div>
+
+
       </Container>
     </section>
   );
