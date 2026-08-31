@@ -55,13 +55,26 @@ export default function PrivacyPage() {
                 Information you provide to us
               </h2>
               <p className="mt-3">
-                When you use the quote form or the pricing calculator&apos;s
-                &quot;request this quote&quot; action, you may provide your
-                name, business name, email address, phone number, website,
-                sales channels, approximate stock/order figures, the
-                services you are interested in and a free-text message.
-                All fields are optional except your name and a valid email
-                address.
+                When you use the quote form or the Help panel, you may
+                provide your name, business name, email address, phone
+                number, website, sales channels, approximate stock/order
+                figures, the services you are interested in and a
+                free-text message. All fields are optional except your
+                name and a valid email address.
+              </p>
+              <p className="mt-3">
+                When you ask the pricing calculator to send your pricing
+                to WhatsApp, you provide your WhatsApp mobile number
+                together with your selected services, quantities and
+                monthly order volume.
+              </p>
+              <p className="mt-3">
+                While you type into the Help panel, your draft is kept
+                temporarily in your browser&apos;s session storage, only
+                on your own device, so switching topics or minimising
+                the panel doesn&apos;t lose it. It is cleared when your
+                message is sent, and automatically when your browser
+                session ends.
               </p>
               <p className="mt-3">
                 If you contact Dockentra directly by phone, WhatsApp or
@@ -76,17 +89,32 @@ export default function PrivacyPage() {
                 The pricing calculator
               </h2>
               <p className="mt-3">
-                The pricing calculator stores your selected services
-                temporarily in your browser&apos;s session storage, only
-                on your own device, so that your estimate can be carried
-                over if you choose to send it as a quote request. This is
-                cleared when you submit or leave the quote form, and
-                automatically when you close your browser session. To
-                calculate an estimate, your selected services, quantities
-                and monthly order volume are sent to this website&apos;s
-                own server, which prices them and returns the result;
-                they contain no personal details and are not kept unless
-                you choose to submit a quote request.
+                While you build your selection, your chosen services,
+                quantities and monthly order volume are sent to this
+                website&apos;s own server so it can validate them; they
+                contain no personal details and are not kept at that
+                stage. Pricing itself is not published on the website —
+                it is calculated on the server and sent to you privately.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-brand-navy">
+                Getting your pricing on WhatsApp
+              </h2>
+              <p className="mt-3">
+                When you request pricing via the calculator&apos;s
+                &quot;Send My Price to WhatsApp&quot; action, your
+                WhatsApp mobile number and your request details (selected
+                services, quantities, monthly order volume and the
+                calculated pricing) are used to send and respond to your
+                requested pricing. The request is stored in
+                Dockentra&apos;s own systems together with the delivery
+                status of that one message, so the team can follow up if
+                the message cannot be delivered. The message is sent
+                through an official WhatsApp Business provider. Your
+                number is used only for this — it is not added to any
+                marketing list.
               </p>
             </div>
 
@@ -127,12 +155,7 @@ export default function PrivacyPage() {
                 website open those platforms directly in a new tab. Any
                 information you choose to share there is handled under
                 that platform&apos;s own privacy terms, not this
-                website&apos;s. Where this website generates a pre-filled
-                WhatsApp message for you (for example, from a pricing
-                calculator result), it only includes the service selection
-                and estimate you built — never your name, email, phone or
-                address unless you type them into the WhatsApp
-                conversation yourself.
+                website&apos;s.
               </p>
             </div>
 

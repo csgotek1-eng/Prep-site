@@ -2,40 +2,31 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageCircleQuestion, Minus, Phone } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useBottomBarPresent } from "@/components/FloatingChrome";
 import Modal from "@/components/Modal";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { PARTNERSHIP_TYPES, type EnquiryType } from "@/lib/enquiry";
+import {
+  HELP_TOPIC_GROUPS,
+  HELP_TOPICS,
+  type HelpTopic,
+} from "@/lib/help-topics";
 import { salesChannels, siteConfig } from "@/lib/site";
 
-type Mode = EnquiryType | null;
 type Status = "idle" | "sending" | "sent" | "error";
-
-const MODES: { id: EnquiryType; label: string; hint: string }[] = [
-  {
-    id: "client",
-    label: "I need fulfilment",
-    hint: "Storage, prep, pick & pack or returns for your store",
-  },
-  {
-    id: "partnership",
-    label: "Partnership enquiry",
-    hint: "Couriers, platforms, technology, suppliers, referrals",
-  },
-  {
-    id: "general",
-    label: "General question",
-    hint: "Anything else you want to ask",
-  },
-];
 
 const field =
   "mt-1 block w-full rounded-md border border-brand-border bg-white px-3 py-2.5 text-base text-brand-text shadow-sm outline-none transition-colors focus:border-brand-green";
 const label = "block text-sm font-medium text-brand-navy";
 
-// The visitor may move the Help launcher anywhere on screen and
-// collapse it to a small icon; both survive reloads via localStorage.
+// The visitor may move the Help launcher anywhere on screen; minimising
+// SNAPS it to the nearest screen edge as a compact recovery tab. Both
+// survive reloads via localStorage.
 const LAUNCHER_STORAGE_KEY = "dockentra-help-launcher";
+// What the visitor typed into the Help form survives Back, switching
+// topics and minimise/restore for the session.
+const DRAFT_STORAGE_KEY = "dockentra-help-draft";
 // The launcher can never be dragged closer than this to any viewport
 // edge, so it always stays fully visible and grabbable.
 const LAUNCHER_EDGE_MARGIN = 8;
@@ -49,28 +40,86 @@ interface LauncherPlacement {
   bottom: number;
 }
 
+type LauncherEdge = "left" | "right";
+
+interface HelpDraft {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  platform: string;
+  weeklyOrders: string;
+  partnershipType: string;
+  subject: string;
+  message: string;
+}
+
+const EMPTY_DRAFT: HelpDraft = {
+  name: "",
+  company: "",
+  email: "",
+  phone: "",
+  platform: "",
+  weeklyOrders: "",
+  partnershipType: "",
+  subject: "",
+  message: "",
+};
+
+/**
+ * Safe on the server (returns the empty draft) and safe in private
+ * mode. The form only renders after the visitor opens the panel, so
+ * restoring in the state initializer cannot cause a hydration
+ * mismatch.
+ */
+function loadHelpDraft(): HelpDraft {
+  if (typeof window === "undefined") return EMPTY_DRAFT;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return EMPTY_DRAFT;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return EMPTY_DRAFT;
+    const draft = { ...EMPTY_DRAFT };
+    for (const key of Object.keys(EMPTY_DRAFT) as (keyof HelpDraft)[]) {
+      const value = (parsed as Record<string, unknown>)[key];
+      if (typeof value === "string") draft[key] = value.slice(0, 2000);
+    }
+    return draft;
+  } catch {
+    return EMPTY_DRAFT;
+  }
+}
+
 export default function ContactLauncher() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<Mode>(null);
+  const [topic, setTopic] = useState<HelpTopic | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const [draft, setDraft] = useState<HelpDraft>(() => loadHelpDraft());
   // While a bottom action bar is on screen (via FloatingChrome), the
   // launcher hides below lg so it can never cover a primary CTA. No
   // component registers a bar right now; the coordination stays for any
   // future one.
   const bottomBarPresent = useBottomBarPresent();
 
-  // Draggable + collapsible launcher state. `placement === null` means
+  // Draggable + edge-docking launcher state. `placement === null` means
   // the default bottom-right corner (rendered by classes, so SSR and
-  // the first client render agree); once the visitor drags, we switch
-  // to explicit offsets. Dragging is a pointer-only enhancement — the
-  // buttons stay ordinary keyboard-operable buttons, and collapsing
-  // gives keyboard users the same "get it out of my way" control.
+  // the first client render agree); once the visitor drags or
+  // minimises, we switch to explicit offsets. Dragging is a
+  // pointer-only enhancement — the buttons stay ordinary
+  // keyboard-operable buttons, and minimising gives keyboard users the
+  // same "get it out of my way" control.
   const [placement, setPlacement] = useState<LauncherPlacement | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [edge, setEdge] = useState<LauncherEdge>("right");
+  // True while a COLLAPSED tab is being dragged: it floats freely
+  // under the pointer and snaps back to the nearest edge on release.
+  const [freeDrag, setFreeDrag] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const placementRef = useRef<LauncherPlacement | null>(null);
   const collapsedRef = useRef(false);
+  const edgeRef = useRef<LauncherEdge>("right");
   const dragRef = useRef<{
     startX: number;
     startY: number;
@@ -112,6 +161,7 @@ export default function ContactLauncher() {
         JSON.stringify({
           ...(placementRef.current ?? {}),
           collapsed: collapsedRef.current,
+          edge: edgeRef.current,
         }),
       );
     } catch {
@@ -119,7 +169,7 @@ export default function ContactLauncher() {
     }
   }, []);
 
-  // Restore the saved position/collapsed state after mount (never
+  // Restore the saved position/edge/collapsed state after mount (never
   // during render, so hydration stays consistent; inside a frame
   // callback, so the effect body itself sets no state).
   useEffect(() => {
@@ -133,6 +183,7 @@ export default function ContactLauncher() {
           right?: unknown;
           bottom?: unknown;
           collapsed?: unknown;
+          edge?: unknown;
         };
         if (
           typeof saved.right === "number" &&
@@ -146,6 +197,10 @@ export default function ContactLauncher() {
           });
           placementRef.current = clamped;
           setPlacement(clamped);
+        }
+        if (saved.edge === "left" || saved.edge === "right") {
+          edgeRef.current = saved.edge;
+          setEdge(saved.edge);
         }
         if (saved.collapsed === true) {
           collapsedRef.current = true;
@@ -206,6 +261,10 @@ export default function ContactLauncher() {
       if (!movedRef.current && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) {
         return;
       }
+      if (!movedRef.current && collapsedRef.current) {
+        // A docked tab detaches from the edge while it is dragged.
+        setFreeDrag(true);
+      }
       movedRef.current = true;
       const next = clampPlacement({
         right: drag.startRight - dx,
@@ -222,6 +281,21 @@ export default function ContactLauncher() {
       window.removeEventListener("pointerup", handleEnd);
       window.removeEventListener("pointercancel", handleEnd);
       if (movedRef.current) {
+        if (collapsedRef.current) {
+          // NEAREST-EDGE SNAP: a minimised tab always docks to the
+          // left or right screen edge, whichever its centre is
+          // closer to.
+          const endRect = wrapperRef.current?.getBoundingClientRect();
+          if (endRect) {
+            const nextEdge: LauncherEdge =
+              endRect.left + endRect.width / 2 < window.innerWidth / 2
+                ? "left"
+                : "right";
+            edgeRef.current = nextEdge;
+            setEdge(nextEdge);
+          }
+          setFreeDrag(false);
+        }
         persistLauncher();
       }
     };
@@ -234,14 +308,38 @@ export default function ContactLauncher() {
   // Never leave a mid-drag body style or window listener behind.
   useEffect(() => () => activeDragEndRef.current?.(), []);
 
-  function setCollapsedAndPersist(next: boolean) {
+  /** Minimise: snap to the NEAREST screen edge as a compact tab. */
+  function minimiseLauncher() {
     if (movedRef.current) return; // that tap was a drag
-    setCollapsed(next);
-    collapsedRef.current = next;
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) {
+      const nextEdge: LauncherEdge =
+        rect.left + rect.width / 2 < window.innerWidth / 2 ? "left" : "right";
+      edgeRef.current = nextEdge;
+      setEdge(nextEdge);
+      // Pin the current vertical position (and remember it for the
+      // expanded restore).
+      const current = clampPlacement({
+        right: window.innerWidth - rect.right,
+        bottom: window.innerHeight - rect.bottom,
+      });
+      placementRef.current = current;
+      setPlacement(current);
+    }
+    collapsedRef.current = true;
+    setCollapsed(true);
     persistLauncher();
-    // Expanding is wider than the collapsed circle: if the launcher was
-    // parked near the left edge, re-clamp against the NEW size once it
-    // has rendered so the pill can't poke off screen.
+  }
+
+  /** The edge tab: restores the expanded Help and opens the panel. */
+  function openFromDockedTab() {
+    if (movedRef.current) return; // that tap was a drag
+    collapsedRef.current = false;
+    setCollapsed(false);
+    persistLauncher();
+    setOpen(true);
+    // The expanded pill is wider than the tab: re-clamp against the
+    // NEW size once it has rendered so it can't poke off screen.
     requestAnimationFrame(() => {
       const current = placementRef.current;
       if (!current) return;
@@ -276,9 +374,11 @@ export default function ContactLauncher() {
 
   const close = () => {
     setOpen(false);
-    setMode(null);
+    setTopic(null);
     setStatus("idle");
     setError("");
+    // The DRAFT deliberately survives closing: what the visitor typed
+    // is kept for the session (P0-15).
     // Clear the deep-link hash on close, otherwise clicking the same
     // #contact-enquiry link again fires no hashchange and the panel
     // would never reopen.
@@ -291,12 +391,50 @@ export default function ContactLauncher() {
     }
   };
 
+  function setDraftField(key: keyof HelpDraft, value: string) {
+    setDraft((current) => {
+      const next = { ...current, [key]: value };
+      try {
+        sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Private mode: the draft still lives in component state.
+      }
+      return next;
+    });
+  }
+
+  function clearDraft() {
+    setDraft(EMPTY_DRAFT);
+    try {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }
+
+  function selectTopic(next: HelpTopic) {
+    if (next.action === "pricing") {
+      // GET PRICING routes into the ONE WhatsApp pricing flow — the
+      // calculator page. No second pricing engine.
+      close();
+      router.push("/pricing-calculator");
+      return;
+    }
+    setTopic(next);
+    if (next.platform && !draft.platform) {
+      setDraftField("platform", next.platform);
+    }
+  }
+
+  const mode: EnquiryType | null =
+    topic && topic.action !== "pricing" ? topic.action : null;
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // Re-entry guard: the button is disabled while sending, but a fast
     // double-tap or Enter keypress can still fire before React re-renders.
     if (!mode || status === "sending") return;
-    const form = new FormData(event.currentTarget);
+    const honeypot = new FormData(event.currentTarget).get("website");
     setStatus("sending");
     setError("");
     try {
@@ -305,21 +443,23 @@ export default function ContactLauncher() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: mode,
-          name: form.get("name"),
-          company: form.get("company"),
-          email: form.get("email"),
-          phone: form.get("phone"),
-          platform: form.get("platform"),
-          weeklyOrders: form.get("weeklyOrders"),
-          partnershipType: form.get("partnershipType"),
-          subject: form.get("subject"),
-          message: form.get("message"),
-          website: form.get("website"),
+          topic: topic?.label ?? "",
+          name: draft.name,
+          company: draft.company,
+          email: draft.email,
+          phone: draft.phone,
+          platform: draft.platform,
+          weeklyOrders: draft.weeklyOrders,
+          partnershipType: draft.partnershipType,
+          subject: draft.subject,
+          message: draft.message,
+          website: typeof honeypot === "string" ? honeypot : "",
         }),
       });
       const data: { ok: boolean; error?: string } = await response.json();
       if (data.ok) {
         setStatus("sent");
+        clearDraft();
       } else {
         setStatus("error");
         setError(data.error ?? "Something went wrong. Please try again.");
@@ -337,32 +477,49 @@ export default function ContactLauncher() {
         ? "Send message"
         : "Send enquiry";
 
+  const docked = collapsed && !freeDrag;
+
   return (
     <>
-      {/* Draggable, collapsible launcher. The wrapper owns the fixed
-          position (default corner via classes; explicit right/bottom
-          inline style once dragged — inline style wins over the
-          classes) and the drag behaviour; the buttons inside stay
+      {/* Draggable launcher. The wrapper owns the fixed position
+          (default corner via classes; explicit offsets once dragged —
+          inline style wins over the classes; edge-docked offsets while
+          minimised) and the drag behaviour; the buttons inside stay
           plain buttons. */}
       <div
         ref={wrapperRef}
         onPointerDown={onLauncherPointerDown}
         style={
-          placement
-            ? { right: placement.right, bottom: placement.bottom }
-            : undefined
+          docked
+            ? {
+                bottom: placement?.bottom ?? 16,
+                ...(edge === "left"
+                  ? { left: 0, right: "auto" }
+                  : { right: 0 }),
+              }
+            : placement
+              ? { right: placement.right, bottom: placement.bottom }
+              : undefined
         }
         className={`fixed right-4 z-50 touch-none select-none items-center gap-2 sm:right-6 ${
           bottomBarPresent ? "hidden lg:inline-flex" : "inline-flex"
         } ${placement ? "" : "bottom-4 sm:bottom-6"}`}
       >
         {collapsed ? (
+          // Compact recovery tab, visually ATTACHED to the screen edge
+          // (fully rounded only on its inner side). ≥44px touch target.
           <button
             type="button"
-            onClick={() => setCollapsedAndPersist(false)}
-            aria-label="Expand the help button"
-            title="Expand help"
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-green text-white shadow-lg transition-colors hover:bg-brand-green-dark"
+            onClick={openFromDockedTab}
+            aria-label="Open Dockentra Help"
+            title="Dockentra Help"
+            className={`inline-flex h-12 min-w-11 items-center justify-center bg-brand-green px-2.5 text-white shadow-lg transition-colors hover:bg-brand-green-dark ${
+              docked
+                ? edge === "left"
+                  ? "rounded-r-full"
+                  : "rounded-l-full"
+                : "rounded-full"
+            }`}
           >
             <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
           </button>
@@ -380,7 +537,7 @@ export default function ContactLauncher() {
             </button>
             <button
               type="button"
-              onClick={() => setCollapsedAndPersist(true)}
+              onClick={minimiseLauncher}
               aria-label="Minimise the help button"
               title="Minimise"
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-colors hover:border-brand-green hover:text-brand-navy"
@@ -394,11 +551,11 @@ export default function ContactLauncher() {
       <Modal
         open={open}
         onClose={close}
-        title={mode ? MODES.find((m) => m.id === mode)!.label : "How can we help?"}
+        title={topic ? topic.label : "How can we help?"}
         description={
           status === "sent"
             ? undefined
-            : mode
+            : topic
               ? undefined
               : "Pick what fits best — we'll keep it short."
         }
@@ -421,26 +578,37 @@ export default function ContactLauncher() {
               Close
             </button>
           </div>
-        ) : mode === null ? (
+        ) : topic === null ? (
           <div>
-            <ul className="space-y-3">
-              {MODES.map((option) => (
-                <li key={option.id}>
-                  <button
-                    type="button"
-                    onClick={() => setMode(option.id)}
-                    className="w-full rounded-xl border border-brand-border bg-white p-4 text-left transition hover:border-brand-green/40 hover:bg-brand-surface-soft"
-                  >
-                    <span className="block text-base font-semibold text-brand-navy">
-                      {option.label}
-                    </span>
-                    <span className="mt-1 block text-sm leading-6 text-slate-600">
-                      {option.hint}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {HELP_TOPIC_GROUPS.map((group) => (
+              <div key={group} className="mb-5 last:mb-0">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {group}
+                </h3>
+                <ul className="mt-2 space-y-2">
+                  {HELP_TOPICS.filter((item) => item.group === group).map(
+                    (item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          onClick={() => selectTopic(item)}
+                          className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-left transition hover:border-brand-green/40 hover:bg-brand-surface-soft"
+                        >
+                          <span className="block text-sm font-semibold text-brand-navy">
+                            {item.label}
+                          </span>
+                          {item.hint && (
+                            <span className="mt-0.5 block text-xs leading-5 text-slate-600">
+                              {item.hint}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            ))}
             <div className="mt-5 flex flex-col gap-2 border-t border-brand-border pt-5 sm:flex-row">
               <a
                 href={siteConfig.contact.phoneHref}
@@ -463,11 +631,13 @@ export default function ContactLauncher() {
         ) : (
           // Native browser validation (required/email) runs before the
           // server round-trip; the server stays authoritative and
-          // re-validates everything.
+          // re-validates everything. Inputs are CONTROLLED from the
+          // session draft, so typed content survives Back, topic
+          // changes and minimise/restore (P0-15).
           <form onSubmit={handleSubmit}>
             <button
               type="button"
-              onClick={() => setMode(null)}
+              onClick={() => setTopic(null)}
               className="mb-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
             >
               ← Choose a different topic
@@ -484,7 +654,15 @@ export default function ContactLauncher() {
                 <label className={label} htmlFor="enquiry-name">
                   Name *
                 </label>
-                <input id="enquiry-name" name="name" required autoComplete="name" className={field} />
+                <input
+                  id="enquiry-name"
+                  name="name"
+                  required
+                  autoComplete="name"
+                  className={field}
+                  value={draft.name}
+                  onChange={(e) => setDraftField("name", e.target.value)}
+                />
               </div>
 
               {mode !== "general" && (
@@ -500,6 +678,8 @@ export default function ContactLauncher() {
                     required={mode === "partnership"}
                     autoComplete="organization"
                     className={field}
+                    value={draft.company}
+                    onChange={(e) => setDraftField("company", e.target.value)}
                   />
                 </div>
               )}
@@ -508,14 +688,31 @@ export default function ContactLauncher() {
                 <label className={label} htmlFor="enquiry-email">
                   Email *
                 </label>
-                <input id="enquiry-email" name="email" type="email" required autoComplete="email" className={field} />
+                <input
+                  id="enquiry-email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  className={field}
+                  value={draft.email}
+                  onChange={(e) => setDraftField("email", e.target.value)}
+                />
               </div>
 
               <div>
                 <label className={label} htmlFor="enquiry-phone">
                   Phone <span className="font-normal text-slate-500">(optional)</span>
                 </label>
-                <input id="enquiry-phone" name="phone" type="tel" autoComplete="tel" className={field} />
+                <input
+                  id="enquiry-phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  className={field}
+                  value={draft.phone}
+                  onChange={(e) => setDraftField("phone", e.target.value)}
+                />
               </div>
 
               {mode === "client" && (
@@ -524,7 +721,15 @@ export default function ContactLauncher() {
                     <label className={label} htmlFor="enquiry-platform">
                       Marketplace / platform
                     </label>
-                    <select id="enquiry-platform" name="platform" defaultValue="" className={field}>
+                    <select
+                      id="enquiry-platform"
+                      name="platform"
+                      className={field}
+                      value={draft.platform}
+                      onChange={(e) =>
+                        setDraftField("platform", e.target.value)
+                      }
+                    >
                       <option value="">Select…</option>
                       {salesChannels.map((channel) => (
                         <option key={channel} value={channel}>
@@ -538,7 +743,15 @@ export default function ContactLauncher() {
                       Approximate weekly orders{" "}
                       <span className="font-normal text-slate-500">(optional)</span>
                     </label>
-                    <input id="enquiry-weekly" name="weeklyOrders" className={field} />
+                    <input
+                      id="enquiry-weekly"
+                      name="weeklyOrders"
+                      className={field}
+                      value={draft.weeklyOrders}
+                      onChange={(e) =>
+                        setDraftField("weeklyOrders", e.target.value)
+                      }
+                    />
                   </div>
                 </>
               )}
@@ -551,9 +764,12 @@ export default function ContactLauncher() {
                   <select
                     id="enquiry-partnership-type"
                     name="partnershipType"
-                    defaultValue=""
                     required
                     className={field}
+                    value={draft.partnershipType}
+                    onChange={(e) =>
+                      setDraftField("partnershipType", e.target.value)
+                    }
                   >
                     <option value="" disabled>
                       Select…
@@ -567,20 +783,39 @@ export default function ContactLauncher() {
                 </div>
               )}
 
-              {mode === "general" && (
+              {mode === "general" && !topic.freeText && (
                 <div>
                   <label className={label} htmlFor="enquiry-subject">
                     Subject
                   </label>
-                  <input id="enquiry-subject" name="subject" className={field} />
+                  <input
+                    id="enquiry-subject"
+                    name="subject"
+                    className={field}
+                    value={draft.subject}
+                    onChange={(e) => setDraftField("subject", e.target.value)}
+                  />
                 </div>
               )}
 
               <div>
                 <label className={label} htmlFor="enquiry-message">
-                  Message *
+                  {topic.freeText ? "Your question *" : "Message *"}
                 </label>
-                <textarea id="enquiry-message" name="message" required rows={4} className={field} />
+                <textarea
+                  id="enquiry-message"
+                  name="message"
+                  required
+                  rows={topic.freeText ? 6 : 4}
+                  placeholder={
+                    topic.freeText
+                      ? "Write anything in your own words — we'll read all of it."
+                      : undefined
+                  }
+                  className={field}
+                  value={draft.message}
+                  onChange={(e) => setDraftField("message", e.target.value)}
+                />
               </div>
             </div>
 
