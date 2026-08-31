@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { getLeadStore } from "@/lib/leads/store";
-import {
-  parseMetaStatusUpdates,
-  verifyMetaSignature,
-} from "@/lib/whatsapp/webhook";
-
-const MAX_BODY_BYTES = 200_000;
+import { handleWhatsAppStatusWebhook } from "@/lib/whatsapp/webhook";
 
 /**
  * Meta WhatsApp status webhook.
@@ -13,15 +8,15 @@ const MAX_BODY_BYTES = 200_000;
  * GET  — Meta's one-time subscription verification handshake:
  *        hub.mode=subscribe with the configured verify token echoes
  *        hub.challenge; anything else is refused.
- * POST — signed delivery-status events. The X-Hub-Signature-256 HMAC
- *        (app secret) is verified against the RAW body before any
- *        parsing; without a configured secret every POST is refused
- *        (fail closed) — there is no unauthenticated path that can
- *        mutate a delivery status.
+ * POST — signed delivery-status events. Every decision (signature,
+ *        parsing, persistence, status code) lives in
+ *        handleWhatsAppStatusWebhook so it is directly testable; this
+ *        route only adapts it to Request/Response.
  *
- * Status updates are applied idempotently (statuses only ever
- * advance; duplicates and out-of-order events are no-ops) and the
- * response never contains lead data — always a bare acknowledgement.
+ * The response is always a bare acknowledgement — never lead data —
+ * and is a 2xx ONLY when every recognised update was persisted. A
+ * store failure returns a retriable 503 so the provider resends
+ * (transitions are idempotent, so retries are safe).
  */
 
 export async function GET(request: Request) {
@@ -53,46 +48,12 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
-  if (raw.length > MAX_BODY_BYTES) {
-    return NextResponse.json({ ok: false }, { status: 413 });
-  }
 
-  const signature = request.headers.get("x-hub-signature-256");
-  if (
-    !verifyMetaSignature(raw, signature, process.env.WHATSAPP_APP_SECRET)
-  ) {
-    // Unsigned, mis-signed, or no secret configured: refuse.
-    return NextResponse.json({ ok: false }, { status: 401 });
-  }
-
-  let payload: unknown;
-  try {
-    payload = JSON.parse(raw);
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 400 });
-  }
-
-  const updates = parseMetaStatusUpdates(payload);
-  if (updates.length > 0) {
-    const store = getLeadStore();
-    for (const update of updates) {
-      try {
-        const found = await store.applyWhatsAppStatusUpdate(update);
-        if (!found) {
-          // Unknown message id (e.g. a non-pricing message on the same
-          // number) — acknowledged and ignored.
-          console.warn(
-            "WhatsApp status update ignored: unknown provider message id.",
-          );
-        }
-      } catch {
-        // Store hiccup: log only. Meta retries failed webhooks, and the
-        // transition logic is idempotent, so a retry is safe.
-        console.error("Could not apply a WhatsApp status update.");
-      }
-    }
-  }
-
-  // Always a bare acknowledgement — no lead data in the response.
-  return NextResponse.json({ ok: true });
+  const result = await handleWhatsAppStatusWebhook({
+    rawBody: raw,
+    signatureHeader: request.headers.get("x-hub-signature-256"),
+    appSecret: process.env.WHATSAPP_APP_SECRET,
+    resolveStore: getLeadStore,
+  });
+  return NextResponse.json(result.body, { status: result.status });
 }

@@ -14,6 +14,10 @@ import type { WhatsAppDeliveryStatus } from "./types";
  * A status may only ever ADVANCE (PENDING → ACCEPTED → SENT →
  * DELIVERED); FAILED is terminal unless the message later proves
  * delivered. Replaying an event is a no-op.
+ *
+ * Acknowledgement: a 2xx tells Meta the event is DONE and must never
+ * be sent for an update we failed to persist — see
+ * handleWhatsAppStatusWebhook below.
  */
 
 export function verifyMetaSignature(
@@ -143,4 +147,116 @@ export function applyStatusTransition(
     return incoming === "DELIVERED" ? "DELIVERED" : null;
   }
   return STATUS_RANK[incoming] > STATUS_RANK[current] ? incoming : null;
+}
+
+/** Maximum accepted webhook body. Meta batches are far smaller. */
+export const MAX_WEBHOOK_BODY_BYTES = 200_000;
+
+/** The only store capability the webhook needs. */
+export interface WhatsAppStatusStore {
+  applyWhatsAppStatusUpdate(update: WhatsAppStatusUpdate): Promise<boolean>;
+}
+
+export interface WhatsAppWebhookRequest {
+  /** The RAW request body — the signature covers these exact bytes. */
+  rawBody: string;
+  signatureHeader: string | null;
+  appSecret: string | undefined;
+  /** Resolved lazily, so an unsigned request never touches the store. */
+  resolveStore: () => WhatsAppStatusStore;
+}
+
+export interface WhatsAppWebhookResponse {
+  status: number;
+  body: { ok: boolean };
+}
+
+/**
+ * The complete webhook decision, framework-free so every outcome is
+ * directly testable (the route is a thin adapter around it).
+ *
+ * ACKNOWLEDGEMENT CONTRACT — a 2xx means "this event is finished, do
+ * not send it again", so it may only be returned when every update we
+ * recognised was actually persisted:
+ *
+ *   401 — unsigned, mis-signed, or no app secret configured
+ *   413 — body over the size cap
+ *   400 — signature valid but the body is not JSON
+ *   503 — at least one recognised update could NOT be persisted
+ *         (store/infrastructure failure). Retriable: Meta will resend,
+ *         and the transitions are idempotent, so a retry is safe.
+ *   200 — everything persisted, OR the payload carried nothing for us:
+ *         an unknown provider message id is another sender's message on
+ *         the same WhatsApp number, not an infrastructure failure, and
+ *         a duplicate/out-of-order event is a successful no-op.
+ *
+ * Every update in a batch is attempted even after one fails, so a
+ * single bad row cannot strand the rest; the response is 5xx if ANY of
+ * them failed to persist.
+ */
+export async function handleWhatsAppStatusWebhook(
+  request: WhatsAppWebhookRequest,
+): Promise<WhatsAppWebhookResponse> {
+  if (request.rawBody.length > MAX_WEBHOOK_BODY_BYTES) {
+    return { status: 413, body: { ok: false } };
+  }
+
+  // Verified against the RAW body BEFORE any parsing.
+  if (
+    !verifyMetaSignature(
+      request.rawBody,
+      request.signatureHeader,
+      request.appSecret,
+    )
+  ) {
+    return { status: 401, body: { ok: false } };
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(request.rawBody);
+  } catch {
+    return { status: 400, body: { ok: false } };
+  }
+
+  const updates = parseMetaStatusUpdates(payload);
+  if (updates.length === 0) {
+    // Nothing addressed to us (message echoes, other event types).
+    return { status: 200, body: { ok: true } };
+  }
+
+  let store: WhatsAppStatusStore;
+  try {
+    store = request.resolveStore();
+  } catch {
+    console.error(
+      "WhatsApp webhook: lead store unavailable; asking the provider to retry.",
+    );
+    return { status: 503, body: { ok: false } };
+  }
+
+  let persistenceFailed = false;
+  for (const update of updates) {
+    try {
+      const found = await store.applyWhatsAppStatusUpdate(update);
+      if (!found) {
+        // Not one of our pricing messages — acknowledged and ignored.
+        console.warn(
+          "WhatsApp status update ignored: unknown provider message id.",
+        );
+      }
+    } catch {
+      // Store/infrastructure failure: this update is NOT persisted, so
+      // the batch must not be acknowledged. Keep going — the remaining
+      // updates may still be storable.
+      persistenceFailed = true;
+      console.error(
+        "WhatsApp webhook: could not persist a status update; asking the provider to retry.",
+      );
+    }
+  }
+
+  return persistenceFailed
+    ? { status: 503, body: { ok: false } }
+    : { status: 200, body: { ok: true } };
 }
