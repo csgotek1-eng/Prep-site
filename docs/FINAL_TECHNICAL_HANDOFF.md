@@ -53,11 +53,11 @@ npm audit 0 vulnerabilities.
 
 ## 2. PRODUCTION ACTIVATION CHECKS (operations, in order)
 
-1. Migration `0004_website_leads_and_rate_limits.sql` is **APPLIED**
-   to the production WEBSITE Supabase (done). Next:
-   `supabase/migrations/0005_whatsapp_pricing_delivery.sql` is
-   PREPARED and NOT applied — ChatGPT reviews and applies it (see
-   docs/WHATSAPP_PRICING_DELIVERY.md).
+1. Migrations `0004_website_leads_and_rate_limits.sql` and
+   `0005_whatsapp_pricing_delivery.sql` are both **APPLIED** to the
+   production WEBSITE Supabase (done). The remaining WhatsApp step is
+   provider configuration only — see
+   docs/WHATSAPP_PRICING_DELIVERY.md.
 2. Verify Vercel production env:
    `PRICING_PERSISTENCE=supabase`, `ADMIN_AUTH_PROVIDER=supabase`,
    `SUPABASE_PUBLIC_URL`, `SUPABASE_PUBLISHABLE_KEY`,

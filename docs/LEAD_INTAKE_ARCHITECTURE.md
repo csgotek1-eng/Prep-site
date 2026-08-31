@@ -38,9 +38,9 @@ line is never durable custody of a lead:
 Consequence: the durable lead store is a HARD production prerequisite
 for this branch. Migration 0004 IS APPLIED in production; Supabase
 persistence env still has to be configured, or every submission will
-(correctly) fail rather than silently rely on logs. WhatsApp pricing
-requests additionally need migration 0005 (PREPARED, not applied —
-see WHATSAPP_PRICING_DELIVERY.md).
+(correctly) fail rather than silently rely on logs. Migration 0005, which
+carries the WhatsApp pricing delivery columns, is APPLIED as well (see
+WHATSAPP_PRICING_DELIVERY.md).
 
 ## Storage
 

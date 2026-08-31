@@ -18,15 +18,13 @@ Changes on top of the state described below — see
 - Durable leads: every valid quote/enquiry is saved to `website_leads`
   BEFORE notification (save first, notify second); `/admin/leads` inbox
   added with a NEW→CONTACTED→QUALIFIED→WON/LOST workflow.
-- Migration `0004_website_leads_and_rate_limits.sql` is **APPLIED** to
-  the website Supabase project. Still required before deploying:
-  configure Supabase persistence env vars, and (for WhatsApp pricing
-  delivery) apply migration
-  `supabase/migrations/0005_whatsapp_pricing_delivery.sql`
-  (PREPARED, NOT applied — ChatGPT reviews and applies). The
-  durability invariant (`ok` requires `saved`) means a production
-  deployment without a working lead store correctly refuses
-  submissions instead of silently relying on logs.
+- Migrations `0004_website_leads_and_rate_limits.sql` and
+  `0005_whatsapp_pricing_delivery.sql` are both **APPLIED** to the
+  website Supabase project. Still required before deploying:
+  configure the Supabase persistence env vars. The durability
+  invariant (`ok` requires `saved`) means a production deployment
+  without a working lead store correctly refuses submissions instead
+  of silently relying on logs.
 - Durable shared rate limiting (hashed keys, Supabase-backed) on
   `/api/quote` and `/api/enquiry`.
 - Webhook mode now REQUIRES `QUOTE_WEBHOOK_SECRET` and an HTTPS
@@ -176,7 +174,7 @@ Calculator:
       row shows provider=meta + message id, and the webhook advances
       the status to SENT/DELIVERED
 - [ ] The stored request carries the internally calculated priced
-      estimate (admin inbox shows it); migration 0005 applied first
+      estimate (admin inbox shows it)
 - [ ] Help launcher: drags anywhere but never off screen, a drag does
       not open the panel; minimise SNAPS the tab to the nearest edge;
       the tab reopens Help; edge/position/collapsed survive a reload;

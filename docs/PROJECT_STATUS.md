@@ -30,12 +30,20 @@ The owner's actual WhatsApp flow, replacing the interim wa.me handoff:
   the raw body (fail closed without the secret); idempotent
   ACCEPTED→SENT→DELIVERED/FAILED transitions keyed by provider message
   id; bare acknowledgements only.
-- **Migration 0005 PREPARED (NOT applied)** — additive whatsapp_*
-  columns on website_leads + webhook-lookup and unique-reference
-  indexes; RLS stays deny-all. **Migration 0004 IS APPLIED** in
-  production. /admin/leads shows number (typed + E.164), reference,
-  provider, message id, delivery status, timestamps and the internal
-  priced estimate.
+- **Migrations 0004 and 0005 APPLIED in production** (0005 applied by
+  ChatGPT, 2026-08-31) — 0005 is additive: whatsapp_* columns on
+  website_leads plus webhook-lookup and unique-reference indexes; RLS
+  stays deny-all. /admin/leads shows number (typed + E.164),
+  reference, provider, message id, delivery status, timestamps and the
+  internal priced estimate.
+- **Delivery reliability fix (2026-08-31)** — the status webhook no
+  longer acknowledges what it failed to persist: a store failure now
+  returns a retriable 503 (unknown message ids and duplicate/
+  out-of-order events stay 200, since neither is an infrastructure
+  failure), and every webhook decision moved into a pure, directly
+  tested handler. The provider-accepted-but-result-write-failed
+  dual-write edge is handled with a bounded retry plus a single safe
+  correlation log (ids only — never number, pricing or credentials).
 - **Help system per owner spec** — minimise now SNAPS the launcher to
   the nearest screen edge as a compact recovery tab ("Open Dockentra
   Help", ≥44px, attached look, draggable, re-docks on release,

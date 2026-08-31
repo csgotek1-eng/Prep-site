@@ -29,6 +29,8 @@ Response: { ok, reference, delivery: "sent" | "unavailable" | "failed" }
      acceptance (fake success is impossible by construction).
 Webhook: POST /api/webhooks/whatsapp advances ACCEPTED → SENT →
    DELIVERED (or FAILED), idempotently, keyed by provider message id.
+   200 only when persisted; a store failure answers 503 so Meta
+   retries (see "Acknowledgement and retry semantics").
 ```
 
 Truthful outcomes shown to the visitor:
@@ -103,20 +105,20 @@ agreed service terms. Reply to this message if you'd like help with
 onboarding.
 ```
 
-## Storage (migration 0005 — PREPARED, NOT APPLIED)
+## Storage (migration 0005 — APPLIED)
 
-Migration **0004 IS APPLIED** to the production WEBSITE Supabase.
-`supabase/migrations/0005_whatsapp_pricing_delivery.sql` is additive
+Migrations **0004 and 0005 are both APPLIED** to the production
+WEBSITE Supabase. `0005_whatsapp_pricing_delivery.sql` is additive
 only: it widens the `source`/`type` CHECK lists and adds the
 `whatsapp_*` columns (number, normalized number, reference, requested
 timestamp, provider, provider message id, delivery status
 PENDING/ACCEPTED/SENT/DELIVERED/FAILED, sent/delivered/failed
 timestamps, safe error code) plus a webhook-lookup index and a unique
 reference index. RLS stays deny-all (no policies); no tokens or
-secrets are ever stored. **Do not apply 0005 — ChatGPT reviews and
-applies it.** Until then, production runs truthfully in "saved +
-unavailable" mode only after 0005 is applied AND a provider is
-configured; the development file store implements the same shape.
+secrets are ever stored. The schema is therefore live: with no
+provider configured production truthfully runs in "saved +
+unavailable" mode, and configuring Meta is the only remaining step.
+The development file store implements the same shape.
 
 ## Status webhook
 
@@ -133,6 +135,53 @@ configured; the development file store implements the same shape.
   delivery is later proven; duplicates/out-of-order events are
   no-ops). Responses are bare acknowledgements — no lead data.
 
+### Acknowledgement and retry semantics
+
+To Meta a **2xx means "done, never resend"**, so it is returned only
+when everything we recognised was actually persisted. Every decision
+lives in `handleWhatsAppStatusWebhook` (pure and directly tested); the
+route is a thin adapter that returns its status verbatim.
+
+| Situation | Status | Why |
+| --- | --- | --- |
+| All recognised updates persisted | 200 | Genuinely processed. |
+| Unknown provider message id | 200 | Another sender's message on the same WhatsApp number — not our failure, and a retry would never help. |
+| Duplicate / out-of-order event | 200 | Idempotent no-op; the stored status is already correct or ahead. |
+| Nothing addressed to us in the payload | 200 | Message echoes and other event types. |
+| Store/infrastructure failure on ANY recognised update | **503** | Not persisted, so it must NOT be acknowledged. Meta retries, and the transitions are idempotent, so redelivery is safe. |
+| Unsigned / mis-signed / no secret | 401 | Fail closed. |
+| Valid signature, non-JSON body | 400 | Retrying identical bytes cannot help. |
+| Body over the size cap | 413 | Rejected before signature work. |
+
+Every update in a batch is attempted even after one fails (one bad row
+never strands the rest), and the batch answers 5xx if any of them
+failed to persist. Response bodies are always `{"ok":true|false}` —
+never database detail.
+
+### Known edge case: provider + database dual write
+
+`sendPricingResult()` and the follow-up result write span two systems
+that cannot commit together, so Meta may ACCEPT the message while the
+write of that outcome fails. No ordering removes this (sending first
+risks an unrecorded send; recording first risks a record of a send
+that never happened), and a durable outbox would cost far more than
+the failure it prevents at this size. The handling is therefore:
+
+- the customer is never lied to — a provider ACCEPT means the message
+  really was sent, and that is what the response says;
+- the result write is retried a bounded number of times
+  (`RESULT_WRITE_ATTEMPTS`, short fixed backoff — never a long
+  blocking wait);
+- if every attempt fails, exactly ONE operator log is emitted with
+  correlation identifiers only — lead id, reference, provider,
+  provider message id, provider status and an error *category* from a
+  closed set. Never the customer's number, the message text, any
+  price, or any credential. An operator can repair the row from those
+  ids.
+
+The stored request itself is never at risk: it is committed before the
+provider is contacted.
+
 ## Admin
 
 `/admin/leads` shows each WhatsApp pricing request with: customer
@@ -148,5 +197,5 @@ private to the server-verified admin, never to visitors.
 3. Pricing template submitted and APPROVED in Meta Business Manager.
 4. Webhook configured in Meta (URL + verify token) and
    `WHATSAPP_APP_SECRET` set.
-5. Apply migration 0005 (ChatGPT).
-6. Set `WHATSAPP_DELIVERY_MODE=meta` + the env vars in Vercel.
+5. Set `WHATSAPP_DELIVERY_MODE=meta` + the env vars in Vercel.
+   (Migrations 0004 and 0005 are already applied.)
