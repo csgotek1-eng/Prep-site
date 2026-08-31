@@ -8,10 +8,16 @@ import {
   getSupabaseServiceRoleKey,
   getSupabaseUrl,
 } from "../supabase-config.ts";
+import {
+  applyStatusTransition,
+  type WhatsAppStatusUpdate,
+} from "../whatsapp/webhook.ts";
+import type { WhatsAppDeliveryStatus } from "../whatsapp/types";
 import type {
   LeadDeliveryStatus,
   LeadInput,
   LeadStatus,
+  LeadWhatsAppDelivery,
   StoredLead,
 } from "./types";
 
@@ -36,6 +42,14 @@ import type {
 
 export { LeadStoreUnavailableError } from "./errors.ts";
 
+/** Outcome of a provider send attempt, recorded on the stored lead. */
+export interface WhatsAppSendRecord {
+  provider: string;
+  providerMessageId: string | null;
+  status: WhatsAppDeliveryStatus;
+  errorCode: string | null;
+}
+
 export interface LeadStore {
   /** Persist a validated lead. Returns its durable id. */
   createLead(input: LeadInput): Promise<{ id: string }>;
@@ -45,9 +59,49 @@ export interface LeadStore {
     status: LeadDeliveryStatus,
     error?: string | null,
   ): Promise<void>;
+  /** Record the WhatsApp provider's send outcome on a stored request. */
+  recordWhatsAppSendResult(
+    id: string,
+    result: WhatsAppSendRecord,
+  ): Promise<void>;
+  /**
+   * Apply a provider status webhook update, keyed by provider message
+   * id, idempotently (statuses only ever advance). Returns true when a
+   * matching request exists.
+   */
+  applyWhatsAppStatusUpdate(update: WhatsAppStatusUpdate): Promise<boolean>;
   /** Newest first. */
   listLeads(limit: number): Promise<StoredLead[]>;
   setLeadStatus(id: string, status: LeadStatus): Promise<StoredLead | null>;
+}
+
+/**
+ * Shared status-update maths for both store implementations: given the
+ * stored delivery and a webhook update, returns the changed delivery,
+ * or null when the event is a duplicate/out-of-order no-op.
+ */
+export function transitionWhatsAppDelivery(
+  delivery: LeadWhatsAppDelivery,
+  update: WhatsAppStatusUpdate,
+): LeadWhatsAppDelivery | null {
+  const next = applyStatusTransition(delivery.status, update.status);
+  if (next === null) {
+    return null;
+  }
+  const at = update.occurredAt ?? new Date().toISOString();
+  const changed: LeadWhatsAppDelivery = { ...delivery, status: next };
+  if (next === "SENT" && changed.sentAt === null) {
+    changed.sentAt = at;
+  }
+  if (next === "DELIVERED") {
+    if (changed.sentAt === null) changed.sentAt = at;
+    if (changed.deliveredAt === null) changed.deliveredAt = at;
+  }
+  if (next === "FAILED") {
+    if (changed.failedAt === null) changed.failedAt = at;
+    if (update.errorCode) changed.errorCode = update.errorCode;
+  }
+  return changed;
 }
 
 interface FileStoreShape {
@@ -106,9 +160,76 @@ export class FileLeadStore implements LeadStore {
       status: "NEW",
       deliveryStatus: "PENDING",
       deliveryError: null,
+      whatsapp: input.whatsapp
+        ? {
+            ...input.whatsapp,
+            provider: null,
+            providerMessageId: null,
+            status: "PENDING",
+            sentAt: null,
+            deliveredAt: null,
+            failedAt: null,
+            errorCode: null,
+          }
+        : null,
     };
     this.save({ leads: [...store.leads, lead] });
     return { id: lead.id };
+  }
+
+  async recordWhatsAppSendResult(
+    id: string,
+    result: WhatsAppSendRecord,
+  ): Promise<void> {
+    const store = this.load();
+    const now = new Date().toISOString();
+    this.save({
+      leads: store.leads.map((lead) =>
+        lead.id === id && lead.whatsapp
+          ? {
+              ...lead,
+              updatedAt: now,
+              whatsapp: {
+                ...lead.whatsapp,
+                provider: result.provider,
+                providerMessageId: result.providerMessageId,
+                status: result.status,
+                errorCode: result.errorCode,
+                failedAt:
+                  result.status === "FAILED" ? now : lead.whatsapp.failedAt,
+              },
+            }
+          : lead,
+      ),
+    });
+  }
+
+  async applyWhatsAppStatusUpdate(
+    update: WhatsAppStatusUpdate,
+  ): Promise<boolean> {
+    const store = this.load();
+    const target = store.leads.find(
+      (lead) =>
+        lead.whatsapp?.providerMessageId === update.providerMessageId,
+    );
+    if (!target?.whatsapp) {
+      return false;
+    }
+    const changed = transitionWhatsAppDelivery(target.whatsapp, update);
+    if (changed) {
+      this.save({
+        leads: store.leads.map((lead) =>
+          lead.id === target.id
+            ? {
+                ...lead,
+                whatsapp: changed,
+                updatedAt: new Date().toISOString(),
+              }
+            : lead,
+        ),
+      });
+    }
+    return true;
   }
 
   async setDeliveryResult(
@@ -167,6 +288,12 @@ export class UnavailableLeadStore implements LeadStore {
     return this.fail();
   }
   async setDeliveryResult(): Promise<void> {
+    return this.fail();
+  }
+  async recordWhatsAppSendResult(): Promise<void> {
+    return this.fail();
+  }
+  async applyWhatsAppStatusUpdate(): Promise<boolean> {
     return this.fail();
   }
   async listLeads(): Promise<StoredLead[]> {

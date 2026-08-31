@@ -95,10 +95,13 @@ export async function POST(request: Request) {
     platform: enquiry.platform,
     weeklyOrders: enquiry.weeklyOrders,
     partnershipType: enquiry.partnershipType,
-    subject: enquiry.subject,
+    // The picked Help topic leads the subject so the admin inbox shows
+    // what the enquiry is about at a glance.
+    subject: [enquiry.topic, enquiry.subject].filter(Boolean).join(" — "),
     message: enquiry.message,
     calculatorSelections: null,
     calculatorEstimate: null,
+    whatsapp: null,
   };
 
   const result = await processLead(lead, () => notifyEnquiryLead(enquiry));

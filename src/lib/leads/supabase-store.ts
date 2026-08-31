@@ -1,12 +1,16 @@
 import { LeadStoreUnavailableError } from "./errors.ts";
-import type { LeadStore } from "./store.ts";
+import { transitionWhatsAppDelivery } from "./store.ts";
+import type { LeadStore, WhatsAppSendRecord } from "./store.ts";
 import type {
   LeadDeliveryStatus,
   LeadInput,
   LeadStatus,
+  LeadWhatsAppDelivery,
   StoredLead,
 } from "./types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
+import type { WhatsAppDeliveryStatus } from "../whatsapp/types";
+import type { WhatsAppStatusUpdate } from "../whatsapp/webhook.ts";
 
 /**
  * Production lead persistence: the website_leads table in the WEBSITE
@@ -50,6 +54,39 @@ interface LeadRow {
   calculator_estimate: unknown;
   delivery_status: string;
   delivery_error: string | null;
+  // WhatsApp pricing delivery (migration 0005); empty/null on other
+  // lead types.
+  whatsapp_number: string;
+  whatsapp_number_normalized: string;
+  whatsapp_reference: string;
+  whatsapp_requested_at: string | null;
+  whatsapp_provider: string | null;
+  whatsapp_provider_message_id: string | null;
+  whatsapp_delivery_status: string | null;
+  whatsapp_sent_at: string | null;
+  whatsapp_delivered_at: string | null;
+  whatsapp_failed_at: string | null;
+  whatsapp_error_code: string | null;
+}
+
+function rowToWhatsApp(row: LeadRow): LeadWhatsAppDelivery | null {
+  if (!row.whatsapp_number_normalized) {
+    return null;
+  }
+  return {
+    number: row.whatsapp_number,
+    numberNormalized: row.whatsapp_number_normalized,
+    reference: row.whatsapp_reference,
+    requestedAt: row.whatsapp_requested_at ?? row.created_at,
+    provider: row.whatsapp_provider,
+    providerMessageId: row.whatsapp_provider_message_id,
+    status: (row.whatsapp_delivery_status ??
+      "PENDING") as WhatsAppDeliveryStatus,
+    sentAt: row.whatsapp_sent_at,
+    deliveredAt: row.whatsapp_delivered_at,
+    failedAt: row.whatsapp_failed_at,
+    errorCode: row.whatsapp_error_code,
+  };
 }
 
 function asStringArray(value: unknown): string[] {
@@ -90,6 +127,7 @@ function rowToLead(row: LeadRow): StoredLead {
         : null,
     deliveryStatus: row.delivery_status as LeadDeliveryStatus,
     deliveryError: row.delivery_error,
+    whatsapp: rowToWhatsApp(row),
   };
 }
 
@@ -114,6 +152,11 @@ function inputToRow(input: LeadInput) {
     message: input.message,
     calculator_selections: input.calculatorSelections,
     calculator_estimate: input.calculatorEstimate,
+    whatsapp_number: input.whatsapp?.number ?? "",
+    whatsapp_number_normalized: input.whatsapp?.numberNormalized ?? "",
+    whatsapp_reference: input.whatsapp?.reference ?? "",
+    whatsapp_requested_at: input.whatsapp?.requestedAt ?? null,
+    whatsapp_delivery_status: input.whatsapp ? "PENDING" : null,
   };
 }
 
@@ -184,6 +227,57 @@ export class SupabaseLeadStore implements LeadStore {
       `website_leads?id=eq.${encodeURIComponent(id)}`,
       { delivery_status: status, delivery_error: error },
     );
+  }
+
+  async recordWhatsAppSendResult(
+    id: string,
+    result: WhatsAppSendRecord,
+  ): Promise<void> {
+    await this.request<LeadRow[]>(
+      "PATCH",
+      `website_leads?id=eq.${encodeURIComponent(id)}`,
+      {
+        whatsapp_provider: result.provider,
+        whatsapp_provider_message_id: result.providerMessageId,
+        whatsapp_delivery_status: result.status,
+        whatsapp_error_code: result.errorCode,
+        whatsapp_failed_at:
+          result.status === "FAILED" ? new Date().toISOString() : null,
+      },
+    );
+  }
+
+  async applyWhatsAppStatusUpdate(
+    update: WhatsAppStatusUpdate,
+  ): Promise<boolean> {
+    const rows = await this.request<LeadRow[]>(
+      "GET",
+      `website_leads?whatsapp_provider_message_id=eq.${encodeURIComponent(
+        update.providerMessageId,
+      )}&limit=1`,
+    );
+    if (rows.length === 0) {
+      return false;
+    }
+    const lead = rowToLead(rows[0]);
+    if (!lead.whatsapp) {
+      return false;
+    }
+    const changed = transitionWhatsAppDelivery(lead.whatsapp, update);
+    if (changed) {
+      await this.request<LeadRow[]>(
+        "PATCH",
+        `website_leads?id=eq.${encodeURIComponent(lead.id)}`,
+        {
+          whatsapp_delivery_status: changed.status,
+          whatsapp_sent_at: changed.sentAt,
+          whatsapp_delivered_at: changed.deliveredAt,
+          whatsapp_failed_at: changed.failedAt,
+          whatsapp_error_code: changed.errorCode,
+        },
+      );
+    }
+    return true;
   }
 
   async listLeads(limit: number): Promise<StoredLead[]> {

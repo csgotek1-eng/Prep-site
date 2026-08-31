@@ -1,0 +1,477 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { afterEach, describe, it } from "node:test";
+
+import { calculateEstimate } from "../src/lib/pricing/calculate.ts";
+import { SEED_SERVICES, SEED_VOLUME_TIERS } from "../src/lib/pricing/seed.ts";
+import type { LeadInput, StoredLead } from "../src/lib/leads/types.ts";
+import type { LeadStore, WhatsAppSendRecord } from "../src/lib/leads/store.ts";
+import { LeadStoreUnavailableError } from "../src/lib/leads/errors.ts";
+import {
+  isValidWhatsAppNumberInput,
+  normalizeWhatsAppNumber,
+} from "../src/lib/whatsapp/number.ts";
+import {
+  buildPricingTemplateParameters,
+  buildPricingWhatsAppText,
+  isPricingReference,
+  makePricingReference,
+  sanitizeTemplateParameter,
+} from "../src/lib/whatsapp/message.ts";
+import { extractMetaErrorCode } from "../src/lib/whatsapp/meta-provider.ts";
+import { resolveWhatsAppDeliveryMode, createWhatsAppProvider } from "../src/lib/whatsapp/provider.ts";
+import { processWhatsAppPricingRequest } from "../src/lib/whatsapp/pricing-request.ts";
+import type {
+  WhatsAppProvider,
+  WhatsAppSendResult,
+} from "../src/lib/whatsapp/types.ts";
+
+const read = (path: string) => readFileSync(path, "utf8");
+
+// ---------------------------------------------------------------------
+// Shared fixtures
+// ---------------------------------------------------------------------
+
+const PRICED = calculateEstimate(
+  SEED_SERVICES,
+  [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
+  { monthlyOrders: 2000, volumeTiers: SEED_VOLUME_TIERS },
+);
+const CUSTOM_ONLY = calculateEstimate(SEED_SERVICES, [
+  { serviceId: "svc-detailed-qc", quantity: 10 },
+]);
+const MIXED = calculateEstimate(
+  SEED_SERVICES,
+  [
+    { serviceId: "svc-pick-pack-order", quantity: 100 },
+    { serviceId: "svc-detailed-qc", quantity: 10 },
+  ],
+  { monthlyOrders: 500, volumeTiers: SEED_VOLUME_TIERS },
+);
+
+/** In-memory LeadStore capturing everything, with switchable failure. */
+class FakeStore implements LeadStore {
+  createdInputs: LeadInput[] = [];
+  sendRecords: { id: string; record: WhatsAppSendRecord }[] = [];
+  failCreate = false;
+  async createLead(input: LeadInput): Promise<{ id: string }> {
+    if (this.failCreate) throw new LeadStoreUnavailableError();
+    this.createdInputs.push(input);
+    return { id: `lead-${this.createdInputs.length}` };
+  }
+  async setDeliveryResult(): Promise<void> {}
+  async recordWhatsAppSendResult(
+    id: string,
+    record: WhatsAppSendRecord,
+  ): Promise<void> {
+    this.sendRecords.push({ id, record });
+  }
+  async applyWhatsAppStatusUpdate(): Promise<boolean> {
+    return true;
+  }
+  async listLeads(): Promise<StoredLead[]> {
+    return [];
+  }
+  async setLeadStatus(): Promise<StoredLead | null> {
+    return null;
+  }
+}
+
+function fakeProvider(
+  result: WhatsAppSendResult | (() => never),
+): WhatsAppProvider & { calls: number } {
+  const provider = {
+    name: "fake",
+    calls: 0,
+    async sendPricingResult(): Promise<WhatsAppSendResult> {
+      provider.calls += 1;
+      if (typeof result === "function") result();
+      return result as WhatsAppSendResult;
+    },
+  };
+  return provider;
+}
+
+const ACCEPTED: WhatsAppSendResult = {
+  outcome: "ACCEPTED",
+  provider: "fake",
+  providerMessageId: "wamid.TEST123",
+  errorCode: null,
+};
+const REJECTED: WhatsAppSendResult = {
+  outcome: "FAILED",
+  provider: "fake",
+  providerMessageId: null,
+  errorCode: "META_131026",
+};
+const SKIPPED: WhatsAppSendResult = {
+  outcome: "SKIPPED",
+  provider: "disabled",
+  providerMessageId: null,
+  errorCode: "DELIVERY_DISABLED",
+};
+
+// ---------------------------------------------------------------------
+// A. Customer number → E.164 (server authoritative)
+// ---------------------------------------------------------------------
+
+describe("A. WhatsApp number normalization (E.164)", () => {
+  it("accepts international numbers from any country", () => {
+    for (const [raw, expected] of [
+      ["+353851234567", "+353851234567"],
+      ["+353 85 123 4567", "+353851234567"],
+      ["+44 7700 900123", "+447700900123"],
+      ["0049 151 2345 6789", "+4915123456789"],
+      ["(+1) 415-555-2671", "+14155552671"],
+      ["00353851234567", "+353851234567"],
+    ] as const) {
+      const result = normalizeWhatsAppNumber(raw);
+      assert.ok("e164" in result, `${raw} must normalize`);
+      assert.equal(result.e164, expected);
+    }
+  });
+
+  it("rejects invalid and ambiguous input", () => {
+    for (const raw of [
+      "",
+      "   ",
+      "0851234567", // no country code — ambiguous, never guessed
+      "+0123456789", // leading zero country code
+      "+1234", // too short
+      "+123456789012345678", // too long
+      "not a number",
+      "+353abc851234",
+      "javascript:alert(1)",
+    ]) {
+      assert.ok(
+        "error" in normalizeWhatsAppNumber(raw),
+        `"${raw}" must be rejected`,
+      );
+    }
+    assert.ok("error" in normalizeWhatsAppNumber(42));
+    assert.ok("error" in normalizeWhatsAppNumber(null));
+  });
+
+  it("the client-side check is the same rule (UX only)", () => {
+    assert.equal(isValidWhatsAppNumberInput("+353 85 123 4567"), true);
+    assert.equal(isValidWhatsAppNumberInput("0851234567"), false);
+  });
+});
+
+// ---------------------------------------------------------------------
+// B. The outbound pricing message (server-side only)
+// ---------------------------------------------------------------------
+
+describe("B. private pricing message", () => {
+  it("references look like DCK-XXXXXX and are unique-ish", () => {
+    const refs = new Set(
+      Array.from({ length: 50 }, () => makePricingReference()),
+    );
+    for (const ref of refs) assert.ok(isPricingReference(ref), ref);
+    assert.ok(refs.size > 45, "references must not collide trivially");
+  });
+
+  it("priced request: services, volume and the calculated total", () => {
+    const text = buildPricingWhatsAppText(PRICED, "DCK-TEST22");
+    assert.ok(text.startsWith("Dockentra — Your Pricing"));
+    assert.ok(text.includes("Reference: DCK-TEST22"));
+    assert.ok(text.includes("Monthly orders: 2000"));
+    assert.ok(text.includes("Pick & pack"));
+    assert.ok(text.includes("Estimated total: €205.00")); // 100 × €2.05
+    assert.ok(text.includes("not a binding") === false); // wording lives on site
+  });
+
+  it("custom-only: NEVER €0.00, states individual pricing", () => {
+    const text = buildPricingWhatsAppText(CUSTOM_ONLY, "DCK-TEST22");
+    assert.equal(text.includes("€"), false);
+    assert.ok(text.includes("priced individually"));
+    assert.ok(text.includes("Detailed quality check"));
+  });
+
+  it("mixed: priced portion + custom services identified separately", () => {
+    const text = buildPricingWhatsAppText(MIXED, "DCK-TEST22");
+    assert.ok(text.includes("Estimated total: €"));
+    assert.ok(text.includes("Custom priced separately: Detailed quality check"));
+    // The custom line itself never gets a euro amount.
+    assert.equal(/Detailed quality check[^\n]*€/.test(text), false);
+  });
+
+  it("template parameters are single-line and Meta-safe", () => {
+    const [reference, services, pricing] = buildPricingTemplateParameters(
+      MIXED,
+      "DCK-TEST22",
+    );
+    for (const parameter of [reference, services, pricing]) {
+      assert.equal(/[\n\r\t]/.test(parameter), false);
+      assert.equal(/ {4,}/.test(parameter), false);
+    }
+    assert.equal(reference, "DCK-TEST22");
+    assert.ok(services.includes("Pick & pack ×100"));
+    assert.ok(pricing.includes("Estimated total €"));
+    const [, , customPricing] = buildPricingTemplateParameters(
+      CUSTOM_ONLY,
+      "DCK-TEST22",
+    );
+    assert.equal(customPricing.includes("€"), false);
+    assert.ok(customPricing.includes("Individual pricing required"));
+    assert.equal(
+      sanitizeTemplateParameter("a\nb\t c    d"),
+      "a b c d",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------
+// C. Provider resolution (delivery modes)
+// ---------------------------------------------------------------------
+
+describe("C. delivery modes", () => {
+  const ENV_KEYS = [
+    "WHATSAPP_DELIVERY_MODE",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_PRICING_TEMPLATE_NAME",
+    "WHATSAPP_TEMPLATE_LANGUAGE",
+  ];
+  afterEach(() => {
+    for (const key of ENV_KEYS) delete process.env[key];
+  });
+
+  it("unset / disabled → inactive provider that SKIPS truthfully", async () => {
+    assert.equal(resolveWhatsAppDeliveryMode(), "disabled");
+    process.env.WHATSAPP_DELIVERY_MODE = "disabled";
+    assert.equal(resolveWhatsAppDeliveryMode(), "disabled");
+    const provider = createWhatsAppProvider();
+    const result = await provider.sendPricingResult({
+      toE164: "+353851234567",
+      reference: "DCK-TEST22",
+      estimate: PRICED,
+    });
+    assert.equal(result.outcome, "SKIPPED");
+    assert.equal(result.providerMessageId, null);
+  });
+
+  it("meta without complete config → fail closed (unconfigured)", () => {
+    process.env.WHATSAPP_DELIVERY_MODE = "meta";
+    process.env.WHATSAPP_ACCESS_TOKEN = "token";
+    // phone number id / template missing
+    assert.equal(resolveWhatsAppDeliveryMode(), "unconfigured");
+  });
+
+  it("meta with complete config → meta", () => {
+    process.env.WHATSAPP_DELIVERY_MODE = "meta";
+    process.env.WHATSAPP_ACCESS_TOKEN = "token";
+    process.env.WHATSAPP_PHONE_NUMBER_ID = "12345";
+    process.env.WHATSAPP_PRICING_TEMPLATE_NAME = "dockentra_pricing";
+    process.env.WHATSAPP_TEMPLATE_LANGUAGE = "en";
+    assert.equal(resolveWhatsAppDeliveryMode(), "meta");
+    assert.equal(createWhatsAppProvider().name, "meta");
+  });
+
+  it("unknown mode → fail closed", () => {
+    process.env.WHATSAPP_DELIVERY_MODE = "carrier-pigeon";
+    assert.equal(resolveWhatsAppDeliveryMode(), "unconfigured");
+  });
+
+  it("meta error codes are extracted safely", () => {
+    assert.equal(
+      extractMetaErrorCode({ error: { code: 190, message: "secret" } }, 401),
+      "META_190",
+    );
+    assert.equal(extractMetaErrorCode("not json", 500), "META_HTTP_500");
+  });
+});
+
+// ---------------------------------------------------------------------
+// D. The full request flow (save-first, truthful outcomes)
+// ---------------------------------------------------------------------
+
+describe("D. processWhatsAppPricingRequest matrix", () => {
+  const baseArgs = {
+    rawNumber: "+353 85 123 4567",
+    e164: "+353851234567",
+    selections: [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
+    estimate: PRICED,
+  };
+
+  it("save OK + provider ACCEPTED → ok, delivery 'sent', ACCEPTED recorded", async () => {
+    const store = new FakeStore();
+    const provider = fakeProvider(ACCEPTED);
+    const result = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store,
+      provider,
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.saved, true);
+    assert.equal(result.delivery, "sent");
+    assert.ok(isPricingReference(result.reference));
+    // The stored lead carries the INTERNAL estimate + the number.
+    const input = store.createdInputs[0];
+    assert.equal(input.type, "whatsapp-pricing");
+    assert.equal(input.source, "pricing-calculator");
+    assert.equal(input.whatsapp?.numberNormalized, "+353851234567");
+    assert.equal(input.whatsapp?.reference, result.reference);
+    assert.equal(input.calculatorEstimate?.subtotal, PRICED.subtotal);
+    // Send outcome recorded with the provider message id.
+    assert.equal(store.sendRecords.length, 1);
+    assert.equal(store.sendRecords[0].record.status, "ACCEPTED");
+    assert.equal(
+      store.sendRecords[0].record.providerMessageId,
+      "wamid.TEST123",
+    );
+  });
+
+  it("save OK + provider REJECTED → ok (saved) but delivery 'failed'", async () => {
+    const store = new FakeStore();
+    const result = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store,
+      provider: fakeProvider(REJECTED),
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.delivery, "failed");
+    assert.equal(store.sendRecords[0].record.status, "FAILED");
+    assert.equal(store.sendRecords[0].record.errorCode, "META_131026");
+  });
+
+  it("save OK + provider THROWS → ok (saved), delivery 'failed', recorded", async () => {
+    const store = new FakeStore();
+    const provider = fakeProvider(() => {
+      throw new Error("boom");
+    });
+    const result = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store,
+      provider,
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.delivery, "failed");
+    assert.equal(store.sendRecords[0].record.errorCode, "PROVIDER_ERROR");
+  });
+
+  it("save OK + provider disabled → ok, delivery 'unavailable' (never fake 'sent')", async () => {
+    const store = new FakeStore();
+    const result = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store,
+      provider: fakeProvider(SKIPPED),
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.delivery, "unavailable");
+    assert.equal(store.sendRecords[0].record.status, "PENDING");
+  });
+
+  it("save FAILS → ok false AND the provider is never called", async () => {
+    const store = new FakeStore();
+    store.failCreate = true;
+    const provider = fakeProvider(ACCEPTED);
+    const result = await processWhatsAppPricingRequest({
+      ...baseArgs,
+      store,
+      provider,
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.saved, false);
+    assert.equal(result.leadId, null);
+    assert.equal(
+      provider.calls,
+      0,
+      "pricing must never be sent for a request the business cannot retrieve",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------
+// E. Route-level guarantees (source assertions)
+// ---------------------------------------------------------------------
+
+describe("E. /api/pricing/whatsapp route", () => {
+  const route = read("src/app/api/pricing/whatsapp/route.ts");
+
+  it("is rate limited, honeypotted, size-capped, server-priced", () => {
+    assert.ok(route.includes("createDurableRateLimiter"));
+    assert.ok(route.includes("honeypot") || route.includes("body.website"));
+    assert.ok(route.includes("MAX_BODY_BYTES"));
+    assert.ok(route.includes("normalizeWhatsAppNumber"));
+    assert.ok(route.includes("calculateEstimate"));
+  });
+
+  it("the public response carries no estimate and no monetary value", () => {
+    // Success response: ok + reference + delivery ONLY.
+    assert.ok(route.includes("reference: result.reference"));
+    assert.ok(route.includes("delivery: result.delivery"));
+    assert.equal(route.includes("estimate:"), false);
+    assert.equal(route.includes("toPublicEstimate"), false);
+    assert.equal(route.includes("subtotal"), false);
+  });
+
+  it("public 'sent' requires provider acceptance (single mapping site)", () => {
+    const flow = read("src/lib/whatsapp/pricing-request.ts");
+    assert.ok(flow.includes('sendResult.outcome === "ACCEPTED"'));
+    assert.ok(flow.includes('? "sent"'));
+    // No other place fabricates a "sent" delivery value.
+    assert.equal(route.includes('"sent"'), false);
+  });
+
+  it("only official provider architecture — no WhatsApp Web automation", () => {
+    const provider = read("src/lib/whatsapp/provider.ts");
+    const meta = read("src/lib/whatsapp/meta-provider.ts");
+    assert.ok(meta.includes("graph.facebook.com"));
+    for (const banned of ["whatsapp-web", "puppeteer", "qrcode", "baileys"]) {
+      assert.equal(provider.toLowerCase().includes(banned), false);
+      assert.equal(meta.toLowerCase().includes(banned), false);
+    }
+    // Secrets never reach the client bundle: server-only modules.
+    const calculator = read("src/components/PricingCalculator.tsx");
+    assert.equal(calculator.includes("WHATSAPP_ACCESS_TOKEN"), false);
+    assert.equal(calculator.includes("meta-provider"), false);
+  });
+});
+
+// ---------------------------------------------------------------------
+// F. Migration 0005 (prepared, additive, deny-all RLS)
+// ---------------------------------------------------------------------
+
+describe("F. migration 0005", () => {
+  const sql = read("supabase/migrations/0005_whatsapp_pricing_delivery.sql");
+
+  it("stores the full delivery lifecycle without secrets", () => {
+    for (const column of [
+      "whatsapp_number",
+      "whatsapp_number_normalized",
+      "whatsapp_reference",
+      "whatsapp_requested_at",
+      "whatsapp_provider",
+      "whatsapp_provider_message_id",
+      "whatsapp_delivery_status",
+      "whatsapp_sent_at",
+      "whatsapp_delivered_at",
+      "whatsapp_failed_at",
+      "whatsapp_error_code",
+    ]) {
+      assert.ok(sql.includes(column), `0005 must add ${column}`);
+    }
+    for (const status of ["PENDING", "ACCEPTED", "SENT", "DELIVERED", "FAILED"]) {
+      assert.ok(sql.includes(`'${status}'`));
+    }
+    assert.equal(/token|secret\b/i.test(sql.replace(/--.*$/gm, "")), false);
+  });
+
+  it("is additive: no drop table/column, no delete, no update of data", () => {
+    const code = sql.replace(/--.*$/gm, "").toLowerCase();
+    assert.equal(code.includes("drop table"), false);
+    assert.equal(code.includes("drop column"), false);
+    assert.equal(/\bdelete\s+from\b/.test(code), false);
+    assert.equal(/\bupdate\s+public\./.test(code), false);
+    // Only the CHECK constraints from 0004 are re-created wider.
+    assert.ok(code.includes("drop constraint if exists website_leads_source_check"));
+    assert.ok(code.includes("'whatsapp-pricing'"));
+  });
+
+  it("adds no public RLS policy (deny-all posture inherited)", () => {
+    const code = sql.replace(/--.*$/gm, "").toLowerCase();
+    assert.equal(code.includes("create policy"), false);
+    assert.equal(code.includes("disable row level security"), false);
+  });
+});

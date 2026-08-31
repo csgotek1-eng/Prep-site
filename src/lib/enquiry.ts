@@ -13,6 +13,8 @@
  * calculator stays entirely inside the quote flow.
  */
 
+import { HELP_TOPIC_LABELS } from "./help-topics.ts";
+
 export const ENQUIRY_TYPES = ["client", "partnership", "general"] as const;
 export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
 
@@ -27,6 +29,12 @@ export const PARTNERSHIP_TYPES = [
 
 export interface EnquiryRequest {
   type: EnquiryType;
+  /**
+   * The Help-menu topic the visitor picked (validated against
+   * HELP_TOPIC_LABELS; empty when none / unknown). Stored so the team
+   * sees what the enquiry was about even before reading the message.
+   */
+  topic: string;
   name: string;
   company: string;
   email: string;
@@ -81,8 +89,10 @@ export function validateEnquiry(
     return { error: "Please choose what your enquiry is about." };
   }
 
+  const rawTopic = asString(body.topic);
   const enquiry: EnquiryRequest = {
     type,
+    topic: HELP_TOPIC_LABELS.includes(rawTopic) ? rawTopic : "",
     name: asString(body.name),
     company: asString(body.company),
     email: asString(body.email),

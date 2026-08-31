@@ -22,6 +22,15 @@ const TYPE_LABELS: Record<StoredLead["type"], string> = {
   "client-enquiry": "Client enquiry",
   "partnership-enquiry": "Partnership enquiry",
   "general-enquiry": "General enquiry",
+  "whatsapp-pricing": "WhatsApp pricing request",
+};
+
+const WHATSAPP_STATUS_STYLES: Record<string, string> = {
+  PENDING: "bg-amber-100 text-amber-800",
+  ACCEPTED: "bg-sky-100 text-sky-800",
+  SENT: "bg-indigo-100 text-indigo-800",
+  DELIVERED: "bg-emerald-100 text-emerald-800",
+  FAILED: "bg-red-100 text-red-800",
 };
 
 const STATUS_STYLES: Record<LeadStatus, string> = {
@@ -277,12 +286,26 @@ export default function AdminLeadsManager({
                     </span>
                   </div>
                   <p className="mt-1.5 text-sm text-slate-800">
-                    <span className="font-medium">{lead.name}</span>
+                    <span className="font-medium">
+                      {lead.name ||
+                        (lead.whatsapp
+                          ? `WhatsApp ${lead.whatsapp.numberNormalized}`
+                          : "—")}
+                    </span>
                     {lead.business && ` — ${lead.business}`}
                   </p>
                   <p className="mt-0.5 text-sm text-slate-600">
                     {lead.email}
-                    {lead.phone && ` · ${lead.phone}`}
+                    {lead.email && lead.phone && " · "}
+                    {lead.phone}
+                    {lead.whatsapp && (
+                      <>
+                        {(lead.email || lead.phone) && " · "}
+                        <span className="font-mono-data">
+                          {lead.whatsapp.reference}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -303,9 +326,20 @@ export default function AdminLeadsManager({
                       ))}
                     </select>
                   </label>
-                  <span className="text-xs text-slate-400">
-                    Delivery: {lead.deliveryStatus}
-                  </span>
+                  {lead.whatsapp ? (
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        WHATSAPP_STATUS_STYLES[lead.whatsapp.status] ??
+                        "bg-slate-200 text-slate-600"
+                      }`}
+                    >
+                      WhatsApp: {lead.whatsapp.status}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">
+                      Delivery: {lead.deliveryStatus}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -387,6 +421,80 @@ export default function AdminLeadsManager({
                       <span className="font-medium">Message:</span>{" "}
                       {lead.message}
                     </p>
+                  )}
+                  {lead.whatsapp && (
+                    <div className="rounded-md bg-brand-surface-soft p-3">
+                      <p className="font-medium text-brand-navy">
+                        WhatsApp delivery
+                      </p>
+                      <dl className="mt-1 space-y-0.5 text-sm">
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-500">Customer number</dt>
+                          <dd className="font-medium">
+                            {lead.whatsapp.numberNormalized}
+                            {lead.whatsapp.number.trim() !==
+                              lead.whatsapp.numberNormalized && (
+                              <span className="text-slate-500">
+                                {" "}
+                                (typed: {lead.whatsapp.number})
+                              </span>
+                            )}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-500">Reference</dt>
+                          <dd className="font-mono-data font-medium">
+                            {lead.whatsapp.reference}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-500">Status</dt>
+                          <dd className="font-medium">
+                            {lead.whatsapp.status}
+                            {lead.whatsapp.errorCode &&
+                              ` (${lead.whatsapp.errorCode})`}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-500">Provider</dt>
+                          <dd className="font-medium">
+                            {lead.whatsapp.provider ?? "—"}
+                          </dd>
+                        </div>
+                        {lead.whatsapp.providerMessageId && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="shrink-0 text-slate-500">
+                              Message ID
+                            </dt>
+                            <dd className="break-all font-mono-data text-xs">
+                              {lead.whatsapp.providerMessageId}
+                            </dd>
+                          </div>
+                        )}
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-500">Requested</dt>
+                          <dd>{formatDate(lead.whatsapp.requestedAt)}</dd>
+                        </div>
+                        {lead.whatsapp.sentAt && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-slate-500">Sent</dt>
+                            <dd>{formatDate(lead.whatsapp.sentAt)}</dd>
+                          </div>
+                        )}
+                        {lead.whatsapp.deliveredAt && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-slate-500">Delivered</dt>
+                            <dd>{formatDate(lead.whatsapp.deliveredAt)}</dd>
+                          </div>
+                        )}
+                        {lead.whatsapp.failedAt && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-slate-500">Failed</dt>
+                            <dd>{formatDate(lead.whatsapp.failedAt)}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
                   )}
                   {lead.calculatorEstimate && (
                     <div className="rounded-md bg-brand-surface-soft p-3">
