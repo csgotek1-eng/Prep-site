@@ -1,34 +1,8 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { calculateEstimate } from "../src/lib/pricing/calculate.ts";
-import {
-  buildWhatsAppEstimateMessage,
-  buildWhatsAppEstimateUrl,
-  canShareEstimateOnWhatsApp,
-} from "../src/lib/whatsapp-message.ts";
-import type { PricingService } from "../src/lib/pricing/types.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
-
-function service(overrides: Partial<PricingService>): PricingService {
-  return {
-    id: "svc",
-    name: "Service",
-    slug: "service",
-    description: "",
-    category: "Other",
-    unitLabel: "per item",
-    price: 100,
-    currency: "EUR",
-    pricingType: "PER_ITEM",
-    minimumCharge: null,
-    isActive: true,
-    isFeatured: false,
-    sortOrder: 0,
-    ...overrides,
-  };
-}
 
 describe("wordmark accessibility", () => {
   const lockup = read("src/components/BrandLockup.tsx");
@@ -106,82 +80,19 @@ describe("employee contact card safety", () => {
   });
 });
 
-describe("calculator WhatsApp share — message safety", () => {
-  const priced = service({ id: "pack", name: "Pick & Pack", price: 250 });
-  const custom = service({
-    id: "custom",
-    name: "Bespoke Kitting",
-    pricingType: "CUSTOM_QUOTE",
-    price: 0,
+describe("calculator WhatsApp flow — outbound only", () => {
+  it("the calculator never builds a customer-composed wa.me estimate link", () => {
+    const calculator = read("src/components/PricingCalculator.tsx");
+    assert.equal(calculator.includes("wa.me"), false);
+    assert.equal(calculator.includes("buildWhatsAppEstimateUrl"), false);
+    // The price is SENT to the customer's own number by the server.
+    assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
+    assert.ok(calculator.includes("Send My Price to WhatsApp"));
   });
 
-  it("is hidden when there is no estimate yet", () => {
-    assert.equal(canShareEstimateOnWhatsApp(null), false);
-  });
-
-  it("is hidden when nothing is selected", () => {
-    const estimate = calculateEstimate([priced], []);
-    assert.equal(canShareEstimateOnWhatsApp(estimate), false);
-  });
-
-  it("carries the visitor's selection with NO monetary value at all", () => {
-    // Pricing is private: the message hands the selection to the team,
-    // who reply with the personalised price inside the conversation.
-    const estimate = calculateEstimate([priced], [{ serviceId: "pack", quantity: 3 }]);
-    const message = buildWhatsAppEstimateMessage(estimate);
-    assert.ok(message.includes("Pick & Pack"));
-    assert.ok(message.includes("qty 3"));
-    assert.equal(message.includes("€"), false);
-    assert.equal(message.toLowerCase().includes("total"), false);
-  });
-
-  it("never invents a euro amount for custom-quote-only selections", () => {
-    const estimate = calculateEstimate([custom], [{ serviceId: "custom", quantity: 1 }]);
-    const message = buildWhatsAppEstimateMessage(estimate);
-    assert.equal(message.includes("€"), false);
-    assert.ok(message.includes("priced individually"));
-  });
-
-  it("labels custom-quote lines distinctly when mixed with priced lines", () => {
-    const estimate = calculateEstimate(
-      [priced, custom],
-      [
-        { serviceId: "pack", quantity: 1 },
-        { serviceId: "custom", quantity: 1 },
-      ],
-    );
-    const message = buildWhatsAppEstimateMessage(estimate);
-    assert.ok(message.includes("Bespoke Kitting — qty 1 — priced individually"));
-    assert.equal(message.includes("€"), false);
-  });
-
-  it("never includes name, email, phone or address the visitor did not choose to share", () => {
-    const estimate = calculateEstimate([priced], [{ serviceId: "pack", quantity: 1 }]);
-    const message = buildWhatsAppEstimateMessage(estimate);
-    for (const field of ["email", "@", "phone", "address"]) {
-      assert.equal(message.toLowerCase().includes(field), false);
-    }
-  });
-
-  it("builds a wa.me URL for the correct business number with an encoded message", () => {
-    const estimate = calculateEstimate([priced], [{ serviceId: "pack", quantity: 1 }]);
-    const url = buildWhatsAppEstimateUrl(estimate);
-    assert.ok(url.startsWith("https://wa.me/353851584185?text="));
-    const encoded = url.split("text=")[1];
-    assert.equal(encoded, encodeURIComponent(buildWhatsAppEstimateMessage(estimate)));
-  });
-});
-
-describe("calculator WhatsApp button wiring", () => {
-  const calculator = read("src/components/PricingCalculator.tsx");
-
-  it("gates the button on a real, shareable estimate", () => {
-    assert.ok(calculator.includes("canShareEstimateOnWhatsApp(estimate)"));
-  });
-
-  it("does not recalculate pricing independently", () => {
-    const whatsappSection = calculator.slice(calculator.indexOf("canShareEstimateOnWhatsApp("));
-    assert.equal(whatsappSection.slice(0, 400).includes("calculateEstimate("), false);
+  it("general WhatsApp contact links still use the approved business number", () => {
+    const site = read("src/lib/site.ts");
+    assert.ok(site.includes("https://wa.me/353851584185"));
   });
 });
 

@@ -10,29 +10,33 @@ describe("calculator primary actions stay reachable", () => {
   const calculator = read("src/components/PricingCalculator.tsx");
 
   it("has ONE logical action area, independent of the line list", () => {
-    assert.ok(calculator.includes("const actionsPanel"));
+    assert.ok(calculator.includes("const renderActionsPanel"));
     assert.ok(calculator.includes("const linesList"));
-    // Actions render responsively from the single actionsPanel value.
+    // The single panel renders responsively in exactly two places,
+    // with unique ids per rendering.
+    assert.ok(calculator.includes('renderActionsPanel("mobile")'));
+    assert.ok(calculator.includes('renderActionsPanel("desktop")'));
     assert.equal(
-      (calculator.match(/\{actionsPanel\}/g) ?? []).length,
+      (calculator.match(/renderActionsPanel\("/g) ?? []).length,
       2,
-      "one instance below lg (sticky top) + one in the desktop panel header",
+      "exactly the mobile and desktop renderings",
     );
   });
 
-  it("WhatsApp and Request This Quote live in the persistent action area", () => {
+  it("the ONE pricing action lives in the persistent action area", () => {
     const panel = calculator.slice(
-      calculator.indexOf("const actionsPanel"),
+      calculator.indexOf("const renderActionsPanel"),
       calculator.indexOf("const linesList"),
     );
-    assert.ok(panel.includes("Get My Price on WhatsApp"));
-    assert.ok(panel.includes("Request This Quote"));
-    // The line list contains neither action.
+    assert.ok(panel.includes("Send My Price to WhatsApp"));
+    assert.ok(panel.includes("WhatsApp mobile number"));
+    // No competing pricing CTA anywhere in the calculator.
+    assert.equal(calculator.includes("Request This Quote"), false);
+    // The line list contains no action.
     const lines = calculator.slice(
       calculator.indexOf("const linesList"),
       calculator.indexOf("const disclaimer"),
     );
-    assert.equal(lines.includes("Request This Quote"), false);
     assert.equal(lines.includes("WhatsApp"), false);
   });
 

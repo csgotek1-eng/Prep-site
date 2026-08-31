@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MAX_QUANTITY } from "@/lib/pricing/calculate";
 import type {
   PublicCatalogueService,
   PublicEstimate,
 } from "@/lib/pricing/public";
 import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
-import {
-  buildWhatsAppEstimateUrl,
-  canShareEstimateOnWhatsApp,
-} from "@/lib/whatsapp-message";
+import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
 export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
@@ -25,11 +21,16 @@ interface SelectionState {
  * the catalogue endpoint returns services with no monetary data, and
  * POST /api/pricing/estimate validates the visitor's selection
  * server-side and echoes back the confirmed line list ONLY — no totals,
- * no line prices. The personalised price is delivered to the visitor
- * privately: on WhatsApp (the primary CTA opens the chat with their
- * selection pre-filled) or in the reply to their quote request. The
- * server keeps calculating internally so the team always has the
- * number ready — it just never ships it to the browser.
+ * no line prices.
+ *
+ * ONE pricing action: the customer enters THEIR OWN WhatsApp number
+ * and presses "Send My Price to WhatsApp". The SERVER calculates the
+ * authoritative estimate, durably stores the request, and sends the
+ * result FROM Dockentra TO the customer through the official provider
+ * (see src/lib/whatsapp/). The customer never composes a WhatsApp
+ * message and the browser never sees a price. The response reports the
+ * outcome truthfully — "sent" only when the provider actually accepted
+ * the message.
  *
  * `variant` only adjusts LAYOUT to the rendering context; every piece
  * of pricing behaviour is identical in both:
@@ -44,7 +45,6 @@ export default function PricingCalculator({
 }: {
   variant?: "page" | "modal";
 } = {}) {
-  const router = useRouter();
   const [services, setServices] = useState<PublicCatalogueService[] | null>(
     null,
   );
@@ -58,6 +58,17 @@ export default function PricingCalculator({
   const [estimating, setEstimating] = useState(false);
   const [estimateError, setEstimateError] = useState(false);
   const estimateRequestId = useRef(0);
+  // The customer's OWN WhatsApp number and the send lifecycle for the
+  // single "Send My Price to WhatsApp" action.
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [sendPhase, setSendPhase] = useState<"idle" | "sending" | "done">(
+    "idle",
+  );
+  const [sendOutcome, setSendOutcome] = useState<{
+    delivery: "sent" | "unavailable" | "failed";
+    reference: string;
+  } | null>(null);
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -140,7 +151,16 @@ export default function PricingCalculator({
     };
   }, [selections, monthlyOrders]);
 
+  // A finished send belongs to the EXACT selection it was made for:
+  // any change to services, quantities or volume starts a new request.
+  function clearSendResult() {
+    setSendPhase((phase) => (phase === "done" ? "idle" : phase));
+    setSendOutcome(null);
+    setSendError("");
+  }
+
   function toggleService(service: PublicCatalogueService) {
+    clearSendResult();
     const next = { ...selections };
     if (service.id in next) {
       delete next[service.id];
@@ -159,6 +179,7 @@ export default function PricingCalculator({
   }
 
   function setQuantity(serviceId: string, value: string) {
+    clearSendResult();
     const parsed = Number(value);
     const quantity =
       Number.isInteger(parsed) && parsed > 0
@@ -167,20 +188,58 @@ export default function PricingCalculator({
     setSelections((current) => ({ ...current, [serviceId]: quantity }));
   }
 
-  function requestQuote() {
-    const payload = {
-      selections: Object.entries(selections).map(
-        ([serviceId, quantity]) => ({ serviceId, quantity }),
-      ),
-      monthlyOrders,
-    };
-    try {
-      sessionStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
-    } catch {
-      // Storage unavailable (private mode) — the quote form simply won't
-      // pre-attach the estimate; the visitor can still describe it.
+  // ONE pricing action (P0-3): submit the selection + the customer's
+  // OWN WhatsApp number; the server does everything else. Client-side
+  // number validation is UX only — the server re-validates and is
+  // authoritative.
+  async function sendPriceToWhatsApp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    // Double-submit guard: the button is also disabled, but a fast
+    // second tap/Enter can fire before React re-renders.
+    if (sendPhase === "sending") return;
+    if (!isValidWhatsAppNumberInput(whatsappNumber)) {
+      setSendError(
+        "Please enter your WhatsApp number with the country code, e.g. +353 85 123 4567.",
+      );
+      return;
     }
-    router.push("/contact?from=calculator");
+    const honeypot = new FormData(event.currentTarget).get("website");
+    setSendPhase("sending");
+    setSendError("");
+    try {
+      const response = await fetch("/api/pricing/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selections: Object.entries(selections).map(
+            ([serviceId, quantity]) => ({ serviceId, quantity }),
+          ),
+          monthlyOrders,
+          whatsappNumber,
+          website: typeof honeypot === "string" ? honeypot : "",
+        }),
+      });
+      const data = (await response.json()) as {
+        ok: boolean;
+        reference?: string;
+        delivery?: "sent" | "unavailable" | "failed";
+        error?: string;
+      };
+      if (data.ok && data.reference && data.delivery) {
+        setSendPhase("done");
+        setSendOutcome({ delivery: data.delivery, reference: data.reference });
+      } else {
+        setSendPhase("idle");
+        setSendError(
+          data.error ?? "Something went wrong. Please try again.",
+        );
+      }
+    } catch {
+      setSendPhase("idle");
+      setSendError(
+        "We couldn't send your request. Please check your connection and try again.",
+      );
+    }
   }
 
   if (loadError) {
@@ -225,14 +284,15 @@ export default function PricingCalculator({
   const selectedCount = Object.keys(selections).length;
   const hasEstimateLines = Boolean(estimate && estimate.lines.length > 0);
 
-  // ONE logical primary-action area (private-pricing state + WhatsApp +
-  // Request This Quote). It renders responsively: sticky near the TOP
-  // of the calculator below lg, and as the fixed header of the summary
-  // panel on lg+ — never below the growing list of selected services,
-  // so the actions can never scroll out of reach. Only one instance is
-  // visible at any breakpoint. It never shows a monetary value:
-  // pricing is private and is sent to the visitor on WhatsApp.
-  const actionsPanel =
+  // ONE logical primary-action area with ONE pricing action: enter
+  // your WhatsApp number, press "Send My Price to WhatsApp". It
+  // renders responsively: sticky near the TOP of the calculator below
+  // lg, and as the fixed header of the summary panel on lg+ — never
+  // below the growing list of selected services, so the action can
+  // never scroll out of reach. Only one instance is visible at any
+  // breakpoint; `idSuffix` keeps the input/label ids unique across the
+  // two responsive renderings. It never shows a monetary value.
+  const renderActionsPanel = (idSuffix: string) =>
     estimate && hasEstimateLines ? (
       <div>
         <div className="flex items-baseline justify-between gap-3">
@@ -258,8 +318,8 @@ export default function PricingCalculator({
         </div>
         <p className="mt-1 text-xs leading-5 text-slate-500">
           We price every operation individually and don&apos;t publish
-          prices online. Send your selection and we&apos;ll reply with
-          your personalised price on WhatsApp.
+          prices online. Enter your WhatsApp number and we&apos;ll send
+          your personalised price straight to you.
         </p>
         {estimateError && (
           <p
@@ -267,30 +327,123 @@ export default function PricingCalculator({
             className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900"
           >
             Your selection couldn&apos;t be re-checked just now. It is
-            kept — try again in a moment, or send it anyway and
-            we&apos;ll sort it out with you.
+            kept — try again in a moment.
           </p>
         )}
-        <div className="mt-3 flex flex-col gap-2">
-          {canShareEstimateOnWhatsApp(estimate) && (
-            <a
-              href={buildWhatsAppEstimateUrl(estimate)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+
+        {sendPhase === "done" && sendOutcome ? (
+          <div
+            role="status"
+            className="mt-3 rounded-md border border-brand-mint/70 bg-brand-mint-soft/60 px-3 py-3 text-sm leading-6 text-slate-800"
+          >
+            {sendOutcome.delivery === "sent" ? (
+              <p>
+                <span className="font-semibold text-brand-navy">
+                  Your pricing is on its way to WhatsApp.
+                </span>{" "}
+                Check {whatsappNumber.trim()} in a moment. Reference:{" "}
+                <span className="font-mono-data font-semibold">
+                  {sendOutcome.reference}
+                </span>
+                .
+              </p>
+            ) : (
+              <p>
+                <span className="font-semibold text-brand-navy">
+                  We received your pricing request
+                </span>{" "}
+                (reference{" "}
+                <span className="font-mono-data font-semibold">
+                  {sendOutcome.reference}
+                </span>
+                ),{" "}
+                {sendOutcome.delivery === "failed"
+                  ? "but the WhatsApp message could not be sent yet."
+                  : "but WhatsApp delivery is not available right now."}{" "}
+                Our team has your selection and will send your pricing
+                to {whatsappNumber.trim()}.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setSendPhase("idle");
+                setSendOutcome(null);
+              }}
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+            >
+              Request pricing again
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={sendPriceToWhatsApp} className="mt-3">
+            {/* Honeypot — hidden from people, filled in by simple bots. */}
+            <div
+              aria-hidden="true"
+              className="absolute left-[-9999px] h-0 w-0 overflow-hidden"
+            >
+              <label htmlFor={`calc-website-${idSuffix}`}>Website</label>
+              <input
+                id={`calc-website-${idSuffix}`}
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+            <label
+              htmlFor={`whatsapp-number-${idSuffix}`}
+              className="block text-sm font-medium text-brand-navy"
+            >
+              WhatsApp mobile number
+            </label>
+            <input
+              id={`whatsapp-number-${idSuffix}`}
+              name="whatsappNumber"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+353 85 123 4567"
+              value={whatsappNumber}
+              onChange={(event) => {
+                setWhatsappNumber(event.target.value);
+                setSendError("");
+              }}
+              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+            />
+            {/* Transactional intent, not marketing consent. */}
+            <p className="mt-1.5 text-xs leading-5 text-slate-500">
+              Send my requested Dockentra pricing to this WhatsApp
+              number. Used only to send and respond to your requested
+              pricing — see our{" "}
+              <a
+                href="/privacy"
+                className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
+              >
+                Privacy Policy
+              </a>
+              .
+            </p>
+            {sendError && (
+              <p
+                role="alert"
+                className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700"
+              >
+                {sendError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={sendPhase === "sending"}
+              className="mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
-              Get My Price on WhatsApp
-            </a>
-          )}
-          <button
-            type="button"
-            onClick={requestQuote}
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-brand-border bg-white px-5 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-          >
-            Request This Quote
-          </button>
-        </div>
+              {sendPhase === "sending"
+                ? "Sending…"
+                : "Send My Price to WhatsApp"}
+            </button>
+          </form>
+        )}
       </div>
     ) : null;
 
@@ -349,14 +502,14 @@ export default function PricingCalculator({
           estimate. Sticky (not fixed) so the panel stays inside the
           page or the CalculatorModal's own scroll container and never
           covers the modal header/close button. */}
-      {actionsPanel && (
+      {estimate && hasEstimateLines && (
         <div
           className={`sticky z-30 mb-6 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden ${
             variant === "modal" ? "top-2" : "top-[4.5rem]"
           }`}
         >
           <h2 className="sr-only">Your price request</h2>
-          {actionsPanel}
+          {renderActionsPanel("mobile")}
         </div>
       )}
 
@@ -385,6 +538,7 @@ export default function PricingCalculator({
                 step={1}
                 value={monthlyOrders}
                 onChange={(event) => {
+                  clearSendResult();
                   const parsed = Number(event.target.value);
                   setMonthlyOrders(
                     Number.isInteger(parsed) && parsed >= MIN_MONTHLY_ORDERS
@@ -513,7 +667,9 @@ export default function PricingCalculator({
             <h2 className="text-lg font-semibold text-brand-navy">
               Your price request
             </h2>
-            {actionsPanel && <div className="mt-3">{actionsPanel}</div>}
+            {estimate && hasEstimateLines && (
+              <div className="mt-3">{renderActionsPanel("desktop")}</div>
+            )}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4">
             {linesList}

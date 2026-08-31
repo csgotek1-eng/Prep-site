@@ -92,10 +92,10 @@ describe("one pricing engine behind both calculator entry points", () => {
     assert.ok(read("src/app/pricing-calculator/page.tsx").includes("PricingCalculator"));
   });
 
-  it("the WhatsApp share lives in the shared calculator, so the modal inherits it", () => {
+  it("the WhatsApp pricing flow lives in the shared calculator, so the modal inherits it", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
-    assert.ok(calculator.includes("canShareEstimateOnWhatsApp(estimate)"));
-    assert.ok(calculator.includes("buildWhatsAppEstimateUrl"));
+    assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
+    assert.ok(calculator.includes("Send My Price to WhatsApp"));
     // No pricing maths anywhere in the modal wrapper.
     const modal = read("src/components/CalculatorModal.tsx");
     for (const banned of ["calculateEstimate", "formatEuro", "price"]) {

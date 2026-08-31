@@ -18,7 +18,9 @@ describe("contact configuration", () => {
       "src/app/contact/page.tsx",
       "src/components/sections/ContactSection.tsx",
     ]) {
-      assert.equal(read(path).includes("t.me"), false, `${path} must not link t.me`);
+      // A Telegram LINK is t.me/<something> — matching the bare
+      // substring would false-positive on e.g. "draft.message".
+      assert.equal(read(path).includes("t.me/"), false, `${path} must not link t.me`);
     }
   });
 
@@ -197,7 +199,12 @@ describe("primary CTA label", () => {
   it("does not touch the separate quote-request wording or internals", () => {
     // These mean something different and were deliberately left alone.
     assert.ok(read("src/components/QuoteForm.tsx").includes("Request a Quote"));
-    assert.ok(read("src/components/PricingCalculator.tsx").includes("Request This Quote"));
+    // The calculator now has ONE pricing action (owner requirement):
+    // "Request This Quote" was removed from the pricing flow.
+    assert.equal(
+      read("src/components/PricingCalculator.tsx").includes("Request This Quote"),
+      false,
+    );
     assert.ok(read("src/components/PricingCalculator.tsx").includes("Individual quote"));
     assert.ok(read("src/lib/pricing/types.ts").includes("CUSTOM_QUOTE"));
     assert.ok(existsSync("src/app/api/quote/route.ts"));

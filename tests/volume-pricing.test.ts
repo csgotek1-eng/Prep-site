@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { calculateEstimate } from "../src/lib/pricing/calculate.ts";
 import { SEED_SERVICES, SEED_VOLUME_TIERS } from "../src/lib/pricing/seed.ts";
 import { findTierForVolume, tiersForService } from "../src/lib/pricing/tiers.ts";
-import { buildWhatsAppEstimateMessage } from "../src/lib/whatsapp-message.ts";
+import { buildPricingWhatsAppText } from "../src/lib/whatsapp/message.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
@@ -61,10 +61,11 @@ describe("approved Pick & Pack volume bands", () => {
         [{ serviceId: PICK_PACK, quantity: 12000 }],
         { monthlyOrders: orders, volumeTiers: SEED_VOLUME_TIERS },
       );
-      // Never €0.00 and never the 5,000-band rate carried upward.
+      // Never €0.00 and never the 5,000-band rate carried upward —
+      // including in the outbound WhatsApp pricing message.
       assert.equal(estimate.subtotal, 0);
       assert.equal(estimate.hasCustomQuoteItems, true);
-      const message = buildWhatsAppEstimateMessage(estimate);
+      const message = buildPricingWhatsAppText(estimate, "DCK-TEST22");
       assert.equal(message.includes("€"), false);
     });
   }
@@ -304,16 +305,16 @@ describe("one engine, server-authoritative", () => {
     assert.ok(route.includes("calculatorMonthlyOrders"));
   });
 
-  it("the WhatsApp message states the volume but NEVER a price", () => {
+  it("the OUTBOUND server message states the volume and the tier-correct price", () => {
     const estimate = calculateEstimate(
       SEED_SERVICES,
       [{ serviceId: PICK_PACK, quantity: 100 }],
       { monthlyOrders: 2000, volumeTiers: SEED_VOLUME_TIERS },
     );
-    const message = buildWhatsAppEstimateMessage(estimate);
+    // Server-side ONLY: this text goes to the customer's own WhatsApp
+    // through the provider — never through a public API response.
+    const message = buildPricingWhatsAppText(estimate, "DCK-TEST22");
     assert.ok(message.includes("Monthly orders: 2000"));
-    // Pricing is private: the team replies with the number (the server
-    // still calculated €205.00 internally for them).
-    assert.equal(message.includes("€"), false);
+    assert.ok(message.includes("Estimated total: €205.00")); // 100 × €2.05
   });
 });
