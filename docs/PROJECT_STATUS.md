@@ -1,5 +1,58 @@
 # PROJECT STATUS
 
+## OWNER REQUIREMENTS ROUND — OUTBOUND WHATSAPP PRICING + HELP SYSTEM (2026-08-31, branch claude/final-calculator-brand-ux)
+
+The owner's actual WhatsApp flow, replacing the interim wa.me handoff:
+
+- **Outbound delivery to the CUSTOMER** — the visitor enters THEIR OWN
+  WhatsApp number in the calculator and presses the ONE pricing CTA
+  ("Send My Price to WhatsApp"; "Request This Quote" removed from the
+  pricing flow). `POST /api/pricing/whatsapp` normalizes the number to
+  E.164 (any country; country code required, never guessed),
+  recalculates the INTERNAL estimate, SAVES the request durably
+  (type `whatsapp-pricing`, reference DCK-XXXXXX) and only then asks
+  the official provider to send the pricing FROM Dockentra TO the
+  customer. `sent` is reported ONLY on provider acceptance; disabled/
+  unconfigured/failed delivery is reported truthfully while the saved
+  request reaches the admin inbox. An unsaved request is an error and
+  the provider is never called. The public response carries no
+  estimate and no monetary value.
+- **Official provider architecture** — src/lib/whatsapp/: provider
+  interface + Meta WhatsApp Cloud API implementation (template-based,
+  as Meta requires for business-initiated conversations; 3-parameter
+  body documented in WHATSAPP_PRICING_DELIVERY.md), env-gated by
+  WHATSAPP_DELIVERY_MODE (disabled by default, fail-closed when
+  incomplete). No WhatsApp Web automation / QR bots / unofficial
+  libraries. Message rules: custom-only never €0.00; mixed sends the
+  priced portion and names custom services separately.
+- **Delivery status webhook** — /api/webhooks/whatsapp: Meta
+  verification handshake + X-Hub-Signature-256 HMAC verified against
+  the raw body (fail closed without the secret); idempotent
+  ACCEPTED→SENT→DELIVERED/FAILED transitions keyed by provider message
+  id; bare acknowledgements only.
+- **Migration 0005 PREPARED (NOT applied)** — additive whatsapp_*
+  columns on website_leads + webhook-lookup and unique-reference
+  indexes; RLS stays deny-all. **Migration 0004 IS APPLIED** in
+  production. /admin/leads shows number (typed + E.164), reference,
+  provider, message id, delivery status, timestamps and the internal
+  priced estimate.
+- **Help system per owner spec** — minimise now SNAPS the launcher to
+  the nearest screen edge as a compact recovery tab ("Open Dockentra
+  Help", ≥44px, attached look, draggable, re-docks on release,
+  edge+position+collapsed persisted); the panel is a structured
+  18-command menu (Get Pricing → the one pricing flow; 12 service
+  topics with platform preselection; partnership/support/general;
+  explicit "Other / Write My Own Question" with a large free-text
+  area). Typed drafts survive Back/topic switches/minimise/close via
+  a session draft and are cleared on successful send. Enquiries store
+  the picked topic.
+- Privacy page updated factually (WhatsApp number used to send and
+  respond to the requested pricing; help-draft session storage; no
+  retention invented, no marketing consent). 347 unit tests; full live
+  Playwright QA incl. E.164 matrix, truthful-outcome flow, double
+  submit, webhook signature checks, edge docking and draft
+  persistence.
+
 ## PRIVATE WHATSAPP PRICING + FLOATING HELP (2026-08-30, branch claude/final-calculator-brand-ux)
 
 Architecture change on owner instruction: **prices are no longer shown

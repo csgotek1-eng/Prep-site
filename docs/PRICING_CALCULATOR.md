@@ -59,19 +59,19 @@ price or total):
   monthly volume). The response contains **no monetary field at all** —
   no line totals, no subtotal (see `toPublicEstimate` and
   `tests/private-pricing.test.ts`).
-- "Get My Price on WhatsApp" (primary CTA) opens the business WhatsApp
-  chat pre-filled with the selection — services, quantities, monthly
-  volume, never a price; the team replies with the personalised price
-  in that private conversation.
-- "Request This Quote" stores the selections in `sessionStorage` and
-  opens `/contact`; the quote form attaches them as
-  `calculatorSelections` (displayed without prices). `/api/quote`
-  **recalculates the INTERNAL estimate server-side** from authoritative
-  prices and stores it on the lead — so the team and the admin inbox
-  see the priced version while the browser never does. The final
-  monetary total is never accepted from the browser. When present, the
-  webhook/log delivery payload gains an `estimate` field
-  (lines + subtotal in cents).
+- ONE pricing action — "Send My Price to WhatsApp": the customer
+  enters THEIR OWN WhatsApp number; `POST /api/pricing/whatsapp`
+  normalizes it to E.164, recalculates the INTERNAL estimate
+  server-side, durably stores the request (type `whatsapp-pricing`,
+  reference DCK-XXXXXX) and sends the pricing FROM Dockentra TO the
+  customer through the official provider. The response reports the
+  outcome truthfully (`sent` only on provider acceptance) and carries
+  no monetary value. See docs/WHATSAPP_PRICING_DELIVERY.md.
+- The general quote form (`/contact`) remains for written enquiries;
+  `/api/quote` still recalculates any attached selections
+  server-side and stores the INTERNAL estimate on the lead — the team
+  and the admin inbox see the priced version, the browser never does.
+  The final monetary total is never accepted from the browser.
 
 ## Initial data
 

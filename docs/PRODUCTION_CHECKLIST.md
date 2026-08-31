@@ -18,14 +18,15 @@ Changes on top of the state described below — see
 - Durable leads: every valid quote/enquiry is saved to `website_leads`
   BEFORE notification (save first, notify second); `/admin/leads` inbox
   added with a NEW→CONTACTED→QUALIFIED→WON/LOST workflow.
-- **New REQUIRED step:** apply migration
-  `supabase/migrations/0004_website_leads_and_rate_limits.sql` to the
-  website Supabase project (additive; apply ONCE) and configure
-  Supabase persistence BEFORE deploying this branch. The durability
-  invariant (`ok` requires `saved`) means a production deployment
-  without a working lead store correctly refuses submissions instead of
-  silently relying on logs — so the store is now a hard launch
-  prerequisite, not an optional upgrade.
+- Migration `0004_website_leads_and_rate_limits.sql` is **APPLIED** to
+  the website Supabase project. Still required before deploying:
+  configure Supabase persistence env vars, and (for WhatsApp pricing
+  delivery) apply migration
+  `supabase/migrations/0005_whatsapp_pricing_delivery.sql`
+  (PREPARED, NOT applied — ChatGPT reviews and applies). The
+  durability invariant (`ok` requires `saved`) means a production
+  deployment without a working lead store correctly refuses
+  submissions instead of silently relying on logs.
 - Durable shared rate limiting (hashed keys, Supabase-backed) on
   `/api/quote` and `/api/enquiry`.
 - Webhook mode now REQUIRES `QUOTE_WEBHOOK_SECRET` and an HTTPS
@@ -144,8 +145,9 @@ Core:
 Contact and support:
 
 - [ ] Utility bar: phone and WhatsApp links open the right app
-- [ ] Floating Help panel opens; all three modes appear (fulfilment,
-      partnership, general); ESC closes it
+- [ ] Floating Help panel opens; the full command menu renders
+      (Pricing / Services / Partnership & support, 18 commands,
+      including "Other / Write My Own Question"); ESC closes it
 - [ ] An enquiry submits and returns the success state — and the message
       actually arrives wherever `QUOTE_DELIVERY_MODE` points (server log
       in `log` mode)
@@ -161,17 +163,25 @@ Calculator:
 - [ ] With no prices configured: the safe unavailable state
 - [ ] PRICING IS PRIVATE: no euro amount appears anywhere in the
       calculator, the quote form, any public page or any
-      `/api/pricing/*` response body (check the network tab too) — the
-      panel shows "N services ready to price" and the private-pricing
-      note instead
-- [ ] "Get My Price on WhatsApp" opens the business WhatsApp chat with
-      the selection (services, quantities, monthly volume) and NO
-      monetary value in the pre-filled text
-- [ ] The lead stored by "Request This Quote" still carries the
-      internally calculated priced estimate (admin inbox shows it)
+      `/api/pricing/*` response body (check the network tab too)
+- [ ] ONE pricing action only: WhatsApp number field + "Send My Price
+      to WhatsApp" (no second pricing CTA); invalid/countryless
+      numbers are refused with guidance
+- [ ] With WhatsApp delivery disabled/unconfigured: the request is
+      SAVED and the visitor sees the truthful "delivery is not
+      available right now" message with a DCK reference — never a fake
+      "sent"
+- [ ] With Meta configured (token, phone number id, APPROVED template,
+      webhook + app secret): a live request reports "sent", the admin
+      row shows provider=meta + message id, and the webhook advances
+      the status to SENT/DELIVERED
+- [ ] The stored request carries the internally calculated priced
+      estimate (admin inbox shows it); migration 0005 applied first
 - [ ] Help launcher: drags anywhere but never off screen, a drag does
-      not open the panel, minimise/expand works, and position +
-      collapsed state survive a reload
+      not open the panel; minimise SNAPS the tab to the nearest edge;
+      the tab reopens Help; edge/position/collapsed survive a reload;
+      the menu shows all 18 commands and Get Pricing opens the
+      calculator
 
 FAQ / SLA / Privacy:
 

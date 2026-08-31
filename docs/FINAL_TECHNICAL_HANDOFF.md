@@ -53,10 +53,11 @@ npm audit 0 vulnerabilities.
 
 ## 2. PRODUCTION ACTIVATION CHECKS (operations, in order)
 
-1. Apply `supabase/migrations/0004_website_leads_and_rate_limits.sql`
-   to the WEBSITE Supabase project (once). REQUIRED before deploying
-   this branch — the durability invariant refuses submissions without a
-   working lead store.
+1. Migration `0004_website_leads_and_rate_limits.sql` is **APPLIED**
+   to the production WEBSITE Supabase (done). Next:
+   `supabase/migrations/0005_whatsapp_pricing_delivery.sql` is
+   PREPARED and NOT applied — ChatGPT reviews and applies it (see
+   docs/WHATSAPP_PRICING_DELIVERY.md).
 2. Verify Vercel production env:
    `PRICING_PERSISTENCE=supabase`, `ADMIN_AUTH_PROVIDER=supabase`,
    `SUPABASE_PUBLIC_URL`, `SUPABASE_PUBLISHABLE_KEY`,
