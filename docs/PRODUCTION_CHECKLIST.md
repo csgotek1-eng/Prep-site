@@ -20,7 +20,9 @@ Changes on top of the state described below — see
   added with a NEW→CONTACTED→QUALIFIED→WON/LOST workflow.
 - Migrations `0004_website_leads_and_rate_limits.sql` and
   `0005_whatsapp_pricing_delivery.sql` are both **APPLIED** to the
-  website Supabase project. Still required before deploying:
+  website Supabase project. `0006_pricing_email_delivery.sql` is
+  **PREPARED, NOT APPLIED** — the email delivery channel stays
+  `disabled` until it is reviewed and applied. Still required before deploying:
   configure the Supabase persistence env vars. The durability
   invariant (`ok` requires `saved`) means a production deployment
   without a working lead store correctly refuses submissions instead
@@ -162,24 +164,40 @@ Calculator:
 - [ ] PRICING IS PRIVATE: no euro amount appears anywhere in the
       calculator, the quote form, any public page or any
       `/api/pricing/*` response body (check the network tab too)
-- [ ] ONE pricing action only: WhatsApp number field + "Send My Price
-      to WhatsApp" (no second pricing CTA); invalid/countryless
-      numbers are refused with guidance
-- [ ] With WhatsApp delivery disabled/unconfigured: the request is
-      SAVED and the visitor sees the truthful "delivery is not
-      available right now" message with a DCK reference — never a fake
-      "sent"
+- [ ] The calculator asks in order: STEP 1 monthly orders, STEP 2
+      services, STEP 3 how to receive the price
+- [ ] ONE pricing action only: a WhatsApp/Email choice, ONE
+      destination field at a time, and one button ("Send my price to
+      WhatsApp" / "Send my price by email") — no second pricing CTA.
+      Invalid/countryless numbers and invalid addresses are refused
+      with guidance
+- [ ] With delivery disabled/unconfigured (either channel): the
+      request is SAVED and the visitor sees the truthful "delivery is
+      not available right now" message with a DCK reference — never a
+      fake "sent"
+- [ ] With Resend configured (verified domain sender): an email
+      request reports "sent", the admin row shows channel=email +
+      provider=resend + message id
 - [ ] With Meta configured (token, phone number id, APPROVED template,
       webhook + app secret): a live request reports "sent", the admin
       row shows provider=meta + message id, and the webhook advances
       the status to SENT/DELIVERED
 - [ ] The stored request carries the internally calculated priced
       estimate (admin inbox shows it)
+- [ ] Header shows six nav items (Home, Services, How It Works,
+      Pricing, About, Contact) — no Calculator item and no pricing
+      button, at every width
+- [ ] Floating actions: Get Price + Help side by side, neither
+      covering page content; Get Price opens the SAME calculator
 - [ ] Help launcher: drags anywhere but never off screen, a drag does
-      not open the panel; minimise SNAPS the tab to the nearest edge;
-      the tab reopens Help; edge/position/collapsed survive a reload;
-      the menu shows all 18 commands and Get Pricing opens the
-      calculator
+      not open the panel; minimise docks a LABELLED "Help" edge tab
+      (not a circle or a dash) to the nearest edge; the tab reopens
+      Help; edge/position/collapsed survive a reload; the menu shows
+      all 18 commands and Get Pricing opens the calculator
+- [ ] Phone: no phone number and no Call action anywhere except the
+      footer and the bottom of /contact, where it is small plain text
+- [ ] Email leads every contact surface (utility bar, homepage contact
+      block, Help panel, footer, /contact)
 
 FAQ / SLA / Privacy:
 

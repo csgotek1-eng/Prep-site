@@ -1,5 +1,68 @@
 # PROJECT STATUS
 
+## CONTACT + PRICING UX CLEANUP (2026-08-31, branch claude/contact-pricing-ux-cleanup)
+
+The owner asked for a quieter site: fewer repeated conversion buttons,
+email instead of phone as the primary way to reach a human, and a
+second private delivery channel for pricing.
+
+**Fewer, clearer calls to action.** The header is navigation only —
+six items (Home, Services, How It Works, Pricing, About, Contact), no
+Calculator item and no green pricing button. The pricing ask now lives
+in three places instead of nine: the homepage hero (Get Price +
+Calculator), the Pricing page's single conversion section, and one
+compact global floating action. Every other page closes with the
+contextual ask its own copy was already making ("Send an enquiry").
+Vocabulary is fixed: Get Price, Calculator, Send my price to WhatsApp,
+Send my price by email, Send an enquiry.
+
+**Email is the primary contact; phone is a detail.** All contact
+values moved into ONE module, `src/lib/site-contact.ts`; no component
+holds a literal number or address any more. The phone number is
+rendered in exactly two places — the footer and the bottom of
+/contact — as small plain text, never a button. The phone contact card
+and its `PhoneAction` wrapper were removed; the owner-approved team
+data and photo stay in `src/lib/team.ts` for a future non-phone
+surface.
+
+**The owner's email address has NOT been supplied**, and none was
+invented. `siteContact.email` is `null` and every "Email us" action
+falls back to the enquiry form, which reaches the same team
+server-side. Supplying it is a one-line change in that module (or
+`NEXT_PUBLIC_OWNER_CONTACT_EMAIL`).
+
+**Floating actions.** Get Price sits beside Help and opens the ONE
+canonical calculator dialog — the same component the homepage and
+/pricing-calculator render. Minimising now docks a LABELLED "Help"
+edge tab rather than a circle with a dash in it, and the minimise
+control itself reads "Hide". Dragging, viewport clamping, edge
+docking and persistence are unchanged.
+
+**Calculator, in the owner's order.** STEP 1 how many orders per
+month (now always asked, not hidden behind the catalogue), STEP 2 the
+services, STEP 3 how to receive the price — a real radio group with
+exactly one destination field on screen at a time.
+
+**Private pricing by email or WhatsApp.** Adding a channel did not
+duplicate the flow: `src/lib/pricing-delivery/` now owns validate →
+calculate once → save once → deliver → record, plus the `ok === saved`
+invariant, the bounded result-write retry and the safe correlation
+log. Each channel supplies only a provider call and the single place
+its verdict becomes "sent". Both API routes are thin adapters over one
+handler sharing one rate-limit budget. Email delivery goes through a
+`PricingEmailProvider` interface with a Resend implementation,
+`disabled` by default; a free-mail `PRICING_EMAIL_FROM` is refused
+outright (the owner's mailbox belongs in `PRICING_EMAIL_REPLY_TO`).
+See [PRICING_EMAIL_DELIVERY.md](PRICING_EMAIL_DELIVERY.md).
+
+**Database.** Migration `0006_pricing_email_delivery.sql` is additive
+and **PREPARED, NOT APPLIED**. Migrations 0001–0005 are untouched.
+Admin remains ONE inbox: both channels render through the same
+delivery block.
+
+**Quality.** 422/422 tests, lint clean, typecheck clean, build clean
+(31 routes), `npm audit` 0 vulnerabilities.
+
 ## OWNER REQUIREMENTS ROUND — OUTBOUND WHATSAPP PRICING + HELP SYSTEM (2026-08-31, branch claude/final-calculator-brand-ux)
 
 The owner's actual WhatsApp flow, replacing the interim wa.me handoff:

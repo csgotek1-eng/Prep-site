@@ -1,24 +1,41 @@
-# WhatsApp Pricing Delivery
+# Private Pricing Delivery (WhatsApp or Email)
 
-The owner flow: a visitor builds their selection in the calculator,
-enters **their own** WhatsApp number and presses ONE button — **Send My
-Price to WhatsApp**. The server validates the number, calculates the
-authoritative private price, durably stores the request, and sends the
-result **from Dockentra to the customer** through the official Meta
-WhatsApp Cloud API. The customer never composes a WhatsApp message and
-the browser never receives a price.
+> Renamed in scope: the visitor now CHOOSES the channel. Everything
+> below about WhatsApp still holds; the email channel is the exact
+> mirror of it and is documented in
+> [PRICING_EMAIL_DELIVERY.md](PRICING_EMAIL_DELIVERY.md).
+
+The owner flow: a visitor answers the calculator in three steps —
+**1** how many orders per month, **2** which services, **3** how they
+want their private price delivered — then enters **their own**
+destination and presses ONE button (**Send my price to WhatsApp** or
+**Send my price by email**). The server validates the destination,
+calculates the authoritative private price, durably stores the
+request, and sends the result **from Dockentra to the customer**
+through that channel's official provider. The customer never composes
+a message and the browser never receives a price.
+
+Both channels run through ONE pipeline
+(`src/lib/pricing-delivery/request.ts`): validate → calculate once →
+save once → deliver → record. `pricing_delivery_channel` on the stored
+row says which provider delivered it. Nothing about pricing,
+durability or the truthfulness rules is written twice.
 
 ## Flow (save first, send second)
 
 ```
-Visitor: services → quantities → monthly volume → own WhatsApp number → [Send My Price to WhatsApp]
+Visitor: monthly volume → services + quantities → channel (WhatsApp | Email)
+         → own number/address → [Send my price ...]
    │
-   ▼  POST /api/pricing/whatsapp   (rate-limited 3/min, honeypot, 20KB cap)
+   ▼  POST /api/pricing/whatsapp  or  POST /api/pricing/email
+      (ONE shared handler; rate-limited 3/min ACROSS both channels,
+       honeypot, 20KB cap)
 Server:
    1. normalize number to E.164 (authoritative; "00" → "+", 8–15 digits,
       country code REQUIRED — never guessed)
    2. calculateEstimate() from the server catalogue (internal, priced)
    3. SAVE the request as a website_leads row, type 'whatsapp-pricing'
+      (or 'email-pricing')
       (selections + internal estimate + number + reference DCK-XXXXXX)
       — NOT saved ⇒ 500, and the provider is NEVER called
    4. provider.sendPricingResult() → ACCEPTED / FAILED / SKIPPED

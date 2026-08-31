@@ -63,10 +63,11 @@ export default function PrivacyPage() {
                 name and a valid email address.
               </p>
               <p className="mt-3">
-                When you ask the pricing calculator to send your pricing
-                to WhatsApp, you provide your WhatsApp mobile number
-                together with your selected services, quantities and
-                monthly order volume.
+                When you ask the pricing calculator to send you your
+                pricing, you provide either your WhatsApp mobile number
+                or your email address — whichever delivery method you
+                choose — together with your selected services,
+                quantities and monthly order volume.
               </p>
               <p className="mt-3">
                 While you type into the Help panel, your draft is kept
@@ -100,21 +101,24 @@ export default function PrivacyPage() {
 
             <div>
               <h2 className="text-xl font-bold tracking-tight text-brand-navy">
-                Getting your pricing on WhatsApp
+                Receiving your pricing
               </h2>
               <p className="mt-3">
-                When you request pricing via the calculator&apos;s
-                &quot;Send My Price to WhatsApp&quot; action, your
-                WhatsApp mobile number and your request details (selected
-                services, quantities, monthly order volume and the
-                calculated pricing) are used to send and respond to your
-                requested pricing. The request is stored in
-                Dockentra&apos;s own systems together with the delivery
-                status of that one message, so the team can follow up if
-                the message cannot be delivered. The message is sent
-                through an official WhatsApp Business provider. Your
-                number is used only for this — it is not added to any
-                marketing list.
+                When you request pricing in the calculator you choose how
+                to receive it: &quot;Send my price to WhatsApp&quot; or
+                &quot;Send my price by email&quot;. The destination you
+                give — your WhatsApp mobile number or your email address
+                — and your request details (selected services,
+                quantities, monthly order volume and the calculated
+                pricing) are used to send and respond to your requested
+                pricing. The request is stored in Dockentra&apos;s own
+                systems together with the delivery status of that one
+                message, so the team can follow up if it cannot be
+                delivered. WhatsApp messages are sent through an official
+                WhatsApp Business provider; emails are sent through a
+                transactional email provider. Your number or address is
+                used only for this — neither is added to any marketing
+                list.
               </p>
             </div>
 

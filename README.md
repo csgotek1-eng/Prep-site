@@ -11,7 +11,8 @@ A public marketing website built mobile-first:
 - Homepage with hero, services preview, small-business section, "Why Dockentra" and CTAs
 - Services page (core services + fulfilment by sales channel)
 - How It Works (3-step process)
-- Pricing (quote-based) + a public Pricing Calculator with server-side estimates
+- Pricing (quote-based) + a public Pricing Calculator with server-side estimates,
+  delivered privately to the customer by WhatsApp or email
 - About, FAQ, Service Standards (/sla) and Privacy pages
 - Contact / Get Pricing form and a site-wide Help panel — every valid submission is stored durably as a lead and reviewable at /admin/leads
 
