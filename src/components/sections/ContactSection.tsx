@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Phone } from "lucide-react";
+import { Mail } from "lucide-react";
 import Container from "@/components/Container";
-import PhoneAction from "@/components/PhoneAction";
 import WarehouseLocation from "@/components/WarehouseLocation";
 import {
   FacebookIcon,
@@ -9,6 +8,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
+import { contactEmailHref } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -46,19 +46,21 @@ export default function ContactSection() {
               Talk to us
             </h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
-              Call, message on WhatsApp, or send your details and we&apos;ll
-              come back with a fulfilment setup that fits.
+              Email us or message on WhatsApp and we&apos;ll come back with
+              a fulfilment setup that fits.
             </p>
 
+            {/* Email first, WhatsApp second. No phone CTA here — the
+                number lives in the footer and at the bottom of the
+                Contact page, and nowhere else. */}
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              {/* Same phone action as the Contact page: one shared
-                  component, so the contact card behaves identically
-                  wherever "Call Dockentra" is offered. */}
-              <PhoneAction
-                label="Call Dockentra"
+              <a
+                href={contactEmailHref}
                 className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep hover:shadow-md"
-                icon={<Phone aria-hidden="true" className="h-5 w-5" />}
-              />
+              >
+                <Mail aria-hidden="true" className="h-5 w-5" />
+                Email us
+              </a>
               <a
                 href={siteConfig.social.whatsapp}
                 target="_blank"
@@ -69,16 +71,6 @@ export default function ContactSection() {
                 WhatsApp Us
               </a>
             </div>
-
-            <p className="mt-3 text-sm text-slate-600">
-              Phone &amp; WhatsApp:{" "}
-              <a
-                href={siteConfig.contact.phoneHref}
-                className="font-medium text-brand-navy underline-offset-2 hover:underline"
-              >
-                {siteConfig.contact.phone}
-              </a>
-            </p>
 
             <ul
               className="mt-6 flex flex-wrap gap-x-6 gap-y-1"

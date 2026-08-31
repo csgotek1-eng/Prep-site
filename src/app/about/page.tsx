@@ -69,7 +69,7 @@ export default function AboutPage() {
                 href="/contact"
                 className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
-                Get Pricing
+                Send an enquiry
               </Link>
             </div>
           </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircleQuestion, Minus, Phone } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ChevronDown, Mail, MessageCircleQuestion, Tag } from "lucide-react";
+import { CalculatorDialog } from "@/components/CalculatorModal";
 import { useBottomBarPresent } from "@/components/FloatingChrome";
 import Modal from "@/components/Modal";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -12,6 +12,7 @@ import {
   HELP_TOPICS,
   type HelpTopic,
 } from "@/lib/help-topics";
+import { contactEmailHref, siteContact } from "@/lib/site-contact";
 import { salesChannels, siteConfig } from "@/lib/site";
 
 type Status = "idle" | "sending" | "sent" | "error";
@@ -91,8 +92,11 @@ function loadHelpDraft(): HelpDraft {
 }
 
 export default function ContactLauncher() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  // GET PRICE opens the ONE canonical calculator dialog — the same
+  // component the homepage and /pricing-calculator render. There is no
+  // second calculator and no second pricing form anywhere.
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [topic, setTopic] = useState<HelpTopic | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
@@ -360,6 +364,12 @@ export default function ContactLauncher() {
     setOpen(true);
   }
 
+  /** Floating GET PRICE: opens the canonical calculator dialog. */
+  function openCalculatorFromLauncher() {
+    if (movedRef.current) return; // that tap was a drag
+    setCalculatorOpen(true);
+  }
+
   // Any link to #contact-enquiry opens the modal instead of jumping.
   useEffect(() => {
     const openFromHash = () => {
@@ -414,10 +424,10 @@ export default function ContactLauncher() {
 
   function selectTopic(next: HelpTopic) {
     if (next.action === "pricing") {
-      // GET PRICING routes into the ONE WhatsApp pricing flow — the
-      // calculator page. No second pricing engine.
+      // GET PRICING opens the ONE canonical calculator dialog in
+      // place — never a second pricing form inside Help.
       close();
-      router.push("/pricing-calculator");
+      setCalculatorOpen(true);
       return;
     }
     setTopic(next);
@@ -506,14 +516,17 @@ export default function ContactLauncher() {
         } ${placement ? "" : "bottom-4 sm:bottom-6"}`}
       >
         {collapsed ? (
-          // Compact recovery tab, visually ATTACHED to the screen edge
-          // (fully rounded only on its inner side). ≥44px touch target.
+          // LABELLED EDGE TAB, visually ATTACHED to the screen edge
+          // (rounded only on its inner side). Deliberately NOT a bare
+          // circle or a circle-with-a-dash: a floating dot says
+          // nothing, so the tab carries the word "Help". ≥44px touch
+          // target in both directions.
           <button
             type="button"
             onClick={openFromDockedTab}
             aria-label="Open Dockentra Help"
             title="Dockentra Help"
-            className={`inline-flex h-12 min-w-11 items-center justify-center bg-brand-green px-2.5 text-white shadow-lg transition-colors hover:bg-brand-green-dark ${
+            className={`inline-flex h-12 min-w-11 items-center justify-center gap-1.5 bg-brand-green px-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-brand-green-dark ${
               docked
                 ? edge === "left"
                   ? "rounded-r-full"
@@ -522,36 +535,56 @@ export default function ContactLauncher() {
             }`}
           >
             <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
+            Help
           </button>
         ) : (
           <>
+            {/* THE two global actions, in the owner's priority order:
+                Get Price first (it opens the ONE canonical calculator),
+                then Help. Compact pills — they must never cover page
+                content, so nothing here grows beyond a single row. */}
+            <button
+              type="button"
+              onClick={openCalculatorFromLauncher}
+              aria-label="Get your price with the Dockentra pricing calculator"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-brand-green/30 bg-white px-3.5 text-sm font-semibold text-brand-green-dark shadow-lg transition-colors hover:border-brand-green hover:bg-brand-mint-soft sm:px-4"
+            >
+              <Tag aria-hidden="true" className="h-5 w-5" />
+              Get Price
+            </button>
             <button
               type="button"
               onClick={openFromLauncher}
               aria-label="Open the Dockentra contact and help panel"
-              className="inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-green px-4 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-brand-green-dark sm:px-5 sm:text-base"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-green px-3.5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-brand-green-dark sm:px-4"
             >
               <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
-              <span className="hidden sm:inline">Need help?</span>
-              <span className="sm:hidden">Help</span>
+              Help
             </button>
+            {/* Minimise: a labelled control, not a mystery dot. */}
             <button
               type="button"
               onClick={minimiseLauncher}
               aria-label="Minimise the help button"
               title="Minimise"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-colors hover:border-brand-green hover:text-brand-navy"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-500 shadow-md transition-colors hover:border-brand-green hover:text-brand-navy"
             >
-              <Minus aria-hidden="true" className="h-4 w-4" />
+              <ChevronDown aria-hidden="true" className="h-4 w-4" />
+              Hide
             </button>
           </>
         )}
       </div>
 
+      <CalculatorDialog
+        open={calculatorOpen}
+        onClose={() => setCalculatorOpen(false)}
+      />
+
       <Modal
         open={open}
         onClose={close}
-        title={topic ? topic.label : "How can we help?"}
+        title={topic ? topic.label : "How can we help you?"}
         description={
           status === "sent"
             ? undefined
@@ -566,9 +599,8 @@ export default function ContactLauncher() {
               Thanks — your message has been sent
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-700">
-              We&apos;ve received your details and will come back to you.
-              If it&apos;s urgent, call or message us on{" "}
-              {siteConfig.contact.phone}.
+              We&apos;ve received your details and will come back to you by
+              email. If it&apos;s urgent, message us on WhatsApp.
             </p>
             <button
               type="button"
@@ -610,12 +642,15 @@ export default function ContactLauncher() {
               </div>
             ))}
             <div className="mt-5 flex flex-col gap-2 border-t border-brand-border pt-5 sm:flex-row">
+              {/* Email first — the primary contact method. No phone
+                  action here: the number lives in the footer and at the
+                  bottom of the Contact page only. */}
               <a
-                href={siteConfig.contact.phoneHref}
+                href={contactEmailHref}
                 className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md border border-brand-border px-4 text-sm font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
               >
-                <Phone aria-hidden="true" className="h-4 w-4" />
-                {siteConfig.contact.phone}
+                <Mail aria-hidden="true" className="h-4 w-4" />
+                {siteContact.email ?? "Email us"}
               </a>
               <a
                 href={siteConfig.social.whatsapp}

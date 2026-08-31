@@ -91,12 +91,12 @@ export default function FaqPage() {
             </div>
 
             <p className="text-sm text-slate-600">
-              Want to see a cost estimate first?{" "}
+              Want your own price first?{" "}
               <Link
                 href="/pricing-calculator"
                 className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
               >
-                Try the Pricing Calculator
+                Get your price
               </Link>
               .
             </p>

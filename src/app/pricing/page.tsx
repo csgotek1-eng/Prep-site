@@ -59,12 +59,11 @@ export default function PricingPage() {
               Flexible pricing based on your operation — you only pay for the
               services your business actually uses.
             </p>
-            <Link
-              href="/pricing-calculator"
-              className="mt-6 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
-            >
-              Pricing Calculator
-            </Link>
+            <p className="mt-4 text-base leading-7 text-slate-300">
+              We don&apos;t publish rates: every operation is priced
+              individually, and your price is sent privately to you — by
+              WhatsApp or email, whichever you choose.
+            </p>
           </div>
         </Container>
       </section>
@@ -100,22 +99,24 @@ export default function PricingPage() {
             ))}
           </dl>
 
+          {/* ONE conversion section on this page — the page explains
+              how pricing works, and this is the single way onward. */}
           <div className="mt-12 rounded-lg bg-brand-mint-soft p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-lg font-semibold text-brand-navy">
-                  Get a quote tailored to your business
+                  Get a price tailored to your business
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Tell us about your products, channels and order volumes and
-                  we&apos;ll come back with a clear proposal.
+                  Tell us your monthly volume and the services you need. We
+                  calculate your price and send it to you privately.
                 </p>
               </div>
               <Link
-                href="/contact"
+                href="/pricing-calculator"
                 className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
-                Get Pricing
+                Get Price
               </Link>
             </div>
           </div>

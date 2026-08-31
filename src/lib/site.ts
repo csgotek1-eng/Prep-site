@@ -1,3 +1,4 @@
+import { siteContact } from "./site-contact.ts";
 import { resolveSiteUrl } from "./site-url.ts";
 
 // Public site URL — set NEXT_PUBLIC_SITE_URL once the production domain
@@ -13,18 +14,21 @@ export const siteConfig = {
   description:
     "Dockentra is an Irish fulfilment and prep centre for e-commerce sellers — receiving, inspection, labelling, prep, storage, pick & pack and returns, handled locally in Ireland.",
   url: siteUrl,
-  // Single source of truth for the owner-approved public business
-  // contacts — components must read from here, never hardcode.
+  // Contact details live in ONE place — ./site-contact.ts. These are
+  // re-exports so existing `siteConfig.contact.*` call sites keep
+  // working; no literal number or address may be written here.
   contact: {
-    phone: "+353 85 158 4185",
-    phoneHref: "tel:+353851584185",
+    phone: siteContact.phone,
+    phoneHref: siteContact.phoneHref,
+    email: siteContact.email,
+    emailHref: siteContact.emailHref,
   },
   social: {
     instagram: "https://www.instagram.com/dockentra",
     facebook: "https://www.facebook.com/share/19GDx29wyu/",
     tiktok: "https://www.tiktok.com/@dockentra.ie",
     tiktokHandle: "@dockentra.ie",
-    whatsapp: "https://wa.me/353851584185",
+    whatsapp: siteContact.whatsapp,
     // The business is reachable on Telegram via the same phone number,
     // but no PUBLIC t.me username has been supplied by the owner yet.
     // Never invent one — keep null until the owner provides the URL.
@@ -69,7 +73,6 @@ export const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/pricing-calculator", label: "Calculator" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;

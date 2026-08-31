@@ -63,28 +63,20 @@ export default function PricingTeaser() {
                 Estimate your fulfilment costs in minutes
               </h3>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-700 sm:text-base sm:leading-7">
-                Build a non-binding estimate right here, then send it to us as
-                a quote request.
+                Tell us your monthly volume and the services you need — we
+                calculate your price and send it to you privately.
               </p>
             </div>
           </div>
-          <CalculatorModal label="Open Pricing Calculator" />
+          <CalculatorModal label="Calculator" />
         </div>
 
         <p className="mt-5 text-sm text-slate-600">
-          Prefer a full page?{" "}
-          <Link
-            href="/pricing-calculator"
-            className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
-          >
-            Open the calculator page
-          </Link>{" "}
-          or{" "}
           <Link
             href="/pricing"
             className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
           >
-            read how pricing works
+            Read how pricing works
           </Link>
           .
         </p>

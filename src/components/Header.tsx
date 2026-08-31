@@ -13,7 +13,6 @@ const HOME_ANCHORS: Record<string, string> = {
   "/services": "/#services",
   "/how-it-works": "/#how-it-works",
   "/pricing": "/#pricing",
-  "/pricing-calculator": "/#pricing-calculator",
   "/about": "/#about",
   "/contact": "/#contact",
 };
@@ -77,14 +76,10 @@ export default function Header() {
             </ul>
           </nav>
 
+          {/* No pricing CTA in the header: "Get Price" lives in the
+              homepage hero and in the global floating action, so it is
+              never repeated in the chrome of every page. */}
           <div className="flex items-center gap-2">
-            <Link
-              href="/contact"
-              className="hidden min-h-11 items-center rounded-md bg-brand-green px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark sm:inline-flex"
-            >
-              Get Pricing
-            </Link>
-
             {/* Mobile menu button */}
             <button
               type="button"
@@ -147,15 +142,6 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
-              <li className="pt-2">
-                <Link
-                  href="/contact"
-                  onClick={closeMenu}
-                  className="flex min-h-12 items-center justify-center rounded-md bg-brand-green px-4 text-base font-semibold text-white hover:bg-brand-green-dark"
-                >
-                  Get Pricing
-                </Link>
-              </li>
             </ul>
           </Container>
         </nav>

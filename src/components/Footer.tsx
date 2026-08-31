@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import BrandLockup from "@/components/BrandLockup";
 import Container from "@/components/Container";
-import PhoneAction from "@/components/PhoneAction";
 import {
   FacebookIcon,
   InstagramIcon,
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
+import { contactEmailHref, siteContact } from "@/lib/site-contact";
 import { navLinks, siteConfig } from "@/lib/site";
 
 const socialLinks = [
@@ -97,12 +97,19 @@ export default function Footer() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
               Contact
             </h2>
+            {/* ORDER IS THE PRIORITY: email first, then WhatsApp, then
+                the location. The phone number follows below in smaller,
+                dimmer type — this footer block is the ONE persistent
+                place on the site where it appears. */}
             <ul className="mt-4 space-y-1">
               <li>
-                <PhoneAction
-                  label={siteConfig.contact.phone}
+                <a
+                  href={contactEmailHref}
                   className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
-                />
+                >
+                  <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  {siteContact.email ?? "Email us"}
+                </a>
               </li>
               <li>
                 <a
@@ -130,6 +137,17 @@ export default function Footer() {
                 </li>
               )}
             </ul>
+            {/* Phone: kept for the people who need it, deliberately
+                quiet — small, dim, and never a button. */}
+            <p className="mt-3 text-xs text-slate-500">
+              <a
+                href={siteContact.phoneHref}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-300"
+              >
+                <Phone aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+                {siteContact.phone}
+              </a>
+            </p>
             <ul className="mt-3 flex gap-1" aria-label="Dockentra on social media">
               {socialLinks.map(({ label, href, Icon }) => (
                 <li key={label}>

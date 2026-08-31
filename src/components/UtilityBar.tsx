@@ -1,4 +1,4 @@
-import { MapPin, Phone } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import Container from "@/components/Container";
 import {
   FacebookIcon,
@@ -6,6 +6,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
+import { contactEmailHref, siteContact } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -16,9 +17,12 @@ const socials = [
 
 /**
  * Slim utility bar above the header. Deliberately quiet: 32px tall, one
- * text size, no background colour block. On small screens only phone,
- * WhatsApp and Instagram remain — lower-priority items are hidden rather
- * than wrapped onto a second line.
+ * text size, no background colour block.
+ *
+ * EMAIL FIRST, then WhatsApp. The phone number is deliberately absent —
+ * it lives in the footer and the bottom of /contact only, so the site
+ * is not built around phone calls. On small screens only email,
+ * WhatsApp and Instagram remain.
  */
 export default function UtilityBar() {
   return (
@@ -27,11 +31,13 @@ export default function UtilityBar() {
         <div className="flex h-8 items-center justify-between gap-3 text-[13px]">
           <div className="flex items-center gap-4">
             <a
-              href={siteConfig.contact.phoneHref}
+              href={contactEmailHref}
               className="inline-flex items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
             >
-              <Phone aria-hidden="true" className="h-3.5 w-3.5" />
-              {siteConfig.contact.phone}
+              <Mail aria-hidden="true" className="h-3.5 w-3.5" />
+              {/* The raw address is only shown once a real one is
+                  configured — never an invented placeholder. */}
+              {siteContact.email ?? "Email us"}
             </a>
             <a
               href={siteConfig.social.whatsapp}

@@ -80,12 +80,16 @@ export default function HomePage() {
               </p>
             </div>
 
+            {/* THE conversion area of the site, and the only place a
+                pricing CTA is repeated: both actions lead into the ONE
+                canonical calculator — Get Price opens its page, and
+                Calculator opens the same component in a dialog. */}
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/contact"
+                href="/pricing-calculator"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
               >
-                Get Pricing
+                Get Price
               </Link>
               <CalculatorModal variant="secondary" />
             </div>
@@ -125,14 +129,17 @@ export default function HomePage() {
                   we&apos;ll propose a setup that fits.
                 </p>
               </div>
+              {/* Deliberately NOT another pricing CTA — the hero above
+                  already carries Get Price + Calculator, and the
+                  floating Get Price action is on every page. This
+                  closing block asks for the conversation instead. */}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/contact"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
                 >
-                  Get Pricing
+                  Send an enquiry
                 </Link>
-                <CalculatorModal variant="onDark" />
               </div>
             </div>
           </div>

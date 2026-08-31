@@ -6,13 +6,36 @@ import Modal from "@/components/Modal";
 import PricingCalculator from "@/components/PricingCalculator";
 
 /**
- * Opens the EXISTING PricingCalculator component in a dialog so visitors
- * can build an estimate without leaving the homepage. There is no second
- * calculator implementation and no pricing logic here — /pricing-calculator
- * keeps working exactly as before, including its safe unavailable state.
+ * THE canonical pricing dialog. Every "Get Price" / "Calculator" entry
+ * point on the site — the homepage hero, the pricing teaser, the
+ * floating Get Price action and Help → Get Pricing — renders THIS, so
+ * there is exactly one calculator implementation and one pricing flow.
+ * /pricing-calculator renders the same `PricingCalculator` component as
+ * a full page.
  */
+export function CalculatorDialog({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Pricing Calculator"
+      description="Tell us your volume and services — we send your price to you privately."
+      size="wide"
+    >
+      {open && <PricingCalculator variant="modal" />}
+    </Modal>
+  );
+}
+
+/** A button that opens the canonical dialog. */
 export default function CalculatorModal({
-  label = "Pricing Calculator",
+  label = "Calculator",
   variant = "primary",
 }: {
   label?: string;
@@ -33,15 +56,7 @@ export default function CalculatorModal({
         <Calculator aria-hidden="true" className="h-5 w-5" />
         {label}
       </button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Pricing Calculator"
-        description="Build a non-binding estimate, then send it to us as a quote request."
-        size="wide"
-      >
-        {open && <PricingCalculator variant="modal" />}
-      </Modal>
+      <CalculatorDialog open={open} onClose={() => setOpen(false)} />
     </>
   );
 }
