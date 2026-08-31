@@ -168,7 +168,7 @@ describe("no tracking added in this round", () => {
   });
 });
 
-describe("primary CTA label", () => {
+describe("CTA vocabulary and repetition", () => {
   const ctaSurfaces = [
     "src/components/Header.tsx",
     "src/app/page.tsx",
@@ -180,9 +180,64 @@ describe("primary CTA label", () => {
     "src/app/contact/page.tsx",
   ];
 
-  it("uses the approved label on every public CTA surface", () => {
+  // The owner asked for a cleaner site: the pricing ask belongs in the
+  // homepage hero, the Pricing page's one conversion section and the
+  // global floating action — not on every page, and never twice on the
+  // same page.
+  const PRICING_CTA = /Get Price\b|\bCalculator\b/g;
+
+  /**
+   * These assertions are about what a visitor SEES, so the prose that
+   * explains the rule to the next developer must not trip it.
+   */
+  const withoutComments = (source: string) =>
+    source
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+
+  it("asks for a price only where it is meant to", () => {
+    const allowed = new Set([
+      "src/app/page.tsx",
+      "src/app/pricing/page.tsx",
+    ]);
     for (const path of ctaSurfaces) {
-      assert.ok(read(path).includes("Get Pricing"), `${path} must use the approved CTA label`);
+      if (allowed.has(path)) continue;
+      const hits = (withoutComments(read(path)).match(PRICING_CTA) ?? []).length;
+      assert.equal(hits, 0, `${path} must not repeat a pricing CTA`);
+    }
+  });
+
+  it("the homepage hero keeps exactly its two conversion actions", () => {
+    const home = withoutComments(read("src/app/page.tsx"));
+    // ONE Get Price link and ONE Calculator button on the whole page —
+    // the closing section now asks for an enquiry instead of repeating
+    // them.
+    assert.equal((home.match(/Get Price/g) ?? []).length, 1);
+    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
+    assert.equal((home.match(/href="\/pricing-calculator"/g) ?? []).length, 1);
+    assert.ok(home.includes("Send an enquiry"));
+  });
+
+  it("uses the approved vocabulary and none of the banned variations", () => {
+    const banned = [
+      "Get Your Pricing Now",
+      "Instant Quote",
+      "Request Your Cost",
+      "See Prices",
+      "Price Me",
+      "Get Estimate",
+      "Get Your Price",
+    ];
+    for (const path of [...ctaSurfaces, "src/components/PricingCalculator.tsx"]) {
+      const source = read(path);
+      for (const phrase of banned) {
+        assert.equal(
+          source.includes(phrase),
+          false,
+          `${path} uses the off-vocabulary label "${phrase}"`,
+        );
+      }
     }
   });
 
@@ -210,10 +265,11 @@ describe("primary CTA label", () => {
     assert.ok(existsSync("src/app/api/quote/route.ts"));
   });
 
-  it("keeps every CTA pointing where it already pointed", () => {
-    // A label change must not silently move a button.
-    const header = read("src/components/Header.tsx");
-    assert.ok(header.includes('href="/contact"'));
-    assert.equal(/Get Pricing[\s\S]{0,80}href="\/pricing"/.test(header), false);
+  it("the header carries navigation only — no pricing button", () => {
+    const header = withoutComments(read("src/components/Header.tsx"));
+    assert.equal(header.includes("Get Pricing"), false);
+    assert.equal(header.includes("Get Price"), false);
+    // The only Links in the header are the brand and the nav items.
+    assert.equal(header.includes('href="/contact"'), false);
   });
 });

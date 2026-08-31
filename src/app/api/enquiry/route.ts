@@ -102,6 +102,8 @@ export async function POST(request: Request) {
     calculatorSelections: null,
     calculatorEstimate: null,
     whatsapp: null,
+      pricingEmail: null,
+      pricingChannel: null,
   };
 
   const result = await processLead(lead, () => notifyEnquiryLead(enquiry));

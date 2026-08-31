@@ -1,3 +1,4 @@
+import type { EmailDeliveryStatus } from "../email/types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
 import type { WhatsAppDeliveryStatus } from "../whatsapp/types";
 
@@ -24,8 +25,27 @@ export const LEAD_TYPES = [
   "partnership-enquiry",
   "general-enquiry",
   "whatsapp-pricing",
+  "email-pricing",
 ] as const;
 export type LeadType = (typeof LEAD_TYPES)[number];
+
+/**
+ * How the customer chose to receive their private price. ONE request
+ * is calculated and saved; this says which provider then delivers it.
+ * Null on every lead that is not a pricing request.
+ */
+export const PRICING_DELIVERY_CHANNELS = ["whatsapp", "email"] as const;
+export type PricingDeliveryChannel =
+  (typeof PRICING_DELIVERY_CHANNELS)[number];
+
+export function isPricingDeliveryChannel(
+  value: unknown,
+): value is PricingDeliveryChannel {
+  return (
+    typeof value === "string" &&
+    (PRICING_DELIVERY_CHANNELS as readonly string[]).includes(value)
+  );
+}
 
 export const LEAD_STATUSES = [
   "NEW",
@@ -73,6 +93,34 @@ export interface LeadWhatsAppDelivery extends LeadWhatsAppRequest {
   errorCode: string | null;
 }
 
+/**
+ * Email pricing delivery, attached to `email-pricing` leads
+ * (migration 0006 columns) — the mirror of LeadWhatsAppRequest.
+ */
+export interface LeadEmailRequest {
+  /** The address exactly as the customer typed it. */
+  address: string;
+  /** Server-normalized address (domain lower-cased). */
+  addressNormalized: string;
+  /** Customer-facing request reference, e.g. DCK-7K2M9Q. */
+  reference: string;
+  /** When the customer submitted the request (ISO). */
+  requestedAt: string;
+}
+
+export interface LeadEmailDelivery extends LeadEmailRequest {
+  /** Provider that handled (or skipped) the send, e.g. "resend". */
+  provider: string | null;
+  /** Provider message id once accepted. */
+  providerMessageId: string | null;
+  status: EmailDeliveryStatus;
+  sentAt: string | null;
+  deliveredAt: string | null;
+  failedAt: string | null;
+  /** Short safe error code (never provider bodies or secrets). */
+  errorCode: string | null;
+}
+
 /** Validated lead content, ready to persist. Never raw request data. */
 export interface LeadInput {
   source: LeadSource;
@@ -99,9 +147,14 @@ export interface LeadInput {
   calculatorEstimate: Estimate | null;
   /** WhatsApp pricing request; null for every other lead type. */
   whatsapp: LeadWhatsAppRequest | null;
+  /** Email pricing request; null for every other lead type. */
+  pricingEmail: LeadEmailRequest | null;
+  /** Which channel delivers the price; null for non-pricing leads. */
+  pricingChannel: PricingDeliveryChannel | null;
 }
 
-export interface StoredLead extends Omit<LeadInput, "whatsapp"> {
+export interface StoredLead
+  extends Omit<LeadInput, "whatsapp" | "pricingEmail"> {
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -109,6 +162,7 @@ export interface StoredLead extends Omit<LeadInput, "whatsapp"> {
   deliveryStatus: LeadDeliveryStatus;
   deliveryError: string | null;
   whatsapp: LeadWhatsAppDelivery | null;
+  pricingEmail: LeadEmailDelivery | null;
 }
 
 export function isLeadStatus(value: unknown): value is LeadStatus {

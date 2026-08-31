@@ -63,6 +63,11 @@ class FakeStore implements LeadStore {
     return { id: `lead-${this.createdInputs.length}` };
   }
   async setDeliveryResult(): Promise<void> {}
+  async recordPricingEmailSendResult(): Promise<void> {
+    // This suite only exercises the WhatsApp channel; the email one is
+    // covered by tests/email-pricing.test.ts.
+    throw new Error("not used by this suite");
+  }
   async recordWhatsAppSendResult(
     id: string,
     record: WhatsAppSendRecord,
@@ -526,7 +531,9 @@ describe("D2. recording the provider outcome is retried, never faked", () => {
   });
 
   it("the retry is bounded and documented as the dual-write edge case", () => {
-    const flow = read("src/lib/whatsapp/pricing-request.ts");
+    // Shared by both delivery channels, so it can only be right or
+    // wrong once.
+    const flow = read("src/lib/pricing-delivery/request.ts");
     assert.ok(flow.includes("RESULT_WRITE_ATTEMPTS"));
     assert.ok(flow.includes("RESULT_WRITE_RETRY_DELAYS_MS"));
     assert.ok(flow.includes("dual write"));
@@ -542,22 +549,50 @@ describe("D2. recording the provider outcome is retried, never faked", () => {
 
 describe("E. /api/pricing/whatsapp route", () => {
   const route = read("src/app/api/pricing/whatsapp/route.ts");
+  // Both channels are thin adapters over ONE handler, so the
+  // guarantees below are written and tested in a single place.
+  const handler = read("src/lib/pricing-delivery/route-handler.ts");
+
+  it("the route is a thin adapter over the shared handler", () => {
+    assert.ok(route.includes("handlePricingDeliveryRequest"));
+    assert.ok(route.includes('"whatsapp"'));
+    // No validation, pricing or response shaping duplicated per route.
+    for (const banned of [
+      "calculateEstimate",
+      "createDurableRateLimiter",
+      "MAX_BODY_BYTES",
+      '"sent"',
+    ]) {
+      assert.equal(route.includes(banned), false, `route must not contain ${banned}`);
+    }
+  });
 
   it("is rate limited, honeypotted, size-capped, server-priced", () => {
-    assert.ok(route.includes("createDurableRateLimiter"));
-    assert.ok(route.includes("honeypot") || route.includes("body.website"));
-    assert.ok(route.includes("MAX_BODY_BYTES"));
-    assert.ok(route.includes("normalizeWhatsAppNumber"));
-    assert.ok(route.includes("calculateEstimate"));
+    assert.ok(handler.includes("createDurableRateLimiter"));
+    assert.ok(handler.includes("honeypot") || handler.includes("body.website"));
+    assert.ok(handler.includes("MAX_BODY_BYTES"));
+    assert.ok(handler.includes("normalizeWhatsAppNumber"));
+    assert.ok(handler.includes("normalizeEmailAddress"));
+    assert.ok(handler.includes("calculateEstimate"));
+  });
+
+  it("one rate-limit budget covers both channels", () => {
+    // Switching channel must not buy a second allowance: exactly one
+    // limiter is constructed, under one shared scope.
+    assert.equal(
+      (handler.match(/createDurableRateLimiter\(\{/g) ?? []).length,
+      1,
+    );
+    assert.ok(handler.includes('scope: "pricing-delivery"'));
   });
 
   it("the public response carries no estimate and no monetary value", () => {
     // Success response: ok + reference + delivery ONLY.
-    assert.ok(route.includes("reference: result.reference"));
-    assert.ok(route.includes("delivery: result.delivery"));
-    assert.equal(route.includes("estimate:"), false);
-    assert.equal(route.includes("toPublicEstimate"), false);
-    assert.equal(route.includes("subtotal"), false);
+    assert.ok(handler.includes("reference: result.reference"));
+    assert.ok(handler.includes("delivery: result.delivery"));
+    assert.equal(handler.includes("estimate:"), false);
+    assert.equal(handler.includes("toPublicEstimate"), false);
+    assert.equal(handler.includes("subtotal"), false);
   });
 
   it("public 'sent' requires provider acceptance (single mapping site)", () => {
@@ -566,6 +601,7 @@ describe("E. /api/pricing/whatsapp route", () => {
     assert.ok(flow.includes('? "sent"'));
     // No other place fabricates a "sent" delivery value.
     assert.equal(route.includes('"sent"'), false);
+    assert.equal(handler.includes('"sent"'), false);
   });
 
   it("only official provider architecture — no WhatsApp Web automation", () => {

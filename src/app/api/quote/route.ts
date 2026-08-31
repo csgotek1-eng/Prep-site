@@ -130,6 +130,8 @@ export async function POST(request: Request) {
     calculatorSelections: selections.length > 0 ? selections : null,
     calculatorEstimate: estimate,
     whatsapp: null,
+      pricingEmail: null,
+      pricingChannel: null,
   };
 
   const result = await processLead(lead, () =>

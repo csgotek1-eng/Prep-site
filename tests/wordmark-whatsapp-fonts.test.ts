@@ -40,20 +40,14 @@ describe("wordmark wired into header and footer", () => {
   });
 });
 
-describe("employee contact card safety", () => {
-  it("PhoneAction still falls back to the plain tel: link when no team entry exists", () => {
-    // Architecture-level guard: the fallback path must keep working
-    // regardless of whether a team member is currently configured, so
-    // the site never regresses if the list is ever emptied again.
-    const phoneAction = read("src/components/PhoneAction.tsx");
-    assert.ok(phoneAction.includes("if (!member)"));
-    assert.ok(phoneAction.includes("siteConfig.contact.phoneHref"));
-  });
-
-  it("keeps Call as tel: and adds WhatsApp inside the card component", () => {
-    const card = read("src/components/TeamContactCard.tsx");
-    assert.ok(card.includes("siteConfig.contact.phoneHref"));
-    assert.ok(card.includes("siteConfig.social.whatsapp"));
+describe("owner-approved team data survives the phone de-emphasis", () => {
+  // The phone contact card was removed when the site moved off
+  // phone-first contact. The owner-approved data and photo stay in the
+  // repository so a future non-phone contact surface can use them
+  // without asking for approval again.
+  it("no component promotes calling any more", () => {
+    assert.equal(existsSync("src/components/PhoneAction.tsx"), false);
+    assert.equal(existsSync("src/components/TeamContactCard.tsx"), false);
   });
 
   it("uses the real owner-approved photo asset, not a stock/AI placeholder path", () => {
@@ -69,12 +63,6 @@ describe("employee contact card safety", () => {
     assert.ok(team.includes('role: "Support Team"'));
   });
 
-  it("gives the portrait a meaningful, non-empty alt text", () => {
-    const card = read("src/components/TeamContactCard.tsx");
-    assert.equal(/alt=""/.test(card), false);
-    assert.ok(card.includes("alt={`"));
-  });
-
   it("the approved photo asset actually exists in public/team", () => {
     assert.ok(existsSync("public/team/dockentra-contact.jpg"));
   });
@@ -87,12 +75,14 @@ describe("calculator WhatsApp flow — outbound only", () => {
     assert.equal(calculator.includes("buildWhatsAppEstimateUrl"), false);
     // The price is SENT to the customer's own number by the server.
     assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
-    assert.ok(calculator.includes("Send My Price to WhatsApp"));
+    assert.ok(calculator.includes("Send my price to WhatsApp"));
   });
 
   it("general WhatsApp contact links still use the approved business number", () => {
-    const site = read("src/lib/site.ts");
-    assert.ok(site.includes("https://wa.me/353851584185"));
+    // ONE source of truth for every business contact value.
+    const contact = read("src/lib/site-contact.ts");
+    assert.ok(contact.includes("https://wa.me/353851584185"));
+    assert.ok(read("src/lib/site.ts").includes("siteContact.whatsapp"));
   });
 });
 

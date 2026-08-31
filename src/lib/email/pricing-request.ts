@@ -6,55 +6,50 @@ import {
 import type { PricingDeliverer } from "../pricing-delivery/request.ts";
 import type { PricingDeliveryResult } from "../pricing-delivery/types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
-import { getWhatsAppProvider } from "./provider.ts";
+import { getPricingEmailProvider } from "./provider.ts";
 import type {
-  WhatsAppProvider,
-  WhatsAppSendOutcome,
-  WhatsAppSendResult,
+  EmailSendOutcome,
+  EmailSendResult,
+  PricingEmailProvider,
 } from "./types";
 
 /**
- * The WHATSAPP channel of the one private pricing pipeline.
+ * The EMAIL channel of the one private pricing pipeline — the exact
+ * mirror of ../whatsapp/pricing-request.ts.
  *
  * Everything shared — validate, calculate once, SAVE FIRST, the
  * ok === saved invariant, the bounded result-write retry and the safe
- * correlation log — lives in ../pricing-delivery/request.ts and is
- * identical for email. This file owns only what is WhatsApp-specific:
- * calling the official provider and mapping its verdict to the
- * customer-facing outcome. That mapping exists in exactly one place,
- * right here.
+ * correlation log — lives in ../pricing-delivery/request.ts. This file
+ * owns only the provider call and the mapping of its verdict to the
+ * customer-facing outcome, in exactly one place.
  */
 
-export type WhatsAppPricingDeliveryOutcome =
-  PricingDeliveryResult["delivery"];
-export type WhatsAppPricingResult = PricingDeliveryResult;
-
-export interface WhatsAppPricingRequestArgs {
-  /** The number exactly as the customer typed it (for the record). */
-  rawNumber: string;
-  /** Server-normalized E.164 destination. */
-  e164: string;
+export interface EmailPricingRequestArgs {
+  /** The address exactly as the customer typed it (for the record). */
+  rawAddress: string;
+  /** Server-normalized destination address. */
+  address: string;
   selections: EstimateSelection[];
   /** INTERNAL authoritative estimate — never sent to the browser. */
   estimate: Estimate;
-  provider?: WhatsAppProvider;
+  provider?: PricingEmailProvider;
   store?: LeadStore;
 }
 
 /** The provider step: send, record the outcome, report it truthfully. */
-export function whatsAppDeliverer(
-  provider: WhatsAppProvider,
+export function emailDeliverer(
+  provider: PricingEmailProvider,
 ): PricingDeliverer {
   return async ({ store, leadId, reference, destination, estimate }) => {
-    let sendResult: WhatsAppSendResult;
+    let sendResult: EmailSendResult;
     try {
       sendResult = await provider.sendPricingResult({
-        toE164: destination,
+        to: destination,
         reference,
         estimate,
       });
     } catch {
-      console.error("WhatsApp provider threw while sending pricing.");
+      console.error("Email provider threw while sending pricing.");
       sendResult = {
         outcome: "FAILED",
         provider: provider.name,
@@ -70,20 +65,16 @@ export function whatsAppDeliverer(
           ? "FAILED"
           : "PENDING";
 
-    // Bounded retry: the customer-facing outcome below is decided by
-    // the PROVIDER, so a lost result write never changes what we tell
-    // them — it only costs the team the record, which this tries hard
-    // to keep.
     await recordDeliveryResultWithRetry(
       () =>
-        store.recordWhatsAppSendResult(leadId, {
+        store.recordPricingEmailSendResult(leadId, {
           provider: sendResult.provider,
           providerMessageId: sendResult.providerMessageId,
           status,
           errorCode: sendResult.errorCode,
         }),
       {
-        channel: "whatsapp",
+        channel: "email",
         leadId,
         reference,
         provider: sendResult.provider,
@@ -99,23 +90,23 @@ export function whatsAppDeliverer(
           : sendResult.outcome === "SKIPPED"
             ? "unavailable"
             : "failed",
-      providerOutcome: sendResult.outcome satisfies WhatsAppSendOutcome,
+      providerOutcome: sendResult.outcome satisfies EmailSendOutcome,
     };
   };
 }
 
-export async function processWhatsAppPricingRequest(
-  args: WhatsAppPricingRequestArgs,
-): Promise<WhatsAppPricingResult> {
+export async function processEmailPricingRequest(
+  args: EmailPricingRequestArgs,
+): Promise<PricingDeliveryResult> {
   return processPricingDeliveryRequest({
     destination: {
-      channel: "whatsapp",
-      raw: args.rawNumber,
-      normalized: args.e164,
+      channel: "email",
+      raw: args.rawAddress,
+      normalized: args.address,
     },
     selections: args.selections,
     estimate: args.estimate,
-    deliver: whatsAppDeliverer(args.provider ?? getWhatsAppProvider()),
+    deliver: emailDeliverer(args.provider ?? getPricingEmailProvider()),
     store: args.store,
   });
 }

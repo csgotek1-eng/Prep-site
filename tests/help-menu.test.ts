@@ -76,9 +76,10 @@ describe("Help command menu", () => {
     assert.ok(launcher.includes("HELP_TOPICS.filter"));
   });
 
-  it("GET PRICING routes into the ONE WhatsApp pricing flow", () => {
+  it("GET PRICING opens the ONE canonical calculator, never a second form", () => {
     const select = launcher.slice(launcher.indexOf("function selectTopic"));
-    assert.ok(select.slice(0, 500).includes('"/pricing-calculator"'));
+    assert.ok(select.slice(0, 500).includes("setCalculatorOpen(true)"));
+    assert.ok(launcher.includes("<CalculatorDialog"));
     // No second pricing engine anywhere near the Help panel.
     assert.equal(launcher.includes("calculateEstimate"), false);
     assert.equal(launcher.includes("formatEuro"), false);

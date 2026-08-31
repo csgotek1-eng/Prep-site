@@ -1,14 +1,21 @@
 import { LeadStoreUnavailableError } from "./errors.ts";
 import { transitionWhatsAppDelivery } from "./store.ts";
-import type { LeadStore, WhatsAppSendRecord } from "./store.ts";
+import type {
+  LeadStore,
+  PricingEmailSendRecord,
+  WhatsAppSendRecord,
+} from "./store.ts";
+import { isPricingDeliveryChannel } from "./types.ts";
 import type {
   LeadDeliveryStatus,
+  LeadEmailDelivery,
   LeadInput,
   LeadStatus,
   LeadWhatsAppDelivery,
   StoredLead,
 } from "./types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
+import type { EmailDeliveryStatus } from "../email/types";
 import type { WhatsAppDeliveryStatus } from "../whatsapp/types";
 import type { WhatsAppStatusUpdate } from "../whatsapp/webhook.ts";
 
@@ -67,6 +74,21 @@ interface LeadRow {
   whatsapp_delivered_at: string | null;
   whatsapp_failed_at: string | null;
   whatsapp_error_code: string | null;
+  // Email pricing delivery (migration 0006); empty/null on other lead
+  // types. Nullable-with-default so a database that has not yet run
+  // 0006 simply reads back undefined and yields no email delivery.
+  pricing_delivery_channel: string | null;
+  pricing_email: string | null;
+  pricing_email_normalized: string | null;
+  pricing_email_reference: string | null;
+  pricing_email_requested_at: string | null;
+  pricing_email_provider: string | null;
+  pricing_email_message_id: string | null;
+  pricing_email_delivery_status: string | null;
+  pricing_email_sent_at: string | null;
+  pricing_email_delivered_at: string | null;
+  pricing_email_failed_at: string | null;
+  pricing_email_error_code: string | null;
 }
 
 function rowToWhatsApp(row: LeadRow): LeadWhatsAppDelivery | null {
@@ -86,6 +108,26 @@ function rowToWhatsApp(row: LeadRow): LeadWhatsAppDelivery | null {
     deliveredAt: row.whatsapp_delivered_at,
     failedAt: row.whatsapp_failed_at,
     errorCode: row.whatsapp_error_code,
+  };
+}
+
+function rowToPricingEmail(row: LeadRow): LeadEmailDelivery | null {
+  if (!row.pricing_email_normalized) {
+    return null;
+  }
+  return {
+    address: row.pricing_email ?? row.pricing_email_normalized,
+    addressNormalized: row.pricing_email_normalized,
+    reference: row.pricing_email_reference ?? "",
+    requestedAt: row.pricing_email_requested_at ?? row.created_at,
+    provider: row.pricing_email_provider,
+    providerMessageId: row.pricing_email_message_id,
+    status: (row.pricing_email_delivery_status ??
+      "PENDING") as EmailDeliveryStatus,
+    sentAt: row.pricing_email_sent_at,
+    deliveredAt: row.pricing_email_delivered_at,
+    failedAt: row.pricing_email_failed_at,
+    errorCode: row.pricing_email_error_code,
   };
 }
 
@@ -128,6 +170,10 @@ function rowToLead(row: LeadRow): StoredLead {
     deliveryStatus: row.delivery_status as LeadDeliveryStatus,
     deliveryError: row.delivery_error,
     whatsapp: rowToWhatsApp(row),
+    pricingEmail: rowToPricingEmail(row),
+    pricingChannel: isPricingDeliveryChannel(row.pricing_delivery_channel)
+      ? row.pricing_delivery_channel
+      : null,
   };
 }
 
@@ -157,6 +203,12 @@ function inputToRow(input: LeadInput) {
     whatsapp_reference: input.whatsapp?.reference ?? "",
     whatsapp_requested_at: input.whatsapp?.requestedAt ?? null,
     whatsapp_delivery_status: input.whatsapp ? "PENDING" : null,
+    pricing_delivery_channel: input.pricingChannel,
+    pricing_email: input.pricingEmail?.address ?? null,
+    pricing_email_normalized: input.pricingEmail?.addressNormalized ?? null,
+    pricing_email_reference: input.pricingEmail?.reference ?? null,
+    pricing_email_requested_at: input.pricingEmail?.requestedAt ?? null,
+    pricing_email_delivery_status: input.pricingEmail ? "PENDING" : null,
   };
 }
 
@@ -226,6 +278,27 @@ export class SupabaseLeadStore implements LeadStore {
       "PATCH",
       `website_leads?id=eq.${encodeURIComponent(id)}`,
       { delivery_status: status, delivery_error: error },
+    );
+  }
+
+  async recordPricingEmailSendResult(
+    id: string,
+    result: PricingEmailSendRecord,
+  ): Promise<void> {
+    const now = new Date().toISOString();
+    await this.request<LeadRow[]>(
+      "PATCH",
+      `website_leads?id=eq.${encodeURIComponent(id)}`,
+      {
+        pricing_email_provider: result.provider,
+        pricing_email_message_id: result.providerMessageId,
+        pricing_email_delivery_status: result.status,
+        pricing_email_error_code: result.errorCode,
+        // Accepted means it left our side; a bounce would arrive later
+        // through a provider webhook, not from this write.
+        pricing_email_sent_at: result.status === "ACCEPTED" ? now : null,
+        pricing_email_failed_at: result.status === "FAILED" ? now : null,
+      },
     );
   }
 

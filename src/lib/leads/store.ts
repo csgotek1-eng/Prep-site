@@ -12,6 +12,7 @@ import {
   applyStatusTransition,
   type WhatsAppStatusUpdate,
 } from "../whatsapp/webhook.ts";
+import type { EmailDeliveryStatus } from "../email/types";
 import type { WhatsAppDeliveryStatus } from "../whatsapp/types";
 import type {
   LeadDeliveryStatus,
@@ -50,6 +51,14 @@ export interface WhatsAppSendRecord {
   errorCode: string | null;
 }
 
+/** The same, for the email pricing channel (migration 0006). */
+export interface PricingEmailSendRecord {
+  provider: string;
+  providerMessageId: string | null;
+  status: EmailDeliveryStatus;
+  errorCode: string | null;
+}
+
 export interface LeadStore {
   /** Persist a validated lead. Returns its durable id. */
   createLead(input: LeadInput): Promise<{ id: string }>;
@@ -63,6 +72,11 @@ export interface LeadStore {
   recordWhatsAppSendResult(
     id: string,
     result: WhatsAppSendRecord,
+  ): Promise<void>;
+  /** Record the email provider's send outcome on a stored request. */
+  recordPricingEmailSendResult(
+    id: string,
+    result: PricingEmailSendRecord,
   ): Promise<void>;
   /**
    * Apply a provider status webhook update, keyed by provider message
@@ -172,6 +186,18 @@ export class FileLeadStore implements LeadStore {
             errorCode: null,
           }
         : null,
+      pricingEmail: input.pricingEmail
+        ? {
+            ...input.pricingEmail,
+            provider: null,
+            providerMessageId: null,
+            status: "PENDING",
+            sentAt: null,
+            deliveredAt: null,
+            failedAt: null,
+            errorCode: null,
+          }
+        : null,
     };
     this.save({ leads: [...store.leads, lead] });
     return { id: lead.id };
@@ -197,6 +223,40 @@ export class FileLeadStore implements LeadStore {
                 errorCode: result.errorCode,
                 failedAt:
                   result.status === "FAILED" ? now : lead.whatsapp.failedAt,
+              },
+            }
+          : lead,
+      ),
+    });
+  }
+
+  async recordPricingEmailSendResult(
+    id: string,
+    result: PricingEmailSendRecord,
+  ): Promise<void> {
+    const store = this.load();
+    const now = new Date().toISOString();
+    this.save({
+      leads: store.leads.map((lead) =>
+        lead.id === id && lead.pricingEmail
+          ? {
+              ...lead,
+              updatedAt: now,
+              pricingEmail: {
+                ...lead.pricingEmail,
+                provider: result.provider,
+                providerMessageId: result.providerMessageId,
+                status: result.status,
+                errorCode: result.errorCode,
+                // An accepted email has left our side, so "sent" is
+                // the honest timestamp; a bounce would arrive later
+                // through a provider webhook, not from here.
+                sentAt:
+                  result.status === "ACCEPTED"
+                    ? (lead.pricingEmail.sentAt ?? now)
+                    : lead.pricingEmail.sentAt,
+                failedAt:
+                  result.status === "FAILED" ? now : lead.pricingEmail.failedAt,
               },
             }
           : lead,
@@ -291,6 +351,9 @@ export class UnavailableLeadStore implements LeadStore {
     return this.fail();
   }
   async recordWhatsAppSendResult(): Promise<void> {
+    return this.fail();
+  }
+  async recordPricingEmailSendResult(): Promise<void> {
     return this.fail();
   }
   async applyWhatsAppStatusUpdate(): Promise<boolean> {

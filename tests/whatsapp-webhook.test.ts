@@ -145,6 +145,8 @@ describe("D. store applies webhook updates by provider message id", () => {
       reference: "DCK-TEST22",
       requestedAt: new Date().toISOString(),
     },
+    pricingEmail: null,
+    pricingChannel: "whatsapp",
   };
 
   it("full lifecycle: ACCEPTED → SENT → DELIVERED, replay-safe", async () => {

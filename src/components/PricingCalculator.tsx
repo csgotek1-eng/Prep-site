@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Mail } from "lucide-react";
 import { MAX_QUANTITY } from "@/lib/pricing/calculate";
 import type {
   PublicCatalogueService,
   PublicEstimate,
 } from "@/lib/pricing/public";
 import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
+import { isValidEmailAddressInput } from "@/lib/email/address";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
 export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
+
+/** How the customer wants their private price delivered (STEP 3). */
+type PricingChannel = "whatsapp" | "email";
 
 interface SelectionState {
   [serviceId: string]: number; // quantity
@@ -23,11 +28,17 @@ interface SelectionState {
  * server-side and echoes back the confirmed line list ONLY — no totals,
  * no line prices.
  *
- * ONE pricing action: the customer enters THEIR OWN WhatsApp number
- * and presses "Send My Price to WhatsApp". The SERVER calculates the
- * authoritative estimate, durably stores the request, and sends the
- * result FROM Dockentra TO the customer through the official provider
- * (see src/lib/whatsapp/). The customer never composes a WhatsApp
+ * THE ORDER OF THE QUESTIONS IS THE FLOW:
+ *   STEP 1  How many orders do you ship per month?
+ *   STEP 2  Select the services you need
+ *   STEP 3  Choose how you want to receive your private price
+ *
+ * Step 3 is a single choice — WhatsApp or Email, never two forms at
+ * once. The customer enters THEIR OWN destination and presses one
+ * button. The SERVER calculates the authoritative estimate, durably
+ * stores the request, and sends the result FROM Dockentra TO the
+ * customer through that channel's official provider (see
+ * src/lib/whatsapp/ and src/lib/email/). The customer never composes a
  * message and the browser never sees a price. The response reports the
  * outcome truthfully — "sent" only when the provider actually accepted
  * the message.
@@ -58,9 +69,14 @@ export default function PricingCalculator({
   const [estimating, setEstimating] = useState(false);
   const [estimateError, setEstimateError] = useState(false);
   const estimateRequestId = useRef(0);
-  // The customer's OWN WhatsApp number and the send lifecycle for the
-  // single "Send My Price to WhatsApp" action.
+  // STEP 3: how the customer wants their private price delivered.
+  // Exactly one channel is active at a time, so only one destination
+  // field is ever on screen.
+  const [channel, setChannel] = useState<PricingChannel>("whatsapp");
+  // The customer's OWN destination for the chosen channel, and the
+  // send lifecycle for the single "Send my price…" action.
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [sendPhase, setSendPhase] = useState<"idle" | "sending" | "done">(
     "idle",
   );
@@ -188,26 +204,43 @@ export default function PricingCalculator({
     setSelections((current) => ({ ...current, [serviceId]: quantity }));
   }
 
-  // ONE pricing action (P0-3): submit the selection + the customer's
-  // OWN WhatsApp number; the server does everything else. Client-side
-  // number validation is UX only — the server re-validates and is
-  // authoritative.
-  async function sendPriceToWhatsApp(event: FormEvent<HTMLFormElement>) {
+  /** Where the chosen channel will send the price, as typed. */
+  const destination = channel === "whatsapp" ? whatsappNumber : emailAddress;
+
+  function selectChannel(next: PricingChannel) {
+    setChannel(next);
+    setSendError("");
+    clearSendResult();
+  }
+
+  // ONE pricing action: submit the selection + the customer's OWN
+  // destination for the chosen channel; the server does everything
+  // else. Client-side validation is UX only — the server re-validates,
+  // is authoritative, and is the only place a price exists.
+  async function sendPrice(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // Double-submit guard: the button is also disabled, but a fast
     // second tap/Enter can fire before React re-renders.
     if (sendPhase === "sending") return;
-    if (!isValidWhatsAppNumberInput(whatsappNumber)) {
+    if (channel === "whatsapp" && !isValidWhatsAppNumberInput(whatsappNumber)) {
       setSendError(
         "Please enter your WhatsApp number with the country code, e.g. +353 85 123 4567.",
       );
+      return;
+    }
+    if (channel === "email" && !isValidEmailAddressInput(emailAddress)) {
+      setSendError("Please enter a valid email address, e.g. you@company.ie.");
       return;
     }
     const honeypot = new FormData(event.currentTarget).get("website");
     setSendPhase("sending");
     setSendError("");
     try {
-      const response = await fetch("/api/pricing/whatsapp", {
+      const response = await fetch(
+        channel === "whatsapp"
+          ? "/api/pricing/whatsapp"
+          : "/api/pricing/email",
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -215,10 +248,13 @@ export default function PricingCalculator({
             ([serviceId, quantity]) => ({ serviceId, quantity }),
           ),
           monthlyOrders,
-          whatsappNumber,
+          ...(channel === "whatsapp"
+            ? { whatsappNumber }
+            : { email: emailAddress }),
           website: typeof honeypot === "string" ? honeypot : "",
         }),
-      });
+        },
+      );
       const data = (await response.json()) as {
         ok: boolean;
         reference?: string;
@@ -274,7 +310,7 @@ export default function PricingCalculator({
           href="/contact"
           className="mt-4 inline-flex min-h-12 items-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
         >
-          Get Pricing
+          Send an enquiry
         </a>
       </div>
     );
@@ -318,8 +354,8 @@ export default function PricingCalculator({
         </div>
         <p className="mt-1 text-xs leading-5 text-slate-500">
           We price every operation individually and don&apos;t publish
-          prices online. Enter your WhatsApp number and we&apos;ll send
-          your personalised price straight to you.
+          prices online. Choose how to receive your personalised price
+          and we&apos;ll send it straight to you.
         </p>
         {estimateError && (
           <p
@@ -339,9 +375,10 @@ export default function PricingCalculator({
             {sendOutcome.delivery === "sent" ? (
               <p>
                 <span className="font-semibold text-brand-navy">
-                  Your pricing is on its way to WhatsApp.
+                  Your pricing is on its way
+                  {channel === "whatsapp" ? " to WhatsApp" : " by email"}.
                 </span>{" "}
-                Check {whatsappNumber.trim()} in a moment. Reference:{" "}
+                Check {destination.trim()} in a moment. Reference:{" "}
                 <span className="font-mono-data font-semibold">
                   {sendOutcome.reference}
                 </span>
@@ -358,10 +395,10 @@ export default function PricingCalculator({
                 </span>
                 ),{" "}
                 {sendOutcome.delivery === "failed"
-                  ? "but the WhatsApp message could not be sent yet."
-                  : "but WhatsApp delivery is not available right now."}{" "}
+                  ? `but the ${channel === "whatsapp" ? "WhatsApp message" : "email"} could not be sent yet.`
+                  : `but ${channel === "whatsapp" ? "WhatsApp" : "email"} delivery is not available right now.`}{" "}
                 Our team has your selection and will send your pricing
-                to {whatsappNumber.trim()}.
+                to {destination.trim()}.
               </p>
             )}
             <button
@@ -376,7 +413,7 @@ export default function PricingCalculator({
             </button>
           </div>
         ) : (
-          <form onSubmit={sendPriceToWhatsApp} className="mt-3">
+          <form onSubmit={sendPrice} className="mt-3">
             {/* Honeypot — hidden from people, filled in by simple bots. */}
             <div
               aria-hidden="true"
@@ -391,31 +428,112 @@ export default function PricingCalculator({
                 autoComplete="off"
               />
             </div>
-            <label
-              htmlFor={`whatsapp-number-${idSuffix}`}
-              className="block text-sm font-medium text-brand-navy"
-            >
-              WhatsApp mobile number
-            </label>
-            <input
-              id={`whatsapp-number-${idSuffix}`}
-              name="whatsappNumber"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="+353 85 123 4567"
-              value={whatsappNumber}
-              onChange={(event) => {
-                setWhatsappNumber(event.target.value);
-                setSendError("");
-              }}
-              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
-            />
+            {/* STEP 3 — a real radio group, so a screen reader
+                announces the choice and arrow keys move between the
+                two options. Exactly ONE destination field is rendered
+                at a time; there are never two forms on screen. */}
+            <fieldset className="mb-3">
+              <legend className="block text-sm font-medium text-brand-navy">
+                <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+                  Step 3
+                </span>
+                How would you like to receive your pricing?
+              </legend>
+              <div
+                role="radiogroup"
+                aria-label="How would you like to receive your pricing?"
+                className="mt-2 grid grid-cols-2 gap-2"
+              >
+                {(
+                  [
+                    { value: "whatsapp", label: "WhatsApp" },
+                    { value: "email", label: "Email" },
+                  ] as const
+                ).map((option) => {
+                  const active = channel === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 text-sm font-semibold transition-colors ${
+                        active
+                          ? "border-brand-green bg-brand-mint-soft text-brand-navy"
+                          : "border-slate-300 bg-white text-slate-600 hover:border-brand-green/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`pricing-channel-${idSuffix}`}
+                        value={option.value}
+                        checked={active}
+                        onChange={() => selectChannel(option.value)}
+                        className="h-4 w-4 accent-brand-green"
+                      />
+                      {option.label}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            {channel === "whatsapp" ? (
+              <>
+                <label
+                  htmlFor={`whatsapp-number-${idSuffix}`}
+                  className="block text-sm font-medium text-brand-navy"
+                >
+                  WhatsApp mobile number
+                </label>
+                <input
+                  id={`whatsapp-number-${idSuffix}`}
+                  name="whatsappNumber"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+353 85 123 4567"
+                  value={whatsappNumber}
+                  aria-describedby={
+                    sendError ? `pricing-error-${idSuffix}` : undefined
+                  }
+                  onChange={(event) => {
+                    setWhatsappNumber(event.target.value);
+                    setSendError("");
+                  }}
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+                />
+              </>
+            ) : (
+              <>
+                <label
+                  htmlFor={`pricing-email-${idSuffix}`}
+                  className="block text-sm font-medium text-brand-navy"
+                >
+                  Email address
+                </label>
+                <input
+                  id={`pricing-email-${idSuffix}`}
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="you@company.ie"
+                  value={emailAddress}
+                  aria-describedby={
+                    sendError ? `pricing-error-${idSuffix}` : undefined
+                  }
+                  onChange={(event) => {
+                    setEmailAddress(event.target.value);
+                    setSendError("");
+                  }}
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+                />
+              </>
+            )}
             {/* Transactional intent, not marketing consent. */}
             <p className="mt-1.5 text-xs leading-5 text-slate-500">
-              Send my requested Dockentra pricing to this WhatsApp
-              number. Used only to send and respond to your requested
-              pricing — see our{" "}
+              Send my requested Dockentra pricing to this{" "}
+              {channel === "whatsapp" ? "WhatsApp number" : "email address"}.
+              Used only to send and respond to your requested pricing —
+              see our{" "}
               <a
                 href="/privacy"
                 className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
@@ -426,6 +544,7 @@ export default function PricingCalculator({
             </p>
             {sendError && (
               <p
+                id={`pricing-error-${idSuffix}`}
                 role="alert"
                 className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700"
               >
@@ -437,10 +556,16 @@ export default function PricingCalculator({
               disabled={sendPhase === "sending"}
               className="mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+              {channel === "whatsapp" ? (
+                <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+              ) : (
+                <Mail aria-hidden="true" className="h-5 w-5" />
+              )}
               {sendPhase === "sending"
                 ? "Sending…"
-                : "Send My Price to WhatsApp"}
+                : channel === "whatsapp"
+                  ? "Send my price to WhatsApp"
+                  : "Send my price by email"}
             </button>
           </form>
         )}
@@ -516,19 +641,24 @@ export default function PricingCalculator({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
         {/* Service selector */}
         <div>
-          {/* Volume band input. Shown only when the catalogue actually has
-              tiered services, so it never appears as an unexplained field. */}
-          {hasTieredServices && (
-            <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
+          {/* STEP 1 — monthly order volume, ALWAYS first and always
+              asked. It is the question that shapes every rate, and the
+              one a fulfilment quote cannot be prepared without, so it
+              is answered before any service is chosen. */}
+          <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+                Step 1
+              </p>
               <label
                 htmlFor="monthly-orders"
-                className="block text-sm font-semibold text-brand-navy"
+                className="mt-1 block text-sm font-semibold text-brand-navy"
               >
                 How many orders do you ship per month?
               </label>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                Pick &amp; pack rates depend on your monthly volume, so this
-                sets which rate we use when preparing your price.
+                {hasTieredServices
+                  ? "Pick & pack rates depend on your monthly volume, so this sets which rate we use when preparing your price."
+                  : "This tells us the scale of your operation, so we can prepare a price that fits it."}
               </p>
               <input
                 id="monthly-orders"
@@ -548,8 +678,17 @@ export default function PricingCalculator({
                 }}
                 className="mt-3 block w-full max-w-[12rem] rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
               />
-            </div>
-          )}
+          </div>
+
+          {/* STEP 2 — the services, only after the volume is known. */}
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+              Step 2
+            </p>
+            <h2 className="mt-1 text-sm font-semibold text-brand-navy">
+              Select the services you need
+            </h2>
+          </div>
 
           {categories.map((category) => (
             <fieldset key={category} className="mb-8">

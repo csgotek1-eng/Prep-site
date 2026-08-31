@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const read = (path: string) => readFileSync(path, "utf8");
@@ -63,10 +63,39 @@ describe("one support system, not two", () => {
   });
 });
 
-describe("one phone contact card, shared", () => {
-  it("both the Contact page and the homepage contact section use PhoneAction", () => {
-    for (const path of ["src/app/contact/page.tsx", "src/components/sections/ContactSection.tsx"]) {
-      assert.ok(read(path).includes("<PhoneAction"), `${path} must reuse PhoneAction`);
+describe("phone is a footer-level detail, not a call-to-action", () => {
+  // The owner moved the site off phone-first contact. The number is
+  // allowed in exactly two rendered places, both low in the page.
+  const PHONE_SURFACES = [
+    "src/components/Footer.tsx",
+    "src/app/contact/page.tsx",
+  ];
+
+  it("no component ships a phone contact card or a Call CTA", () => {
+    assert.equal(existsSync("src/components/PhoneAction.tsx"), false);
+    assert.equal(existsSync("src/components/TeamContactCard.tsx"), false);
+    for (const path of [
+      "src/components/Header.tsx",
+      "src/components/UtilityBar.tsx",
+      "src/components/ContactLauncher.tsx",
+      "src/components/sections/ContactSection.tsx",
+      "src/app/page.tsx",
+    ]) {
+      const source = read(path);
+      for (const banned of ["Call us", "Call Dockentra", "Call Viktor", "Phone us"]) {
+        assert.equal(source.includes(banned), false, `${path} still promotes calling`);
+      }
+      assert.equal(
+        source.includes("phoneHref"),
+        false,
+        `${path} must not render the phone number`,
+      );
+    }
+  });
+
+  it("only the footer and the bottom of /contact render the number", () => {
+    for (const path of PHONE_SURFACES) {
+      assert.ok(read(path).includes("siteContact.phoneHref"), `${path} keeps the detail`);
     }
   });
 
@@ -76,13 +105,21 @@ describe("one phone contact card, shared", () => {
     // Modal.tsx is the primitive; CalculatorModal is a consumer of it.
     assert.deepEqual(modals.sort(), ["CalculatorModal.tsx", "Modal.tsx"]);
     assert.ok(read("src/components/CalculatorModal.tsx").includes('from "@/components/Modal"'));
-    assert.ok(read("src/components/PhoneAction.tsx").includes('from "@/components/Modal"'));
   });
 
-  it("keeps Call and WhatsApp reachable inside the card", () => {
-    const card = read("src/components/TeamContactCard.tsx");
-    assert.ok(card.includes("siteConfig.contact.phoneHref"));
-    assert.ok(card.includes("siteConfig.social.whatsapp"));
+  it("email is the primary contact action wherever contact is offered", () => {
+    for (const path of [
+      "src/components/UtilityBar.tsx",
+      "src/components/Footer.tsx",
+      "src/components/sections/ContactSection.tsx",
+      "src/app/contact/page.tsx",
+      "src/components/ContactLauncher.tsx",
+    ]) {
+      assert.ok(
+        read(path).includes("contactEmailHref"),
+        `${path} must offer email from the one contact config`,
+      );
+    }
   });
 });
 
@@ -92,13 +129,28 @@ describe("one pricing engine behind both calculator entry points", () => {
     assert.ok(read("src/app/pricing-calculator/page.tsx").includes("PricingCalculator"));
   });
 
-  it("the WhatsApp pricing flow lives in the shared calculator, so the modal inherits it", () => {
+  it("every Get Price entry point opens the one canonical dialog", () => {
+    // The floating Get Price action and Help -> Get Pricing both render
+    // CalculatorDialog rather than a second calculator.
+    const launcher = read("src/components/ContactLauncher.tsx");
+    assert.ok(launcher.includes("CalculatorDialog"));
+    assert.equal(launcher.includes("calculateEstimate"), false);
+    assert.ok(
+      read("src/components/CalculatorModal.tsx").includes(
+        "export function CalculatorDialog",
+      ),
+    );
+  });
+
+  it("both pricing channels live in the shared calculator, so the modal inherits them", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
     assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
-    assert.ok(calculator.includes("Send My Price to WhatsApp"));
+    assert.ok(calculator.includes('"/api/pricing/email"'));
+    assert.ok(calculator.includes("Send my price to WhatsApp"));
+    assert.ok(calculator.includes("Send my price by email"));
     // No pricing maths anywhere in the modal wrapper.
     const modal = read("src/components/CalculatorModal.tsx");
-    for (const banned of ["calculateEstimate", "formatEuro", "price"]) {
+    for (const banned of ["calculateEstimate", "formatEuro", "€", "subtotal"]) {
       assert.equal(modal.includes(banned), false, `CalculatorModal must not contain ${banned}`);
     }
   });

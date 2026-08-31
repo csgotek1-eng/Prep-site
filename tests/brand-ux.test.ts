@@ -28,8 +28,11 @@ describe("calculator primary actions stay reachable", () => {
       calculator.indexOf("const renderActionsPanel"),
       calculator.indexOf("const linesList"),
     );
-    assert.ok(panel.includes("Send My Price to WhatsApp"));
+    // ONE action, whichever delivery channel the visitor picked.
+    assert.ok(panel.includes("Send my price to WhatsApp"));
+    assert.ok(panel.includes("Send my price by email"));
     assert.ok(panel.includes("WhatsApp mobile number"));
+    assert.ok(panel.includes("Email address"));
     // No competing pricing CTA anywhere in the calculator.
     assert.equal(calculator.includes("Request This Quote"), false);
     // The line list contains no action.

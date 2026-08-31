@@ -37,6 +37,8 @@ const sampleLead: LeadInput = {
   calculatorSelections: null,
   calculatorEstimate: null,
   whatsapp: null,
+  pricingEmail: null,
+  pricingChannel: null,
 };
 
 /** Test double: records calls and can be told to fail. */
@@ -57,6 +59,7 @@ function makeStore(options: { failCreate?: boolean } = {}) {
       calls.delivery.push({ id, status, error });
     },
     async recordWhatsAppSendResult() {},
+    async recordPricingEmailSendResult() {},
     async applyWhatsAppStatusUpdate() {
       return true;
     },

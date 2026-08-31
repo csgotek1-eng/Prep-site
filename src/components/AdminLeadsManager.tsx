@@ -12,7 +12,13 @@ import {
   type SupabaseAuthClientConfig,
 } from "@/lib/supabase-browser";
 import { formatEuro } from "@/lib/pricing/money";
-import { LEAD_STATUSES, type LeadStatus, type StoredLead } from "@/lib/leads/types";
+import {
+  LEAD_STATUSES,
+  type LeadEmailDelivery,
+  type LeadStatus,
+  type LeadWhatsAppDelivery,
+  type StoredLead,
+} from "@/lib/leads/types";
 
 const buttonClasses =
   "inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors";
@@ -22,10 +28,12 @@ const TYPE_LABELS: Record<StoredLead["type"], string> = {
   "client-enquiry": "Client enquiry",
   "partnership-enquiry": "Partnership enquiry",
   "general-enquiry": "General enquiry",
-  "whatsapp-pricing": "WhatsApp pricing request",
+  "whatsapp-pricing": "Pricing request (WhatsApp)",
+  "email-pricing": "Pricing request (email)",
 };
 
-const WHATSAPP_STATUS_STYLES: Record<string, string> = {
+// ONE style map for both channels — the lifecycle is the same.
+const DELIVERY_STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800",
   ACCEPTED: "bg-sky-100 text-sky-800",
   SENT: "bg-indigo-100 text-indigo-800",
@@ -57,6 +65,40 @@ function formatDate(value: string): string {
  * only UX — every read and mutation goes through /api/admin/leads*,
  * which enforces the server-side admin check on each request.
  */
+/**
+ * ONE inbox, two delivery channels. WhatsApp and email requests share
+ * an identical lifecycle, so they are shown by the same markup — this
+ * flattens whichever one the lead carries into a common shape. Returns
+ * null for every lead that is not a pricing request.
+ */
+function pricingDeliveryOf(lead: StoredLead): {
+  channelLabel: string;
+  destinationLabel: string;
+  destination: string;
+  typed: string;
+  delivery: LeadWhatsAppDelivery | LeadEmailDelivery;
+} | null {
+  if (lead.whatsapp) {
+    return {
+      channelLabel: "WhatsApp",
+      destinationLabel: "Customer number",
+      destination: lead.whatsapp.numberNormalized,
+      typed: lead.whatsapp.number.trim(),
+      delivery: lead.whatsapp,
+    };
+  }
+  if (lead.pricingEmail) {
+    return {
+      channelLabel: "Email",
+      destinationLabel: "Customer email",
+      destination: lead.pricingEmail.addressNormalized,
+      typed: lead.pricingEmail.address.trim(),
+      delivery: lead.pricingEmail,
+    };
+  }
+  return null;
+}
+
 export default function AdminLeadsManager({
   supabaseConfig,
 }: {
@@ -263,6 +305,7 @@ export default function AdminLeadsManager({
       <ul className="mt-5 space-y-4">
         {leads.map((lead) => {
           const expanded = expandedId === lead.id;
+          const pricing = pricingDeliveryOf(lead);
           return (
             <li
               key={lead.id}
@@ -288,8 +331,8 @@ export default function AdminLeadsManager({
                   <p className="mt-1.5 text-sm text-slate-800">
                     <span className="font-medium">
                       {lead.name ||
-                        (lead.whatsapp
-                          ? `WhatsApp ${lead.whatsapp.numberNormalized}`
+                        (pricing
+                          ? `${pricing.channelLabel} ${pricing.destination}`
                           : "—")}
                     </span>
                     {lead.business && ` — ${lead.business}`}
@@ -298,11 +341,11 @@ export default function AdminLeadsManager({
                     {lead.email}
                     {lead.email && lead.phone && " · "}
                     {lead.phone}
-                    {lead.whatsapp && (
+                    {pricing && (
                       <>
                         {(lead.email || lead.phone) && " · "}
                         <span className="font-mono-data">
-                          {lead.whatsapp.reference}
+                          {pricing.delivery.reference}
                         </span>
                       </>
                     )}
@@ -326,14 +369,14 @@ export default function AdminLeadsManager({
                       ))}
                     </select>
                   </label>
-                  {lead.whatsapp ? (
+                  {pricing ? (
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        WHATSAPP_STATUS_STYLES[lead.whatsapp.status] ??
+                        DELIVERY_STATUS_STYLES[pricing.delivery.status] ??
                         "bg-slate-200 text-slate-600"
                       }`}
                     >
-                      WhatsApp: {lead.whatsapp.status}
+                      {pricing.channelLabel}: {pricing.delivery.status}
                     </span>
                   ) : (
                     <span className="text-xs text-slate-400">
@@ -422,21 +465,22 @@ export default function AdminLeadsManager({
                       {lead.message}
                     </p>
                   )}
-                  {lead.whatsapp && (
+                  {pricing && (
                     <div className="rounded-md bg-brand-surface-soft p-3">
                       <p className="font-medium text-brand-navy">
-                        WhatsApp delivery
+                        Price delivery — {pricing.channelLabel}
                       </p>
                       <dl className="mt-1 space-y-0.5 text-sm">
                         <div className="flex justify-between gap-3">
-                          <dt className="text-slate-500">Customer number</dt>
-                          <dd className="font-medium">
-                            {lead.whatsapp.numberNormalized}
-                            {lead.whatsapp.number.trim() !==
-                              lead.whatsapp.numberNormalized && (
+                          <dt className="text-slate-500">
+                            {pricing.destinationLabel}
+                          </dt>
+                          <dd className="break-all font-medium">
+                            {pricing.destination}
+                            {pricing.typed !== pricing.destination && (
                               <span className="text-slate-500">
                                 {" "}
-                                (typed: {lead.whatsapp.number})
+                                (typed: {pricing.typed})
                               </span>
                             )}
                           </dd>
@@ -444,53 +488,53 @@ export default function AdminLeadsManager({
                         <div className="flex justify-between gap-3">
                           <dt className="text-slate-500">Reference</dt>
                           <dd className="font-mono-data font-medium">
-                            {lead.whatsapp.reference}
+                            {pricing.delivery.reference}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-3">
                           <dt className="text-slate-500">Status</dt>
                           <dd className="font-medium">
-                            {lead.whatsapp.status}
-                            {lead.whatsapp.errorCode &&
-                              ` (${lead.whatsapp.errorCode})`}
+                            {pricing.delivery.status}
+                            {pricing.delivery.errorCode &&
+                              ` (${pricing.delivery.errorCode})`}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-3">
                           <dt className="text-slate-500">Provider</dt>
                           <dd className="font-medium">
-                            {lead.whatsapp.provider ?? "—"}
+                            {pricing.delivery.provider ?? "—"}
                           </dd>
                         </div>
-                        {lead.whatsapp.providerMessageId && (
+                        {pricing.delivery.providerMessageId && (
                           <div className="flex justify-between gap-3">
                             <dt className="shrink-0 text-slate-500">
                               Message ID
                             </dt>
                             <dd className="break-all font-mono-data text-xs">
-                              {lead.whatsapp.providerMessageId}
+                              {pricing.delivery.providerMessageId}
                             </dd>
                           </div>
                         )}
                         <div className="flex justify-between gap-3">
                           <dt className="text-slate-500">Requested</dt>
-                          <dd>{formatDate(lead.whatsapp.requestedAt)}</dd>
+                          <dd>{formatDate(pricing.delivery.requestedAt)}</dd>
                         </div>
-                        {lead.whatsapp.sentAt && (
+                        {pricing.delivery.sentAt && (
                           <div className="flex justify-between gap-3">
                             <dt className="text-slate-500">Sent</dt>
-                            <dd>{formatDate(lead.whatsapp.sentAt)}</dd>
+                            <dd>{formatDate(pricing.delivery.sentAt)}</dd>
                           </div>
                         )}
-                        {lead.whatsapp.deliveredAt && (
+                        {pricing.delivery.deliveredAt && (
                           <div className="flex justify-between gap-3">
                             <dt className="text-slate-500">Delivered</dt>
-                            <dd>{formatDate(lead.whatsapp.deliveredAt)}</dd>
+                            <dd>{formatDate(pricing.delivery.deliveredAt)}</dd>
                           </div>
                         )}
-                        {lead.whatsapp.failedAt && (
+                        {pricing.delivery.failedAt && (
                           <div className="flex justify-between gap-3">
                             <dt className="text-slate-500">Failed</dt>
-                            <dd>{formatDate(lead.whatsapp.failedAt)}</dd>
+                            <dd>{formatDate(pricing.delivery.failedAt)}</dd>
                           </div>
                         )}
                       </dl>

@@ -92,10 +92,22 @@ describe("B. the priced WhatsApp message exists ONLY server-side", () => {
     }
   });
 
-  it("the send route replies with reference + delivery outcome only", () => {
-    const route = read("src/app/api/pricing/whatsapp/route.ts");
-    assert.equal(route.includes("estimate:"), false);
-    assert.ok(route.includes("reference: result.reference"));
+  it("the send routes reply with reference + delivery outcome only", () => {
+    // Both channels are thin adapters over ONE handler, so there is a
+    // single place where the public response shape is decided.
+    for (const route of [
+      "src/app/api/pricing/whatsapp/route.ts",
+      "src/app/api/pricing/email/route.ts",
+    ]) {
+      const source = read(route);
+      assert.equal(source.includes("estimate:"), false);
+      assert.ok(source.includes("handlePricingDeliveryRequest"));
+    }
+    const handler = read("src/lib/pricing-delivery/route-handler.ts");
+    assert.ok(handler.includes("reference: result.reference"));
+    assert.ok(handler.includes("delivery: result.delivery"));
+    assert.equal(handler.includes("subtotal"), false);
+    assert.equal(handler.includes("toPublicEstimate"), false);
   });
 });
 
