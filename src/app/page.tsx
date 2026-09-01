@@ -127,8 +127,8 @@ export default function HomePage() {
                 </p>
               </div>
               {/* Deliberately NOT another pricing CTA — the hero above
-                  already carries Get Price + Calculator, and the
-                  floating Get Price action is on every page. This
+                  carries the Calculator, the header carries Get Price
+                  on every page, and so does the floating action. This
                   closing block asks for the conversation instead. */}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
