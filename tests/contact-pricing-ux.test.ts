@@ -49,13 +49,16 @@ describe("header is navigation only", () => {
     );
   });
 
-  it("has no pricing CTA button in either navigation", () => {
+  it("carries the ONE Get Price CTA and no Calculator nav item", () => {
+    // Later round: the owner asked for Get Price back, top-right. The
+    // rule that stays is the one that mattered — the header offers ONE
+    // pricing action and the nav list itself stays clean.
     const header = withoutComments(read("src/components/Header.tsx"));
-    for (const banned of ["Get Pricing", "Get Price", "Calculator"]) {
-      assert.equal(header.includes(banned), false, `header still shows ${banned}`);
-    }
-    // The desktop CTA and the mobile menu CTA are both gone: nothing in
-    // the header links outside the nav list.
+    assert.equal(header.includes("Get Pricing"), false, "old label retired");
+    assert.ok(header.includes('label="Get Price"'));
+    // Desktop bar + mobile menu row; the classes keep them exclusive.
+    assert.equal((header.match(/<CalculatorModal/g) ?? []).length, 2);
+    // Nothing in the header links outside the nav list.
     assert.equal((header.match(/<Link/g) ?? []).length, 3);
   });
 });
@@ -64,11 +67,13 @@ describe("header is navigation only", () => {
 // 2. Homepage hero
 // ---------------------------------------------------------------------
 
-describe("homepage hero keeps the two conversion actions", () => {
+describe("homepage hero keeps ONE conversion action", () => {
   const home = withoutComments(read("src/app/page.tsx"));
 
-  it("offers Get Price and Calculator, once each — on the whole page", () => {
-    assert.equal((home.match(/Get Price/g) ?? []).length, 1);
+  it("offers exactly one Calculator action and no hero Get Price", () => {
+    // Later round: Get Price moved to the header, so the hero carries
+    // a single, deliberately wide Calculator button.
+    assert.equal((home.match(/Get Price/g) ?? []).length, 0);
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
     // The homepage renders several section components; the hero is the
     // only one allowed to open the calculator, so none of the others
@@ -82,8 +87,8 @@ describe("homepage hero keeps the two conversion actions", () => {
     }
   });
 
-  it("both lead into the ONE canonical calculator", () => {
-    assert.ok(home.includes('href="/pricing-calculator"'));
+  it("it leads into the ONE canonical calculator", () => {
+    assert.ok(home.includes('variant="hero"'));
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
         'from "@/components/PricingCalculator"',

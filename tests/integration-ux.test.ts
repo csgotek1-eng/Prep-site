@@ -200,7 +200,6 @@ describe("no duplicate anchor targets after composing sections", () => {
       "src/app/layout.tsx",
       "src/components/Header.tsx",
       "src/components/UtilityBar.tsx",
-      "src/components/PlatformBadges.tsx",
       "src/components/WarehouseLocation.tsx",
       ...readdirSync("src/components/sections").map((f) => `src/components/sections/${f}`),
     ];

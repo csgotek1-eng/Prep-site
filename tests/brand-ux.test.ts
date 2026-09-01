@@ -133,16 +133,20 @@ describe("brand icons", () => {
     assert.equal(social.includes("<path"), false);
   });
 
-  it("platform badges use real brand glyphs, not placeholder dots", () => {
-    const badges = read("src/components/PlatformBadges.tsx");
-    assert.ok(badges.includes("BrandIcon"));
-    assert.equal(badges.includes("rounded-full\" style"), false);
-    assert.equal(badges.includes("backgroundColor: platform.accent"), false);
+  it("the ONE platform row uses real brand glyphs, not placeholder dots", () => {
+    // The duplicate "Works with your sales channels" section is gone;
+    // the hero row is now the single platform presentation and carries
+    // the full supported list.
+    const home = read("src/app/page.tsx");
+    assert.ok(home.includes("BrandIcon"));
+    assert.equal(home.includes("rounded-full\" style"), false);
+    assert.equal(home.includes("backgroundColor: platform.accent"), false);
     for (const name of ["TikTok Shop", "Amazon", "Shopify", "eBay", "WooCommerce"]) {
-      assert.ok(badges.includes(name));
+      assert.ok(home.includes(name), `hero row must list ${name}`);
     }
     // TikTok Shop = TikTok glyph + text, never an invented composite logo.
-    assert.ok(badges.includes('brand: "tiktok"'));
+    assert.ok(home.includes('brand: "tiktok"'));
+    assert.ok(home.includes('brand: "woocommerce"'));
   });
 
   it("hero marketplace chips carry the brand glyphs", () => {

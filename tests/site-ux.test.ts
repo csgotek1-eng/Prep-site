@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { siteConfig } from "../src/lib/site.ts";
+import { navLinks, siteConfig } from "../src/lib/site.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
@@ -45,7 +45,18 @@ describe("contact configuration", () => {
 });
 
 describe("marketplace presentation", () => {
-  const badges = read("src/components/PlatformBadges.tsx");
+  // ONE presentation, in the hero. The non-affiliation statement these
+  // marks require is carried once, in the footer.
+  const badges = read("src/app/page.tsx");
+
+  it("appears exactly once on the homepage", () => {
+    assert.equal(existsSync("src/components/PlatformBadges.tsx"), false);
+    assert.equal(
+      (badges.match(/aria-label="Sales channels we support"/g) ?? []).length,
+      1,
+    );
+    assert.equal(badges.includes("Works with your sales channels"), false);
+  });
 
   it("never claims partnership or certification", () => {
     for (const claim of [
@@ -58,16 +69,27 @@ describe("marketplace presentation", () => {
     }
   });
 
-  it("keeps the non-affiliation disclaimer", () => {
-    assert.ok(badges.includes("not affiliated with or endorsed by"));
+  it("keeps the non-affiliation disclaimer (now in the footer)", () => {
+    // JSX wraps prose across lines — compare on collapsed whitespace.
+    const footer = read("src/components/Footer.tsx").replace(/\s+/g, " ");
+    assert.ok(footer.includes("not affiliated with or endorsed by"));
   });
 
   it("does not bundle marketplace logo image assets", () => {
-    // Recognisable brand-colour accents only — no trademarked logo files
-    // and no <Image> of a platform mark.
-    for (const asset of [".svg", ".png", ".webp", "<Image", "next/image"]) {
-      assert.equal(badges.includes(asset), false, `must not embed ${asset}`);
+    // Scoped to the platform row itself: the page legitimately uses
+    // next/image elsewhere for the decorative Dockentra watermark, but
+    // no trademarked platform logo file may be embedded.
+    const declaration = badges.slice(
+      badges.indexOf("const marketplaces"),
+      badges.indexOf("];", badges.indexOf("const marketplaces")),
+    );
+    const listStart = badges.lastIndexOf("<ul", badges.indexOf("Sales channels we support"));
+    const markup = badges.slice(listStart, badges.indexOf("</ul>", listStart));
+    const row = declaration + markup;
+    for (const asset of [".svg", ".png", ".webp", "<Image"]) {
+      assert.equal(row.includes(asset), false, `must not embed ${asset}`);
     }
+    assert.ok(row.includes("<BrandIcon"));
   });
 });
 
@@ -84,7 +106,6 @@ describe("homepage structure", () => {
 
   it("composes the shared sections in the agreed order", () => {
     const order = [
-      "PlatformBadges",
       "ServicesSection",
       "HowItWorksSection",
       "WhyDockentra",
@@ -152,7 +173,6 @@ describe("no tracking added in this round", () => {
       "src/app/page.tsx",
       "src/components/UtilityBar.tsx",
       "src/components/ContactLauncher.tsx",
-      "src/components/PlatformBadges.tsx",
     ].map(read).join("\n");
     for (const tracker of [
       "googletagmanager",
@@ -197,7 +217,10 @@ describe("CTA vocabulary and repetition", () => {
       .replace(/^\s*\/\/.*$/gm, "");
 
   it("asks for a price only where it is meant to", () => {
+    // Get Price is the ONE persistent site CTA (header + floating);
+    // the homepage hero and the Pricing page each carry one action.
     const allowed = new Set([
+      "src/components/Header.tsx",
       "src/app/page.tsx",
       "src/app/pricing/page.tsx",
     ]);
@@ -208,15 +231,27 @@ describe("CTA vocabulary and repetition", () => {
     }
   });
 
-  it("the homepage hero keeps exactly its two conversion actions", () => {
+  it("the header carries the ONE Get Price button, and no Calculator nav item", () => {
+    const header = withoutComments(read("src/components/Header.tsx"));
+    assert.ok(header.includes('label="Get Price"'));
+    // Desktop bar + mobile menu = two renderings, never both visible.
+    assert.equal((header.match(/<CalculatorModal/g) ?? []).length, 2);
+    assert.ok(header.includes("hidden sm:block"));
+    assert.ok(header.includes("sm:hidden"));
+    // The nav list itself stays free of a Calculator entry.
+    assert.equal(
+      navLinks.some((link) => (link.label as string) === "Calculator"),
+      false,
+    );
+  });
+
+  it("the homepage hero has ONE action: the Calculator", () => {
     const home = withoutComments(read("src/app/page.tsx"));
-    // ONE Get Price link and ONE Calculator button on the whole page —
-    // the closing section now asks for an enquiry instead of repeating
-    // them.
-    assert.equal((home.match(/Get Price/g) ?? []).length, 1);
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
-    assert.equal((home.match(/href="\/pricing-calculator"/g) ?? []).length, 1);
-    assert.ok(home.includes("Send an enquiry"));
+    assert.ok(home.includes('variant="hero"'));
+    // Get Price moved to the header — the hero must not repeat it.
+    assert.equal(home.includes("Get Price"), false);
+    assert.equal(home.includes('href="/pricing-calculator"'), false);
   });
 
   it("uses the approved vocabulary and none of the banned variations", () => {
@@ -265,11 +300,9 @@ describe("CTA vocabulary and repetition", () => {
     assert.ok(existsSync("src/app/api/quote/route.ts"));
   });
 
-  it("the header carries navigation only — no pricing button", () => {
+  it("the header links nowhere but the brand and the nav items", () => {
     const header = withoutComments(read("src/components/Header.tsx"));
     assert.equal(header.includes("Get Pricing"), false);
-    assert.equal(header.includes("Get Price"), false);
-    // The only Links in the header are the brand and the nav items.
     assert.equal(header.includes('href="/contact"'), false);
   });
 });
