@@ -9,6 +9,7 @@ import type {
 } from "@/lib/pricing/public";
 import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
 import { isValidEmailAddressInput } from "@/lib/email/address";
+import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
@@ -56,10 +57,15 @@ export default function PricingCalculator({
 }: {
   variant?: "page" | "modal";
 } = {}) {
+  // Seeded from the shared cache: when the catalogue is already in
+  // hand the dialog renders complete on its FIRST paint — no loading
+  // frame, no layout settling.
   const [services, setServices] = useState<PublicCatalogueService[] | null>(
-    null,
+    () => peekCatalogue()?.services ?? null,
   );
-  const [hasTieredServices, setHasTieredServices] = useState(false);
+  const [hasTieredServices, setHasTieredServices] = useState(
+    () => peekCatalogue()?.hasTieredServices ?? false,
+  );
   const [loadError, setLoadError] = useState(false);
   const [selections, setSelections] = useState<SelectionState>({});
   // Monthly order volume selects the volume band server-side. It is a
@@ -86,26 +92,19 @@ export default function PricingCalculator({
   } | null>(null);
   const [sendError, setSendError] = useState("");
 
+  // The catalogue comes from ONE shared, cached client
+  // (lib/pricing/catalogue-client). It is usually already warm by the
+  // time the dialog opens — prefetched on idle and on hover of any
+  // trigger — so the first paint is populated instead of "Loading…".
+  // Nothing here fetches per instance any more.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/pricing/services")
-      .then((response) => response.json())
-      .then(
-        (data: {
-          ok: boolean;
-          services?: PublicCatalogueService[];
-          hasTieredServices?: boolean;
-        }) => {
-          if (!cancelled) {
-            if (data.ok && Array.isArray(data.services)) {
-              setServices(data.services);
-              setHasTieredServices(Boolean(data.hasTieredServices));
-            } else {
-              setLoadError(true);
-            }
-          }
-        },
-      )
+    loadCatalogue()
+      .then((catalogue) => {
+        if (cancelled) return;
+        setServices(catalogue.services);
+        setHasTieredServices(catalogue.hasTieredServices);
+      })
       .catch(() => {
         if (!cancelled) setLoadError(true);
       });
@@ -288,10 +287,29 @@ export default function PricingCalculator({
   }
 
   if (!services) {
+    // Only reachable on a cold cache (prefetch has not landed yet).
+    // Render the real STEP 1 question immediately with a skeleton for
+    // the list below it, so the dialog opens as the calculator rather
+    // than as a single line of grey text. This is structure, not a fake
+    // spinner: the visitor can already read what is being asked.
     return (
-      <p className="p-6 text-base text-slate-500" role="status">
-        Loading services…
-      </p>
+      <div className="animate-pulse" role="status" aria-label="Loading the service list">
+        <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+            Step 1
+          </p>
+          <p className="mt-1 text-sm font-semibold text-brand-navy">
+            How many orders do you ship per month?
+          </p>
+          <div className="mt-3 h-11 w-[12rem] rounded-md bg-slate-200" />
+        </div>
+        <div className="mb-4 h-4 w-48 rounded bg-slate-200" />
+        <div className="space-y-3">
+          {[0, 1, 2, 3].map((row) => (
+            <div key={row} className="h-20 rounded-lg border border-slate-200 bg-slate-50" />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -367,10 +385,18 @@ export default function PricingCalculator({
           </p>
         )}
 
+        {/* LAYOUT STABILITY: the action form and the confirmation that
+            replaces it live inside ONE container with a reserved
+            minimum height. Before, submitting swapped a tall form for a
+            short status message, the panel above the summary collapsed,
+            and everything below it jumped up the screen. The reserved
+            space absorbs the difference, so the dialog keeps its shape
+            through idle → sending → done. */}
+        <div className="mt-3 min-h-[16.5rem] sm:min-h-[15.5rem]">
         {sendPhase === "done" && sendOutcome ? (
           <div
             role="status"
-            className="mt-3 rounded-md border border-brand-mint/70 bg-brand-mint-soft/60 px-3 py-3 text-sm leading-6 text-slate-800"
+            className="rounded-md border border-brand-mint/70 bg-brand-mint-soft/60 px-3 py-3 text-sm leading-6 text-slate-800"
           >
             {sendOutcome.delivery === "sent" ? (
               <p>
@@ -413,7 +439,7 @@ export default function PricingCalculator({
             </button>
           </div>
         ) : (
-          <form onSubmit={sendPrice} className="mt-3">
+          <form onSubmit={sendPrice}>
             {/* Honeypot — hidden from people, filled in by simple bots. */}
             <div
               aria-hidden="true"
@@ -569,34 +595,44 @@ export default function PricingCalculator({
             </button>
           </form>
         )}
+        </div>
       </div>
     ) : null;
 
   // Selected-service details, shared by the desktop panel's scroll area
   // and the mobile details card.
+  // SELECTED SERVICES — the owner's main readability complaint. Rows
+  // were 12px labels with a 12px sub-line in a box only a couple of
+  // lines tall. They are now full-size text on their own line, with the
+  // quantity as a distinct chip that can never squeeze the name: a long
+  // service name wraps instead of being compressed, because the name
+  // and the chip sit in a flex row where only the name may shrink.
   const linesList =
     estimate && hasEstimateLines ? (
       <ul className="divide-y divide-slate-100">
         {estimate.lines.map((line) => (
-          <li key={line.serviceId} className="py-3 first:pt-0">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-sm font-medium text-slate-800">
+          <li key={line.serviceId} className="py-3.5 first:pt-0">
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0 flex-1 break-words text-[0.9375rem] font-semibold leading-6 text-brand-navy">
                 {line.name}
               </span>
+              <span className="shrink-0 whitespace-nowrap rounded-md bg-brand-mint-soft px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-green-dark">
+                ×{line.quantity}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600">
+              <span>{line.unitLabel}</span>
               {line.customQuote && (
                 <span className="whitespace-nowrap rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                   Individual quote
                 </span>
               )}
             </div>
-            <div className="mt-0.5 text-xs text-slate-500">
-              Qty {line.quantity} — {line.unitLabel}
-            </div>
           </li>
         ))}
       </ul>
     ) : (
-      <p className="text-sm leading-6 text-slate-600">
+      <p className="text-base leading-7 text-slate-600">
         {selectedCount > 0 && estimating
           ? "Preparing your price request…"
           : "Select services to build your price request."}
@@ -638,7 +674,7 @@ export default function PricingCalculator({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_minmax(320px,380px)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(380px,26rem)]">
         {/* Service selector */}
         <div>
           {/* STEP 1 — monthly order volume, ALWAYS first and always
@@ -810,7 +846,7 @@ export default function PricingCalculator({
               <div className="mt-3">{renderActionsPanel("desktop")}</div>
             )}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4 lg:min-h-[22rem]">
             {linesList}
             {disclaimer}
           </div>
@@ -824,6 +860,8 @@ export default function PricingCalculator({
         <h2 className="text-lg font-semibold text-brand-navy">
           Selected services
         </h2>
+        {/* Grows with the page rather than scrolling inside itself —
+            one scrollbar (the page/dialog), never a tiny nested one. */}
         <div className="mt-3">{linesList}</div>
         {disclaimer}
       </div>

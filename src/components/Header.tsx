@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLockup from "@/components/BrandLockup";
+import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import { navLinks } from "@/lib/site";
 
@@ -76,10 +77,16 @@ export default function Header() {
             </ul>
           </nav>
 
-          {/* No pricing CTA in the header: "Get Price" lives in the
-              homepage hero and in the global floating action, so it is
-              never repeated in the chrome of every page. */}
+          {/* THE primary CTA of the site, top-right on every page. It
+              opens the ONE canonical calculator dialog — the same
+              component the hero button and the floating action open, so
+              there is still exactly one calculator implementation. The
+              nav itself stays free of a Calculator item. */}
           <div className="flex items-center gap-2">
+            <div className="hidden sm:block">
+              <CalculatorModal variant="header" label="Get Price" />
+            </div>
+
             {/* Mobile menu button */}
             <button
               type="button"
@@ -142,6 +149,16 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              <li className="pt-2 sm:hidden">
+                {/* Mobile only: the desktop bar already shows Get Price
+                    from sm up, so the two never appear together. */}
+                <CalculatorModal
+                  variant="header"
+                  label="Get Price"
+                  onOpen={closeMenu}
+                  block
+                />
+              </li>
             </ul>
           </Container>
         </nav>

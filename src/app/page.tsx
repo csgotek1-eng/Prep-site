@@ -3,7 +3,6 @@ import Image from "next/image";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
-import PlatformBadges from "@/components/PlatformBadges";
 import AboutSection from "@/components/sections/AboutSection";
 import ContactSection from "@/components/sections/ContactSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
@@ -11,14 +10,17 @@ import PricingTeaser from "@/components/sections/PricingTeaser";
 import ServicesSection from "@/components/sections/ServicesSection";
 import WhyDockentra from "@/components/sections/WhyDockentra";
 
-/* Hero shows the four most recognisable channels as chips; the full
-   supported list lives in the platforms section below. Icons come from
-   the canonical BrandIcon mapping. */
+/* THE one platform presentation on the homepage. It used to be a
+   four-chip teaser with a near-identical "Works with your sales
+   channels" section a screen below it; the duplicate is gone and this
+   row now carries the full supported list, real brand glyphs and all,
+   from the canonical BrandIcon mapping. */
 const marketplaces: { name: string; brand: BrandName }[] = [
   { name: "TikTok Shop", brand: "tiktok" },
   { name: "Amazon", brand: "amazon" },
   { name: "Shopify", brand: "shopify" },
   { name: "eBay", brand: "ebay" },
+  { name: "WooCommerce", brand: "woocommerce" },
 ];
 
 export default function HomePage() {
@@ -75,29 +77,24 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+              {/* The supported list is now complete in the row itself.
+                  The "not affiliated / not endorsed" statement these
+                  marks require is carried once, in the footer. */}
               <p className="text-sm text-brand-text-muted">
-                + WooCommerce and more
+                and your own store
               </p>
             </div>
 
-            {/* THE conversion area of the site, and the only place a
-                pricing CTA is repeated: both actions lead into the ONE
-                canonical calculator — Get Price opens its page, and
-                Calculator opens the same component in a dialog. */}
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/pricing-calculator"
-                className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
-              >
-                Get Price
-              </Link>
-              <CalculatorModal variant="secondary" />
+            {/* ONE hero action. Get Price lives in the header now, so
+                the hero no longer offers two doors into the same room —
+                it offers one, deliberately wide. */}
+            <div className="mt-9">
+              <CalculatorModal variant="hero" />
             </div>
           </div>
         </Container>
       </section>
 
-      <PlatformBadges />
       <ServicesSection />
       <HowItWorksSection />
       <WhyDockentra />
