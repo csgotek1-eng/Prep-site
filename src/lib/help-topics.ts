@@ -1,18 +1,16 @@
 import type { EnquiryType } from "./enquiry";
 
 /**
- * The structured Help command menu (owner requirement P0-14).
+ * The structured Help command menu.
  *
- * Every topic routes into one of the EXISTING flows — no new backend
- * shapes and no second pricing engine:
+ * HELP IS HELP. It carries no pricing entry point: the floating
+ * Calculator icon, the header Get Price button and the homepage hero
+ * own that job, and duplicating it here only made the panel a second
+ * front door to the same flow. Every topic therefore routes into the
+ * existing enquiry form — no new backend shapes, no pricing action.
  *
- *  - action "pricing"  → navigates to the pricing calculator, the ONE
- *    WhatsApp pricing flow (service selection → quantities → monthly
- *    orders → customer WhatsApp number → server-side pricing →
- *    outbound provider).
- *  - action client / partnership / general → the existing enquiry form
- *    with the topic recorded on the enquiry (and the platform
- *    preselected where the topic implies one).
+ * The topic is recorded on the enquiry, and the platform is
+ * preselected where the topic implies one.
  *
  * Labels are service NAMES only — no invented guarantees.
  */
@@ -20,8 +18,8 @@ import type { EnquiryType } from "./enquiry";
 export interface HelpTopic {
   id: string;
   label: string;
-  group: "Pricing" | "Services" | "Partnership & support";
-  action: "pricing" | EnquiryType;
+  group: "Services" | "Partnership & support";
+  action: EnquiryType;
   /** Preselects the marketplace/platform field on the enquiry form. */
   platform?: string;
   /** Emphasise the free-text message area (Write my own question). */
@@ -30,13 +28,6 @@ export interface HelpTopic {
 }
 
 export const HELP_TOPICS: readonly HelpTopic[] = [
-  {
-    id: "get-pricing",
-    label: "Get Pricing",
-    group: "Pricing",
-    action: "pricing",
-    hint: "Pick services and get your price sent to your WhatsApp",
-  },
   {
     id: "fulfilment-services",
     label: "Fulfilment Services",
@@ -140,7 +131,6 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
 ];
 
 export const HELP_TOPIC_GROUPS = [
-  "Pricing",
   "Services",
   "Partnership & support",
 ] as const;

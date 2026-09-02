@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter, Manrope } from "next/font/google";
-import ContactLauncher from "@/components/ContactLauncher";
+import FloatingDock from "@/components/FloatingDock";
 import { FloatingChromeProvider } from "@/components/FloatingChrome";
 import Header from "@/components/Header";
 import UtilityBar from "@/components/UtilityBar";
@@ -135,7 +135,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          <ContactLauncher />
+          <FloatingDock />
         </FloatingChromeProvider>
       </body>
     </html>
