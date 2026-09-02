@@ -169,7 +169,7 @@ describe("D. API routes stay redacted while the lead keeps the priced copy", () 
 describe("E. ONE pricing CTA — the price is SENT to the customer", () => {
   it("the calculator has exactly one pricing action", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
-    assert.ok(calculator.includes("Send My Price to WhatsApp"));
+    assert.ok(calculator.includes("Send my price to WhatsApp"));
     // The old dual-CTA pricing flow is gone: no quote-form branch and
     // no customer-composed wa.me handoff for the pricing result.
     assert.equal(calculator.includes("Request This Quote"), false);

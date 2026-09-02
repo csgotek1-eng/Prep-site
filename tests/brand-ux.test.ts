@@ -14,8 +14,8 @@ describe("calculator primary actions stay reachable", () => {
     assert.ok(calculator.includes("const linesList"));
     // The single panel renders responsively in exactly two places,
     // with unique ids per rendering.
-    assert.ok(calculator.includes('renderActionsPanel("mobile")'));
-    assert.ok(calculator.includes('renderActionsPanel("desktop")'));
+    assert.ok(calculator.includes('renderActionsPanel("mobile", "flow")'));
+    assert.ok(calculator.includes('renderActionsPanel("desktop", "panel")'));
     assert.equal(
       (calculator.match(/renderActionsPanel\("/g) ?? []).length,
       2,
@@ -26,7 +26,7 @@ describe("calculator primary actions stay reachable", () => {
   it("the ONE pricing action lives in the persistent action area", () => {
     const panel = calculator.slice(
       calculator.indexOf("const renderActionsPanel"),
-      calculator.indexOf("const linesList"),
+      calculator.indexOf("return (\n    <div>"),
     );
     // ONE action, whichever delivery channel the visitor picked.
     assert.ok(panel.includes("Send my price to WhatsApp"));

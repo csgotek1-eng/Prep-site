@@ -227,7 +227,9 @@ describe("selected-services summary", () => {
 
   it("the summary column is wider and the list shows several rows", () => {
     assert.ok(calc.includes("lg:grid-cols-[minmax(0,1fr)_minmax(380px,26rem)]"));
-    assert.ok(calc.includes("lg:min-h-[22rem]"));
+    // SUPERSEDED: replaced by a flexible summary band — see
+    // tests/desktop-cta-visibility.test.ts.
+    assert.equal(calc.includes("lg:min-h-[22rem]"), false);
   });
 
   it("mobile keeps ONE scroll container, not a tiny nested one", () => {
@@ -243,13 +245,19 @@ describe("layout stability across submit states", () => {
   it("the action and its confirmation share one reserved-height container", () => {
     const panel = calc.slice(
       calc.indexOf("const renderActionsPanel"),
-      calc.indexOf("const linesList"),
+      calc.indexOf("return (\n    <div>"),
     );
-    assert.ok(/min-h-\[[\d.]+rem\]/.test(panel), "reserves space for the action area");
-    // The success state replaces the form INSIDE that container.
-    const wrapper = panel.slice(panel.indexOf("min-h-["));
-    assert.ok(wrapper.includes('sendPhase === "done" && sendOutcome ? ('));
-    assert.ok(wrapper.includes("<form onSubmit={sendPrice}"));
+    // The success state and the form it replaces carry the SAME
+    // reserved height in flow layout, so submitting cannot collapse
+    // the step. (In panel layout the head/footer bands do that job and
+    // no reservation is needed.)
+    assert.ok(panel.includes('sendPhase === "done" && sendOutcome ? ('));
+    assert.ok(panel.includes("<form"));
+    assert.equal(
+      (panel.match(/"mt-3 min-h-\[16\.5rem\] sm:min-h-\[15\.5rem\]"/g) ?? []).length,
+      2,
+      "both the confirmation and the form reserve the same height",
+    );
   });
 
   it("the estimating indicator reserves its slot rather than appearing and gone", () => {

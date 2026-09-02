@@ -142,12 +142,18 @@ describe("previous rounds are preserved", () => {
     assert.ok(list.includes("text-[0.9375rem] font-semibold"));
     assert.ok(list.includes("min-w-0 flex-1 break-words"));
     assert.ok(list.includes("shrink-0 whitespace-nowrap"));
-    assert.ok(calculator.includes("lg:min-h-[22rem]"));
+    // SUPERSEDED ON PURPOSE: a 22rem minimum inside a height-capped
+    // card is exactly what pushed the Send button off a short laptop
+    // screen. The summary band now takes whatever height is left.
+    assert.equal(calculator.includes("lg:min-h-[22rem]"), false);
     assert.ok(calculator.includes("lg:grid-cols-[minmax(0,1fr)_minmax(380px,26rem)]"));
     const panel = calculator.slice(
       calculator.indexOf("const renderActionsPanel"),
-      calculator.indexOf("const linesList"),
+      calculator.indexOf("return (\n    <div>"),
     );
+    // Flow layout (below lg) still reserves space so submitting cannot
+    // collapse the step; panel layout gets the same stability from its
+    // fixed head/footer bands instead.
     assert.ok(/min-h-\[[\d.]+rem\]/.test(panel), "action area still reserves space");
   });
 

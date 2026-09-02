@@ -248,12 +248,19 @@ describe("the result replaces step 3 and can start over", () => {
   it("the confirmation swaps the form inside the reserved-height box", () => {
     const panel = code.slice(
       code.indexOf("const renderActionsPanel"),
-      code.indexOf("const linesList"),
+      code.indexOf("return (\n    <div>"),
     );
-    assert.ok(/min-h-\[[\d.]+rem\]/.test(panel));
-    const box = panel.slice(panel.indexOf("min-h-["));
-    assert.ok(box.includes('sendPhase === "done" && sendOutcome ? ('));
-    assert.ok(box.includes("<form onSubmit={sendPrice}"));
+    // The success state and the form it replaces carry the SAME
+    // reserved height in flow layout, so submitting cannot collapse
+    // the step. (In panel layout the head/footer bands do that job and
+    // no reservation is needed.)
+    assert.ok(panel.includes('sendPhase === "done" && sendOutcome ? ('));
+    assert.ok(panel.includes("<form"));
+    assert.equal(
+      (panel.match(/"mt-3 min-h-\[16\.5rem\] sm:min-h-\[15\.5rem\]"/g) ?? []).length,
+      2,
+      "both the confirmation and the form reserve the same height",
+    );
   });
 
   it("'Request pricing again' returns the wizard to step 1", () => {
@@ -284,8 +291,8 @@ describe("the desktop calculator is unchanged", () => {
     assert.ok(code.includes("lg:top-2 lg:max-h-[calc(100dvh-12rem)]"));
     assert.ok(code.includes("lg:top-24 lg:max-h-[calc(100dvh-7rem)]"));
     assert.ok(code.includes("min-h-0 flex-1 overflow-y-auto"));
-    assert.ok(code.includes("lg:min-h-[22rem]"));
-    assert.ok(code.includes('renderActionsPanel("desktop")'));
+    assert.equal(code.includes("lg:min-h-[22rem]"), false);
+    assert.ok(code.includes('renderActionsPanel("desktop", "panel")'));
   });
 
   it("every wizard-only element is hidden from lg up", () => {
@@ -358,7 +365,7 @@ describe("the round changes presentation only", () => {
     const body = code.slice(code.indexOf("return (\n    <div>"));
     const i1 = body.indexOf("How many orders do you ship per month?");
     const i2 = body.indexOf("Select the services you need");
-    const i3 = body.indexOf('renderActionsPanel("mobile")');
+    const i3 = body.indexOf('renderActionsPanel("mobile", "flow")');
     assert.ok(i1 > 0, "step 1 question");
     assert.ok(i2 > i1, "step 2 comes after step 1");
     assert.ok(i3 > i2, "step 3 comes after step 2");

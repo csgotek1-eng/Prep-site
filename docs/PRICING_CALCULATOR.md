@@ -162,10 +162,29 @@ One component, one state, one set of pricing calls — the layout is the
 only thing that changes with the viewport.
 
 **Desktop (`lg` and up, ≥1024px).** Two columns: the questions on the
-left (step 1 volume, then step 2 services) and a sticky summary aside
-on the right holding step 3 (delivery choice, destination field, send)
-above the scrolling list of selected services. Every step is on screen
-at once.
+left (step 1 volume, then step 2 services) and a sticky, `dvh`-capped
+summary card on the right holding step 3. Every step is on screen at
+once.
+
+That card is built as THREE BANDS, and the split is what keeps the
+Send button reachable:
+
+| Band | Contents | Behaviour |
+| --- | --- | --- |
+| Head | card title, "N services ready to price", the privacy note | `shrink-0` — never scrolls away |
+| Middle | delivery choice, destination field, validation message, consent note, the selected-services review | `min-h-0 flex-1 overflow-y-auto` — the only band that gives way |
+| Footer | the single Send button | `shrink-0` — pinned to the bottom of the card |
+
+Before this the whole form lived in the `shrink-0` header and the card
+carried a hard `lg:min-h-[22rem]` on its list, so on a short laptop
+window — and worse, once a validation message appeared — the Send
+button was pushed below the bottom of the card. Nothing that can grow
+now shares a band with the action: a rejected value scrolls inside the
+middle band, and the footer cannot move. The message renders directly
+under the field it is about, and a failed submit focuses that field
+and scrolls the message into view, so it is never reported somewhere
+the visitor cannot see. Do NOT reintroduce a fixed minimum height
+inside the capped card.
 
 **Mobile and tablet (below `lg`).** The same three steps become a
 WIZARD: exactly one step is displayed at a time.

@@ -280,14 +280,39 @@ export default function PricingCalculator({
     // Double-submit guard: the button is also disabled, but a fast
     // second tap/Enter can fire before React re-renders.
     if (sendPhase === "sending") return;
+    const form = event.currentTarget;
+    // The message appears directly under the destination field, and
+    // the field is INSIDE the panel's scrolling band on lg+. Focusing
+    // it brings both back into view, so a rejected value is never
+    // reported somewhere the visitor cannot see.
+    const revealDestination = () => {
+      const field = form.querySelector<HTMLInputElement>(
+        channel === "whatsapp"
+          ? 'input[name="whatsappNumber"]'
+          : 'input[name="email"]',
+      );
+      field?.focus();
+      field?.scrollIntoView({ block: "nearest" });
+      // The message itself only exists after the next render. Bring it
+      // fully into view then, so a very short card cannot cut off its
+      // last line. `form` is the submitted instance, so this can only
+      // ever touch the rendering the visitor is actually using.
+      requestAnimationFrame(() => {
+        form
+          .querySelector('[role="alert"]')
+          ?.scrollIntoView({ block: "nearest" });
+      });
+    };
     if (channel === "whatsapp" && !isValidWhatsAppNumberInput(whatsappNumber)) {
       setSendError(
         "Please enter your WhatsApp number with the country code, e.g. +353 85 123 4567.",
       );
+      revealDestination();
       return;
     }
     if (channel === "email" && !isValidEmailAddressInput(emailAddress)) {
       setSendError("Please enter a valid email address, e.g. you@company.ie.");
+      revealDestination();
       return;
     }
     const honeypot = new FormData(event.currentTarget).get("website");
@@ -439,17 +464,101 @@ export default function PricingCalculator({
     </h2>
   );
 
-  // ONE logical primary-action area with ONE pricing action: enter
-  // your WhatsApp number, press "Send My Price to WhatsApp". It
-  // renders responsively: sticky near the TOP of the calculator below
-  // lg, and as the fixed header of the summary panel on lg+ — never
-  // below the growing list of selected services, so the action can
-  // never scroll out of reach. Only one instance is visible at any
-  // breakpoint; `idSuffix` keeps the input/label ids unique across the
-  // two responsive renderings. It never shows a monetary value.
-  const renderActionsPanel = (idSuffix: string) =>
+  // Selected-service details, shared by the desktop panel's scroll area
+  // and the mobile details card.
+  // SELECTED SERVICES — the owner's main readability complaint. Rows
+  // were 12px labels with a 12px sub-line in a box only a couple of
+  // lines tall. They are now full-size text on their own line, with the
+  // quantity as a distinct chip that can never squeeze the name: a long
+  // service name wraps instead of being compressed, because the name
+  // and the chip sit in a flex row where only the name may shrink.
+  const linesList =
     estimate && hasEstimateLines ? (
-      <div>
+      <ul className="divide-y divide-slate-100">
+        {estimate.lines.map((line) => (
+          <li key={line.serviceId} className="py-3.5 first:pt-0">
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0 flex-1 break-words text-[0.9375rem] font-semibold leading-6 text-brand-navy">
+                {line.name}
+              </span>
+              <span className="shrink-0 whitespace-nowrap rounded-md bg-brand-mint-soft px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-green-dark">
+                ×{line.quantity}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600">
+              <span>{line.unitLabel}</span>
+              {line.customQuote && (
+                <span className="whitespace-nowrap rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  Individual quote
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-base leading-7 text-slate-600">
+        {selectedCount > 0 && estimating
+          ? "Preparing your price request…"
+          : "Select services to build your price request."}
+        {selectedCount === 0 && " Nothing is selected yet."}
+        {selectedCount > 0 && estimateError && (
+          <span className="mt-2 block text-amber-800">
+            Your selection couldn&apos;t be loaded just now — please try
+            again in a moment.
+          </span>
+        )}
+      </p>
+    );
+
+  const disclaimer = (
+    <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+      We don&apos;t publish prices on the website — every operation is
+      priced individually and your personalised price is sent to you
+      directly. Final pricing depends on product dimensions, handling
+      requirements, storage profile, packaging and agreed service terms.
+    </p>
+  );
+  // On lg+ the selected services are read INSIDE the panel's scrolling
+  // band, under the delivery fields — one scroll area in the card, and
+  // the list can grow without ever reaching the action footer.
+  const selectedServicesReview = (
+    <div className="mt-5 border-t border-slate-100 pt-4">
+      <h3 className="text-sm font-semibold text-brand-navy">
+        Selected services
+      </h3>
+      <div className="mt-2">{linesList}</div>
+      {disclaimer}
+    </div>
+  );
+
+  // ONE logical primary-action area with ONE pricing action: choose a
+  // channel, enter your own destination, press one Send button. Only
+  // one instance is visible at any breakpoint; `idSuffix` keeps the
+  // input/label ids unique across the two renderings. It never shows a
+  // monetary value.
+  //
+  // `layout` is the only difference between the two:
+  //
+  //  - "flow"  (below lg): everything in normal document flow inside
+  //    wizard step 3. The page/dialog is the single scroll container.
+  //
+  //  - "panel" (lg+): THREE BANDS inside the height-capped summary
+  //    card — a stable head, a scrolling middle, and a stable action
+  //    footer. Before this, the whole form lived in a `shrink-0`
+  //    header, so on a short laptop window (and worse, once a
+  //    validation error appeared) the Send button was pushed below the
+  //    bottom of the card. Now only the middle band gives way: the
+  //    Send button is pinned to the bottom of the card and cannot be
+  //    pushed anywhere.
+  const renderActionsPanel = (
+    idSuffix: string,
+    layout: "flow" | "panel",
+  ) => {
+    const panel = layout === "panel";
+    return estimate && hasEstimateLines ? (
+      <div className={panel ? "flex min-h-0 flex-1 flex-col" : undefined}>
+      <div className={panel ? "shrink-0 px-5 pt-4 sm:px-6" : undefined}>
         <div className="flex items-baseline justify-between gap-3">
           {/* The heading itself comes from the surrounding container
               (sr-only h2 on mobile, the panel h2 on desktop) — repeating
@@ -485,16 +594,21 @@ export default function PricingCalculator({
             kept — try again in a moment.
           </p>
         )}
+      </div>
 
-        {/* LAYOUT STABILITY: the action form and the confirmation that
-            replaces it live inside ONE container with a reserved
-            minimum height. Before, submitting swapped a tall form for a
-            short status message, the panel above the summary collapsed,
-            and everything below it jumped up the screen. The reserved
-            space absorbs the difference, so the dialog keeps its shape
-            through idle → sending → done. */}
-        <div className="mt-3 min-h-[16.5rem] sm:min-h-[15.5rem]">
+        {/* LAYOUT STABILITY (flow): the action form and the
+            confirmation that replaces it share ONE container with a
+            reserved minimum height, so submitting cannot collapse the
+            step. In "panel" the same job is done by the band structure
+            — the middle simply scrolls and the footer never moves. */}
         {sendPhase === "done" && sendOutcome ? (
+          <div
+            className={
+              panel
+                ? "min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6"
+                : "mt-3 min-h-[16.5rem] sm:min-h-[15.5rem]"
+            }
+          >
           <div
             role="status"
             className="rounded-md border border-brand-mint/70 bg-brand-mint-soft/60 px-3 py-3 text-sm leading-6 text-slate-800"
@@ -543,8 +657,24 @@ export default function PricingCalculator({
               Request pricing again
             </button>
           </div>
+          {panel && selectedServicesReview}
+          </div>
         ) : (
-          <form onSubmit={sendPrice}>
+          <form
+            onSubmit={sendPrice}
+            className={
+              panel
+                ? "flex min-h-0 flex-1 flex-col"
+                : "mt-3 min-h-[16.5rem] sm:min-h-[15.5rem]"
+            }
+          >
+            <div
+              className={
+                panel
+                  ? "min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6"
+                  : undefined
+              }
+            >
             {/* Honeypot — hidden from people, filled in by simple bots. */}
             <div
               aria-hidden="true"
@@ -659,6 +789,18 @@ export default function PricingCalculator({
                 />
               </>
             )}
+            {/* The validation message sits directly under the field it
+                is about, and INSIDE the scrolling band — so it can
+                never push the Send button off the card. */}
+            {sendError && (
+              <p
+                id={`pricing-error-${idSuffix}`}
+                role="alert"
+                className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700"
+              >
+                {sendError}
+              </p>
+            )}
             {/* Transactional intent, not marketing consent. */}
             <p className="mt-1.5 text-xs leading-5 text-slate-500">
               Send my requested Dockentra pricing to this{" "}
@@ -673,19 +815,24 @@ export default function PricingCalculator({
               </a>
               .
             </p>
-            {sendError && (
-              <p
-                id={`pricing-error-${idSuffix}`}
-                role="alert"
-                className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700"
-              >
-                {sendError}
-              </p>
-            )}
+            {panel && selectedServicesReview}
+            </div>
+            {/* ACTION FOOTER — stable band. On lg+ it is a sibling of
+                the scrolling middle, so it is always on screen inside
+                the card whatever the content above it does. */}
+            <div
+              className={
+                panel
+                  ? "shrink-0 border-t border-slate-100 bg-white px-5 py-4 sm:px-6"
+                  : undefined
+              }
+            >
             <button
               type="submit"
               disabled={sendPhase === "sending"}
-              className="mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+                panel ? "" : "mt-2"
+              }`}
             >
               {channel === "whatsapp" ? (
                 <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
@@ -698,67 +845,12 @@ export default function PricingCalculator({
                   ? "Send my price to WhatsApp"
                   : "Send my price by email"}
             </button>
+            </div>
           </form>
         )}
-        </div>
       </div>
     ) : null;
-
-  // Selected-service details, shared by the desktop panel's scroll area
-  // and the mobile details card.
-  // SELECTED SERVICES — the owner's main readability complaint. Rows
-  // were 12px labels with a 12px sub-line in a box only a couple of
-  // lines tall. They are now full-size text on their own line, with the
-  // quantity as a distinct chip that can never squeeze the name: a long
-  // service name wraps instead of being compressed, because the name
-  // and the chip sit in a flex row where only the name may shrink.
-  const linesList =
-    estimate && hasEstimateLines ? (
-      <ul className="divide-y divide-slate-100">
-        {estimate.lines.map((line) => (
-          <li key={line.serviceId} className="py-3.5 first:pt-0">
-            <div className="flex items-start justify-between gap-3">
-              <span className="min-w-0 flex-1 break-words text-[0.9375rem] font-semibold leading-6 text-brand-navy">
-                {line.name}
-              </span>
-              <span className="shrink-0 whitespace-nowrap rounded-md bg-brand-mint-soft px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-green-dark">
-                ×{line.quantity}
-              </span>
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600">
-              <span>{line.unitLabel}</span>
-              {line.customQuote && (
-                <span className="whitespace-nowrap rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                  Individual quote
-                </span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p className="text-base leading-7 text-slate-600">
-        {selectedCount > 0 && estimating
-          ? "Preparing your price request…"
-          : "Select services to build your price request."}
-        {selectedCount === 0 && " Nothing is selected yet."}
-        {selectedCount > 0 && estimateError && (
-          <span className="mt-2 block text-amber-800">
-            Your selection couldn&apos;t be loaded just now — please try
-            again in a moment.
-          </span>
-        )}
-      </p>
-    );
-
-  const disclaimer = (
-    <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
-      We don&apos;t publish prices on the website — every operation is
-      priced individually and your personalised price is sent to you
-      directly. Final pricing depends on product dimensions, handling
-      requirements, storage profile, packaging and agreed service terms.
-    </p>
-  );
+  };
 
   return (
     <div>
@@ -980,7 +1072,7 @@ export default function PricingCalculator({
             {stepHeading(3)}
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               {estimate && hasEstimateLines ? (
-                renderActionsPanel("mobile")
+                renderActionsPanel("mobile", "flow")
               ) : (
                 <p role="status" className="text-sm leading-6 text-slate-600">
                   {selectedCount === 0
@@ -994,11 +1086,13 @@ export default function PricingCalculator({
           </div>
         </div>
 
-        {/* DESKTOP (lg+) estimate panel: fixed action header on top,
-            selected-service details scrolling independently below it.
-            The growing line list can never push the actions out of
-            view. Contained by the page/modal via sticky — never
-            position:fixed against the browser viewport. */}
+        {/* DESKTOP (lg+) estimate panel. THREE BANDS, so the Send
+            button is structurally separated from everything that can
+            grow: the card title, then the delivery fields + validation
+            message + selected services in ONE scrolling band, then the
+            action footer pinned to the bottom of the card. Height is
+            capped in dvh and contained by the page/modal via sticky —
+            never position:fixed against the browser viewport. */}
         <aside
           aria-label="Price request summary"
           className={`hidden h-fit rounded-lg border border-slate-200 bg-white lg:sticky lg:flex lg:flex-col ${
@@ -1013,18 +1107,23 @@ export default function PricingCalculator({
                 "lg:top-24 lg:max-h-[calc(100dvh-7rem)]"
           }`}
         >
-          <div className="shrink-0 border-b border-slate-100 p-5 sm:p-6">
+          <div className="shrink-0 border-b border-slate-100 px-5 pb-4 pt-5 sm:px-6 sm:pb-4 sm:pt-6">
             <h2 className="text-lg font-semibold text-brand-navy">
               Your price request
             </h2>
-            {estimate && hasEstimateLines && (
-              <div className="mt-3">{renderActionsPanel("desktop")}</div>
-            )}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4 lg:min-h-[22rem]">
-            {linesList}
-            {disclaimer}
-          </div>
+          {estimate && hasEstimateLines ? (
+            renderActionsPanel("desktop", "panel")
+          ) : (
+            // Nothing selected yet: no action exists, so the card is
+            // just the prompt. No reserved minimum height — a hard
+            // minimum inside a height-capped card is exactly what used
+            // to push the action below the fold.
+            <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4 sm:p-6 sm:pt-4">
+              {linesList}
+              {disclaimer}
+            </div>
+          )}
         </aside>
       </div>
 
