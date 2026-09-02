@@ -62,12 +62,17 @@ export function useCataloguePrefetch(): () => void {
 }
 
 const VARIANTS = {
-  /** Top-right site CTA. */
+  /** Top-right site CTA. Text only — no icon (owner request). */
   header:
-    "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
-  /** The single, deliberately wide homepage hero action. */
+    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
+  /**
+   * The single homepage hero action: same generous size as before, but
+   * OUTLINED rather than solid green. Two solid green buttons on one
+   * screen (header + hero) fought each other; the hero now reads as the
+   * calm, wide secondary surface it is.
+   */
   hero:
-    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-brand-green px-10 text-lg font-semibold text-white shadow-md transition hover:bg-brand-green-dark hover:shadow-lg sm:w-auto sm:min-w-[20rem]",
+    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg border-2 border-brand-green bg-white/80 px-10 text-lg font-semibold text-brand-green-dark shadow-sm backdrop-blur-sm transition hover:border-brand-green-dark hover:bg-brand-mint-soft hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto sm:min-w-[20rem]",
   primary:
     "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
   onDark:
@@ -82,6 +87,7 @@ export default function CalculatorModal({
   variant = "primary",
   onOpen,
   block = false,
+  icon = true,
 }: {
   label?: string;
   variant?: keyof typeof VARIANTS;
@@ -89,6 +95,8 @@ export default function CalculatorModal({
   onOpen?: () => void;
   /** Full-width button (mobile menu row). */
   block?: boolean;
+  /** The header CTA reads as plain text; everywhere else keeps the icon. */
+  icon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const warm = useCataloguePrefetch();
@@ -106,7 +114,7 @@ export default function CalculatorModal({
         }}
         className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
       >
-        <Calculator aria-hidden="true" className="h-5 w-5" />
+        {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}
         {label}
       </button>
       <CalculatorDialog open={open} onClose={() => setOpen(false)} />

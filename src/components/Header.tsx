@@ -84,7 +84,7 @@ export default function Header() {
               nav itself stays free of a Calculator item. */}
           <div className="flex items-center gap-2">
             <div className="hidden sm:block">
-              <CalculatorModal variant="header" label="Get Price" />
+              <CalculatorModal variant="header" label="Get Price" icon={false} />
             </div>
 
             {/* Mobile menu button */}
@@ -155,6 +155,7 @@ export default function Header() {
                 <CalculatorModal
                   variant="header"
                   label="Get Price"
+                  icon={false}
                   onOpen={closeMenu}
                   block
                 />
