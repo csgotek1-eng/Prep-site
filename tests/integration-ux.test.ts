@@ -26,14 +26,13 @@ describe("one support system, not two", () => {
     assert.ok(launcher.includes("replaceState"));
   });
 
-  it("keeps exactly one floating launcher in the app shell", () => {
+  it("keeps exactly one floating system in the app shell", () => {
+    // The wordy launcher was replaced by ONE dock of two icon-only
+    // actions; the Help panel no longer renders anything floating.
+    const dock = read("src/components/FloatingDock.tsx");
+    assert.equal((dock.match(/data-testid="floating-dock"/g) ?? []).length, 1);
     const launcher = read("src/components/ContactLauncher.tsx");
-    // The launcher button's className is a template literal because its
-    // visibility is coordinated with FloatingChrome (it yields to the
-    // calculator's sticky quote dock) — but there must still be exactly
-    // ONE floating launcher.
-    const floating = launcher.match(/fixed right-4 z-50/g) ?? [];
-    assert.equal(floating.length, 1);
+    assert.equal(launcher.includes("fixed"), false);
   });
 
   it("cannot collide with the calculator's primary actions", () => {
@@ -45,10 +44,13 @@ describe("one support system, not two", () => {
     assert.equal(calculator.includes("sticky bottom-"), false);
     assert.equal(calculator.includes("fixed inset-x-0 bottom-0"), false);
     // The FloatingChrome coordination layer stays available for any
-    // future bottom bar, and the launcher still honours it.
-    const launcher = read("src/components/ContactLauncher.tsx");
-    assert.ok(launcher.includes("useBottomBarPresent"));
-    assert.ok(launcher.includes("hidden lg:inline-flex"));
+    // future bottom bar, and the dock still honours it. The dock also
+    // hides itself entirely whenever a dialog is open, so it cannot
+    // cover a Send button, a destination field or a close control.
+    const dock = read("src/components/FloatingDock.tsx");
+    assert.ok(dock.includes("useBottomBarPresent"));
+    assert.ok(dock.includes("hidden lg:flex"));
+    assert.ok(dock.includes("{!anyDialogOpen && ("));
   });
 
   it("adds no competing persistent mobile action bar or floating WhatsApp button", () => {
@@ -58,8 +60,10 @@ describe("one support system, not two", () => {
     }
     // The app shell mounts one persistent interaction system only.
     const layout = read("src/app/layout.tsx");
-    const persistent = ["ContactLauncher"].filter((name) => layout.includes(`<${name} />`));
-    assert.deepEqual(persistent, ["ContactLauncher"]);
+    const persistent = ["FloatingDock", "ContactLauncher"].filter((name) =>
+      layout.includes(`<${name} />`),
+    );
+    assert.deepEqual(persistent, ["FloatingDock"]);
   });
 });
 
@@ -129,16 +133,24 @@ describe("one pricing engine behind both calculator entry points", () => {
     assert.ok(read("src/app/pricing-calculator/page.tsx").includes("PricingCalculator"));
   });
 
-  it("every Get Price entry point opens the one canonical dialog", () => {
-    // The floating Get Price action and Help -> Get Pricing both render
-    // CalculatorDialog rather than a second calculator.
-    const launcher = read("src/components/ContactLauncher.tsx");
-    assert.ok(launcher.includes("CalculatorDialog"));
-    assert.equal(launcher.includes("calculateEstimate"), false);
+  it("every calculator entry point opens the one canonical dialog", () => {
+    // Header Get Price, hero Calculator and the floating dock icon all
+    // render CalculatorDialog rather than a second calculator.
+    const dock = read("src/components/FloatingDock.tsx");
+    assert.ok(dock.includes("<CalculatorDialog"));
+    assert.equal(dock.includes("calculateEstimate"), false);
+    for (const path of ["src/components/Header.tsx", "src/app/page.tsx"]) {
+      assert.ok(read(path).includes("<CalculatorModal"), `${path} entry point`);
+    }
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
         "export function CalculatorDialog",
       ),
+    );
+    // Help is NOT one of them any more.
+    assert.equal(
+      read("src/components/ContactLauncher.tsx").includes("<CalculatorDialog"),
+      false,
     );
   });
 
@@ -181,7 +193,7 @@ describe("app shell keeps both feature sets", () => {
   const layout = read("src/app/layout.tsx");
 
   it("mounts the utility bar, header, footer and help launcher together", () => {
-    for (const component of ["UtilityBar", "Header", "Footer", "ContactLauncher"]) {
+    for (const component of ["UtilityBar", "Header", "Footer", "FloatingDock"]) {
       assert.ok(layout.includes(`<${component} />`), `layout must render ${component}`);
     }
   });

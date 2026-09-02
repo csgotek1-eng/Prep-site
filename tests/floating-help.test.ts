@@ -3,19 +3,88 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const read = (path: string) => readFileSync(path, "utf8");
+const dock = read("src/components/FloatingDock.tsx");
+const help = read("src/components/ContactLauncher.tsx");
 
 /**
- * FLOATING HELP launcher: draggable anywhere on screen; minimising
- * SNAPS it to the NEAREST screen edge as a compact recovery tab; both
- * position and collapsed state persist across reloads — while
- * remaining an ordinary, keyboard-operable button set.
+ * THE floating system: one dock, two icon-only actions, living on the
+ * left or right edge and nowhere else. It replaced a launcher made of a
+ * "Get Price" pill, a "Help" pill, a "Hide" control and a labelled edge
+ * tab.
  */
 
-const launcher = read("src/components/ContactLauncher.tsx");
+describe("only ONE floating system exists", () => {
+  it("the old launcher UI is gone", () => {
+    // No wordy pills, no Hide, no minimise, no recovery tab anywhere.
+    for (const gone of [
+      "Need help?",
+      ">Hide",
+      "Minimise the help button",
+      "Open Dockentra Help",
+      "rounded-r-full",
+      "rounded-l-full",
+      "freeDrag",
+      "collapsed",
+    ]) {
+      assert.equal(dock.includes(gone), false, `dock still has ${gone}`);
+      assert.equal(help.includes(gone), false, `Help still has ${gone}`);
+    }
+  });
 
-describe("draggable Help launcher", () => {
-  it("drags via pointer events with window-level move/end listeners", () => {
-    assert.ok(launcher.includes("onPointerDown={onLauncherPointerDown}"));
+  it("the Help panel no longer renders a launcher of its own", () => {
+    // It is presentational and controlled by the dock.
+    assert.ok(help.includes("export default function HelpPanel"));
+    assert.ok(help.includes("open,"));
+    assert.ok(help.includes("onClose,"));
+    assert.equal(help.includes("onPointerDown"), false);
+    assert.equal(help.includes("localStorage.setItem"), false);
+  });
+
+  it("the dock is the only thing mounted in the app shell", () => {
+    const layout = read("src/app/layout.tsx");
+    assert.ok(layout.includes("<FloatingDock />"));
+    assert.equal(layout.includes("ContactLauncher"), false);
+  });
+});
+
+describe("the dock is two icon-only buttons", () => {
+  it("carries a Calculator and a Help action, with accessible names", () => {
+    assert.ok(dock.includes('aria-label="Open pricing calculator"'));
+    assert.ok(dock.includes('aria-label="Open help"'));
+    assert.ok(dock.includes("<Calculator"));
+    assert.ok(dock.includes("<MessageCircleQuestion"));
+  });
+
+  it("shows no visible text label beside the icons", () => {
+    // Words live only in aria-label/title. Each button's children are
+    // exactly one icon element and nothing else.
+    const buttons = dock.match(/<button[\s\S]*?<\/button>/g) ?? [];
+    assert.equal(buttons.length, 2);
+    for (const button of buttons) {
+      const children = button.slice(button.lastIndexOf('"\n          >') + 1);
+      const text = children.replace(/<[^>]*>/g, "").replace(/[\s>]/g, "");
+      assert.equal(text, "", `a dock button renders visible text: ${text}`);
+    }
+    // The old wordy launcher labels are gone for good.
+    for (const word of ["Get Price", "Need help?", "Hide"]) {
+      assert.equal(dock.includes(`>${word}`), false);
+    }
+  });
+
+  it("keeps comfortable touch targets", () => {
+    assert.ok(dock.includes("h-12 w-12"), "48px buttons");
+  });
+
+  it("both icons live in ONE dock element and move together", () => {
+    assert.equal((dock.match(/data-testid="floating-dock"/g) ?? []).length, 1);
+    assert.ok(dock.includes("onPointerDown={onPointerDown}"));
+    // The drag handler is on the container, not on the buttons.
+    assert.equal(dock.includes("onPointerDown={(e) =>"), false);
+  });
+});
+
+describe("edge-only dragging", () => {
+  it("drags with pointer events across mouse and touch", () => {
     for (const wiring of [
       'window.addEventListener("pointermove", handleMove)',
       'window.addEventListener("pointerup", handleEnd)',
@@ -24,142 +93,106 @@ describe("draggable Help launcher", () => {
       'window.removeEventListener("pointerup", handleEnd)',
       'window.removeEventListener("pointercancel", handleEnd)',
     ]) {
-      assert.ok(launcher.includes(wiring), `missing ${wiring}`);
+      assert.ok(dock.includes(wiring), `missing ${wiring}`);
     }
-    // Pointer capture on the wrapper would retarget clicks away from
-    // the buttons and break plain taps — it must not be used.
-    assert.equal(launcher.includes("setPointerCapture"), false);
+    assert.ok(dock.includes("touch-none"), "the page must not scroll mid-drag");
   });
 
-  it("a small pointer wobble is a tap, a real movement is a drag", () => {
-    assert.ok(launcher.includes("DRAG_THRESHOLD_PX"));
-    // The click that ends a drag must neither open the panel nor
-    // dock/undock the launcher.
-    assert.ok(launcher.includes("movedRef"));
-    for (const guarded of [
-      "function openFromLauncher",
-      "function openFromDockedTab",
-      "function minimiseLauncher",
-    ]) {
-      const body = launcher.slice(launcher.indexOf(guarded));
-      assert.ok(
-        body.slice(0, 220).includes("movedRef.current) return"),
-        `${guarded} must ignore the click that ends a drag`,
-      );
-    }
+  it("snaps to the NEAREST edge on release — never rests in the centre", () => {
+    const end = dock.slice(dock.indexOf("const handleEnd"));
+    assert.ok(end.includes("window.innerWidth / 2"), "nearest-edge maths");
+    assert.ok(end.includes('"left"'));
+    assert.ok(end.includes('"right"'));
+    // The resting style pins the dock flush to a side; there is no
+    // horizontal offset state at all, so a centre rest is unreachable.
+    assert.ok(dock.includes('{ left: 0, right: "auto" }'));
+    assert.ok(dock.includes('{ right: 0, left: "auto" }'));
+    assert.equal(/left:\s*position\./.test(dock), false);
+    assert.equal(/right:\s*position\.[a-z]*[^s]/.test(dock), false);
   });
 
-  it("is always clamped fully inside the viewport", () => {
-    assert.ok(launcher.includes("LAUNCHER_EDGE_MARGIN"));
-    assert.ok(launcher.includes("clampPlacement"));
-    // Rotation/resize re-clamps a parked launcher back on screen.
-    assert.ok(launcher.includes('window.addEventListener("resize"'));
+  it("moves vertically and is clamped inside the viewport", () => {
+    assert.ok(dock.includes("function clampTop"));
+    assert.ok(dock.includes("window.innerHeight - height - EDGE_MARGIN"));
+    assert.ok(dock.includes("EDGE_MARGIN"));
+    // Rotation and resize re-clamp a parked dock.
+    assert.ok(dock.includes('window.addEventListener("resize", onResize)'));
+    assert.ok(dock.includes('window.addEventListener("orientationchange", onResize)'));
   });
 
-  it("does not scroll the page or select text while dragging", () => {
-    assert.ok(launcher.includes("touch-none"));
-    assert.ok(launcher.includes("select-none"));
-    assert.ok(launcher.includes('document.body.style.userSelect = "none"'));
-    assert.ok(launcher.includes('document.body.style.userSelect = ""'));
+  it("a drag never opens a dialog, and a tap always does", () => {
+    assert.ok(dock.includes("DRAG_THRESHOLD_PX"));
+    assert.ok(dock.includes("movedRef"));
+    const tap = dock.slice(dock.indexOf("const tap ="));
+    assert.ok(tap.slice(0, 200).includes("movedRef.current) return"));
   });
 
-  it("cleans up window listeners and body style on unmount mid-drag", () => {
-    assert.ok(launcher.includes("activeDragEndRef"));
-    assert.ok(launcher.includes("activeDragEndRef.current?.()"));
+  it("cleans up a mid-drag listener on unmount", () => {
+    assert.ok(dock.includes("dragEndRef"));
+    assert.ok(dock.includes("dragEndRef.current?.()"));
+    assert.ok(dock.includes('document.body.style.userSelect = ""'));
   });
 });
 
-describe("minimise → nearest-edge docking", () => {
-  it("minimising snaps to the nearest LEFT or RIGHT screen edge", () => {
-    // Nearest-edge rule: centre vs viewport centre, in BOTH the
-    // minimise handler and the collapsed-drag release.
-    const occurrences =
-      launcher.match(/width \/ 2 < window\.innerWidth \/ 2/g) ?? [];
-    assert.ok(
-      occurrences.length >= 2,
-      "nearest-edge maths must run on minimise AND on collapsed-drag release",
-    );
-    assert.ok(launcher.includes('? "left"'));
-    assert.ok(launcher.includes(': "right"'));
+describe("position persistence", () => {
+  it("remembers only the side and the vertical offset", () => {
+    assert.ok(dock.includes('"dockentra-floating-dock"'));
+    assert.ok(dock.includes("localStorage.setItem"));
+    assert.ok(dock.includes("localStorage.getItem"));
+    // Nothing else is stored — no identifiers, no server, no database.
+    const persisted = dock.slice(dock.indexOf("const persist"), dock.indexOf("const apply"));
+    assert.ok(persisted.includes("JSON.stringify(next)"));
+    // The only thing written is {side, top}.
+    assert.ok(dock.includes("interface DockPosition"));
+    const shape = dock.slice(dock.indexOf("interface DockPosition"), dock.indexOf("function clampTop"));
+    assert.ok(shape.includes("side: DockSide"));
+    assert.ok(shape.includes("top: number"));
+    assert.equal(/localStorage\.setItem\((?!STORAGE_KEY)/.test(dock), false);
   });
 
-  it("the docked tab looks attached to the edge (inner-side rounding)", () => {
-    assert.ok(launcher.includes("rounded-r-full"));
-    assert.ok(launcher.includes("rounded-l-full"));
-    // Docked positioning pins to the exact edge.
-    assert.ok(launcher.includes('{ left: 0, right: "auto" }'));
-    assert.ok(launcher.includes("{ right: 0 }"));
+  it("storage access is guarded so private mode cannot crash the page", () => {
+    const reader = dock.slice(dock.indexOf("function readSaved"), dock.indexOf("export default"));
+    assert.ok(reader.includes("try {"));
+    assert.ok(reader.includes("} catch"));
   });
 
-  it("the recovery tab keeps a ≥44px touch target and accessible name", () => {
-    assert.ok(launcher.includes('aria-label="Open Dockentra Help"'));
-    const tab = launcher.slice(
-      launcher.indexOf("openFromDockedTab}"),
-      launcher.indexOf("openFromDockedTab}") + 400,
-    );
-    assert.ok(tab.includes("h-12"), "tab height ≥ 44px");
-    assert.ok(tab.includes("min-w-11"), "tab width ≥ 44px");
+  it("restores AFTER mount and re-clamps a position saved on a bigger screen", () => {
+    assert.ok(dock.includes("useState<DockPosition | null>(null)"));
+    assert.ok(dock.includes("requestAnimationFrame"));
+    const restore = dock.slice(dock.indexOf("const saved = readSaved()"));
+    assert.ok(restore.slice(0, 400).includes("clampTop(saved.top"));
   });
 
-  it("a dragged tab floats free and re-docks on release", () => {
-    assert.ok(launcher.includes("freeDrag"));
-    assert.ok(launcher.includes("setFreeDrag(true)"));
-    assert.ok(launcher.includes("setFreeDrag(false)"));
-  });
-
-  it("the tab restores the expanded Help near its previous position and opens the panel", () => {
-    const restore = launcher.slice(
-      launcher.indexOf("function openFromDockedTab"),
-    );
-    assert.ok(restore.slice(0, 700).includes("setCollapsed(false)"));
-    assert.ok(restore.slice(0, 700).includes("setOpen(true)"));
-    // Expanding is wider than the tab — re-clamp against the new size.
-    assert.ok(restore.slice(0, 1100).includes("requestAnimationFrame"));
-  });
-
-  it("the expanded pill keeps its minimise control with an accessible name", () => {
-    assert.ok(launcher.includes('aria-label="Minimise the help button"'));
-    assert.ok(
-      launcher.includes(
-        'aria-label="Open the Dockentra contact and help panel"',
-      ),
-    );
+  it("refuses corrupt saved values instead of trusting them", () => {
+    const reader = dock.slice(dock.indexOf("function readSaved"));
+    assert.ok(reader.includes('saved.side !== "left" && saved.side !== "right"'));
+    assert.ok(reader.includes("Number.isFinite(saved.top)"));
   });
 });
 
-describe("persistence and hydration safety", () => {
-  it("position, edge and collapsed state survive reloads via localStorage", () => {
-    assert.ok(launcher.includes('"dockentra-help-launcher"'));
-    assert.ok(launcher.includes("localStorage.setItem"));
-    assert.ok(launcher.includes("localStorage.getItem"));
-    assert.ok(launcher.includes("edge: edgeRef.current"));
-    assert.ok(launcher.includes('saved.edge === "left"'));
+describe("the dock never covers an open dialog", () => {
+  it("hides itself while the calculator or Help is open", () => {
+    assert.ok(dock.includes("const anyDialogOpen = calculatorOpen || helpOpen"));
+    assert.ok(dock.includes("{!anyDialogOpen && ("));
   });
 
-  it("storage access is fully guarded (private mode must not crash)", () => {
-    const persist = launcher.slice(
-      launcher.indexOf("const persistLauncher"),
-      launcher.indexOf("const persistLauncher") + 600,
-    );
-    assert.ok(persist.includes("try {"));
-    assert.ok(persist.includes("} catch"));
-  });
-
-  it("restores AFTER mount so server and first client render agree", () => {
-    assert.ok(launcher.includes("useState<LauncherPlacement | null>(null)"));
-    assert.ok(launcher.includes("requestAnimationFrame"));
+  it("still coordinates with any fixed bottom bar", () => {
+    assert.ok(dock.includes("useBottomBarPresent"));
+    assert.ok(dock.includes("hidden lg:flex"));
   });
 });
 
-describe("launcher keeps its existing contracts", () => {
-  it("one fixed wrapper, coordinated with FloatingChrome", () => {
-    assert.equal((launcher.match(/fixed right-4 z-50/g) ?? []).length, 1);
-    assert.ok(launcher.includes("useBottomBarPresent"));
-    assert.ok(launcher.includes("hidden lg:inline-flex"));
+describe("the dock opens the canonical flows", () => {
+  it("Calculator opens the ONE canonical dialog, Help opens the Help panel", () => {
+    assert.ok(dock.includes("<CalculatorDialog"));
+    assert.ok(dock.includes("<HelpPanel"));
+    // No second calculator and no pricing logic in the dock.
+    assert.equal(dock.includes("calculateEstimate"), false);
+    assert.equal(dock.includes("/api/pricing/"), false);
   });
 
-  it("an explicit placement wins over the default corner classes", () => {
-    assert.ok(launcher.includes("right: placement.right"));
-    assert.ok(launcher.includes("bottom: placement.bottom"));
+  it("warms the catalogue so the calculator opens instantly", () => {
+    assert.ok(dock.includes("useCataloguePrefetch"));
+    assert.ok(dock.includes("onPointerEnter={warmCatalogue}"));
   });
 });

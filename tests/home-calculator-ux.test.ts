@@ -181,14 +181,15 @@ describe("calculator opens without waiting for the catalogue", () => {
 // ---------------------------------------------------------------------
 
 describe("one canonical calculator", () => {
-  it("header, hero, floating and Help all render the same dialog", () => {
+  it("header, hero and the floating dock all render the same dialog", () => {
     const modal = read("src/components/CalculatorModal.tsx");
     assert.ok(modal.includes("export function CalculatorDialog"));
     assert.ok(modal.includes("<PricingCalculator variant=\"modal\" />"));
-    // The floating action and Help reuse the exported dialog.
-    const launcher = read("src/components/ContactLauncher.tsx");
-    assert.ok(launcher.includes("<CalculatorDialog"));
-    assert.equal(launcher.includes("<PricingCalculator"), false);
+    // The dock reuses the exported dialog. Help is no longer an entry
+    // point at all — pricing was removed from it.
+    const dock = read("src/components/FloatingDock.tsx");
+    assert.ok(dock.includes("<CalculatorDialog"));
+    assert.equal(dock.includes("<PricingCalculator"), false);
     // The header and hero go through the button wrapper.
     assert.ok(read("src/components/Header.tsx").includes("<CalculatorModal"));
     assert.ok(read("src/app/page.tsx").includes("<CalculatorModal"));

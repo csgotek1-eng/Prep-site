@@ -11,13 +11,13 @@ import {
 
 const read = (path: string) => readFileSync(path, "utf8");
 const launcher = read("src/components/ContactLauncher.tsx");
+const dock = read("src/components/FloatingDock.tsx");
 
 /** The full structured Help command menu (P0-14/15/16). */
 
 describe("Help command menu", () => {
   it("contains every owner-required command", () => {
     for (const required of [
-      "Get Pricing",
       "Fulfilment Services",
       "Amazon FBA Prep",
       "TikTok Shop Fulfilment",
@@ -41,7 +41,8 @@ describe("Help command menu", () => {
         `menu must include "${required}"`,
       );
     }
-    assert.equal(HELP_TOPICS.length, 18);
+    // 18 minus the retired "Get Pricing" entry.
+    assert.equal(HELP_TOPICS.length, 17);
   });
 
   it("every topic routes into an EXISTING flow (no invented backends)", () => {
@@ -76,13 +77,30 @@ describe("Help command menu", () => {
     assert.ok(launcher.includes("HELP_TOPICS.filter"));
   });
 
-  it("GET PRICING opens the ONE canonical calculator, never a second form", () => {
-    const select = launcher.slice(launcher.indexOf("function selectTopic"));
-    assert.ok(select.slice(0, 500).includes("setCalculatorOpen(true)"));
-    assert.ok(launcher.includes("<CalculatorDialog"));
-    // No second pricing engine anywhere near the Help panel.
+  it("HELP IS HELP: it carries no pricing entry point at all", () => {
+    // The floating Calculator icon, the header Get Price button and the
+    // homepage hero own that job. Help must not be a second front door.
+    assert.equal(HELP_TOPICS.some((t) => t.label === "Get Pricing"), false);
+    assert.equal((HELP_TOPIC_GROUPS as readonly string[]).includes("Pricing"), false);
+    // Strip prose: the file's own doc comment explains where pricing
+    // lives, and that explanation must not trip the rule it describes.
+    const code = launcher
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(code.includes("CalculatorDialog"), false);
+    assert.equal(code.includes("Get Price"), false);
     assert.equal(launcher.includes("calculateEstimate"), false);
     assert.equal(launcher.includes("formatEuro"), false);
+    // Every remaining topic routes into the enquiry flow.
+    for (const topic of HELP_TOPICS) {
+      assert.ok(["client", "partnership", "general"].includes(topic.action));
+    }
+  });
+
+  it("the calculator is reachable from the dock instead", () => {
+    assert.ok(dock.includes('aria-label="Open pricing calculator"'));
+    assert.ok(dock.includes("<CalculatorDialog"));
   });
 });
 

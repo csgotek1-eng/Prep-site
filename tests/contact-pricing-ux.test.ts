@@ -214,64 +214,59 @@ describe("email is primary, phone is a bottom-level detail", () => {
 // 4. Global floating actions
 // ---------------------------------------------------------------------
 
-describe("floating Get Price + Help", () => {
-  const launcher = read("src/components/ContactLauncher.tsx");
+describe("the floating dock", () => {
+  const dock = read("src/components/FloatingDock.tsx");
 
-  it("offers BOTH actions in one compact row", () => {
-    assert.ok(launcher.includes("Get Price"));
-    assert.ok(launcher.includes("openCalculatorFromLauncher"));
-    assert.ok(launcher.includes('aria-label="Open the Dockentra contact and help panel"'));
+  // Later round: the wordy Get Price / Help / Hide launcher was
+  // replaced by ONE dock of two icon-only buttons that may rest only
+  // against the left or right edge. tests/floating-help.test.ts owns
+  // the full contract; these are the cross-cutting rules.
+  it("offers both actions as icon-only buttons with accessible names", () => {
+    assert.ok(dock.includes('aria-label="Open pricing calculator"'));
+    assert.ok(dock.includes('aria-label="Open help"'));
+    assert.equal(dock.includes(">Get Price"), false);
+    assert.equal(dock.includes(">Hide"), false);
   });
 
-  it("Get Price opens the canonical calculator, not a second one", () => {
-    assert.ok(launcher.includes("<CalculatorDialog"));
-    assert.equal(launcher.includes("calculateEstimate"), false);
-    assert.equal(launcher.includes("/api/pricing/"), false);
+  it("the calculator icon opens the canonical dialog, not a second one", () => {
+    assert.ok(dock.includes("<CalculatorDialog"));
+    assert.equal(dock.includes("calculateEstimate"), false);
+    assert.equal(dock.includes("/api/pricing/"), false);
   });
 
-  it("the Get Price tap ignores the click that ends a drag", () => {
-    const body = launcher.slice(launcher.indexOf("function openCalculatorFromLauncher"));
-    assert.ok(body.slice(0, 220).includes("movedRef.current) return"));
+  it("a tap opens but the click that ends a drag does not", () => {
+    const tap = dock.slice(dock.indexOf("const tap ="));
+    assert.ok(tap.slice(0, 200).includes("movedRef.current) return"));
   });
 
-  it("the minimised launcher is a LABELLED edge tab, not a circle with a dash", () => {
-    const tab = launcher.slice(
-      launcher.indexOf("openFromDockedTab}"),
-      launcher.indexOf("openFromDockedTab}") + 700,
-    );
-    // The word is what makes it recoverable — an unlabelled dot is not.
-    assert.ok(tab.includes("Help"));
-    assert.ok(tab.includes("h-12"), "tab height ≥ 44px");
-    assert.ok(tab.includes("min-w-11"), "tab width ≥ 44px");
-    // The dash-in-a-circle minimiser is gone.
-    assert.equal(launcher.includes("<Minus"), false);
-    assert.ok(launcher.includes("Hide"));
+  it("rests only on an edge, and hides while a dialog is open", () => {
+    assert.ok(dock.includes('{ left: 0, right: "auto" }'));
+    assert.ok(dock.includes('{ right: 0, left: "auto" }'));
+    assert.ok(dock.includes("{!anyDialogOpen && ("));
   });
 
-  it("dragging, clamping, docking and persistence are untouched", () => {
+  it("dragging, clamping and persistence are all present", () => {
     for (const contract of [
-      "onPointerDown={onLauncherPointerDown}",
-      "clampPlacement",
-      "LAUNCHER_EDGE_MARGIN",
-      '"dockentra-help-launcher"',
+      "onPointerDown={onPointerDown}",
+      "clampTop",
+      "EDGE_MARGIN",
+      '"dockentra-floating-dock"',
       "localStorage.setItem",
-      "setFreeDrag(true)",
-      "rounded-r-full",
-      "rounded-l-full",
+      "touch-none",
     ]) {
-      assert.ok(launcher.includes(contract), `regressed: ${contract}`);
+      assert.ok(dock.includes(contract), `missing ${contract}`);
     }
   });
 
   it("the open panel asks the owner's question and never claims to be AI", () => {
-    assert.ok(launcher.includes('"How can we help you?"'));
-    assert.equal(/\bAI\b/.test(withoutComments(launcher)), false);
+    const help = read("src/components/ContactLauncher.tsx");
+    assert.ok(help.includes('"How can we help you?"'));
+    assert.equal(/\bAI\b/.test(withoutComments(help)), false);
   });
 
-  it("both floating controls are ordinary keyboard-operable buttons", () => {
-    // Drag is a pointer-only enhancement; nothing is drag-only.
-    assert.equal((launcher.match(/type="button"/g) ?? []).length >= 3, true);
-    assert.equal(launcher.includes("setPointerCapture"), false);
+  it("both dock controls are ordinary keyboard-operable buttons", () => {
+    assert.equal((dock.match(/type="button"/g) ?? []).length, 2);
+    assert.equal(dock.includes("setPointerCapture"), false);
   });
 });
 

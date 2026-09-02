@@ -47,7 +47,7 @@ describe("calculator primary actions stay reachable", () => {
     assert.ok(calculator.includes("sticky z-30"));
     // Context-aware top offsets: below the site header on the page, at
     // the top of the dialog's scroll area in the modal.
-    assert.ok(calculator.includes('"top-2" : "top-[4.5rem]"'));
+    assert.ok(calculator.includes('"top-0" : "top-[4.5rem]"'));
     assert.equal(calculator.includes("sticky bottom-"), false);
     assert.equal(calculator.includes("fixed inset-x-0"), false);
   });
