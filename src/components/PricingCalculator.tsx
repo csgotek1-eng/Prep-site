@@ -666,7 +666,7 @@ export default function PricingCalculator({
       {estimate && hasEstimateLines && (
         <div
           className={`sticky z-30 mb-6 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden ${
-            variant === "modal" ? "top-2" : "top-[4.5rem]"
+            variant === "modal" ? "top-0" : "top-[4.5rem]"
           }`}
         >
           <h2 className="sr-only">Your price request</h2>
@@ -832,10 +832,12 @@ export default function PricingCalculator({
             variant === "modal"
               ? // Inside the dialog the scroll container is the modal
                 // body (its own header, no site header), so stick near
-                // its top and never exceed the dialog's height.
-                "lg:top-2 lg:max-h-[calc(88dvh-10rem)]"
+                // its top. dvh — not vh — so a short laptop window and
+                // a mobile browser with collapsing chrome both get the
+                // height the browser is ACTUALLY showing.
+                "lg:top-2 lg:max-h-[calc(100dvh-12rem)]"
               : // On the page, clear the sticky site header.
-                "lg:top-24 lg:max-h-[calc(100vh-7rem)]"
+                "lg:top-24 lg:max-h-[calc(100dvh-7rem)]"
           }`}
         >
           <div className="shrink-0 border-b border-slate-100 p-5 sm:p-6">
