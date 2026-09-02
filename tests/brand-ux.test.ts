@@ -43,13 +43,31 @@ describe("calculator primary actions stay reachable", () => {
     assert.equal(lines.includes("WhatsApp"), false);
   });
 
-  it("mobile actions are sticky at the top, not a bottom bar", () => {
-    assert.ok(calculator.includes("sticky z-30"));
-    // Context-aware top offsets: below the site header on the page, at
-    // the top of the dialog's scroll area in the modal.
-    assert.ok(calculator.includes('"top-0" : "top-[4.5rem]"'));
-    assert.equal(calculator.includes("sticky bottom-"), false);
+  it("mobile actions are a wizard STEP, never a panel over the services", () => {
+    // SUPERSEDED ON PURPOSE: the actions used to be a sticky panel at
+    // the TOP of the calculator below lg. On a real phone that panel
+    // sat on top of the service list and covered it. Below lg the
+    // actions are now step 3 of a wizard, in normal flow, and steps 2
+    // and 3 are never on screen together.
+    assert.equal(calculator.includes("sticky z-30"), false);
+    assert.equal(calculator.includes('"top-0" : "top-[4.5rem]"'), false);
+    assert.ok(calculator.includes('mobileStep === 3 ? "relative block lg:hidden" : "hidden"'));
+    // Nothing in the calculator is position:fixed, at any breakpoint.
     assert.equal(calculator.includes("fixed inset-x-0"), false);
+    assert.equal(/className=(?:"|`)[^"`]*\bfixed\b/.test(calculator), false);
+    // The ONE sticky element below lg is the step nav, and it is the
+    // last element in flow, so it parks at its natural position and
+    // cannot permanently cover the end of a step.
+    // Match CLASS NAMES only — the doc comments talk about the sticky
+    // site header and the sticky summary in plain English.
+    const jsx = calculator
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    const sticky = jsx.match(/\bsticky (?:bottom|top|left|right|inset)-[a-z0-9:[\]./-]+/g) ?? [];
+    assert.deepEqual(sticky, ["sticky bottom-0"]);
+    const nav = calculator.indexOf('data-testid="calculator-wizard-nav"');
+    assert.ok(nav > calculator.indexOf("MOBILE/TABLET selected-service"));
   });
 
   it("the desktop panel separates a fixed header from a scrolling details area", () => {

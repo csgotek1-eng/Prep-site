@@ -12,11 +12,31 @@ import { isValidEmailAddressInput } from "@/lib/email/address";
 import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
 import { WhatsAppIcon } from "@/components/SocialIcons";
+import { useBottomBarRegistration } from "@/components/FloatingChrome";
 
 export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
 
 /** How the customer wants their private price delivered (STEP 3). */
 type PricingChannel = "whatsapp" | "email";
+
+/**
+ * MOBILE WIZARD. Below `lg` the three questions are asked ONE AT A
+ * TIME. This is presentation only: there is a single calculator, a
+ * single state, a single set of pricing calls. On `lg` and up every
+ * step is on screen at once exactly as before, so the desktop layout
+ * is untouched.
+ */
+type WizardStep = 1 | 2 | 3;
+
+const WIZARD_STEPS: ReadonlyArray<{
+  id: WizardStep;
+  label: string;
+  heading: string;
+}> = [
+  { id: 1, label: "Volume", heading: "Monthly order volume" },
+  { id: 2, label: "Services", heading: "Your services" },
+  { id: 3, label: "Delivery", heading: "Get your price" },
+];
 
 interface SelectionState {
   [serviceId: string]: number; // quantity
@@ -51,6 +71,10 @@ interface SelectionState {
  *  - "modal": inside the homepage calculator dialog, which has its own
  *    header and scroll container — the summary sticks near the top of
  *    that container and is capped to the dialog's height.
+ *
+ * Below `lg` the same three steps become a WIZARD: one step visible at
+ * a time, navigated with Back/Continue. Step 3 is a step of its own,
+ * never a panel floating over the service list.
  */
 export default function PricingCalculator({
   variant = "page",
@@ -91,6 +115,18 @@ export default function PricingCalculator({
     reference: string;
   } | null>(null);
   const [sendError, setSendError] = useState("");
+  // MOBILE WIZARD position. Ignored at lg+ (every step is rendered
+  // there), so it can never change the desktop layout.
+  const [mobileStep, setMobileStep] = useState<WizardStep>(1);
+  const stepHeadingRefs = useRef<Record<number, HTMLHeadingElement | null>>({});
+  // Focus only moves when the visitor actually navigates — never on
+  // first render, and never on desktop, where nothing calls goToStep.
+  const pendingStepFocus = useRef(false);
+  // The wizard nav sits at the bottom edge below lg, so it registers
+  // with the shared floating-chrome layer: the FloatingDock takes
+  // itself out of the way below lg while a calculator is mounted (in
+  // the dialog it is hidden anyway). No z-index guessing, no overlap.
+  useBottomBarRegistration(true);
 
   // The catalogue comes from ONE shared, cached client
   // (lib/pricing/catalogue-client). It is usually already warm by the
@@ -165,6 +201,29 @@ export default function PricingCalculator({
       controller.abort();
     };
   }, [selections, monthlyOrders]);
+
+  // Moving to a new step must move the reading position too, or a
+  // screen-reader user is left at the bottom of the step they just
+  // left. Focusing the step heading also scrolls it into view.
+  useEffect(() => {
+    if (!pendingStepFocus.current) return;
+    pendingStepFocus.current = false;
+    const heading = stepHeadingRefs.current[mobileStep];
+    if (!heading) return;
+    // Focus first WITHOUT the browser's own scroll, then bring the top
+    // of the step to the top of whatever is scrolling (the page, or
+    // the dialog body). Otherwise a step that merely starts near the
+    // bottom of the screen stays there and the visitor sees a sliver
+    // of it. On lg+ the heading is display:none, so both calls are
+    // no-ops and the desktop view never moves.
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({ block: "start" });
+  }, [mobileStep]);
+
+  function goToStep(next: WizardStep) {
+    pendingStepFocus.current = true;
+    setMobileStep(next);
+  }
 
   // A finished send belongs to the EXACT selection it was made for:
   // any change to services, quantities or volume starts a new request.
@@ -338,6 +397,48 @@ export default function PricingCalculator({
   const selectedCount = Object.keys(selections).length;
   const hasEstimateLines = Boolean(estimate && estimate.lines.length > 0);
 
+  // MOBILE WIZARD visibility. Below lg exactly one step is displayed;
+  // at lg and up every step is displayed, which is the desktop layout
+  // this round must not change. Steps are hidden with CSS rather than
+  // unmounted so nothing the visitor typed is ever lost, and so the
+  // desktop tree is identical to before.
+  const stepClass = (step: WizardStep) =>
+    mobileStep === step ? "relative block lg:block" : "relative hidden lg:block";
+  const continueDisabled = mobileStep === 2 && selectedCount === 0;
+  const continueLabel =
+    mobileStep === 1
+      ? "Continue to services"
+      : selectedCount > 0
+        ? `Continue with ${selectedCount} ${
+            selectedCount === 1 ? "service" : "services"
+          }`
+        : "Continue";
+  // Compact, price-free status line shown next to the wizard nav.
+  const selectionStatus =
+    selectedCount === 0
+      ? "No services selected yet"
+      : `${selectedCount} ${
+          selectedCount === 1 ? "service" : "services"
+        } selected`;
+  // The step heading is the focus target on step change. It is
+  // sr-only (the step's own visible heading already says the same
+  // thing) and lg:hidden, so the desktop heading outline is unchanged.
+  const stepHeading = (step: WizardStep) => (
+    <h2
+      ref={(node) => {
+        stepHeadingRefs.current[step] = node;
+      }}
+      tabIndex={-1}
+      className={`sr-only focus:outline-none lg:hidden ${
+        // Clear the sticky site header on the page; the dialog has no
+        // header above its own scroll container.
+        variant === "modal" ? "scroll-mt-2" : "scroll-mt-24"
+      }`}
+    >
+      Step {step} of 3: {WIZARD_STEPS[step - 1].heading}
+    </h2>
+  );
+
   // ONE logical primary-action area with ONE pricing action: enter
   // your WhatsApp number, press "Send My Price to WhatsApp". It
   // renders responsively: sticky near the TOP of the calculator below
@@ -432,6 +533,10 @@ export default function PricingCalculator({
               onClick={() => {
                 setSendPhase("idle");
                 setSendOutcome(null);
+                // Start the mobile wizard over from the first question.
+                // On desktop nothing moves — every step is already on
+                // screen.
+                goToStep(1);
               }}
               className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
             >
@@ -657,22 +762,60 @@ export default function PricingCalculator({
 
   return (
     <div>
-      {/* MOBILE/TABLET (below lg): the primary actions stay pinned near
-          the TOP of the calculator while the service list scrolls below
-          them — they can never be pushed out of view by a growing
-          estimate. Sticky (not fixed) so the panel stays inside the
-          page or the CalculatorModal's own scroll container and never
-          covers the modal header/close button. */}
-      {estimate && hasEstimateLines && (
-        <div
-          className={`sticky z-30 mb-6 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden ${
-            variant === "modal" ? "top-0" : "top-[4.5rem]"
-          }`}
-        >
-          <h2 className="sr-only">Your price request</h2>
-          {renderActionsPanel("mobile")}
-        </div>
-      )}
+      {/* MOBILE/TABLET (below lg): a compact three-step progress
+          indicator. It REPLACES the old sticky action panel, which sat
+          on top of the service list and covered it on a phone. Nothing
+          in the calculator overlays the services any more — Step 3 is
+          a step of its own. Sized to fit 320px: three equal segments,
+          a small numeral and a short label that truncates rather than
+          wraps. */}
+      <ol
+        aria-label="Calculator progress"
+        className="mb-5 flex items-stretch gap-1.5 lg:hidden"
+      >
+        {WIZARD_STEPS.map((step) => {
+          const state: "done" | "current" | "todo" =
+            step.id === mobileStep
+              ? "current"
+              : step.id < mobileStep
+                ? "done"
+                : "todo";
+          return (
+            <li
+              key={step.id}
+              aria-current={state === "current" ? "step" : undefined}
+              className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-md border px-1 py-1.5 sm:flex-row sm:gap-1.5 sm:px-2 ${
+                state === "current"
+                  ? "border-brand-green bg-brand-mint-soft text-brand-navy"
+                  : state === "done"
+                    ? "border-brand-green/40 bg-white text-brand-green-dark"
+                    : "border-slate-200 bg-white text-slate-400"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold ${
+                  state === "todo"
+                    ? "bg-slate-100 text-slate-400"
+                    : "bg-brand-green text-white"
+                }`}
+              >
+                {step.id}
+              </span>
+              <span className="min-w-0 max-w-full truncate text-[0.625rem] font-semibold uppercase tracking-wide sm:text-[0.6875rem]">
+                {step.label}
+              </span>
+              <span className="sr-only">
+                {state === "current"
+                  ? " — current step"
+                  : state === "done"
+                    ? " — completed"
+                    : " — not started"}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(380px,26rem)]">
         {/* Service selector */}
@@ -681,7 +824,10 @@ export default function PricingCalculator({
               asked. It is the question that shapes every rate, and the
               one a fulfilment quote cannot be prepared without, so it
               is answered before any service is chosen. */}
-          <div className="mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5">
+          <div
+            className={`mb-8 rounded-lg border border-brand-border bg-brand-surface-soft p-4 sm:p-5 ${stepClass(1)}`}
+          >
+              {stepHeading(1)}
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
                 Step 1
               </p>
@@ -716,7 +862,12 @@ export default function PricingCalculator({
               />
           </div>
 
-          {/* STEP 2 — the services, only after the volume is known. */}
+          {/* STEP 2 — the services, only after the volume is known.
+              Below lg this is the ONLY thing on screen while the
+              visitor is on step 2: no delivery form above it, nothing
+              overlaying it. */}
+          <div className={stepClass(2)}>
+          {stepHeading(2)}
           <div className="mb-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
               Step 2
@@ -819,6 +970,28 @@ export default function PricingCalculator({
               </ul>
             </fieldset>
           ))}
+          </div>
+
+          {/* STEP 3 (below lg only) — the delivery choice as a STEP,
+              in normal flow, after the services. On lg+ this is
+              rendered by the summary aside instead, exactly as before.
+              The last service card is never covered by it. */}
+          <div className={mobileStep === 3 ? "relative block lg:hidden" : "hidden"}>
+            {stepHeading(3)}
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              {estimate && hasEstimateLines ? (
+                renderActionsPanel("mobile")
+              ) : (
+                <p role="status" className="text-sm leading-6 text-slate-600">
+                  {selectedCount === 0
+                    ? "Go back to step 2 and choose the services you need."
+                    : estimateError
+                      ? "Your selection couldn't be re-checked just now. Go back a step and try again in a moment."
+                      : "Preparing your price request…"}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* DESKTOP (lg+) estimate panel: fixed action header on top,
@@ -855,10 +1028,15 @@ export default function PricingCalculator({
         </aside>
       </div>
 
-      {/* MOBILE/TABLET selected-service details. The actions live in the
-          sticky panel at the top; this card only lists the lines, so it
-          may grow freely and scroll with the page. */}
-      <div className="mt-8 rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:hidden">
+      {/* MOBILE/TABLET selected-service details. Part of STEP 3: a
+          read-only review of what is about to be priced, below the
+          delivery choice. It lists lines only — no action, no price —
+          so it may grow freely and scroll with the page. */}
+      <div
+        className={`mt-8 rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:hidden ${
+          mobileStep === 3 ? "" : "hidden"
+        }`}
+      >
         <h2 className="text-lg font-semibold text-brand-navy">
           Selected services
         </h2>
@@ -866,6 +1044,58 @@ export default function PricingCalculator({
             one scrollbar (the page/dialog), never a tiny nested one. */}
         <div className="mt-3">{linesList}</div>
         {disclaimer}
+      </div>
+
+      {/* MOBILE WIZARD NAV (below lg). It is the LAST element in normal
+          flow, so scrolling to the end parks it at its natural
+          position: it can pin itself to the bottom edge while there is
+          still content to scroll, but it can never permanently cover
+          anything — the end of the step is always fully reachable
+          above it. Bottom padding respects the device safe area so it
+          clears the iOS home indicator. */}
+      <div
+        data-testid="calculator-wizard-nav"
+        className="sticky bottom-0 z-20 mt-6 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <p
+          role="status"
+          className="mb-2 text-xs font-medium leading-5 text-slate-600"
+        >
+          {selectionStatus}
+        </p>
+        <div className="flex gap-2">
+          {mobileStep > 1 && (
+            <button
+              type="button"
+              onClick={() => goToStep((mobileStep - 1) as WizardStep)}
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            >
+              Back
+            </button>
+          )}
+          {mobileStep < 3 && (
+            <button
+              type="button"
+              disabled={continueDisabled}
+              aria-describedby={
+                continueDisabled ? "calculator-continue-hint" : undefined
+              }
+              onClick={() => goToStep((mobileStep + 1) as WizardStep)}
+              className="inline-flex min-h-12 flex-[2] items-center justify-center rounded-md bg-brand-green px-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {continueLabel}
+            </button>
+          )}
+        </div>
+        {continueDisabled && (
+          <p
+            id="calculator-continue-hint"
+            className="mt-2 text-xs leading-5 text-slate-500"
+          >
+            Select at least one service to continue.
+          </p>
+        )}
       </div>
     </div>
   );

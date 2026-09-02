@@ -156,6 +156,54 @@ any `changed_by` field in a request body is ignored. Role model: single
 ADMIN role (a future MANAGER role is documented in the setup doc, not
 built).
 
+## Calculator presentation (`src/components/PricingCalculator.tsx`)
+
+One component, one state, one set of pricing calls — the layout is the
+only thing that changes with the viewport.
+
+**Desktop (`lg` and up, ≥1024px).** Two columns: the questions on the
+left (step 1 volume, then step 2 services) and a sticky summary aside
+on the right holding step 3 (delivery choice, destination field, send)
+above the scrolling list of selected services. Every step is on screen
+at once.
+
+**Mobile and tablet (below `lg`).** The same three steps become a
+WIZARD: exactly one step is displayed at a time.
+
+| Step | Question | What the visitor sees |
+| --- | --- | --- |
+| 1 Volume | How many orders do you ship per month? | The volume field only |
+| 2 Services | Select the services you need | The service list only |
+| 3 Delivery | How would you like to receive your pricing? | Delivery choice, destination, send, and a read-only review of the selection |
+
+- Steps are hidden with CSS (`stepClass`), never unmounted, so nothing
+  the visitor typed is lost when they move between steps. Both branches
+  of `stepClass` end in `lg:block`, so the desktop view always shows
+  everything regardless of the wizard's position.
+- Navigation is a nav bar at the END of the calculator: `sticky
+  bottom-0`, `lg:hidden`, with `padding-bottom: max(0.75rem,
+  env(safe-area-inset-bottom))`. Being last in normal flow, it parks at
+  its natural position when the visitor scrolls to the end, so it can
+  pin itself to the bottom edge without ever permanently covering
+  content. It registers with `FloatingChrome` so the floating dock
+  moves out of the way below `lg`.
+- `Continue` carries the count ("Continue with 3 services") and is
+  disabled with a visible, `aria-describedby`-linked explanation while
+  nothing is selected. A price-free status line ("3 services selected")
+  sits above the buttons.
+- Changing step focuses the new step's `sr-only` heading with
+  `preventScroll`, then scrolls it to the top of whatever is scrolling
+  (the page, or the dialog body) with a `scroll-mt` that clears the
+  sticky site header on the page variant.
+- Finishing a request replaces step 3 with the outcome inside the same
+  reserved-height container; "Request pricing again" returns the wizard
+  to step 1 with the selection intact.
+
+There is deliberately NO sticky delivery form, no absolute overlay and
+no floating summary above the service list: an earlier layout put the
+delivery panel at the top of the calculator below `lg`, where it
+covered the services on a phone.
+
 ## Testing
 
 `tests/pricing.test.ts` (node:test, no new dependencies) covers:

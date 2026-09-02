@@ -36,12 +36,13 @@ describe("one support system, not two", () => {
   });
 
   it("cannot collide with the calculator's primary actions", () => {
-    // The calculator's primary actions now live in a sticky panel at
-    // the TOP of the calculator (below lg) / the summary header (lg+),
-    // so the bottom-right Help launcher cannot overlap them by
-    // construction — no bottom action bar exists any more.
+    // Below lg the calculator now ends with a sticky wizard nav at the
+    // bottom edge. It is not left to z-index luck: the calculator
+    // registers with the shared floating-chrome layer, and the dock
+    // takes itself out of the way below lg while a calculator is
+    // mounted. At lg+ there is no nav and the dock stays put.
     const calculator = read("src/components/PricingCalculator.tsx");
-    assert.equal(calculator.includes("sticky bottom-"), false);
+    assert.ok(calculator.includes("useBottomBarRegistration(true)"));
     assert.equal(calculator.includes("fixed inset-x-0 bottom-0"), false);
     // The FloatingChrome coordination layer stays available for any
     // future bottom bar, and the dock still honours it. The dock also
