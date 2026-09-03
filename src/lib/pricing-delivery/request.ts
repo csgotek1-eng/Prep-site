@@ -178,6 +178,8 @@ function leadInputFor(
     whatsapp: null,
     pricingEmail: null,
     pricingChannel: destination.channel,
+    promotionId: null,
+    promotionName: null,
   };
 
   if (destination.channel === "whatsapp") {

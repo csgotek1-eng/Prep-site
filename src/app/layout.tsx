@@ -1,12 +1,25 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter, Manrope } from "next/font/google";
 import FloatingDock from "@/components/FloatingDock";
+import PromotionBanner from "@/components/PromotionBanner";
 import { FloatingChromeProvider } from "@/components/FloatingChrome";
 import Header from "@/components/Header";
 import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import "./globals.css";
+
+/**
+ * Every page carries the promotion strip, and a promotion is data the
+ * owner changes from the admin screen — not something baked in at
+ * build time. Without this the whole site would prerender once and a
+ * newly published offer would never appear until the next deploy.
+ *
+ * ISR rather than force-dynamic on purpose (§36): pages stay cached
+ * and fast, and a published or expired offer takes effect within a
+ * minute instead of costing a render on every request.
+ */
+export const revalidate = 60;
 
 /*
  * Owner-approved typography experiment (Brand Book fonts round): Manrope
@@ -129,6 +142,10 @@ export default function RootLayout({
           }}
         />
         <FloatingChromeProvider>
+          {/* Server-rendered: the offer strip is in the first HTML the
+              browser receives, so it never appears late and never
+              shifts the header down after load. */}
+          <PromotionBanner />
           <UtilityBar />
           <Header />
           <main id="main-content" className="flex-1">

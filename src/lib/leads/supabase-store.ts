@@ -58,6 +58,8 @@ interface LeadRow {
   subject: string;
   message: string;
   calculator_selections: unknown;
+  promotion_id: string | null;
+  promotion_name: string | null;
   calculator_estimate: unknown;
   delivery_status: string;
   delivery_error: string | null;
@@ -171,6 +173,9 @@ function rowToLead(row: LeadRow): StoredLead {
     deliveryError: row.delivery_error,
     whatsapp: rowToWhatsApp(row),
     pricingEmail: rowToPricingEmail(row),
+    promotionId: typeof row.promotion_id === "string" ? row.promotion_id : null,
+    promotionName:
+      typeof row.promotion_name === "string" ? row.promotion_name : null,
     pricingChannel: isPricingDeliveryChannel(row.pricing_delivery_channel)
       ? row.pricing_delivery_channel
       : null,
@@ -204,6 +209,8 @@ function inputToRow(input: LeadInput) {
     whatsapp_requested_at: input.whatsapp?.requestedAt ?? null,
     whatsapp_delivery_status: input.whatsapp ? "PENDING" : null,
     pricing_delivery_channel: input.pricingChannel,
+    promotion_id: input.promotionId,
+    promotion_name: input.promotionName,
     pricing_email: input.pricingEmail?.address ?? null,
     pricing_email_normalized: input.pricingEmail?.addressNormalized ?? null,
     pricing_email_reference: input.pricingEmail?.reference ?? null,

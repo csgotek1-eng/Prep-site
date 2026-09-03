@@ -12,17 +12,33 @@ describe("double-submit protection", () => {
     assert.ok(quote.includes('if (state === "submitting")'));
     assert.ok(quote.includes('disabled={state === "submitting"}'));
 
-    const launcher = read("src/components/ContactLauncher.tsx");
-    assert.ok(launcher.includes('status === "sending") return'));
-    assert.ok(launcher.includes('disabled={status === "sending"}'));
+    // Help no longer submits anything — it routes. The guard moved to
+    // the two forms that DO submit, which each carry their own.
+    for (const path of [
+      "src/components/BecomeClientForm.tsx",
+      "src/components/PartnershipForm.tsx",
+    ]) {
+      const form = read(path);
+      assert.ok(form.includes('if (phase === "sending") return'), path);
+      assert.ok(form.includes('disabled={phase === "sending"}'), path);
+    }
+    assert.equal(
+      read("src/components/ContactLauncher.tsx").includes("fetch("),
+      false,
+      "Help must not submit",
+    );
   });
 });
 
 describe("privacy notice on both forms", () => {
   it("states the factual purpose and links /privacy", () => {
+    // Every form that collects a name and an email says what the
+    // details are used for and links the policy. Help collects
+    // nothing, so it is no longer in this list.
     for (const path of [
       "src/components/QuoteForm.tsx",
-      "src/components/ContactLauncher.tsx",
+      "src/components/BecomeClientForm.tsx",
+      "src/components/PartnershipForm.tsx",
     ]) {
       const source = read(path);
       assert.ok(

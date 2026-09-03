@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Mail, Phone } from "lucide-react";
+import Link from "next/link";
 import Container from "@/components/Container";
+import PromotionCard from "@/components/PromotionCard";
+import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import QuoteForm from "@/components/QuoteForm";
 import WarehouseLocation from "@/components/WarehouseLocation";
 import {
@@ -52,7 +55,9 @@ const socials = [
  * hero, the Pricing page or the floating Get Price action, and the
  * calculator delivers it privately.
  */
-export default function ContactPage() {
+export default async function ContactPage() {
+  const offer = await getPrimaryPublicPromotion("contact");
+
   return (
     <>
       <section className="bg-brand-navy">
@@ -70,7 +75,79 @@ export default function ContactPage() {
         </Container>
       </section>
 
-      <section aria-label="Send an enquiry" className="bg-white">
+      {/* THREE DOORS. "I need fulfilment", "let's work together" and
+          "I just have a question" are different conversations, so the
+          page offers them separately instead of funnelling everyone
+          into one form. */}
+      <section aria-labelledby="routes-heading" className="bg-white">
+        <Container className="py-12 sm:py-14">
+          <h2 id="routes-heading" className="sr-only">
+            How would you like to get in touch?
+          </h2>
+          <ul className="grid gap-5 sm:grid-cols-3">
+            {[
+              {
+                title: "Need fulfilment?",
+                body: "Tell us what you sell and we will set you up.",
+                href: "/become-a-client",
+                cta: "Become a Client",
+                primary: true,
+              },
+              {
+                title: "Interested in working together?",
+                body: "Agencies, couriers, creators, technology and referrals.",
+                href: "/partnerships",
+                cta: "Partnerships",
+                primary: false,
+              },
+              {
+                title: "Just have a question?",
+                body: "Send us a message and we will come back to you.",
+                href: "#enquiry",
+                cta: "Contact Dockentra",
+                primary: false,
+              },
+            ].map((route) => (
+              <li
+                key={route.cta}
+                className="flex flex-col rounded-xl border border-brand-border bg-brand-surface-soft/60 p-6"
+              >
+                <h3 className="text-base font-semibold text-brand-navy">
+                  {route.title}
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">
+                  {route.body}
+                </p>
+                <Link
+                  href={route.href}
+                  className={`mt-4 inline-flex min-h-12 items-center justify-center rounded-md px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 ${
+                    route.primary
+                      ? "bg-brand-green text-white shadow-sm hover:bg-brand-green-dark"
+                      : "border border-brand-navy/25 bg-white text-brand-navy hover:border-brand-green hover:text-brand-green-dark"
+                  }`}
+                >
+                  {route.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {offer && (
+            <div className="mt-8 max-w-md">
+              <PromotionCard
+                offer={offer}
+                tone="inline"
+                eyebrow="New to Dockentra?"
+              />
+            </div>
+          )}
+        </Container>
+      </section>
+
+      <section
+        id="enquiry"
+        aria-label="Send an enquiry"
+        className="scroll-mt-24 bg-white"
+      >
         <Container className="py-12 sm:py-14">
           <div className="mx-auto max-w-3xl">
             <h2 className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl">

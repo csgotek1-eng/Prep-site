@@ -42,6 +42,7 @@ describe("header Get Price", () => {
       "Services",
       "How It Works",
       "Pricing",
+      "Partnerships",
       "About",
       "Contact",
     ]);

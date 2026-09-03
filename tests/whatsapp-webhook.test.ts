@@ -147,6 +147,8 @@ describe("D. store applies webhook updates by provider message id", () => {
     },
     pricingEmail: null,
     pricingChannel: "whatsapp",
+        promotionId: null,
+        promotionName: null,
   };
 
   it("full lifecycle: ACCEPTED → SENT → DELIVERED, replay-safe", async () => {

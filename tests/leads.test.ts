@@ -39,6 +39,8 @@ const sampleLead: LeadInput = {
   whatsapp: null,
   pricingEmail: null,
   pricingChannel: null,
+  promotionId: null,
+  promotionName: null,
 };
 
 /** Test double: records calls and can be told to fail. */

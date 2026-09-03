@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import PromotionCard from "@/components/PromotionCard";
+import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -46,7 +48,12 @@ const pricingFactors = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  // CONTEXT, not a price change. A promotion never rewrites the
+  // pricing table: rates stay private and server-side, and this is a
+  // note beside the page, nothing more.
+  const offer = await getPrimaryPublicPromotion("pricing");
+
   return (
     <>
       <section className="bg-brand-navy">
@@ -65,6 +72,15 @@ export default function PricingPage() {
               WhatsApp or email, whichever you choose.
             </p>
           </div>
+          {offer && (
+            <div className="mt-8 max-w-md">
+              <PromotionCard
+                offer={offer}
+                tone="inline"
+                eyebrow="New client offer available"
+              />
+            </div>
+          )}
         </Container>
       </section>
 
