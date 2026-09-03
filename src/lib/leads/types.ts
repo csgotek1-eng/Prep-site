@@ -16,6 +16,8 @@ export const LEAD_SOURCES = [
   "quote-form",
   "help-panel",
   "pricing-calculator",
+  "become-client",
+  "partnerships",
 ] as const;
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 
@@ -151,6 +153,16 @@ export interface LeadInput {
   pricingEmail: LeadEmailRequest | null;
   /** Which channel delivers the price; null for non-pricing leads. */
   pricingChannel: PricingDeliveryChannel | null;
+  /**
+   * The promotion this lead came from, when the visitor arrived
+   * through an offer CTA. Verified server-side against a live
+   * promotion before it is stored — the browser only ever supplies a
+   * reference, never the attribution itself. Null for everything
+   * else, which is most leads.
+   */
+  promotionId: string | null;
+  /** The offer's internal name at the time, so history stays readable. */
+  promotionName: string | null;
 }
 
 export interface StoredLead

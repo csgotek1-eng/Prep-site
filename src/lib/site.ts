@@ -73,6 +73,10 @@ export const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
+  // The two public intents, kept apart on purpose: "fulfil my orders"
+  // and "work with you" are different conversations with different
+  // people. One word each — never Partnership AND Cooperation.
+  { href: "/partnerships", label: "Partnerships" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;

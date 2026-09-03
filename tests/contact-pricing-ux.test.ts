@@ -42,11 +42,18 @@ describe("header is navigation only", () => {
     assert.equal(hrefs.includes("/pricing-calculator"), false);
   });
 
-  it("keeps exactly the six approved items in order", () => {
+  it("keeps exactly the approved items in order", () => {
+    // Partnerships joined the list deliberately: "fulfil my orders" and
+    // "work with you" are two intents, and the second one needs a door
+    // of its own. Still ONE word for it — never Partnership AND
+    // Cooperation.
     assert.deepEqual(
       navLinks.map((link) => link.label),
-      ["Home", "Services", "How It Works", "Pricing", "About", "Contact"],
+      ["Home", "Services", "How It Works", "Pricing", "Partnerships", "About", "Contact"],
     );
+    const labels: string[] = navLinks.map((link) => link.label);
+    assert.equal(labels.includes("Cooperation"), false);
+    assert.equal(labels.includes("Partnership"), false);
   });
 
   it("carries the ONE Get Price CTA and no Calculator nav item", () => {
@@ -262,8 +269,9 @@ describe("the floating dock", () => {
 
   it("the open panel asks the owner's question and never claims to be AI", () => {
     const help = read("src/components/ContactLauncher.tsx");
-    assert.ok(help.includes('"How can we help you?"'));
+    assert.ok(help.includes('title="How can we help?"'));
     assert.equal(/\bAI\b/.test(withoutComments(help)), false);
+    assert.equal(help.includes("chat"), false, "Help is not a chatbot");
   });
 
   it("both dock controls are ordinary keyboard-operable buttons", () => {

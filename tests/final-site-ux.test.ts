@@ -192,9 +192,26 @@ describe("previous rounds are preserved", () => {
     }
   });
 
-  it("no migration was created for this visual round", () => {
-    const migrations = readdirSync("supabase/migrations");
-    assert.equal(migrations.includes("0007_.sql"), false);
-    assert.equal(migrations.length, 6, "0001-0006 only");
+  it("that visual round added no migration, and 0001-0006 are untouched", () => {
+    // SUPERSEDED COUNT, NOT THE RULE. 0007 arrived later with the
+    // promotions feature, which genuinely needs a table. What still
+    // holds is that a VISUAL round adds nothing to the schema and no
+    // applied migration is ever rewritten.
+    const migrations = readdirSync("supabase/migrations").sort();
+    assert.deepEqual(migrations.slice(0, 6), [
+      "0001_pricing_schema.sql",
+      "0002_pricing_volume_tiers.sql",
+      "0003_pricing_function_search_path.sql",
+      "0004_website_leads_and_rate_limits.sql",
+      "0005_whatsapp_pricing_delivery.sql",
+      "0006_pricing_email_delivery.sql",
+    ]);
+    // Whatever comes after them is additive only: no migration may
+    // drop a table or a column.
+    for (const file of migrations) {
+      const sql = readFileSync(`supabase/migrations/${file}`, "utf8").toLowerCase();
+      assert.equal(/drop\s+table/.test(sql), false, `${file} drops a table`);
+      assert.equal(/drop\s+column/.test(sql), false, `${file} drops a column`);
+    }
   });
 });

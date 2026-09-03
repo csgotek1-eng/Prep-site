@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import CalculatorModal from "@/components/CalculatorModal";
+import PromotionCard from "@/components/PromotionCard";
+import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
 import AboutSection from "@/components/sections/AboutSection";
 import ContactSection from "@/components/sections/ContactSection";
@@ -23,7 +25,9 @@ const marketplaces: { name: string; brand: BrandName }[] = [
   { name: "WooCommerce", brand: "woocommerce" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const offer = await getPrimaryPublicPromotion("homepage");
+
   return (
     <>
       {/* Hero — light branded surface, soft brand shapes and a quiet
@@ -94,6 +98,18 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+
+      {/* CURRENT OFFER — present only when the owner has one running
+          and has ticked the homepage placement. With no live offer the
+          block does not render at all: no empty state, no "no offers
+          available", nothing for a visitor to notice. */}
+      {offer && (
+        <section aria-label="Current offer" className="bg-white">
+          <Container className="py-12 sm:py-16">
+            <PromotionCard offer={offer} />
+          </Container>
+        </section>
+      )}
 
       <ServicesSection />
       <HowItWorksSection />

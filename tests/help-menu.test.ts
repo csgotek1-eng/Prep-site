@@ -72,9 +72,24 @@ describe("Help command menu", () => {
     }
   });
 
-  it("the launcher renders the grouped menu from the shared list", () => {
-    assert.ok(launcher.includes("HELP_TOPIC_GROUPS.map"));
-    assert.ok(launcher.includes("HELP_TOPICS.filter"));
+  it("the launcher is a signpost of five actions, not a form", () => {
+    // SUPERSEDED ON PURPOSE. Help used to host a whole enquiry form
+    // with seventeen topics, which made it a second front door to
+    // conversations that now have their own pages. It is a menu.
+    for (const action of [
+      "Become a Client",
+      "Partner with Dockentra",
+      "Get a Quote",
+      "WhatsApp us",
+      "Email us",
+    ]) {
+      assert.ok(launcher.includes(action), `Help is missing "${action}"`);
+    }
+    assert.equal(launcher.includes("HELP_TOPIC_GROUPS.map"), false);
+    assert.equal(launcher.includes("<form"), false, "Help must not host a form");
+    // Every item is a real link with an icon, in one list.
+    assert.ok(launcher.includes("const ACTIONS: readonly HelpAction[]"));
+    assert.ok(launcher.includes("Icon aria-hidden"));
   });
 
   it("HELP IS HELP: it carries no pricing entry point at all", () => {
@@ -105,29 +120,31 @@ describe("Help command menu", () => {
 });
 
 describe("Write my own question", () => {
-  it("is an explicit menu option with an emphasised free-text area", () => {
+  it("a free-text question still has a home — on the contact page", () => {
+    // SUPERSEDED: Help no longer types anything. "Get a Quote" routes
+    // to the enquiry form on /contact, which owns the message box.
     const own = HELP_TOPICS.find((topic) => topic.id === "own-question");
     assert.ok(own);
     assert.equal(own.freeText, true);
-    assert.ok(launcher.includes("topic.freeText ? 6 : 4"));
-    assert.ok(launcher.includes("Your question *"));
+    assert.ok(launcher.includes('href: "/contact#enquiry"'));
+    assert.ok(read("src/app/contact/page.tsx").includes('id="enquiry"'));
   });
 
-  it("typed content survives Back / topic changes / minimise-restore", () => {
-    // Controlled inputs bound to a session draft…
-    assert.ok(launcher.includes('"dockentra-help-draft"'));
-    assert.ok(launcher.includes("setDraftField"));
-    assert.ok(launcher.includes("value={draft.message}"));
-    assert.ok(launcher.includes("sessionStorage.setItem"));
-    // …that is NOT cleared when the panel closes or a topic changes;
-    // it is cleared only after a successful send.
+  it("there is nothing left in Help that could be lost", () => {
+    // SUPERSEDED: the session draft existed to protect text typed into
+    // the Help form. With no form there is nothing to protect, and
+    // keeping a half-used draft store would be dead weight.
+    assert.equal(launcher.includes('"dockentra-help-draft"'), false);
+    assert.equal(launcher.includes("setDraftField"), false);
+    assert.equal(launcher.includes("sessionStorage"), false);
+    assert.equal(launcher.includes("clearDraft"), false);
+    // Closing still tidies the deep-link hash, so the same
+    // #contact-enquiry link can reopen the panel a second time.
     const close = launcher.slice(
       launcher.indexOf("const close = ()"),
       launcher.indexOf("const close = ()") + 700,
     );
-    assert.equal(close.includes("clearDraft"), false);
-    const success = launcher.slice(launcher.indexOf("if (data.ok)"));
-    assert.ok(success.slice(0, 200).includes("clearDraft()"));
+    assert.ok(close.includes("window.history.replaceState"));
   });
 });
 
@@ -153,7 +170,11 @@ describe("enquiry topic is validated and stored", () => {
     assert.ok(route.includes("enquiry.topic"));
   });
 
-  it("the launcher sends the picked topic with the submission", () => {
-    assert.ok(launcher.includes("topic: topic?.label"));
+  it("the launcher submits nothing at all — it only routes", () => {
+    assert.equal(launcher.includes("fetch("), false);
+    assert.equal(launcher.includes("topic: topic?.label"), false);
+    // The two intents it routes to are separate destinations.
+    assert.ok(launcher.includes('href: "/become-a-client"'));
+    assert.ok(launcher.includes('href: "/partnerships"'));
   });
 });
