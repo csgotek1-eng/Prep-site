@@ -59,14 +59,23 @@ export default async function OfferPage({
     <main>
       <section className="bg-brand-mint-soft/50">
         <Container className="py-14 sm:py-20">
+          {/* break-words on every owner-authored string below. The
+              title, the summary, the body and the terms are typed by
+              the owner and validated only for LENGTH, so a 50-character
+              word or a pasted URL is a legal title. Without wrapping,
+              one unbroken token wider than the column widens the whole
+              document — measured at 320px, a 50-character title took
+              the page to 490px and a long summary to 3157px, and the
+              fixed dock then pinned itself to the widened layout
+              viewport instead of the screen edge. */}
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
               Current offer
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
+            <h1 className="mt-2 break-words text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
               {offer.title}
             </h1>
-            <p className="mt-4 text-lg leading-8 text-slate-700">
+            <p className="mt-4 break-words text-lg leading-8 text-slate-700">
               {offer.shortText}
             </p>
           </div>
@@ -86,7 +95,7 @@ export default async function OfferPage({
               .map((paragraph, index) => (
                 <p
                   key={index}
-                  className="mb-4 text-base leading-7 text-slate-700 last:mb-0"
+                  className="mb-4 break-words text-base leading-7 text-slate-700 last:mb-0"
                 >
                   {paragraph}
                 </p>
@@ -116,7 +125,7 @@ export default async function OfferPage({
                   </p>
                 )}
                 {offer.termsText && (
-                  <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                  <p className="mt-2 whitespace-pre-line break-words text-sm leading-6 text-slate-600">
                     {offer.termsText}
                   </p>
                 )}

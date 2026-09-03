@@ -182,7 +182,8 @@ function rowToLead(row: LeadRow): StoredLead {
   };
 }
 
-function inputToRow(input: LeadInput) {
+/** Exported so a test can assert which COLUMNS a lead write names. */
+export function inputToRow(input: LeadInput) {
   return {
     source: input.source,
     type: input.type,
@@ -209,8 +210,28 @@ function inputToRow(input: LeadInput) {
     whatsapp_requested_at: input.whatsapp?.requestedAt ?? null,
     whatsapp_delivery_status: input.whatsapp ? "PENDING" : null,
     pricing_delivery_channel: input.pricingChannel,
-    promotion_id: input.promotionId,
-    promotion_name: input.promotionName,
+    // PROMOTION ATTRIBUTION IS OMITTED ENTIRELY WHEN THERE IS NONE,
+    // rather than sent as null. promotion_id and promotion_name arrive
+    // with migration 0007; PostgREST rejects the whole insert if it is
+    // handed a column the table does not have. Sending them
+    // unconditionally would mean that deploying this code before the
+    // migration runs breaks EVERY lead — including the quote form, the
+    // help panel and the pricing calculator, which have nothing to do
+    // with promotions. Spreading them only when a real promotion was
+    // resolved keeps those three flows writing exactly the row they
+    // write today, whatever the schema is.
+    //
+    // This is a safety net for a deployment-ordering mistake, NOT
+    // independence from the migration: Become a Client and
+    // Partnerships still REQUIRE 0007, because their source values
+    // ('become-client', 'partnerships') fail the source CHECK that
+    // 0005 installed until 0007 widens it.
+    ...(input.promotionId
+      ? {
+          promotion_id: input.promotionId,
+          promotion_name: input.promotionName,
+        }
+      : {}),
     pricing_email: input.pricingEmail?.address ?? null,
     pricing_email_normalized: input.pricingEmail?.addressNormalized ?? null,
     pricing_email_reference: input.pricingEmail?.reference ?? null,

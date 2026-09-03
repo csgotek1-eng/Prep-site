@@ -53,10 +53,21 @@ export function sanitizePromotionText(value: unknown, max: number): string {
     .slice(0, max);
 }
 
-/** Site-relative destinations only: no javascript:, no other origin. */
+/**
+ * Site-relative destinations only: no javascript:, no other origin.
+ *
+ * A BACKSLASH IS NOT A PATH CHARACTER HERE. The URL spec tells
+ * browsers to read "\\" as "/" in a special-scheme URL, so "/\\evil.com"
+ * is fetched as "//evil.com" — a different origin wearing a
+ * site-relative disguise. Checking only for a leading "//" misses it.
+ * The same rule is enforced again by the cta_url CHECK in migration
+ * 0007, because this is the one field that decides where a visitor is
+ * sent from our own page.
+ */
 export function sanitizeCtaUrl(value: unknown): string | null {
   const raw = sanitizePromotionText(value, LIMITS.ctaUrl);
   if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  if (raw.includes("\\")) return null;
   if (/\s/.test(raw)) return null;
   return raw;
 }

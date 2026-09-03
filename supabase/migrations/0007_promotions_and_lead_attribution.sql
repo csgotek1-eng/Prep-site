@@ -67,9 +67,19 @@ create table if not exists public.website_promotions (
 
   cta_label text not null default 'Learn more',
   -- Site-relative path only; enforced again in application validation.
+  --
+  -- The backslash test is not decoration. Browsers read "\" as "/" in a
+  -- special-scheme URL, so '/\evil.com' is fetched as '//evil.com' — a
+  -- different origin wearing a site-relative disguise that the leading
+  -- '//' test does not catch. chr(92) is used instead of a LIKE pattern
+  -- so the rule does not depend on LIKE's own escape character.
   cta_url text not null default '/contact',
   constraint website_promotions_cta_url_check
-    check (cta_url like '/%' and cta_url not like '//%'),
+    check (
+      cta_url like '/%'
+      and cta_url not like '//%'
+      and strpos(cta_url, chr(92)) = 0
+    ),
 
   -- Placement is opt-in per surface.
   display_top_banner boolean not null default false,
