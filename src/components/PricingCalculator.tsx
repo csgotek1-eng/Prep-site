@@ -151,8 +151,10 @@ export default function PricingCalculator({
 
   // Server-side estimation, debounced while the visitor edits. Stale
   // responses are discarded by request id so a slow earlier answer can
-  // never overwrite a newer one. The empty-selection reset happens in
-  // the event handlers (clearSelectionState), not here.
+  // never overwrite a newer one. With nothing selected there is
+  // nothing to price: the cleanup below aborts any in-flight request,
+  // and the render DERIVES emptiness from `selections` (see
+  // hasEstimateLines) rather than any handler resetting state.
   useEffect(() => {
     const entries = Object.entries(selections);
     if (entries.length === 0) {
@@ -235,21 +237,22 @@ export default function PricingCalculator({
 
   function toggleService(service: PublicCatalogueService) {
     clearSendResult();
-    const next = { ...selections };
-    if (service.id in next) {
-      delete next[service.id];
-    } else {
-      next[service.id] = 1;
-    }
-    setSelections(next);
-    if (Object.keys(next).length === 0) {
-      // Last service removed: clear the estimate immediately and make
-      // any in-flight response stale.
-      estimateRequestId.current += 1;
-      setEstimate(null);
-      setEstimating(false);
-      setEstimateError(false);
-    }
+    // COMPOSE on the latest state, never on a snapshot read from this
+    // render's closure. Two toggles that land in the same batch — which
+    // is what a phone produces when it coalesces or duplicates a tap —
+    // used to both start from the SAME `selections` object, so the
+    // second silently discarded the first. The card stayed visibly
+    // ticked (the browser had already toggled it natively) while the
+    // count still described the older selection.
+    setSelections((current) => {
+      const next = { ...current };
+      if (service.id in next) {
+        delete next[service.id];
+      } else {
+        next[service.id] = 1;
+      }
+      return next;
+    });
   }
 
   function setQuantity(serviceId: string, value: string) {
@@ -419,8 +422,17 @@ export default function PricingCalculator({
   }
 
   const categories = [...new Set(services.map((s) => s.category))];
+  // EVERYTHING the wizard shows about the selection is derived from
+  // `selections` on the current render — the count, the status line,
+  // the Continue label and whether an estimate is worth showing at
+  // all. No parallel counter, no cached total, nothing a handler has
+  // to remember to update.
   const selectedCount = Object.keys(selections).length;
-  const hasEstimateLines = Boolean(estimate && estimate.lines.length > 0);
+  // A last-removed service leaves the previous estimate behind for a
+  // moment; requiring a live selection means the UI never shows it.
+  const hasEstimateLines = Boolean(
+    selectedCount > 0 && estimate && estimate.lines.length > 0,
+  );
 
   // MOBILE WIZARD visibility. Below lg exactly one step is displayed;
   // at lg and up every step is displayed, which is the desktop layout
@@ -1151,10 +1163,19 @@ export default function PricingCalculator({
           still content to scroll, but it can never permanently cover
           anything — the end of the step is always fully reachable
           above it. Bottom padding respects the device safe area so it
-          clears the iOS home indicator. */}
+          clears the iOS home indicator.
+
+          OPAQUE, and NO backdrop-filter. There is exactly one of these
+          in the tree, yet iOS showed "Back" twice: a sticky element
+          that is BOTH translucent and backdrop-filtered inside a
+          scrolling container makes WebKit paint it at its pinned
+          position while the in-flow copy still shows through it. A
+          solid background with no filter removes both halves of that
+          artifact and changes nothing else. Do not reintroduce
+          bg-white/NN or backdrop-blur here. */}
       <div
         data-testid="calculator-wizard-nav"
-        className="sticky bottom-0 z-20 mt-6 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur lg:hidden"
+        className="sticky bottom-0 z-20 mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] lg:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <p

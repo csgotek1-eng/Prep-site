@@ -10,9 +10,9 @@ import { contactEmailHref, siteContact } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
-  { label: "Dockentra on Instagram", href: siteConfig.social.instagram, Icon: InstagramIcon, priority: true },
-  { label: "Dockentra on Facebook", href: siteConfig.social.facebook, Icon: FacebookIcon, priority: false },
-  { label: "Dockentra on TikTok", href: siteConfig.social.tiktok, Icon: TikTokIcon, priority: false },
+  { label: "Dockentra on Instagram", href: siteConfig.social.instagram, Icon: InstagramIcon },
+  { label: "Dockentra on Facebook", href: siteConfig.social.facebook, Icon: FacebookIcon },
+  { label: "Dockentra on TikTok", href: siteConfig.social.tiktok, Icon: TikTokIcon },
 ];
 
 /**
@@ -21,15 +21,20 @@ const socials = [
  *
  * EMAIL FIRST, then WhatsApp. The phone number is deliberately absent —
  * it lives in the footer and the bottom of /contact only, so the site
- * is not built around phone calls. On small screens only email,
- * WhatsApp and Instagram remain.
+ * is not built around phone calls.
+ *
+ * ALL THREE social icons show on every screen. They used to be gated
+ * behind `sm`, which hid Facebook and TikTok on every phone. The bar
+ * still fits 320px because the left group and the icon buttons tighten
+ * slightly below `sm` — the only thing the location link (already
+ * `sm`-only) leaves room for.
  */
 export default function UtilityBar() {
   return (
     <div className="border-b border-brand-border/70 bg-brand-surface-soft/80 text-brand-text-muted">
       <Container>
-        <div className="flex h-8 items-center justify-between gap-3 text-[13px]">
-          <div className="flex items-center gap-4">
+        <div className="flex h-8 items-center justify-between gap-2 text-[13px] sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-4">
             <a
               href={contactEmailHref}
               className="inline-flex items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
@@ -60,15 +65,15 @@ export default function UtilityBar() {
               </a>
             )}
           </div>
-          <ul className="flex items-center gap-1">
-            {socials.map(({ label, href, Icon, priority }) => (
-              <li key={label} className={priority ? "" : "hidden sm:block"}>
+          <ul className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+            {socials.map(({ label, href, Icon }) => (
+              <li key={label}>
                 <a
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded transition-colors hover:text-brand-green-dark"
+                  className="inline-flex h-8 w-7 items-center justify-center rounded transition-colors hover:text-brand-green-dark sm:w-8"
                 >
                   <Icon aria-hidden="true" className="h-4 w-4" />
                 </a>
