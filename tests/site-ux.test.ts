@@ -234,8 +234,10 @@ describe("CTA vocabulary and repetition", () => {
   it("the header carries the ONE Get Price button, and no Calculator nav item", () => {
     const header = withoutComments(read("src/components/Header.tsx"));
     assert.ok(header.includes('label="Get Price"'));
-    // Desktop bar + mobile menu = two renderings, never both visible.
-    assert.equal((header.match(/<CalculatorModal/g) ?? []).length, 2);
+    // Desktop bar + mobile menu = two renderings, never both visible,
+    // both driving the single dialog the header owns.
+    assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
+    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 1);
     assert.ok(header.includes("hidden sm:block"));
     assert.ok(header.includes("sm:hidden"));
     // The nav list itself stays free of a Calculator entry.

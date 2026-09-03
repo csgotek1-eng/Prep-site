@@ -56,8 +56,10 @@ describe("header is navigation only", () => {
     const header = withoutComments(read("src/components/Header.tsx"));
     assert.equal(header.includes("Get Pricing"), false, "old label retired");
     assert.ok(header.includes('label="Get Price"'));
-    // Desktop bar + mobile menu row; the classes keep them exclusive.
-    assert.equal((header.match(/<CalculatorModal/g) ?? []).length, 2);
+    // Desktop bar + mobile menu row; the classes keep them exclusive,
+    // and they share the ONE dialog the header owns.
+    assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
+    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 1);
     // Nothing in the header links outside the nav list.
     assert.equal((header.match(/<Link/g) ?? []).length, 3);
   });

@@ -140,9 +140,10 @@ describe("one pricing engine behind both calculator entry points", () => {
     const dock = read("src/components/FloatingDock.tsx");
     assert.ok(dock.includes("<CalculatorDialog"));
     assert.equal(dock.includes("calculateEstimate"), false);
-    for (const path of ["src/components/Header.tsx", "src/app/page.tsx"]) {
-      assert.ok(read(path).includes("<CalculatorModal"), `${path} entry point`);
-    }
+    // The header renders the canonical dialog itself (it has to own
+    // the state — see Header.tsx); the hero uses the wrapper.
+    assert.ok(read("src/components/Header.tsx").includes("<CalculatorDialog"));
+    assert.ok(read("src/app/page.tsx").includes("<CalculatorModal"));
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
         "export function CalculatorDialog",

@@ -19,19 +19,33 @@ describe("header Get Price", () => {
   const header = strip(read("src/components/Header.tsx"));
 
   it("renders the canonical calculator trigger labelled Get Price", () => {
-    assert.ok(header.includes("<CalculatorModal"));
+    // The header now renders the TRIGGER and owns the dialog itself —
+    // a self-contained CalculatorModal cannot live inside the mobile
+    // menu, because closing the menu unmounts it mid-click.
+    assert.ok(header.includes("<CalculatorTrigger"));
     assert.ok(header.includes('label="Get Price"'));
     assert.ok(header.includes('variant="header"'));
+    assert.ok(header.includes("<CalculatorDialog"));
   });
 
   it("shows it top-right on desktop and inside the menu on mobile, never both", () => {
-    assert.equal((header.match(/<CalculatorModal/g) ?? []).length, 2);
+    assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
     assert.ok(header.includes('className="hidden sm:block"'), "desktop bar is sm+");
     assert.ok(header.includes('className="pt-2 sm:hidden"'), "menu row is below sm");
+    // ...but only ONE dialog, so the two triggers can never produce two.
+    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 1);
   });
 
   it("closes the mobile menu when the dialog opens", () => {
-    assert.ok(header.includes("onOpen={closeMenu}"));
+    assert.ok(header.includes("closeMenu();"));
+    assert.ok(header.includes("openCalculator();"));
+    // THE FIX: the dialog is rendered OUTSIDE the conditional menu
+    // subtree, so closing the menu cannot unmount it. Before this, the
+    // menu closed and nothing opened.
+    const menuStart = header.indexOf("{menuOpen && (");
+    const menuEnd = header.indexOf("</nav>", menuStart);
+    const dialogAt = header.indexOf("<CalculatorDialog");
+    assert.ok(menuStart > 0 && dialogAt > menuEnd, "the dialog must live outside the menu");
   });
 
   it("still has no Calculator navigation item", () => {
@@ -190,9 +204,14 @@ describe("one canonical calculator", () => {
     const dock = read("src/components/FloatingDock.tsx");
     assert.ok(dock.includes("<CalculatorDialog"));
     assert.equal(dock.includes("<PricingCalculator"), false);
-    // The header and hero go through the button wrapper.
-    assert.ok(read("src/components/Header.tsx").includes("<CalculatorModal"));
+    // The hero still uses the self-contained wrapper (nothing unmounts
+    // it); the header renders the same dialog directly.
+    assert.ok(read("src/components/Header.tsx").includes("<CalculatorDialog"));
     assert.ok(read("src/app/page.tsx").includes("<CalculatorModal"));
+    // Both go through ONE trigger component, so the styling and the
+    // catalogue warm-up cannot drift apart.
+    assert.ok(modal.includes("export function CalculatorTrigger"));
+    assert.ok(modal.includes("<CalculatorTrigger"));
     // Exactly one component file implements the calculator.
     const implementations = readdirSync("src/components").filter((n) =>
       /^PricingCalculator/.test(n),

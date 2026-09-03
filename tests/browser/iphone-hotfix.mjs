@@ -254,6 +254,122 @@ for (const [width, height] of PHONES) {
   await context.close();
 }
 
+// ============ HEADER GET PRICE — mobile menu and desktop =============
+// The mobile Get Price used to be a self-contained button living inside
+// {menuOpen && …}: tapping it closed the menu, which unmounted the
+// button and the dialog it was about to open. The menu vanished and the
+// calculator never appeared. The header owns the dialog now, so these
+// assertions are about a real click producing a real dialog.
+for (const [width, height] of PHONES) {
+  const context = await browser.newContext(phone(width, height));
+  const page = await context.newPage();
+  const where = `header CTA @${width}x${height}`;
+  step(where);
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+
+  // Below sm the desktop CTA is hidden, so the menu is the only route.
+  ok(
+    !(await page.locator('header button:has-text("Get Price")').first().isVisible()),
+    `${where}: the desktop CTA should be hidden below sm`,
+  );
+
+  // 1. open the hamburger menu
+  await page.locator('header button[aria-label="Open menu"]').click();
+  await page.waitForTimeout(250);
+  ok(await page.locator("#mobile-menu").isVisible(), `${where}: the menu did not open`);
+
+  // 2. Get Price is visible inside it
+  const cta = page.locator('#mobile-menu button:has-text("Get Price")');
+  ok(await cta.isVisible(), `${where}: Get Price missing from the menu`);
+  ok(
+    (await cta.locator("svg").count()) === 0,
+    `${where}: the header CTA must carry no calculator icon`,
+  );
+
+  // 3. tap it
+  await cta.click();
+  await page.waitForTimeout(600);
+
+  // 4. the menu closes
+  ok(
+    (await page.locator("#mobile-menu").count()) === 0,
+    `${where}: the mobile menu stayed open behind the dialog`,
+  );
+
+  // 5. EXACTLY ONE calculator dialog opens, at step 1
+  const dialogs = await page.locator('[role="dialog"]').count();
+  ok(dialogs === 1, `${where}: ${dialogs} dialogs opened (want exactly 1)`);
+  ok(
+    await page.getByText("Pricing Calculator").first().isVisible(),
+    `${where}: the dialog heading is missing`,
+  );
+  ok(
+    await page.locator("#monthly-orders").isVisible(),
+    `${where}: the calculator did not open at step 1`,
+  );
+  ok(
+    !(await page.locator('input[type="checkbox"]').first().isVisible()),
+    `${where}: opened past step 1`,
+  );
+  // It is THE canonical calculator, not a second one.
+  const calculators = await page.locator("#monthly-orders").count();
+  ok(calculators === 1, `${where}: ${calculators} calculators mounted (want exactly 1)`);
+  const wizards = await page.locator('[data-testid="calculator-wizard-nav"]').count();
+  ok(wizards === 1, `${where}: ${wizards} wizards mounted (want exactly 1)`);
+  // No navigation happened — this is a dialog, not a page.
+  ok(new URL(page.url()).pathname === "/", `${where}: navigated to ${page.url()}`);
+
+  // Steps 6 and 7 only mean anything if a dialog actually opened. When
+  // the bug is present it did not, and the failures above already say
+  // so — carry on and print them rather than dying on a timeout.
+  if (dialogs === 1) {
+    // 6. the close control closes it
+    await page.locator('[role="dialog"] button[aria-label="Close"]').click();
+    await page.waitForTimeout(400);
+    ok((await page.locator('[role="dialog"]').count()) === 0, `${where}: Close did not close it`);
+
+    // 7. the header still works afterwards
+    await page.locator('header button[aria-label="Open menu"]').click();
+    await page.waitForTimeout(250);
+    ok(
+      await page.locator("#mobile-menu").isVisible(),
+      `${where}: the menu broke after closing the dialog`,
+    );
+    await page.locator('#mobile-menu button:has-text("Get Price")').click();
+    await page.waitForTimeout(600);
+    ok(
+      (await page.locator('[role="dialog"]').count()) === 1,
+      `${where}: it only worked once`,
+    );
+  }
+  await context.close();
+}
+
+// Desktop: the same CTA, the same one dialog, still no icon.
+for (const [width, height] of [[1280, 900], [1440, 900]]) {
+  const context = await browser.newContext({ viewport: { width, height } });
+  const page = await context.newPage();
+  const where = `header CTA @${width}x${height}`;
+  step(where);
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  const cta = page.locator('header button:has-text("Get Price")').first();
+  ok(await cta.isVisible(), `${where}: the desktop CTA is missing`);
+  ok((await cta.textContent())?.trim() === "Get Price", `${where}: wrong label`);
+  ok((await cta.locator("svg").count()) === 0, `${where}: the CTA grew an icon`);
+  ok(
+    (await page.locator('header button:has-text("Get Price")').count()) === 1,
+    `${where}: two Get Price buttons are rendered at once`,
+  );
+  await cta.click();
+  await page
+    .waitForSelector("#monthly-orders", { state: "visible", timeout: 8000 })
+    .catch(() => {});
+  ok((await page.locator('[role="dialog"]').count()) === 1, `${where}: not exactly one dialog`);
+  ok(await page.locator("#monthly-orders").isVisible(), `${where}: not at step 1`);
+  await context.close();
+}
+
 await browser.close();
 stopServer();
 

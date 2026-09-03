@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLockup from "@/components/BrandLockup";
-import CalculatorModal from "@/components/CalculatorModal";
+import {
+  CalculatorDialog,
+  CalculatorTrigger,
+} from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import { navLinks } from "@/lib/site";
 
@@ -20,6 +23,17 @@ const HOME_ANCHORS: Record<string, string> = {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  /**
+   * THE HEADER OWNS THE DIALOG, not the buttons.
+   *
+   * The mobile Get Price used to be a self-contained button that held
+   * its own dialog state, sitting inside `{menuOpen && …}`. Tapping it
+   * closed the menu, which unmounted the button and the dialog it was
+   * about to open — so on a phone the menu vanished and nothing else
+   * happened. The state lives here instead, on a component that stays
+   * mounted whatever the menu does.
+   */
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const onHome = pathname === "/";
@@ -32,6 +46,7 @@ export default function Header() {
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
+  const openCalculator = () => setCalculatorOpen(true);
   const hrefFor = (href: string) =>
     onHome && HOME_ANCHORS[href] ? HOME_ANCHORS[href] : href;
 
@@ -84,7 +99,12 @@ export default function Header() {
               nav itself stays free of a Calculator item. */}
           <div className="flex items-center gap-2">
             <div className="hidden sm:block">
-              <CalculatorModal variant="header" label="Get Price" icon={false} />
+              <CalculatorTrigger
+                variant="header"
+                label="Get Price"
+                icon={false}
+                onClick={openCalculator}
+              />
             </div>
 
             {/* Mobile menu button */}
@@ -152,18 +172,34 @@ export default function Header() {
               <li className="pt-2 sm:hidden">
                 {/* Mobile only: the desktop bar already shows Get Price
                     from sm up, so the two never appear together. */}
-                <CalculatorModal
+                <CalculatorTrigger
                   variant="header"
                   label="Get Price"
                   icon={false}
-                  onOpen={closeMenu}
                   block
+                  onClick={() => {
+                    // Order does not matter any more: the dialog is not
+                    // in this subtree, so closing the menu cannot take
+                    // it with it.
+                    closeMenu();
+                    openCalculator();
+                  }}
                 />
               </li>
             </ul>
           </Container>
         </nav>
       )}
+
+      {/* ONE canonical dialog for BOTH header buttons, rendered outside
+          the conditional mobile-menu subtree so it survives the menu
+          closing. Same CalculatorDialog + PricingCalculator the hero
+          and the floating dock open — there is still exactly one
+          calculator implementation on the site. */}
+      <CalculatorDialog
+        open={calculatorOpen}
+        onClose={() => setCalculatorOpen(false)}
+      />
     </header>
   );
 }

@@ -81,7 +81,53 @@ const VARIANTS = {
     "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark",
 } as const;
 
-/** A button that opens the canonical dialog. */
+/**
+ * JUST THE BUTTON. It carries the shared styling and the catalogue
+ * warm-up handlers, and it owns NO dialog state.
+ *
+ * This exists because a trigger that owns its own dialog cannot be
+ * placed inside something that unmounts when it is clicked — the
+ * mobile menu closes, the component disappears, and the dialog it was
+ * about to open goes with it. A caller in that position renders this
+ * button and keeps ONE CalculatorDialog somewhere that stays mounted.
+ */
+export function CalculatorTrigger({
+  label = "Calculator",
+  variant = "primary",
+  onClick,
+  block = false,
+  icon = true,
+}: {
+  label?: string;
+  variant?: keyof typeof VARIANTS;
+  onClick: () => void;
+  /** Full-width button (mobile menu row). */
+  block?: boolean;
+  /** The header CTA reads as plain text; everywhere else keeps the icon. */
+  icon?: boolean;
+}) {
+  const warm = useCataloguePrefetch();
+  return (
+    <button
+      type="button"
+      onPointerEnter={warm}
+      onFocus={warm}
+      onTouchStart={warm}
+      onClick={onClick}
+      className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
+    >
+      {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}
+      {label}
+    </button>
+  );
+}
+
+/**
+ * A button that opens the canonical dialog and owns its open state.
+ * Safe wherever the button itself stays mounted across the click —
+ * the homepage hero, a page section. Where it does not, use
+ * CalculatorTrigger with a dialog held higher up.
+ */
 export default function CalculatorModal({
   label = "Calculator",
   variant = "primary",
@@ -99,24 +145,19 @@ export default function CalculatorModal({
   icon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const warm = useCataloguePrefetch();
 
   return (
     <>
-      <button
-        type="button"
-        onPointerEnter={warm}
-        onFocus={warm}
-        onTouchStart={warm}
+      <CalculatorTrigger
+        label={label}
+        variant={variant}
+        block={block}
+        icon={icon}
         onClick={() => {
           onOpen?.();
           setOpen(true);
         }}
-        className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
-      >
-        {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}
-        {label}
-      </button>
+      />
       <CalculatorDialog open={open} onClose={() => setOpen(false)} />
     </>
   );

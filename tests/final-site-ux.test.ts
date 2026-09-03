@@ -95,7 +95,8 @@ describe("header Get Price is text only", () => {
   });
 
   it("still opens the canonical calculator", () => {
-    assert.ok(header.includes("<CalculatorModal"));
+    assert.ok(header.includes("<CalculatorTrigger"));
+    assert.ok(header.includes("<CalculatorDialog"));
     assert.ok(calcModal.includes("<CalculatorDialog"));
   });
 });
