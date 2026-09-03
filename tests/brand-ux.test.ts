@@ -55,9 +55,11 @@ describe("calculator primary actions stay reachable", () => {
     // Nothing in the calculator is position:fixed, at any breakpoint.
     assert.equal(calculator.includes("fixed inset-x-0"), false);
     assert.equal(/className=(?:"|`)[^"`]*\bfixed\b/.test(calculator), false);
-    // The ONE sticky element below lg is the step nav, and it is the
-    // last element in flow, so it parks at its natural position and
-    // cannot permanently cover the end of a step.
+    // NOTHING in the calculator is sticky either. The step nav used to
+    // be, and on a real iPhone that one sticky bar — inside the
+    // dialog's scroller, inside the fixed overlay — was composited
+    // asynchronously and painted twice with stale text. It is plain
+    // normal flow now, and no sticky may come back.
     // Match CLASS NAMES only — the doc comments talk about the sticky
     // site header and the sticky summary in plain English.
     const jsx = calculator
@@ -65,7 +67,7 @@ describe("calculator primary actions stay reachable", () => {
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
     const sticky = jsx.match(/\bsticky (?:bottom|top|left|right|inset)-[a-z0-9:[\]./-]+/g) ?? [];
-    assert.deepEqual(sticky, ["sticky bottom-0"]);
+    assert.deepEqual(sticky, []);
     const nav = calculator.indexOf('data-testid="calculator-wizard-nav"');
     assert.ok(nav > calculator.indexOf("MOBILE/TABLET selected-service"));
   });

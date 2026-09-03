@@ -1157,26 +1157,42 @@ export default function PricingCalculator({
         {disclaimer}
       </div>
 
-      {/* MOBILE WIZARD NAV (below lg). It is the LAST element in normal
-          flow, so scrolling to the end parks it at its natural
-          position: it can pin itself to the bottom edge while there is
-          still content to scroll, but it can never permanently cover
-          anything — the end of the step is always fully reachable
-          above it. Bottom padding respects the device safe area so it
-          clears the iOS home indicator.
+      {/* MOBILE WIZARD NAV (below lg) — PLAIN NORMAL FLOW. NOT STICKY.
+          NOT POSITIONED. NO STACKING CONTEXT.
 
-          OPAQUE, and NO backdrop-filter. There is exactly one of these
-          in the tree, yet iOS showed "Back" twice: a sticky element
-          that is BOTH translucent and backdrop-filtered inside a
-          scrolling container makes WebKit paint it at its pinned
-          position while the in-flow copy still shows through it. A
-          solid background with no filter removes both halves of that
-          artifact and changes nothing else. Do not reintroduce
-          bg-white/NN or backdrop-blur here. */}
+          This bar was `position: sticky` inside the dialog's
+          `overflow-y: auto` body, which is itself inside the modal's
+          `position: fixed` overlay. On a real iPhone that exact nesting
+          hands the element to the compositor with asynchronous
+          updates, and WebKit then does two things wrong with it: it
+          paints the layer at more than one position (the owner saw
+          "Back" twice) and it keeps showing the layer's LAST PAINTED
+          CONTENT when the text inside changes (the count stayed at
+          "1 service selected" until a step change forced a relayout).
+
+          Both symptoms were reported from a physical iPhone AFTER an
+          earlier attempt that only removed the translucency and the
+          backdrop-filter. Those were aggravating factors, not the
+          cause: the cause is sticky-inside-a-scroller-inside-fixed,
+          and the only reliable answer is not to be a composited layer
+          at all. Measured first — the DOM holds exactly ONE of this
+          bar and exactly ONE "Back", and React state, the checkbox
+          count and this bar's text all agree on the same render — so
+          neither symptom could ever have been a state bug.
+
+          It is the last element of the step, so nothing it could cover
+          exists below it. Bottom padding still respects the device
+          safe area, which matters at the end of the scroll.
+
+          DO NOT make this sticky, fixed, translucent or filtered
+          again, and do not give it a z-index. */}
       <div
         data-testid="calculator-wizard-nav"
-        className="sticky bottom-0 z-20 mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] lg:hidden"
-        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        // Rendered straight from `selections` on this render, so a test
+        // can prove the state and the visible text can never disagree.
+        data-selected-count={selectedCount}
+        className="mt-6 rounded-xl border border-slate-200 bg-white p-4 lg:hidden"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         <p
           role="status"

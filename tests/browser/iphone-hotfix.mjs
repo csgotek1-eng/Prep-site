@@ -12,6 +12,12 @@
  *   BUG 3  The selected-service count and the Continue label must
  *          follow a tap IMMEDIATELY, with no step change in between.
  *
+ * Bugs 2 and 3 came back from a PHYSICAL iPhone after the first fix,
+ * so a later section proves the real cause is gone: nothing in the open
+ * dialog is sticky, fixed, filtered or transformed any more (iOS
+ * composites that nesting asynchronously), and React state, the DOM
+ * checkboxes and the painted text are sampled together on one render.
+ *
  * Run with:  npm run build && npm run test:browser
  *
  * It needs `playwright` (a dev-only tool, deliberately not a
@@ -251,6 +257,119 @@ for (const [width, height] of PHONES) {
   ok(text.includes("2 services selected"), `${where}: the count is wrong after Back — "${text}"`);
   ok(await visibleLabels(page, "Back") === 1, `${where}: a second "Back" appeared after navigating back`);
   await noOverflow(page, width, where);
+  await context.close();
+}
+
+// ===== REAL-IPHONE ROUND — the two bugs that survived the first fix ====
+// The owner retested the deployed site on a PHYSICAL iPhone and both
+// symptoms were still there. The cause was not the JSX and not React
+// state: the wizard nav was `position: sticky` inside the dialog's
+// `overflow-y: auto` body inside the modal's `position: fixed` overlay,
+// which iOS Safari promotes to an asynchronously updated compositor
+// layer — so it painted "Back" at two positions and kept showing the
+// layer's last painted text after a selection changed.
+//
+// These assertions therefore check two things a source grep cannot:
+//   A. the computed layout no longer contains the hazard, anywhere in
+//      the open dialog; and
+//   B. React state, the DOM checkboxes and the PAINTED text agree on
+//      the same render, on every tap, with no step change in between.
+for (const [width, height] of PHONES) {
+  const context = await browser.newContext(phone(width, height));
+  const page = await context.newPage();
+  const where = `ios layers @${width}x${height}`;
+  step(where);
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+  await page
+    .locator('[data-testid="floating-dock"] button[aria-label="Open pricing calculator"]')
+    .click();
+  await page.waitForSelector("#monthly-orders", { state: "visible" });
+
+  // --- A. the nav is not a composited layer, and neither is anything
+  //        else in the dialog. Only the dialog's own fixed overlay is
+  //        allowed to be positioned — that is what a modal IS.
+  const navBox = await page.evaluate(() => {
+    const nav = document.querySelector('[data-testid="calculator-wizard-nav"]');
+    if (!nav) return null;
+    const s = getComputedStyle(nav);
+    return { position: s.position, zIndex: s.zIndex, filter: s.filter, backdrop: s.backdropFilter, transform: s.transform };
+  });
+  ok(navBox !== null, `${where}: no wizard nav in the DOM`);
+  ok(navBox?.position === "static", `${where}: nav position is ${navBox?.position} (want static)`);
+  ok(navBox?.zIndex === "auto", `${where}: nav z-index is ${navBox?.zIndex} (want auto)`);
+  ok(navBox?.filter === "none", `${where}: nav has filter ${navBox?.filter}`);
+  ok(
+    navBox?.backdrop === "none" || navBox?.backdrop === undefined,
+    `${where}: nav has backdrop-filter ${navBox?.backdrop}`,
+  );
+  ok(navBox?.transform === "none", `${where}: nav has transform ${navBox?.transform}`);
+
+  const hazards = await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"]');
+    if (!dialog) return ["no dialog"];
+    return [...dialog.querySelectorAll("*")]
+      .map((el) => {
+        const s = getComputedStyle(el);
+        const why = [];
+        if (s.position === "sticky" || s.position === "fixed") why.push(s.position);
+        if (s.filter !== "none") why.push(`filter:${s.filter}`);
+        if (s.backdropFilter && s.backdropFilter !== "none") why.push(`backdrop:${s.backdropFilter}`);
+        if (s.transform !== "none") why.push(`transform:${s.transform}`);
+        return why.length ? `${el.tagName.toLowerCase()}.${el.className}` + ` [${why.join(",")}]` : null;
+      })
+      .filter(Boolean);
+  });
+  ok(
+    hazards.length === 0,
+    `${where}: iOS compositing hazards inside the dialog: ${hazards.join(" ; ")}`,
+  );
+
+  // --- B. state vs paint, sampled on the SAME render after every tap.
+  await page.locator('[data-testid="calculator-wizard-nav"]').getByRole("button", { name: /^Continue/ }).click();
+  await page.waitForTimeout(300);
+
+  // Exactly one "Back" exists in the DOM at all, visible or not, so a
+  // doubled Back can only ever be a paint artifact — and there is now
+  // no layer that could produce one.
+  const backNodes = await page.evaluate(
+    () =>
+      [...document.querySelectorAll("body *")].filter(
+        (el) => el.children.length === 0 && el.textContent.trim() === "Back",
+      ).length,
+  );
+  ok(backNodes === 1, `${where}: ${backNodes} "Back" nodes in the DOM (want exactly 1)`);
+
+  const cards = page.locator("fieldset li > label");
+  for (const [index, want] of [[0, 1], [1, 2], [2, 3], [1, 2], [0, 1]]) {
+    await cards.nth(index).tap({ position: { x: 100, y: 14 } });
+    await page.waitForTimeout(60);
+    // One evaluate = one sample of all three sources at one instant.
+    const sample = await page.evaluate(() => {
+      const nav = document.querySelector('[data-testid="calculator-wizard-nav"]');
+      return {
+        attr: Number(nav?.getAttribute("data-selected-count")),
+        ticked: document.querySelectorAll('input[type="checkbox"]:checked').length,
+        text: (nav?.innerText ?? "").replace(/\n+/g, " | "),
+      };
+    });
+    const noun = want === 1 ? "service" : "services";
+    ok(sample.attr === want, `${where}: state says ${sample.attr} after tap ${index} (want ${want})`);
+    ok(sample.ticked === want, `${where}: ${sample.ticked} cards ticked (want ${want})`);
+    ok(
+      sample.text.includes(`${want} ${noun} selected`),
+      `${where}: painted status disagrees with state (${want}) — "${sample.text}"`,
+    );
+    ok(
+      sample.text.includes(`Continue with ${want} ${noun}`),
+      `${where}: painted Continue disagrees with state (${want}) — "${sample.text}"`,
+    );
+    // Still exactly one Back while the count changes underneath it.
+    ok(
+      (await visibleLabels(page, "Back")) === 1,
+      `${where}: a second "Back" appeared during selection`,
+    );
+  }
   await context.close();
 }
 

@@ -157,10 +157,10 @@ describe("the mobile wizard still stands", () => {
     assert.ok(panel.includes('panel\n                  ? "min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6"\n                  : undefined'));
   });
 
-  it("the wizard nav is still the only sticky element below lg", () => {
+  it("the wizard nav is in normal flow and nothing below lg is sticky", () => {
     const sticky = code.match(/\bsticky (?:bottom|top|left|right|inset)-[a-z0-9:[\]./-]+/g) ?? [];
-    assert.deepEqual(sticky, ["sticky bottom-0"]);
-    assert.ok(code.includes('paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))"'));
+    assert.deepEqual(sticky, []);
+    assert.ok(code.includes('paddingBottom: "max(1rem, env(safe-area-inset-bottom))"'));
     assert.ok(code.includes('data-testid="calculator-wizard-nav"'));
   });
 

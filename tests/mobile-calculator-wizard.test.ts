@@ -189,10 +189,10 @@ describe("the wizard chrome", () => {
     assert.ok(code.includes('id="calculator-continue-hint"'));
   });
 
-  it("the sticky nav respects the safe area and is last in flow", () => {
+  it("the nav respects the safe area and is last in flow", () => {
     const nav = code.slice(code.indexOf('data-testid="calculator-wizard-nav"'));
-    assert.ok(nav.includes("sticky bottom-0"));
-    assert.ok(nav.includes('paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))"'));
+    assert.equal(nav.includes("sticky"), false);
+    assert.ok(nav.includes('paddingBottom: "max(1rem, env(safe-area-inset-bottom))"'));
     assert.ok(nav.includes("lg:hidden"));
     // Last in flow: nothing renders after it, so scrolling to the end
     // always exposes the content it was floating over.

@@ -77,31 +77,47 @@ describe("the wizard nav cannot be painted twice", () => {
     assert.equal((code.match(/data-testid="calculator-wizard-nav"/g) ?? []).length, 1);
   });
 
-  it("the sticky nav is opaque and carries no backdrop-filter", () => {
-    // A sticky element that is BOTH translucent and backdrop-filtered
-    // inside a scrolling container is what made WebKit paint a stale,
-    // doubled copy of this bar. Either half alone is enough to bring
-    // the bug back.
+  it("the nav is not a composited layer: no sticky, no z-index, no filter", () => {
+    // THE ACTUAL CAUSE, found on the second pass. This bar was
+    // `position: sticky` inside the dialog's `overflow-y: auto` body,
+    // inside the modal's `position: fixed` overlay. iOS Safari
+    // promotes exactly that nesting to an asynchronously updated
+    // compositor layer, then paints it at two positions and keeps its
+    // last painted text. Removing only the translucency and the
+    // backdrop-filter (the first attempt) left both symptoms on a
+    // physical iPhone. A normal-flow bar cannot be promoted at all.
     const nav = code.slice(
       code.indexOf('data-testid="calculator-wizard-nav"'),
       code.indexOf('data-testid="calculator-wizard-nav"') + 600,
     );
-    assert.ok(nav.includes("sticky bottom-0"));
+    assert.equal(/\bsticky\b/.test(nav), false, "sticky reintroduced");
+    assert.equal(/\bfixed\b/.test(nav), false, "fixed reintroduced");
+    assert.equal(/\bz-\d/.test(nav), false, "a z-index would recreate the stacking context");
     assert.ok(nav.includes(" bg-white "), "the nav must have a solid background");
     assert.equal(/bg-white\/\d/.test(nav), false, "translucent background reintroduced");
     assert.equal(/backdrop-blur/.test(nav), false, "backdrop-filter reintroduced");
+    assert.equal(/\bshadow-\[/.test(nav), false, "the pinned drop shadow is gone with the pinning");
   });
 
-  it("no other element in the calculator stacks a filter on a sticky layer", () => {
+  it("nothing in the calculator is sticky, filtered or transformed", () => {
     assert.equal(/backdrop-blur/.test(code), false);
     const sticky = code.match(/\bsticky (?:bottom|top)-[a-z0-9:[\]./-]+/g) ?? [];
-    assert.deepEqual(sticky, ["sticky bottom-0"]);
+    assert.deepEqual(sticky, []);
+    // Tailwind utility classes only — `.filter(` is ordinary JS here.
+    assert.equal(/\b(?:blur|will-change|translate-z)-/.test(code), false);
   });
 
   it("still respects the safe area and stays below lg", () => {
-    assert.ok(code.includes('paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))"'));
+    assert.ok(code.includes('paddingBottom: "max(1rem, env(safe-area-inset-bottom))"'));
     const nav = code.slice(code.indexOf('data-testid="calculator-wizard-nav"'));
     assert.ok(nav.slice(0, 400).includes("lg:hidden"));
+  });
+
+  it("exposes the live selection count on the nav for the browser test", () => {
+    // Not debug UI: an attribute rendered straight from `selections`
+    // on the same render as the visible text, so the browser suite can
+    // prove that state and paint can never disagree.
+    assert.ok(code.includes("data-selected-count={selectedCount}"));
   });
 });
 
