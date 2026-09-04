@@ -55,7 +55,7 @@ export default async function BecomeAClientPage({
   const applied = appliedOffer ? toPublicPromotion(appliedOffer) : null;
 
   return (
-    <main>
+    <>
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -171,6 +171,6 @@ export default async function BecomeAClientPage({
           </div>
         </Container>
       </section>
-    </main>
+    </>
   );
 }

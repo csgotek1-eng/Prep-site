@@ -139,7 +139,7 @@ export default function Footer() {
             </ul>
             {/* Phone: kept for the people who need it, deliberately
                 quiet — small, dim, and never a button. */}
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-slate-400">
               <a
                 href={siteContact.phoneHref}
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-300"
@@ -167,7 +167,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-3xl text-xs text-slate-500">
+          <p className="max-w-3xl text-xs text-slate-400">
             &copy; {new Date().getFullYear()} {siteConfig.name}. Fulfilment
             &amp; Prep Centre, Ireland. Dockentra supports sellers on TikTok
             Shop, Amazon, Shopify, eBay and WooCommerce and is not affiliated

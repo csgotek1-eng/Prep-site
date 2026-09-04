@@ -125,3 +125,81 @@ describe("SEO audit fixes", () => {
     }
   });
 });
+
+/**
+ * Findings from the WCAG 2.1 AA audit (axe-core, 12 pages x 2 widths plus
+ * the calculator, mobile menu and help panel). The browser suite proves
+ * these live; these tests keep the structural half honest without one.
+ */
+describe("accessibility audit fixes", () => {
+  it("A-2: only the layout opens a <main>", () => {
+    const layout = read("src/app/layout.tsx");
+    assert.ok(layout.includes('<main id="main-content"'));
+    // Every page renders inside that one. A page-level <main> nests a
+    // second main landmark inside the first.
+    const pages = [
+      "src/app/page.tsx",
+      "src/app/about/page.tsx",
+      "src/app/become-a-client/page.tsx",
+      "src/app/contact/page.tsx",
+      "src/app/faq/page.tsx",
+      "src/app/how-it-works/page.tsx",
+      "src/app/partnerships/page.tsx",
+      "src/app/pricing/page.tsx",
+      "src/app/pricing-calculator/page.tsx",
+      "src/app/privacy/page.tsx",
+      "src/app/services/page.tsx",
+      "src/app/sla/page.tsx",
+    ];
+    for (const path of pages) {
+      const source = read(path);
+      assert.equal(/<main[\s>]/.test(source), false, `${path} opens its own <main>`);
+    }
+  });
+
+  it("A-3: the two fixed chrome elements are landmarks with names", () => {
+    // Both sit outside <header>, <main> and <footer>, so without a
+    // landmark of their own their content belongs to no region.
+    const utilityBar = read("src/components/UtilityBar.tsx");
+    assert.ok(utilityBar.includes("<nav"));
+    assert.ok(utilityBar.includes('aria-label="Contact shortcuts"'));
+
+    const dock = read("src/components/FloatingDock.tsx");
+    assert.ok(dock.includes('role="region"'));
+    assert.ok(dock.includes('aria-label="Quick actions"'));
+  });
+
+  it("A-1: no text on a dark or light ground uses a sub-AA slate", () => {
+    // slate-400 (#90a1b9) is 3.73:1 on brand-navy-deep and 2.63:1 on
+    // white — both below the 4.5:1 AA threshold for normal text.
+    const footer = read("src/components/Footer.tsx");
+    assert.equal(
+      footer.includes("text-slate-500"),
+      false,
+      "footer sits on brand-navy-deep, where slate-500 is 3.73:1",
+    );
+
+    const calculator = read("src/components/PricingCalculator.tsx");
+    assert.equal(
+      /bg-white text-slate-400/.test(calculator),
+      false,
+      "slate-400 on white is 2.63:1",
+    );
+    assert.equal(
+      /bg-slate-100 text-slate-400/.test(calculator),
+      false,
+      "slate-400 on slate-100 is below AA",
+    );
+  });
+
+  it("the accessibility audit is part of the browser suite", () => {
+    const pkg = JSON.parse(read("package.json")) as {
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    assert.ok(pkg.scripts["test:browser"].includes("tests/browser/accessibility.mjs"));
+    // The suite loads axe from node_modules; a transitive copy can
+    // disappear on any dependency bump.
+    assert.ok(pkg.devDependencies["axe-core"], "axe-core must be a declared dependency");
+  });
+});

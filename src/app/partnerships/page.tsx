@@ -26,7 +26,7 @@ export default async function PartnershipsPage() {
   const partnerOffer = await getPrimaryPublicPromotion("contact", "PARTNERS");
 
   return (
-    <main>
+    <>
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -122,6 +122,6 @@ export default async function PartnershipsPage() {
           </div>
         </Container>
       </section>
-    </main>
+    </>
   );
 }

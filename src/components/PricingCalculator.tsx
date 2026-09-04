@@ -893,14 +893,14 @@ export default function PricingCalculator({
                   ? "border-brand-green bg-brand-mint-soft text-brand-navy"
                   : state === "done"
                     ? "border-brand-green/40 bg-white text-brand-green-dark"
-                    : "border-slate-200 bg-white text-slate-400"
+                    : "border-slate-200 bg-white text-slate-500"
               }`}
             >
               <span
                 aria-hidden="true"
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold ${
                   state === "todo"
-                    ? "bg-slate-100 text-slate-400"
+                    ? "bg-slate-100 text-slate-600"
                     : "bg-brand-green text-white"
                 }`}
               >

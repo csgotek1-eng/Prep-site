@@ -228,6 +228,8 @@ export default function FloatingDock() {
           ref={dockRef}
           data-testid="floating-dock"
           data-side={side}
+          role="region"
+          aria-label="Quick actions"
           onPointerDown={onPointerDown}
           style={
             position

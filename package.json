@@ -2,7 +2,7 @@
   "name": "dockentra-website",
   "version": "0.1.0",
   "private": true,
-  "description": "Dockentra \u2014 Fulfilment & Prep Services in Ireland",
+  "description": "Dockentra — Fulfilment & Prep Services in Ireland",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/seo-audit.test.ts tests/media-assets.test.ts tests/approved-ux-round.test.ts tests/promotions-audit-fixes.test.ts tests/promotions.test.ts tests/client-partnership-intake.test.ts tests/iphone-hotfix.test.ts tests/desktop-cta-visibility.test.ts tests/mobile-calculator-wizard.test.ts tests/final-site-ux.test.ts tests/home-calculator-ux.test.ts tests/email-pricing.test.ts tests/contact-pricing-ux.test.ts tests/whatsapp-delivery.test.ts tests/whatsapp-webhook.test.ts tests/help-menu.test.ts tests/private-pricing.test.ts tests/floating-help.test.ts tests/brand-ux.test.ts tests/final-completion.test.ts tests/leads.test.ts tests/rate-limit.test.ts tests/public-pricing.test.ts tests/quote.test.ts tests/pricing.test.ts tests/pricing-production.test.ts tests/supabase-auth-ui.test.ts tests/faq-sla-privacy.test.ts tests/wordmark-whatsapp-fonts.test.ts tests/enquiry.test.ts tests/site-ux.test.ts tests/integration-ux.test.ts tests/site-url.test.ts tests/volume-pricing.test.ts tests/migration-security.test.ts tests/supabase-env-contract.test.ts",
-    "test:browser": "node tests/browser/iphone-hotfix.mjs && node tests/browser/approved-ux-round.mjs && node tests/browser/media-integration.mjs",
+    "test:browser": "node tests/browser/accessibility.mjs && node tests/browser/iphone-hotfix.mjs && node tests/browser/approved-ux-round.mjs && node tests/browser/media-integration.mjs",
     "admin:check": "node scripts/admin-user.mjs check",
     "admin:grant": "node scripts/admin-user.mjs grant",
     "admin:revoke": "node scripts/admin-user.mjs revoke"
@@ -27,6 +27,7 @@
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "axe-core": "^4.13.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
     "tailwindcss": "^4.3.3",

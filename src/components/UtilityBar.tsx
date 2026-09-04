@@ -31,7 +31,10 @@ const socials = [
  */
 export default function UtilityBar() {
   return (
-    <div className="border-b border-brand-border/70 bg-brand-surface-soft/80 text-brand-text-muted">
+    <nav
+      aria-label="Contact shortcuts"
+      className="border-b border-brand-border/70 bg-brand-surface-soft/80 text-brand-text-muted"
+    >
       <Container>
         <div className="flex h-8 items-center justify-between gap-2 text-[13px] sm:gap-3">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -82,6 +85,6 @@ export default function UtilityBar() {
           </ul>
         </div>
       </Container>
-    </div>
+    </nav>
   );
 }
