@@ -29,14 +29,25 @@ comes back.
 
 ## What this footage is, and is not
 
-It shows fulfilment work — wrapping, packing, labelling, putaway,
-staging, loading. It has **not** been confirmed as Dockentra's own
-warehouse, staff or current operation, so every caption on the site
-calls it *illustrative footage of fulfilment work* and no surface says
-"our warehouse", "our team" or "our staff" over it. If the owner later
-confirms the footage is Dockentra's own, or supplies real footage of
-it, the captions can be rewritten and the files swapped at the same
-paths — no page needs redesigning.
+**Owner decision, 2026-09-04: this is TEMPORARY ILLUSTRATIVE MEDIA.**
+It is not Dockentra's warehouse and not Dockentra's team, and it is on
+the site on the understanding that real Dockentra photography and video
+will replace it.
+
+So every caption reads *illustrative footage of fulfilment work*, and
+no surface beside it says "our warehouse", "our team", "our staff",
+"our facility" or "inside Dockentra". That wording is not editorial
+taste — it is the condition on which this material may be published at
+all, and both `tests/media-assets.test.ts` and
+`tests/browser/media-integration.mjs` fail if a caption drifts.
+
+### Replacing it later
+
+Drop the real files at the SAME paths and rerun the transcode commands
+above. Nothing else changes: no component, no layout, no page. Then,
+and only then, the captions may say what the footage actually is —
+that edit is the one that turns "illustrative" into "ours", so it
+should happen in the same commit as the file swap, never before it.
 
 ## Still outstanding
 

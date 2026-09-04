@@ -122,7 +122,14 @@ stays for errors only.
     owner confirms footage shows Dockentra's own operation it is
     captioned *illustrative footage of fulfilment work*, and no
     surface beside it says "our warehouse", "our team", "our staff" or
-    "our facility".
+    "our facility". The media on the site today is TEMPORARY
+    ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04),
+    awaiting real Dockentra photography and video; see
+    `media-source/README.md` for how to swap it in.
+  - **a brand mark that is not ours never ships.** Any supplied
+    material showing branded uniforms, signage or packaging must read
+    "Dockentra" exactly. A misspelling of our own name on our own site
+    is worse than showing nothing.
 - **Card variants** — exactly two, and the difference is behavioural:
   - **Clickable card**: the WHOLE card is one link and contains no
     other control. `rounded-lg`, `border-brand-border`,
