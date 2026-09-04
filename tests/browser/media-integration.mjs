@@ -311,6 +311,52 @@ for (const width of [320, 390, 430]) {
   await context.close();
 }
 
+// ============ data saving: the 553 KB hero clip is never fetched ============
+{
+  step("Save-Data");
+  for (const [label, saveData] of [
+    ["normal connection", false],
+    ["Save-Data on", true],
+  ]) {
+    const context = await browser.newContext(view(390, 844));
+    if (saveData) {
+      await context.addInitScript(() => {
+        Object.defineProperty(navigator, "connection", {
+          configurable: true,
+          get: () => ({
+            saveData: true,
+            effectiveType: "4g",
+            addEventListener() {},
+            removeEventListener() {},
+          }),
+        });
+      });
+    }
+    const page = await context.newPage();
+    let videoRequests = 0;
+    page.on("response", (response) => {
+      if ((response.headers()["content-type"] ?? "").startsWith("video/")) {
+        videoRequests += 1;
+      }
+    });
+    await page.goto(BASE, { waitUntil: "load" });
+    await page.waitForTimeout(2500);
+    const mounted = await page.evaluate(() => ({
+      videos: document.querySelectorAll("video").length,
+      poster: !!document.querySelector('img[src*="dockentra-process-packing"]'),
+    }));
+    if (saveData) {
+      // Not fetched-and-hidden: never fetched at all.
+      ok(videoRequests === 0, `${label}: the clip was still downloaded`);
+      ok(mounted.videos === 0, `${label}: a <video> was still mounted`);
+      ok(mounted.poster, `${label}: no poster stood in for the clip`);
+    } else {
+      ok(mounted.videos >= 1, `${label}: the clip stopped mounting`);
+    }
+    await context.close();
+  }
+}
+
 await browser.close();
 stopServer();
 

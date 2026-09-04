@@ -25,7 +25,22 @@ import { useEffect, useRef, useState } from "react";
  * Those visitors get the poster frame as a still image and the video
  * element is never mounted — not autoplay-then-pause, which still
  * downloads and still moves for a moment.
+ *
+ * DATA SAVING IS HONOURED THE SAME WAY. The hero clip is 553 KB, and
+ * it is decorative. Someone on a metered connection, or who has asked
+ * their browser to save data, gets the poster instead — through the
+ * same branch, so the clip is never fetched rather than fetched and
+ * hidden. Where the Network Information API is missing (Safari,
+ * Firefox) nothing changes: the clip plays as before.
  */
+
+/** The parts of the Network Information API this component reads. */
+type NetworkInformation = {
+  saveData?: boolean;
+  effectiveType?: string;
+  addEventListener?: (type: "change", listener: () => void) => void;
+  removeEventListener?: (type: "change", listener: () => void) => void;
+};
 export default function ProcessVideo({
   src,
   poster,
@@ -54,6 +69,9 @@ export default function ProcessVideo({
    * paint and the hero was no longer the single prioritised asset.
    */
   const [nearViewport, setNearViewport] = useState(priority);
+  // Null until the connection has been read on the client, for the
+  // same reason as reducedMotion: no hydration mismatch, no shift.
+  const [dataSaving, setDataSaving] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const stillRef = useRef<HTMLImageElement>(null);
 
@@ -63,6 +81,23 @@ export default function ProcessVideo({
     apply();
     query.addEventListener("change", apply);
     return () => query.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    // Absent in Safari and Firefox; then every check below is false
+    // and the clip behaves exactly as it did before.
+    const connection = (
+      navigator as Navigator & { connection?: NetworkInformation }
+    ).connection;
+    const apply = () =>
+      setDataSaving(
+        connection?.saveData === true ||
+          connection?.effectiveType === "2g" ||
+          connection?.effectiveType === "slow-2g",
+      );
+    apply();
+    connection?.addEventListener?.("change", apply);
+    return () => connection?.removeEventListener?.("change", apply);
   }, []);
 
   useEffect(() => {
@@ -87,24 +122,25 @@ export default function ProcessVideo({
 
   // Some browsers ignore the autoplay attribute after hydration.
   useEffect(() => {
-    if (reducedMotion !== false || !nearViewport) return;
+    if (reducedMotion !== false || dataSaving !== false || !nearViewport) return;
     videoRef.current?.play().catch(() => {
       // Autoplay refused (data saver, low power mode) or the codec is
       // unavailable (a Chromium built without H.264): the poster stays
       // on screen, which is a perfectly good outcome. Nothing here
       // depends on playback succeeding.
     });
-  }, [reducedMotion, nearViewport]);
+  }, [reducedMotion, dataSaving, nearViewport]);
 
-  // The still stands in for the clip in three situations: before the
-  // motion query has been read, for anyone who asked for reduced
-  // motion, and for a non-priority clip that has not scrolled near the
-  // viewport yet. It fills the identical box, so swapping one for the
+  // The still stands in for the clip in four situations: before the
+  // motion query and the connection have been read, for anyone who
+  // asked for reduced motion, for anyone on a saving or very slow
+  // connection, and for a non-priority clip that has not scrolled near
+  // the viewport yet. It fills the identical box, so swapping one for the
   // other cannot shift the layout, and it is the element the observer
   // watches. Through next/image, so the people who see ONLY the still
   // get AVIF/WebP rather than the JPEG the <video> needs for its
   // poster attribute.
-  if (reducedMotion !== false || !nearViewport) {
+  if (reducedMotion !== false || dataSaving !== false || !nearViewport) {
     return (
       <Image
         ref={stillRef}

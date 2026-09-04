@@ -139,7 +139,15 @@ describe("the clips are decorative and honest", () => {
     // Pausing an autoplaying video still downloads it and still moves
     // for a frame. The element is never mounted instead.
     assert.ok(player.includes('matchMedia("(prefers-reduced-motion: reduce)")'));
-    assert.ok(player.includes("if (reducedMotion !== false || !nearViewport)"));
+    // reducedMotion gates the SAME early return that renders the still,
+    // so nothing is fetched. The condition also carries the data-saving
+    // check now; what matters here is that reducedMotion is in it.
+    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<Image/.exec(
+      player,
+    );
+    assert.ok(guard, "the still is no longer behind a reducedMotion guard");
+    assert.ok(guard[1].includes("reducedMotion !== false"));
+    assert.ok(guard[1].includes("!nearViewport"));
   });
 
   it("loads exactly one clip eagerly and defers the rest", () => {
@@ -322,5 +330,26 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     assert.equal(/object-position/.test(figure), false, "an off-centre focus point");
     assert.equal(/scale-\[?[1-9]/.test(figure), false, "the frame is zoomed in");
     assert.equal(/\bfill\b/.test(figure), false, "fill makes the image take the box's shape");
+  });
+});
+
+describe("data saving", () => {
+  it("the clip is skipped, not hidden, on a saving or 2g connection", () => {
+    const source = strip(read("src/components/ProcessVideo.tsx"));
+    // Read from the Network Information API...
+    assert.ok(source.includes("saveData"));
+    assert.ok(source.includes('effectiveType === "2g"'));
+    assert.ok(source.includes('effectiveType === "slow-2g"'));
+    // ...and folded into the SAME branch that returns the still, so
+    // the <video> is never mounted and the file is never fetched.
+    assert.ok(
+      source.includes(
+        "if (reducedMotion !== false || dataSaving !== false || !nearViewport) {",
+      ),
+    );
+    // Optional chaining throughout: Safari and Firefox have no
+    // navigator.connection, and there the clip must still play.
+    assert.ok(source.includes("connection?.saveData"));
+    assert.equal(/\bconnection\.saveData/.test(source), false);
   });
 });
