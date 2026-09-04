@@ -79,9 +79,11 @@ describe("Help command menu", () => {
     for (const action of [
       "Become a Client",
       "Partner with Dockentra",
-      "Get a Quote",
+      // Renamed: it opens the enquiry FORM. "Get a Quote" made Help a
+      // second pricing door under a different name, next to a header
+      // button that opens the calculator.
+      "Send an enquiry",
       "WhatsApp us",
-      "Email us",
     ]) {
       assert.ok(launcher.includes(action), `Help is missing "${action}"`);
     }
@@ -115,7 +117,11 @@ describe("Help command menu", () => {
 
   it("the calculator is reachable from the dock instead", () => {
     assert.ok(dock.includes('aria-label="Open pricing calculator"'));
-    assert.ok(dock.includes("<CalculatorDialog"));
+    // The dock renders no dialog of its own any more — it flips the
+    // site-wide state, which is what makes a second calculator
+    // impossible rather than merely unlikely.
+    assert.equal(dock.includes("<CalculatorDialog"), false);
+    assert.ok(dock.includes("useCalculator()"));
   });
 });
 
@@ -138,13 +144,20 @@ describe("Write my own question", () => {
     assert.equal(launcher.includes("setDraftField"), false);
     assert.equal(launcher.includes("sessionStorage"), false);
     assert.equal(launcher.includes("clearDraft"), false);
-    // Closing still tidies the deep-link hash, so the same
-    // #contact-enquiry link can reopen the panel a second time.
-    const close = launcher.slice(
-      launcher.indexOf("const close = ()"),
-      launcher.indexOf("const close = ()") + 700,
-    );
-    assert.ok(close.includes("window.history.replaceState"));
+    // The "#contact-enquiry opens the Help panel" convention is gone
+    // with the hash itself: it matched no element on /contact, it was
+    // the dead fallback five "Email us" links pointed at, and a link
+    // labelled "Contact Support" that opened a MENU is exactly the
+    // "clicked and got something else" the audit reported. Those
+    // links go to the real form anchor now.
+    // Assert on the CODE, not the prose: the file still explains in a
+    // comment why the convention was retired.
+    const code = launcher
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(code.includes("#contact-enquiry"), false);
+    assert.equal(code.includes("hashchange"), false);
+    assert.ok(read("src/app/faq/page.tsx").includes('href="/contact#enquiry"'));
   });
 });
 

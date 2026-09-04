@@ -92,16 +92,51 @@ stays for errors only.
   (`:focus-visible`), plus per-field `focus:ring-brand-green/25`.
 - **Process steps**: gradient number circles connected by a
   teal→mint hairline.
-- **Typography**: system sans stack (unchanged); headings bold navy;
-  the logo font is never faked — the wordmark image will come from the
-  asset file.
+- **Typography** — OWNER-APPROVED, self-hosted via `next/font/google`,
+  no runtime request to Google:
+  - **Manrope** (700/800) — display and headings;
+  - **Inter** (400/500/600) — body and interface text;
+  - **IBM Plex Mono** (500) — small data/label accents only.
+  Headings stay bold navy. The logo font is never faked — the wordmark
+  image comes from the asset file. (This replaces the earlier "system
+  sans stack" line, which the site had already moved past.)
+- **Photography** — the site may show process imagery: hands packing,
+  labels, boxes, scanning, shelving, parcel preparation. Rules:
+  - never present an image as "our warehouse", "our staff" or "our
+    operation" unless it genuinely is;
+  - no forklifts, no vast facilities, nothing that overstates the
+    current scale of the business;
+  - real, owner-approved people assets live in `src/lib/team.ts` and
+    may be used only while that file states they are approved for
+    public display;
+  - every image goes through `next/image`, so temporary illustrative
+    material can later be swapped for real Dockentra photography by
+    replacing the file — no page needs redesigning.
+- **Card variants** — exactly two, and the difference is behavioural:
+  - **Clickable card**: the WHOLE card is one link and contains no
+    other control. `rounded-lg`, `border-brand-border`,
+    `hover:border-brand-green/50` + `hover:shadow-md`, focus-visible
+    ring, and a visible arrow with a SPECIFIC label ("See Receiving")
+    so a touch user gets the same cue a mouse user does.
+  - **Information card**: no href, no onClick → no hover of any kind,
+    no shadow lift, no pointer, no arrow. `rounded-lg`,
+    `border-brand-border`.
+  A card that reacts to the cursor and then does nothing is the bug
+  this rule exists to prevent.
 - **Reduced motion**: `scroll-behavior: smooth` is disabled under
   `prefers-reduced-motion: reduce`.
 
 ## Don'ts
 
-- No marketplace logos as decoration; marketplace names stay text-only
-  with the existing non-affiliation disclaimer.
+- Marketplace brand marks (TikTok Shop, Amazon, Shopify, eBay,
+  WooCommerce) ARE permitted — owner decision, 2026-09-04. They may
+  appear at small, secondary scale beside the marketplace name, from
+  the canonical `BrandIcon` mapping only. They must never be the
+  loudest thing on a screen, never replace the Dockentra mark, and
+  never imply affiliation, partnership or endorsement; the
+  non-affiliation statement stays in the footer.
+  (This supersedes the previous "no marketplace logos as decoration"
+  rule, which the website had already diverged from.)
 - No new accent colours, no heavy shadows, no "toy app" radii.
 - Never redraw or approximate the official D mark — only the real
   asset file may represent it.

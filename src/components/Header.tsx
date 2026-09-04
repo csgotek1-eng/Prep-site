@@ -4,39 +4,39 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLockup from "@/components/BrandLockup";
-import {
-  CalculatorDialog,
-  CalculatorTrigger,
-} from "@/components/CalculatorModal";
+import { CalculatorTrigger } from "@/components/CalculatorModal";
 import Container from "@/components/Container";
+import { useCalculator, useHelpPanel } from "@/components/FloatingChrome";
 import { navLinks } from "@/lib/site";
 
-/** On the homepage the nav scrolls to the matching section; everywhere
- *  else it navigates to the standalone route, which always stays live. */
-const HOME_ANCHORS: Record<string, string> = {
-  "/services": "/#services",
-  "/how-it-works": "/#how-it-works",
-  "/pricing": "/#pricing",
-  "/about": "/#about",
-  "/contact": "/#contact",
-};
+/*
+ * The nav used to swap every item for a homepage anchor while you were
+ * ON the homepage, so "Services" scrolled to a teaser instead of
+ * opening /services — and from the home mobile menu those pages could
+ * not be reached at all. A navigation item is a promise of a
+ * destination; the section ids stay put for contextual deep links.
+ */
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   /**
-   * THE HEADER OWNS THE DIALOG, not the buttons.
+   * The header holds NO dialog of its own any more.
    *
-   * The mobile Get Price used to be a self-contained button that held
-   * its own dialog state, sitting inside `{menuOpen && …}`. Tapping it
-   * closed the menu, which unmounted the button and the dialog it was
-   * about to open — so on a phone the menu vanished and nothing else
-   * happened. The state lives here instead, on a component that stays
-   * mounted whatever the menu does.
+   * It used to render the CalculatorDialog inside `<header>`, which is
+   * `sticky z-50` with a backdrop-filter — a stacking context. The
+   * dialog was trapped inside it, the floating dock stayed clickable
+   * on top of the open calculator, and tapping the dock's calculator
+   * opened a SECOND dialog with a second focus trap. Both buttons now
+   * flip the shared state and one host in the layout renders the one
+   * dialog.
    */
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const { openCalculator } = useCalculator();
+  // Help left the floating dock (WhatsApp took its slot) and lives in
+  // the navigation now — a desktop button beside Get Price and a row
+  // in the mobile menu.
+  const { openHelp } = useHelpPanel();
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const onHome = pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -46,9 +46,6 @@ export default function Header() {
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
-  const openCalculator = () => setCalculatorOpen(true);
-  const hrefFor = (href: string) =>
-    onHome && HOME_ANCHORS[href] ? HOME_ANCHORS[href] : href;
 
   return (
     <header
@@ -77,7 +74,7 @@ export default function Header() {
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
-                    href={hrefFor(link.href)}
+                    href={link.href}
                     aria-current={pathname === link.href ? "page" : undefined}
                     className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-brand-mint-soft hover:text-brand-navy ${
                       pathname === link.href
@@ -98,6 +95,13 @@ export default function Header() {
               there is still exactly one calculator implementation. The
               nav itself stays free of a Calculator item. */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openHelp}
+              className="hidden min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-brand-mint-soft hover:text-brand-navy lg:inline-flex"
+            >
+              Help
+            </button>
             <div className="hidden sm:block">
               <CalculatorTrigger
                 variant="header"
@@ -156,7 +160,7 @@ export default function Header() {
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
-                    href={hrefFor(link.href)}
+                    href={link.href}
                     onClick={closeMenu}
                     aria-current={pathname === link.href ? "page" : undefined}
                     className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium hover:bg-brand-mint-soft ${
@@ -169,6 +173,18 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    openHelp();
+                  }}
+                  className="flex min-h-12 w-full items-center rounded-md px-3 text-base font-medium text-slate-700 hover:bg-brand-mint-soft"
+                >
+                  Help
+                </button>
+              </li>
               <li className="pt-2 sm:hidden">
                 {/* Mobile only: the desktop bar already shows Get Price
                     from sm up, so the two never appear together. */}
@@ -191,15 +207,6 @@ export default function Header() {
         </nav>
       )}
 
-      {/* ONE canonical dialog for BOTH header buttons, rendered outside
-          the conditional mobile-menu subtree so it survives the menu
-          closing. Same CalculatorDialog + PricingCalculator the hero
-          and the floating dock open — there is still exactly one
-          calculator implementation on the site. */}
-      <CalculatorDialog
-        open={calculatorOpen}
-        onClose={() => setCalculatorOpen(false)}
-      />
     </header>
   );
 }

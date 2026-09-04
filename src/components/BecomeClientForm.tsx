@@ -23,7 +23,18 @@ import {
  */
 type Phase = "idle" | "sending" | "done";
 
-export default function BecomeClientForm() {
+export default function BecomeClientForm({
+  offerApplied = false,
+}: {
+  /**
+   * True only when the server re-read the ?offer= id and found a
+   * genuinely LIVE promotion. The raw URL parameter is not enough:
+   * anyone can append ?offer=anything, and a button reading "Apply as
+   * a Founding Partner" with no offer attached is a promise the
+   * server will not keep.
+   */
+  offerApplied?: boolean;
+} = {}) {
   const [channels, setChannels] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -252,7 +263,15 @@ export default function BecomeClientForm() {
         disabled={phase === "sending"}
         className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
-        {phase === "sending" ? "Sending…" : "Start with Dockentra"}
+        {phase === "sending"
+          ? "Sending…"
+          : /* The label follows the journey. Someone who tapped
+               "Become a Founding Partner" should not be asked to press
+               a button that has forgotten the offer — and someone who
+               invented an id should not be told one applied. */
+            offerApplied
+            ? "Apply as a Founding Partner"
+            : "Start with Dockentra"}
       </button>
     </form>
   );

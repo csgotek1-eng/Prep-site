@@ -4,7 +4,7 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
-import QuoteForm from "@/components/QuoteForm";
+import EnquiryForm from "@/components/EnquiryForm";
 import WarehouseLocation from "@/components/WarehouseLocation";
 import {
   FacebookIcon,
@@ -12,7 +12,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
-import { contactEmailHref, siteContact } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -154,7 +154,8 @@ export default async function ContactPage() {
               Send an enquiry
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
-              This reaches us by email. Prefer to chat?{" "}
+              A short question, a short form — three fields. A real person
+              reads every one of these. Prefer to chat?{" "}
               <a
                 href={siteConfig.social.whatsapp}
                 target="_blank"
@@ -166,7 +167,7 @@ export default async function ContactPage() {
               .
             </p>
             <div className="mt-6">
-              <QuoteForm />
+              <EnquiryForm />
             </div>
           </div>
         </Container>
@@ -201,7 +202,7 @@ export default async function ContactPage() {
                   className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
                 >
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  {siteContact.email ?? "Email us"}
+                  {siteContact.email ?? contactEmailLabel}
                 </a>
               </li>
               <li>

@@ -1,14 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Calculator, MessageCircleQuestion } from "lucide-react";
-import { CalculatorDialog, useCataloguePrefetch } from "@/components/CalculatorModal";
-import HelpPanel from "@/components/ContactLauncher";
-import { useBottomBarPresent } from "@/components/FloatingChrome";
+import { Calculator } from "lucide-react";
+import { useCataloguePrefetch } from "@/components/CalculatorModal";
+import {
+  useAnyDialogOpen,
+  useBottomBarPresent,
+  useCalculator,
+} from "@/components/FloatingChrome";
+import { WhatsAppIcon } from "@/components/SocialIcons";
+import { siteConfig } from "@/lib/site";
 
 /**
  * THE one floating system on the site: a compact dock of two icon-only
- * actions — Calculator and Help.
+ * actions — Get Price and WhatsApp.
+ *
+ * Help used to be the second button. It moved into the navigation and
+ * the mobile menu, and WhatsApp took its place: Help is a menu of
+ * routes a visitor can also reach from the nav, while a WhatsApp
+ * message is the one micro-conversion a phone user will actually make
+ * in the moment. The dock owns NEITHER dialog now — Get Price flips
+ * the site-wide calculator state, and it hides while any dialog is
+ * open.
  *
  * It replaces the older launcher (a "Get Price" pill, a "Help" pill and
  * a "Hide" control that docked to a labelled edge tab). That set was
@@ -23,6 +36,10 @@ import { useBottomBarPresent } from "@/components/FloatingChrome";
  *  - a tap opens; the click that ends a drag does not (DRAG_THRESHOLD_PX);
  *  - the position is clamped into the visible viewport on every drag,
  *    resize and orientation change;
+ *  - it starts in the BOTTOM-right corner, not the vertical middle: at
+ *    the middle it sat on top of the hero chips and section headings on
+ *    a phone, and content ran underneath it until the visitor dragged
+ *    it away;
  *  - side + vertical position persist in localStorage (nothing else —
  *    no identifiers, no server, no database);
  *  - while either dialog is open the dock hides, so it can never cover
@@ -70,8 +87,7 @@ function readSaved(): DockPosition | null {
 }
 
 export default function FloatingDock() {
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
+  const { openCalculator } = useCalculator();
   // Null until the saved position is restored after mount, so the
   // server and the first client render agree (the default corner comes
   // from classes, not from state).
@@ -79,13 +95,14 @@ export default function FloatingDock() {
   const [dragging, setDragging] = useState(false);
   const warmCatalogue = useCataloguePrefetch();
   const bottomBarPresent = useBottomBarPresent();
+  // ANY dialog, not just one this component owns — it owns none now.
+  const anyDialogOpen = useAnyDialogOpen();
 
   const dockRef = useRef<HTMLDivElement>(null);
   const positionRef = useRef<DockPosition | null>(null);
   const movedRef = useRef(false);
   const dragEndRef = useRef<(() => void) | null>(null);
 
-  const anyDialogOpen = calculatorOpen || helpOpen;
 
   const persist = useCallback((next: DockPosition) => {
     try {
@@ -227,7 +244,9 @@ export default function FloatingDock() {
               ? "rounded-l-none rounded-r-2xl"
               : "rounded-r-none"
           } ${dragging ? "cursor-grabbing" : "cursor-grab"} ${
-            position ? "" : "right-0 top-1/2 -translate-y-1/2"
+            position
+              ? ""
+              : "bottom-[max(1rem,env(safe-area-inset-bottom))] right-0 top-auto"
           } ${bottomBarPresent ? "hidden lg:flex" : "flex"}`}
         >
           <button
@@ -236,32 +255,30 @@ export default function FloatingDock() {
             title="Pricing calculator"
             onPointerEnter={warmCatalogue}
             onFocus={warmCatalogue}
-            onClick={tap(() => setCalculatorOpen(true))}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green text-white transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            onClick={tap(openCalculator)}
+            className="inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl bg-brand-green text-white transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
           >
             <Calculator aria-hidden="true" className="h-5 w-5" />
           </button>
-          <button
-            type="button"
-            aria-label="Open help"
-            title="Help"
-            onClick={tap(() => setHelpOpen(true))}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-brand-border bg-white text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+          {/* A real link, not a button: it leaves the site, so it must
+              behave like a link for long-press, middle-click and
+              screen readers. */}
+          <a
+            href={siteConfig.social.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Message Dockentra on WhatsApp"
+            title="WhatsApp"
+            onClick={(event) => {
+              if (movedRef.current) event.preventDefault();
+            }}
+            className="inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl border border-brand-border bg-white text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
           >
-            <MessageCircleQuestion aria-hidden="true" className="h-5 w-5" />
-          </button>
+            <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+          </a>
         </div>
       )}
 
-      <CalculatorDialog
-        open={calculatorOpen}
-        onClose={() => setCalculatorOpen(false)}
-      />
-      <HelpPanel
-        open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-        onOpenRequest={() => setHelpOpen(true)}
-      />
     </>
   );
 }

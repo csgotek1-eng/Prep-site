@@ -274,9 +274,12 @@ describe("Help routes, it does not collect", () => {
     for (const [label, href] of [
       ["Become a Client", "/become-a-client"],
       ["Partner with Dockentra", "/partnerships"],
-      ["Get a Quote", "/contact#enquiry"],
+      // Renamed: it opens the enquiry FORM, and calling it "Get a
+      // Quote" made it a second pricing door under another name.
+      ["Send an enquiry", "/contact#enquiry"],
       ["WhatsApp us", "siteConfig.social.whatsapp"],
-      ["Email us", "contactEmailHref"],
+      // The label is the honest one until a mailto: exists.
+      ["contactEmailLabel", "contactEmailHref"],
     ]) {
       assert.ok(help.includes(label), `missing ${label}`);
       assert.ok(help.includes(href), `missing destination for ${label}`);
@@ -292,13 +295,17 @@ describe("Help routes, it does not collect", () => {
 
   it("THE CALCULATOR STAYS OUT of Help", () => {
     const code = strip(help);
-    for (const banned of ["Calculator", "PricingCalculator", "Get Price", "pricing/estimate"]) {
+    for (const banned of ["PricingCalculator", "Get Price", "pricing/estimate"]) {
       assert.equal(code.includes(banned), false, `Help must not carry ${banned}`);
     }
-    // ...and it still has its own floating button next to Help.
+    // ...and pricing still has its own floating button. Help moved OUT
+    // of the dock and into the navigation, where WhatsApp — the one
+    // micro-conversion a phone visitor actually makes in the moment —
+    // took its slot.
     const dock = read("src/components/FloatingDock.tsx");
     assert.ok(dock.includes('aria-label="Open pricing calculator"'));
-    assert.ok(dock.includes('aria-label="Open help"'));
+    assert.equal(dock.includes('aria-label="Open help"'), false);
+    assert.ok(read("src/components/Header.tsx").includes("openHelp"));
   });
 
   it("is a real dialog with real buttons and links", () => {

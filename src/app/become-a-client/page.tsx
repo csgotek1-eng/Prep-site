@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Boxes, ClipboardCheck, MessageSquare, Warehouse } from "lucide-react";
+import Link from "next/link";
 import BecomeClientForm from "@/components/BecomeClientForm";
+import { SELLER_FIT } from "@/components/sections/SellerFit";
 import Container from "@/components/Container";
 import PromotionCard from "@/components/PromotionCard";
-import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
+import {
+  getLivePromotionById,
+  getPrimaryPublicPromotion,
+} from "@/lib/promotions/service";
+import { toPublicPromotion } from "@/lib/promotions/public";
 
 export const metadata: Metadata = {
   title: "Start Fulfilment with Dockentra | Ireland",
@@ -19,29 +24,6 @@ export const metadata: Metadata = {
   },
 };
 
-const SUITS = [
-  {
-    Icon: Boxes,
-    title: "Growing online sellers",
-    body: "You are packing orders yourself and it has stopped being the best use of your day.",
-  },
-  {
-    Icon: Warehouse,
-    title: "Brands that need space in Ireland",
-    body: "You want stock held, picked and dispatched locally instead of shipped in one order at a time.",
-  },
-  {
-    Icon: ClipboardCheck,
-    title: "Sellers with prep requirements",
-    body: "Amazon FBA prep, labelling, bundling or quality checks that have to be done properly.",
-  },
-  {
-    Icon: MessageSquare,
-    title: "People who want a person",
-    body: "You would rather talk to someone who knows your account than open a ticket.",
-  },
-];
-
 const STEPS = [
   "You send us your details and what you need.",
   "We review your requirements and come back to you with your pricing, privately.",
@@ -49,8 +31,28 @@ const STEPS = [
   "Your first delivery is booked in and you start dispatching.",
 ];
 
-export default async function BecomeAClientPage() {
+export default async function BecomeAClientPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string }>;
+}) {
   const offer = await getPrimaryPublicPromotion("contact");
+  /**
+   * The offer the visitor arrived through, re-read on the SERVER from
+   * the id in the URL. Attribution already worked — invisibly. Someone
+   * who tapped "Become a Founding Partner" landed on a page that said
+   * nothing about the offer, two and a half screens above the form,
+   * under a button still reading "Start with Dockentra", with no way
+   * to tell whether the offer had applied.
+   *
+   * getLivePromotionById returns null for anything expired, draft or
+   * archived, so a stale link shows no confirmation rather than
+   * reviving a finished promise. Only PUBLIC fields are rendered —
+   * never internalName or anything else from the admin record.
+   */
+  const { offer: offerId } = await searchParams;
+  const appliedOffer = offerId ? await getLivePromotionById(offerId) : null;
+  const applied = appliedOffer ? toPublicPromotion(appliedOffer) : null;
 
   return (
     <main>
@@ -81,7 +83,7 @@ export default async function BecomeAClientPage() {
             Who Dockentra suits
           </h2>
           <ul className="mt-6 grid gap-5 sm:grid-cols-2">
-            {SUITS.map(({ Icon, title, body }) => (
+            {SELLER_FIT.map(({ Icon, title, body }) => (
               <li
                 key={title}
                 className="rounded-lg border border-brand-border bg-brand-surface-soft/60 p-5"
@@ -121,10 +123,28 @@ export default async function BecomeAClientPage() {
         </Container>
       </section>
 
-      <section aria-labelledby="form-heading" className="bg-white">
+      <section
+        id="form"
+        aria-labelledby="form-heading"
+        className="scroll-mt-24 bg-white"
+      >
         <Container className="py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
             <div>
+              {applied && (
+                <p className="mb-6 rounded-lg border border-brand-green/30 bg-brand-mint-soft px-4 py-3 text-sm leading-6 text-brand-navy">
+                  <span className="font-semibold">
+                    You&apos;re applying for the {applied.title} offer.
+                  </span>{" "}
+                  {applied.shortText}{" "}
+                  <Link
+                    href={`/offers/${applied.id}`}
+                    className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                  >
+                    View offer
+                  </Link>
+                </p>
+              )}
               <h2
                 id="form-heading"
                 className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
@@ -139,7 +159,7 @@ export default async function BecomeAClientPage() {
                 {/* The form reads ?offer= from the router, so it needs a
                     boundary while the URL is resolved. */}
                 <Suspense fallback={<div className="h-96" aria-hidden="true" />}>
-                  <BecomeClientForm />
+                  <BecomeClientForm offerApplied={applied !== null} />
                 </Suspense>
               </div>
             </div>

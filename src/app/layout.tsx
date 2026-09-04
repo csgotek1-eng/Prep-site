@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter, Manrope } from "next/font/google";
+import SiteDialogs from "@/components/SiteDialogs";
 import FloatingDock from "@/components/FloatingDock";
 import PromotionBanner from "@/components/PromotionBanner";
 import { FloatingChromeProvider } from "@/components/FloatingChrome";
@@ -153,6 +154,8 @@ export default function RootLayout({
           </main>
           <Footer />
           <FloatingDock />
+          {/* One calculator and one Help panel for the whole site. */}
+          <SiteDialogs />
         </FloatingChromeProvider>
       </body>
     </html>

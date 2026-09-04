@@ -5,10 +5,11 @@ import CalculatorModal from "@/components/CalculatorModal";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
-import AboutSection from "@/components/sections/AboutSection";
 import ContactSection from "@/components/sections/ContactSection";
+import HomeFaq from "@/components/sections/HomeFaq";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
-import PricingTeaser from "@/components/sections/PricingTeaser";
+import PricingSection from "@/components/sections/PricingSection";
+import SellerFit from "@/components/sections/SellerFit";
 import ServicesSection from "@/components/sections/ServicesSection";
 import WhyDockentra from "@/components/sections/WhyDockentra";
 
@@ -24,6 +25,10 @@ const marketplaces: { name: string; brand: BrandName }[] = [
   { name: "eBay", brand: "ebay" },
   { name: "WooCommerce", brand: "woocommerce" },
 ];
+
+/** Same height and weight as the hero primary, outlined. */
+const SECONDARY_HERO =
+  "inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-lg border border-brand-navy/25 bg-white px-8 text-lg font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto";
 
 export default async function HomePage() {
   const offer = await getPrimaryPublicPromotion("homepage");
@@ -51,15 +56,23 @@ export default async function HomePage() {
         </div>
         <Container className="relative py-16 sm:py-24 lg:py-32">
           <div className="max-w-3xl">
+            {/* The eyebrow used to repeat the H1 almost word for word
+                ("Fulfilment & Prep Centre" above "Fulfilment & Prep
+                Services"). It states the two things a seller cannot
+                infer from the headline instead: where we are, and that
+                we are opening — which is what makes the Founding
+                Partner offer below make sense. */}
             <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
-              Dockentra — Fulfilment &amp; Prep Centre
+              Limerick, Ireland · Opening 2026
             </p>
             <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-brand-navy sm:text-5xl lg:text-6xl">
-              Fulfilment &amp; Prep Services in Ireland
+              Stop packing orders yourself
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-brand-text-muted sm:text-lg sm:leading-8">
-              Dockentra provides flexible fulfilment, prep, storage and returns
-              services for growing e-commerce businesses.
+              Dockentra receives, stores, preps and ships stock for TikTok
+              Shop, Amazon, Shopify and eBay sellers in Ireland — from a few
+              orders a day up. You send the stock; we handle the rest, and you
+              can actually talk to the people doing it.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -70,7 +83,7 @@ export default async function HomePage() {
                 {marketplaces.map(({ name, brand }) => (
                   <li
                     key={name}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy"
                   >
                     <BrandIcon
                       brand={brand}
@@ -81,20 +94,30 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
-              {/* The supported list is now complete in the row itself.
-                  The "not affiliated / not endorsed" statement these
-                  marks require is carried once, in the footer. */}
+              {/* The supported list is complete in the row itself. The
+                  "not affiliated / not endorsed" statement these marks
+                  require is carried once, in the footer. */}
               <p className="text-sm text-brand-text-muted">
                 and your own store
               </p>
             </div>
 
-            {/* ONE hero action. Get Price lives in the header now, so
-                the hero no longer offers two doors into the same room —
-                it offers one, deliberately wide. */}
-            <div className="mt-9">
-              <CalculatorModal variant="hero" />
+            {/* A PAIR, and the primary is solid. The hero used to carry
+                one outlined button labelled "Calculator" — the page's
+                only action, styled as a secondary, naming a tool rather
+                than promising a result. Get Price is now the solid
+                primary, and the visitor who is not ready to be priced
+                has somewhere to go that is not the back button. */}
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <CalculatorModal variant="hero" label="Get Price" icon={false} />
+              <Link href="/how-it-works" className={SECONDARY_HERO}>
+                See how it works
+              </Link>
             </div>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-brand-text-muted">
+              You&apos;ll receive your price privately by WhatsApp or email — no
+              call needed.
+            </p>
           </div>
         </Container>
       </section>
@@ -111,11 +134,21 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Approved homepage story (D-8): hero → offer → who it is for →
+          what we do → how it works → why → private pricing → questions
+          → find us → final CTA.
+
+          Two blocks left the homepage rather than being restyled. The
+          About teaser repeated /about with no new conversion value,
+          and the pricing teaser promised a calculator while linking to
+          an explanation — PricingSection carries the real Get Price
+          instead. Both pages still exist and are still linked. */}
+      <SellerFit />
       <ServicesSection />
       <HowItWorksSection />
       <WhyDockentra />
-      <PricingTeaser />
-      <AboutSection />
+      <PricingSection />
+      <HomeFaq />
       <ContactSection />
 
       {/* Final CTA */}
@@ -142,16 +175,25 @@ export default async function HomePage() {
                   we&apos;ll propose a setup that fits.
                 </p>
               </div>
-              {/* Deliberately NOT another pricing CTA — the hero above
-                  carries the Calculator, the header carries Get Price
-                  on every page, and so does the floating action. This
-                  closing block asks for the conversation instead. */}
+              {/* The page's stated goal is "hand over your fulfilment",
+                  and until now the homepage had NOT ONE link to
+                  /become-a-client — the site's main conversion — while
+                  offering four separate doors to pricing. Primary is
+                  the client application; the question stays available
+                  beside it, one step shorter than the old route
+                  through the three-door contact page. */}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/contact"
+                  href="/become-a-client"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
                 >
-                  Send an enquiry
+                  Become a Client
+                </Link>
+                <Link
+                  href="/contact#enquiry"
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+                >
+                  Ask a question first
                 </Link>
               </div>
             </div>

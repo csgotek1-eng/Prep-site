@@ -47,23 +47,36 @@ describe("only ONE floating system exists", () => {
   });
 });
 
-describe("the dock is two icon-only buttons", () => {
-  it("carries a Calculator and a Help action, with accessible names", () => {
+describe("the dock is two icon-only controls", () => {
+  it("carries Get Price and WhatsApp, with accessible names", () => {
+    // Help moved into the navigation and WhatsApp took its place: Help
+    // is a menu of routes reachable from the nav anyway, while a
+    // WhatsApp message is the one micro-conversion a phone visitor
+    // makes in the moment.
     assert.ok(dock.includes('aria-label="Open pricing calculator"'));
-    assert.ok(dock.includes('aria-label="Open help"'));
+    assert.ok(dock.includes('aria-label="Message Dockentra on WhatsApp"'));
+    assert.equal(dock.includes('aria-label="Open help"'), false);
     assert.ok(dock.includes("<Calculator"));
-    assert.ok(dock.includes("<MessageCircleQuestion"));
+    assert.ok(dock.includes("<WhatsAppIcon"));
   });
 
   it("shows no visible text label beside the icons", () => {
-    // Words live only in aria-label/title. Each button's children are
-    // exactly one icon element and nothing else.
-    const buttons = dock.match(/<button[\s\S]*?<\/button>/g) ?? [];
-    assert.equal(buttons.length, 2);
-    for (const button of buttons) {
-      const children = button.slice(button.lastIndexOf('"\n          >') + 1);
-      const text = children.replace(/<[^>]*>/g, "").replace(/[\s>]/g, "");
-      assert.equal(text, "", `a dock button renders visible text: ${text}`);
+    // Words live only in aria-label/title.
+    const controls = [
+      ...(dock.match(/<button[\s\S]*?<\/button>/g) ?? []),
+      ...(dock.match(/<a\n[\s\S]*?<\/a>/g) ?? []),
+    ];
+    assert.equal(controls.length, 2);
+    for (const control of controls) {
+      // Matched on the icon tag directly rather than by stripping
+      // markup: an arrow function inside an onClick contains a ">" of
+      // its own, which a naive tag-strip would cut the string at.
+      const children = control.slice(control.indexOf("\n          >") + 12);
+      assert.match(
+        children.trim(),
+        /^<(Calculator|WhatsAppIcon)[^>]*\/>\s*<\/(button|a)>$/,
+        "a dock control renders something other than a single icon",
+      );
     }
     // The old wordy launcher labels are gone for good.
     for (const word of ["Get Price", "Need help?", "Hide"]) {
@@ -171,8 +184,12 @@ describe("position persistence", () => {
 });
 
 describe("the dock never covers an open dialog", () => {
-  it("hides itself while the calculator or Help is open", () => {
-    assert.ok(dock.includes("const anyDialogOpen = calculatorOpen || helpOpen"));
+  it("hides itself while ANY dialog is open, not only its own", () => {
+    // It owns no dialog now. It reads the shared flag, so it stands
+    // down for the calculator opened from the header or the hero too —
+    // the case where it used to stay clickable on top of the modal and
+    // could stack a second calculator over the first.
+    assert.ok(dock.includes("useAnyDialogOpen()"));
     assert.ok(dock.includes("{!anyDialogOpen && ("));
   });
 
@@ -183,12 +200,25 @@ describe("the dock never covers an open dialog", () => {
 });
 
 describe("the dock opens the canonical flows", () => {
-  it("Calculator opens the ONE canonical dialog, Help opens the Help panel", () => {
-    assert.ok(dock.includes("<CalculatorDialog"));
-    assert.ok(dock.includes("<HelpPanel"));
+  it("Get Price flips the shared state; the dock renders no dialog", () => {
+    assert.equal(dock.includes("<CalculatorDialog"), false);
+    assert.equal(dock.includes("<HelpPanel"), false);
+    assert.ok(dock.includes("useCalculator()"));
+    assert.ok(dock.includes("tap(openCalculator)"));
     // No second calculator and no pricing logic in the dock.
     assert.equal(dock.includes("calculateEstimate"), false);
     assert.equal(dock.includes("/api/pricing/"), false);
+  });
+
+  it("starts in the bottom-right corner, not the vertical middle", () => {
+    // At the middle it sat on top of the hero chips and section
+    // headings on a phone, and content ran under it until dragged.
+    assert.ok(dock.includes("bottom-[max(1rem,env(safe-area-inset-bottom))]"));
+    assert.equal(dock.includes("top-1/2 -translate-y-1/2"), false);
+  });
+
+  it("its controls show a pointer, not the container's grab cursor", () => {
+    assert.equal((dock.match(/cursor-pointer/g) ?? []).length, 2);
   });
 
   it("warms the catalogue so the calculator opens instantly", () => {

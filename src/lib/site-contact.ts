@@ -58,5 +58,27 @@ export const hasContactEmail = siteContact.email !== null;
  * none configured it opens the shared Help/enquiry panel, which
  * delivers to the same team server-side. Never a dead mailto:.
  */
+/**
+ * Where an "email us" action goes while no public address is set.
+ *
+ * It used to be "/contact#contact-enquiry" — an id that exists on no
+ * page. Five surfaces pointed at it, so the first link in the utility
+ * bar of every page landed the visitor at the top of /contact with no
+ * address, no form in view and no sign that anything had happened.
+ * The real form anchor is #enquiry, and the LABEL changes with it (see
+ * contactEmailLabel): nothing may promise an email address the site
+ * cannot give.
+ */
 export const contactEmailHref: string =
-  siteContact.emailHref ?? "/contact#contact-enquiry";
+  siteContact.emailHref ?? "/contact#enquiry";
+
+/**
+ * "Email us" ONLY when a mailto: exists behind it. Until the owner
+ * supplies NEXT_PUBLIC_OWNER_CONTACT_EMAIL every one of those surfaces
+ * says what it actually does, and the day the address is set all of
+ * them become real mailto: links with the honest label, together, from
+ * this one file.
+ */
+export const contactEmailLabel: string = siteContact.email
+  ? "Email us"
+  : "Send an enquiry";

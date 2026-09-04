@@ -96,19 +96,30 @@ describe("header Get Price is text only", () => {
 
   it("still opens the canonical calculator", () => {
     assert.ok(header.includes("<CalculatorTrigger"));
-    assert.ok(header.includes("<CalculatorDialog"));
-    assert.ok(calcModal.includes("<CalculatorDialog"));
+    // Through the shared state, not a dialog of its own — see the
+    // stacking-context bug the header dialog caused.
+    assert.equal(header.includes("<CalculatorDialog"), false);
+    assert.ok(header.includes("openCalculator"));
+    assert.ok(calcModal.includes("export function CalculatorDialog"));
   });
 });
 
-describe("hero Calculator is outlined, not solid green", () => {
-  const hero = calcModal.slice(calcModal.indexOf("hero:"), calcModal.indexOf("primary:"));
+describe("hero Get Price is the solid primary", () => {
+  const hero = calcModal.slice(
+    calcModal.indexOf("hero:"),
+    calcModal.indexOf("heroSecondary:"),
+  );
 
-  it("has a transparent/light background and a brand border", () => {
-    assert.equal(hero.includes("bg-brand-green"), false, "must not be solid green");
-    assert.ok(hero.includes("border-2 border-brand-green"));
-    assert.ok(hero.includes("bg-white/80"));
-    assert.ok(hero.includes("text-brand-green-dark"));
+  it("is solid green — the first screen's action is not a secondary", () => {
+    // It was outlined so it would not fight the solid header button.
+    // That made the page's only invitation read as secondary, which is
+    // the wrong trade: the header CTA is 44px of chrome, the hero CTA
+    // is the invitation. The outline moved to the pair beside it.
+    assert.ok(hero.includes("bg-brand-green"));
+    assert.equal(hero.includes("border-2"), false);
+    assert.ok(hero.includes("text-white"));
+    const secondary = calcModal.slice(calcModal.indexOf("heroSecondary:"));
+    assert.ok(secondary.slice(0, 400).includes("border-brand-navy/25"));
   });
 
   it("keeps its large, comfortable size and its label", () => {

@@ -11,19 +11,23 @@ const read = (path: string) => readFileSync(path, "utf8");
  */
 
 describe("one support system, not two", () => {
-  it("FAQ 'Contact Support' opens the shared Help panel instead of a second system", () => {
+  it("the FAQ support action goes where its label says", () => {
+    // It used to be "Contact Support" pointing at #contact-enquiry,
+    // which OPENED A MENU — a label promising a support channel and
+    // delivering a chooser. And the hash matched no element on
+    // /contact, so from any other page it simply scrolled nowhere.
     const faq = read("src/app/faq/page.tsx");
-    assert.ok(faq.includes('href="#contact-enquiry"'));
-    // Visible wording must stay exactly as approved.
-    assert.ok(faq.includes("Contact Support"));
+    assert.ok(faq.includes('href="/contact#enquiry"'));
+    assert.equal(faq.includes("#contact-enquiry"), false);
+    assert.ok(faq.includes("Send an enquiry"));
   });
 
-  it("the Help panel actually listens for that deep link and clears it on close", () => {
-    const launcher = read("src/components/ContactLauncher.tsx");
-    assert.ok(launcher.includes('"#contact-enquiry"'));
-    assert.ok(launcher.includes("hashchange"));
-    // Without clearing the hash the same link would not reopen the panel.
-    assert.ok(launcher.includes("replaceState"));
+  it("the retired deep-link convention is gone from the Help panel too", () => {
+    const launcher = read("src/components/ContactLauncher.tsx")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(launcher.includes("#contact-enquiry"), false);
+    assert.equal(launcher.includes("hashchange"), false);
   });
 
   it("keeps exactly one floating system in the app shell", () => {
@@ -135,14 +139,14 @@ describe("one pricing engine behind both calculator entry points", () => {
   });
 
   it("every calculator entry point opens the one canonical dialog", () => {
-    // Header Get Price, hero Calculator and the floating dock icon all
-    // render CalculatorDialog rather than a second calculator.
+    // Header Get Price, the hero, the dock, the pricing band: all of
+    // them flip ONE shared boolean, and one host renders one dialog.
     const dock = read("src/components/FloatingDock.tsx");
-    assert.ok(dock.includes("<CalculatorDialog"));
+    assert.equal(dock.includes("<CalculatorDialog"), false);
+    assert.ok(dock.includes("useCalculator()"));
     assert.equal(dock.includes("calculateEstimate"), false);
-    // The header renders the canonical dialog itself (it has to own
-    // the state — see Header.tsx); the hero uses the wrapper.
-    assert.ok(read("src/components/Header.tsx").includes("<CalculatorDialog"));
+    assert.equal(read("src/components/Header.tsx").includes("<CalculatorDialog"), false);
+    assert.ok(read("src/components/SiteDialogs.tsx").includes("<CalculatorDialog"));
     assert.ok(read("src/app/page.tsx").includes("<CalculatorModal"));
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
@@ -185,9 +189,14 @@ describe("header keeps both feature sets", () => {
     assert.ok(header.includes("scrolled"));
   });
 
-  it("keeps homepage anchor navigation", () => {
-    assert.ok(header.includes("HOME_ANCHORS"));
-    assert.ok(header.includes('"/#services"'));
+  it("no longer swaps nav items for homepage anchors", () => {
+    // On the homepage every nav item scrolled to a teaser instead of
+    // opening the page, so from the home mobile menu /services and
+    // /pricing could not be reached at all. A navigation item is a
+    // promise of a destination; the section ids stay for deep links.
+    assert.equal(header.includes("HOME_ANCHORS"), false);
+    assert.equal(header.includes('"/#services"'), false);
+    assert.ok(header.includes("href={link.href}"));
   });
 });
 

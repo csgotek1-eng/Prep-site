@@ -3,7 +3,12 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { navLinks } from "../src/lib/site.ts";
-import { siteContact, contactEmailHref, hasContactEmail } from "../src/lib/site-contact.ts";
+import {
+  contactEmailHref,
+  contactEmailLabel,
+  hasContactEmail,
+  siteContact,
+} from "../src/lib/site-contact.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
@@ -64,9 +69,9 @@ describe("header is navigation only", () => {
     assert.equal(header.includes("Get Pricing"), false, "old label retired");
     assert.ok(header.includes('label="Get Price"'));
     // Desktop bar + mobile menu row; the classes keep them exclusive,
-    // and they share the ONE dialog the header owns.
+    // and both flip the ONE shared state rather than owning a dialog.
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
-    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 1);
+    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 0);
     // Nothing in the header links outside the nav list.
     assert.equal((header.match(/<Link/g) ?? []).length, 3);
   });
@@ -79,11 +84,11 @@ describe("header is navigation only", () => {
 describe("homepage hero keeps ONE conversion action", () => {
   const home = withoutComments(read("src/app/page.tsx"));
 
-  it("offers exactly one Calculator action and no hero Get Price", () => {
-    // Later round: Get Price moved to the header, so the hero carries
-    // a single, deliberately wide Calculator button.
-    assert.equal((home.match(/Get Price/g) ?? []).length, 0);
+  it("offers exactly one Calculator action, now labelled Get Price", () => {
+    // Later round: ONE public label for pricing, everywhere. The hero
+    // is the page's primary and says the same words as the header.
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
+    assert.ok(home.includes('label="Get Price"'));
     // The homepage renders several section components; the hero is the
     // only one allowed to open the calculator, so none of the others
     // may mount a second opener.
@@ -91,7 +96,10 @@ describe("homepage hero keeps ONE conversion action", () => {
       read(`src/components/sections/${name}`),
     );
     for (const source of sections) {
-      assert.equal(source.includes("<CalculatorModal"), false);
+      // PricingSection deliberately carries the Get Price button INSIDE
+      // the card that promises it — the old teaser showed a calculator
+      // icon and linked to an explanation page instead. What no
+      // section may do is render a DIALOG of its own.
       assert.equal(source.includes("CalculatorDialog"), false);
     }
   });
@@ -210,7 +218,11 @@ describe("email is primary, phone is a bottom-level detail", () => {
       assert.ok(contactEmailHref.startsWith("mailto:"));
     } else {
       assert.equal(siteContact.email, null);
-      assert.equal(contactEmailHref, "/contact#contact-enquiry");
+      // The old fallback pointed at an id that existed on no page, so
+      // five "Email us" links landed the visitor at the top of
+      // /contact with nothing to see. #enquiry is the real form.
+      assert.equal(contactEmailHref, "/contact#enquiry");
+      assert.equal(contactEmailLabel, "Send an enquiry");
     }
     const config = read("src/lib/site-contact.ts");
     assert.ok(config.includes("NEXT_PUBLIC_OWNER_CONTACT_EMAIL"));
@@ -230,15 +242,22 @@ describe("the floating dock", () => {
   // replaced by ONE dock of two icon-only buttons that may rest only
   // against the left or right edge. tests/floating-help.test.ts owns
   // the full contract; these are the cross-cutting rules.
-  it("offers both actions as icon-only buttons with accessible names", () => {
+  it("offers both actions as icon-only controls with accessible names", () => {
     assert.ok(dock.includes('aria-label="Open pricing calculator"'));
-    assert.ok(dock.includes('aria-label="Open help"'));
+    // Help left the dock for the navigation; WhatsApp took its slot,
+    // because a message is the one micro-conversion a phone user
+    // actually makes in the moment.
+    assert.ok(dock.includes('aria-label="Message Dockentra on WhatsApp"'));
+    assert.equal(dock.includes('aria-label="Open help"'), false);
     assert.equal(dock.includes(">Get Price"), false);
     assert.equal(dock.includes(">Hide"), false);
   });
 
   it("the calculator icon opens the canonical dialog, not a second one", () => {
-    assert.ok(dock.includes("<CalculatorDialog"));
+    // It renders no dialog at all now — it flips the shared state, so
+    // it cannot stack a second calculator over an open one.
+    assert.equal(dock.includes("<CalculatorDialog"), false);
+    assert.ok(dock.includes("useCalculator()"));
     assert.equal(dock.includes("calculateEstimate"), false);
     assert.equal(dock.includes("/api/pricing/"), false);
   });
@@ -274,8 +293,13 @@ describe("the floating dock", () => {
     assert.equal(help.includes("chat"), false, "Help is not a chatbot");
   });
 
-  it("both dock controls are ordinary keyboard-operable buttons", () => {
-    assert.equal((dock.match(/type="button"/g) ?? []).length, 2);
+  it("both dock controls are ordinary keyboard-operable elements", () => {
+    // One button (Get Price) and one real anchor (WhatsApp): it leaves
+    // the site, so it must behave like a link for long-press,
+    // middle-click and screen readers.
+    assert.equal((dock.match(/type="button"/g) ?? []).length, 1);
+    assert.ok(dock.includes('target="_blank"'));
+    assert.ok(dock.includes('rel="noopener noreferrer"'));
     assert.equal(dock.includes("setPointerCapture"), false);
   });
 });

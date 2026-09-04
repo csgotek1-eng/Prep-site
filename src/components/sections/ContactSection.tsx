@@ -8,7 +8,9 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
-import { contactEmailHref } from "@/lib/site-contact";
+import Image from "next/image";
+import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
+import { teamMembers } from "@/lib/team";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -46,9 +48,36 @@ export default function ContactSection() {
               Talk to us
             </h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
-              Email us or message on WhatsApp and we&apos;ll come back with
+              Send us the details or message on WhatsApp and we&apos;ll come back with
               a fulfilment setup that fits.
             </p>
+
+            {/* WHO YOU WILL BE TALKING TO.
+                The site promised "people you can actually talk to" and
+                then showed nobody: not a face, not a name, not a role.
+                This is the one real, owner-approved photograph the
+                repository holds (see lib/team.ts) — not stock, not
+                generated, not a borrowed warehouse — and it identifies
+                the role rather than a person, which is the owner's
+                choice. No claim is made here that is not already true
+                on the Contact page. */}
+            {teamMembers[0] && (
+              <div className="mt-6 flex items-center gap-3">
+                <Image
+                  src={teamMembers[0].photoUrl}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-full object-cover"
+                />
+                <p className="text-sm leading-6 text-slate-600">
+                  <span className="block font-semibold text-brand-navy">
+                    {teamMembers[0].name} {teamMembers[0].role}
+                  </span>
+                  A real person reads every message.
+                </p>
+              </div>
+            )}
 
             {/* Email first, WhatsApp second. No phone CTA here — the
                 number lives in the footer and at the bottom of the
@@ -59,7 +88,7 @@ export default function ContactSection() {
                 className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep hover:shadow-md"
               >
                 <Mail aria-hidden="true" className="h-5 w-5" />
-                Email us
+                {contactEmailLabel}
               </a>
               <a
                 href={siteConfig.social.whatsapp}

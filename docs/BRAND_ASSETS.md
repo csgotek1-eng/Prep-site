@@ -28,6 +28,10 @@ Rules:
 - The official logo is never redrawn or approximated. Derived assets are
   produced only by crop, resample and background alpha extraction from
   the exact approved file.
-- Do not add TikTok / Amazon / Shopify / eBay / WooCommerce logos without
-  an explicit licensing/approval decision — marketplace names stay
-  text-only. Nothing claims trademark affiliation with any marketplace.
+- TikTok Shop / Amazon / Shopify / eBay / WooCommerce brand marks are
+  APPROVED for use on the website (owner decision, 2026-09-04). They
+  come from the canonical `BrandIcon` mapping, appear at small scale
+  beside the marketplace name, and are never presented as partner or
+  endorsement badges. Nothing claims trademark affiliation with any
+  marketplace; the non-affiliation statement is carried once, in the
+  footer. Each mark remains the property of its owner.

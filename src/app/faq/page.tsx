@@ -82,10 +82,10 @@ export default function FaqPage() {
                     for this hash) instead of introducing a second
                     support system. Visible wording is unchanged. */}
                 <a
-                  href="#contact-enquiry"
+                  href="/contact#enquiry"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
                 >
-                  Contact Support
+                  Send an enquiry
                 </a>
               </div>
             </div>

@@ -8,7 +8,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
-import { contactEmailHref, siteContact } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
 import { navLinks, siteConfig } from "@/lib/site";
 
 const socialLinks = [
@@ -108,7 +108,7 @@ export default function Footer() {
                   className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
                 >
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  {siteContact.email ?? "Email us"}
+                  {siteContact.email ?? contactEmailLabel}
                 </a>
               </li>
               <li>

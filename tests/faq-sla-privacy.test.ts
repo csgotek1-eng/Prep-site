@@ -41,12 +41,13 @@ describe("FAQ page", () => {
 
   it("renders the FAQ route with a support action", () => {
     assert.ok(page.includes("FaqAccordion"));
-    // Since the unified-UX integration the support action opens the
-    // shared Help panel rather than navigating to /contact. Either
-    // target is a real support route — what must never happen is the
-    // FAQ growing a support system of its own.
-    assert.ok(page.includes('href="#contact-enquiry"') || page.includes('href="/contact"'));
-    assert.ok(page.includes("Contact Support") || page.includes("Need more help"));
+    // The action goes to the real enquiry form. It used to say
+    // "Contact Support" and open the Help MENU instead, from a hash
+    // that matched no element on /contact. What must never happen is
+    // the FAQ growing a support system of its own.
+    assert.ok(page.includes('href="/contact#enquiry"'));
+    assert.equal(page.includes("#contact-enquiry"), false);
+    assert.ok(page.includes("Send an enquiry") || page.includes("Need more help"));
   });
 
   it("does not claim a live-chat service that does not exist", () => {

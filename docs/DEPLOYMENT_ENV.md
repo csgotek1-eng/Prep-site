@@ -24,6 +24,23 @@ Notes:
 - The final production domain has intentionally **not** been invented.
   Deciding/buying it is a user decision; after it exists, set
   `NEXT_PUBLIC_SITE_URL` and redeploy.
+- **2026-09-04 — the owner has confirmed Dockentra HAS its own domain,
+  but did not state its value, so nothing has been hard-coded.** The
+  code side is already finished: `resolveSiteUrl()` prefers
+  `NEXT_PUBLIC_SITE_URL` over every Vercel host, and `siteUrl` is the
+  single export that feeds `metadataBase`, canonicals, Open Graph,
+  `robots.txt`, the sitemap and the Organization JSON-LD. Making the
+  real domain canonical is therefore **one owner action, no code
+  change**:
+    1. Vercel → project `prep-site` → Settings → Domains → add the
+       domain and make it the Production domain;
+    2. Settings → Environment Variables → `NEXT_PUBLIC_SITE_URL` =
+       the domain (Production scope);
+    3. redeploy — the value is inlined at build time, so an existing
+       build will not pick it up.
+  Until step 2 happens every canonical URL, the sitemap and every Open
+  Graph tag keep pointing at the `*.vercel.app` host, and all SEO
+  value accumulates there rather than on the real domain.
 - Changing `NEXT_PUBLIC_SITE_URL` requires a redeploy (it is inlined at
   build time).
 

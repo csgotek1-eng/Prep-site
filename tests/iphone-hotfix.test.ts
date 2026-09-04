@@ -59,8 +59,10 @@ describe("the utility bar shows every social icon on a phone", () => {
     assert.ok(bar.includes("gap-2 text-[13px] sm:gap-3"));
     assert.ok(bar.includes("flex items-center gap-3 sm:gap-4"));
     assert.ok(bar.includes("gap-0.5 sm:gap-1"));
-    // Email, WhatsApp and the sm-only location link all survive.
-    assert.ok(bar.includes("Email us"));
+    // Email, WhatsApp and the sm-only location link all survive. The
+    // email row's LABEL is now whatever site-contact says is honest:
+    // "Email us" only once a real mailto: exists behind it.
+    assert.ok(bar.includes("contactEmailLabel"));
     assert.ok(bar.includes("WhatsApp"));
     assert.ok(bar.includes("siteConfig.location.googleMapsUrl"));
   });

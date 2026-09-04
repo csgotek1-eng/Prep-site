@@ -96,21 +96,35 @@ describe("marketplace presentation", () => {
 describe("homepage structure", () => {
   const home = read("src/app/page.tsx");
   const sectionIds = [
+    "who-its-for",
     "services",
     "how-it-works",
     "why-dockentra",
     "pricing",
-    "about",
+    "questions",
     "contact",
   ];
 
   it("composes the shared sections in the agreed order", () => {
+    /*
+     * The approved homepage story: hero → offer → who it is for →
+     * what we do → how it works → why → private pricing → questions →
+     * find us → final CTA.
+     *
+     * Two blocks LEFT the homepage rather than being restyled. The
+     * About teaser repeated /about with no new conversion value, and
+     * the pricing teaser promised a calculator ("Estimate your
+     * fulfilment costs in minutes", calculator icon, id
+     * "pricing-calculator") while its only control linked to an
+     * explanation page. PricingSection carries the real Get Price.
+     */
     const order = [
+      "SellerFit",
       "ServicesSection",
       "HowItWorksSection",
       "WhyDockentra",
-      "PricingTeaser",
-      "AboutSection",
+      "PricingSection",
+      "HomeFaq",
       "ContactSection",
     ];
     let cursor = -1;
@@ -126,8 +140,9 @@ describe("homepage structure", () => {
       "src/components/sections/ServicesSection.tsx",
       "src/components/sections/HowItWorksSection.tsx",
       "src/components/sections/WhyDockentra.tsx",
-      "src/components/sections/PricingTeaser.tsx",
-      "src/components/sections/AboutSection.tsx",
+      "src/components/sections/PricingSection.tsx",
+      "src/components/sections/SellerFit.tsx",
+      "src/components/sections/HomeFaq.tsx",
       "src/components/sections/ContactSection.tsx",
     ].map(read).join("\n");
     for (const id of sectionIds) {
@@ -216,18 +231,37 @@ describe("CTA vocabulary and repetition", () => {
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
 
-  it("asks for a price only where it is meant to", () => {
-    // Get Price is the ONE persistent site CTA (header + floating);
-    // the homepage hero and the Pricing page each carry one action.
-    const allowed = new Set([
-      "src/components/Header.tsx",
-      "src/app/page.tsx",
-      "src/app/pricing/page.tsx",
-    ]);
+  it("asks for a price AT MOST ONCE per surface", () => {
+    /*
+     * The rule that matters is non-repetition, not absence. /services
+     * now carries one Get Price as the secondary of its mid-page band,
+     * because the page's only action used to sit seven screens down —
+     * a visitor read the whole thing before being offered anything to
+     * do. What must never come back is a page shouting the same
+     * pricing CTA three times.
+     */
     for (const path of ctaSurfaces) {
-      if (allowed.has(path)) continue;
       const hits = (withoutComments(read(path)).match(PRICING_CTA) ?? []).length;
-      assert.equal(hits, 0, `${path} must not repeat a pricing CTA`);
+      // The header renders its trigger twice — desktop bar and mobile
+      // menu row — and `hidden sm:block` / `sm:hidden` make them
+      // mutually exclusive, so a visitor still only ever sees one.
+      const limit = path === "src/components/Header.tsx" ? 2 : 1;
+      assert.ok(hits <= limit, `${path} repeats a pricing CTA ${hits} times`);
+    }
+  });
+
+  it("uses ONE public label for pricing, on every surface that has one", () => {
+    // Five labels and three destinations for one thing ("find out what
+    // it costs") was the finding: hero "Calculator", header "Get
+    // Price", /pricing "Get Price" that navigated instead of opening,
+    // Help "Get a Quote" that opened a different form entirely.
+    for (const path of ctaSurfaces) {
+      const source = withoutComments(read(path));
+      assert.equal(
+        /\bCalculator\b/.test(source.replace(/CalculatorModal|CalculatorTrigger|CalculatorDialog|calculator/g, "")),
+        false,
+        `${path} still calls the pricing action "Calculator"`,
+      );
     }
   });
 
@@ -237,7 +271,8 @@ describe("CTA vocabulary and repetition", () => {
     // Desktop bar + mobile menu = two renderings, never both visible,
     // both driving the single dialog the header owns.
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
-    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 1);
+    // ZERO dialogs of its own: both triggers flip the shared state.
+    assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 0);
     assert.ok(header.includes("hidden sm:block"));
     assert.ok(header.includes("sm:hidden"));
     // The nav list itself stays free of a Calculator entry.
@@ -247,13 +282,16 @@ describe("CTA vocabulary and repetition", () => {
     );
   });
 
-  it("the homepage hero has ONE action: the Calculator", () => {
+  it("the homepage hero has ONE pricing action, plus a calm second door", () => {
     const home = withoutComments(read("src/app/page.tsx"));
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
     assert.ok(home.includes('variant="hero"'));
-    // Get Price moved to the header — the hero must not repeat it.
-    assert.equal(home.includes("Get Price"), false);
+    // ONE public pricing label, everywhere: the hero says the same
+    // words as the header rather than naming a tool ("Calculator").
+    assert.ok(home.includes('label="Get Price"'));
     assert.equal(home.includes('href="/pricing-calculator"'), false);
+    // The visitor who is not ready to be priced has somewhere to go.
+    assert.ok(home.includes("See how it works"));
   });
 
   it("uses the approved vocabulary and none of the banned variations", () => {
@@ -289,8 +327,11 @@ describe("CTA vocabulary and repetition", () => {
   });
 
   it("does not touch the separate quote-request wording or internals", () => {
-    // These mean something different and were deliberately left alone.
-    assert.ok(read("src/components/QuoteForm.tsx").includes("Request a Quote"));
+    // /contact's long quote form is gone — it competed with the
+    // detailed intake on /become-a-client for the same intention. The
+    // short enquiry that replaced it asks for a message, not a quote.
+    assert.equal(existsSync("src/components/QuoteForm.tsx"), false);
+    assert.ok(read("src/components/EnquiryForm.tsx").includes("Send an enquiry"));
     // The calculator now has ONE pricing action (owner requirement):
     // "Request This Quote" was removed from the pricing flow.
     assert.equal(

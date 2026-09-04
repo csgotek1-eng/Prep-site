@@ -172,7 +172,11 @@ for (const width of BAR_WIDTHS) {
     ok(((await icon.textContent()) ?? "").trim() === "", `${where}: ${network} is no longer icon-only`);
     ok(/^https?:\/\//.test((await icon.getAttribute("href")) ?? ""), `${where}: ${network} href is not a URL`);
   }
-  ok(await page.locator('a:has-text("Email us")').first().isVisible(), `${where}: "Email us" is missing`);
+  // The email row's LABEL follows site-contact: "Email us" only once a
+  // real mailto: exists, "Send an enquiry" until then. Either way the
+  // row must be there and must lead somewhere real.
+  const emailRow = page.locator('a[href^="mailto:"], a[href="/contact#enquiry"]').first();
+  ok(await emailRow.isVisible(), `${where}: the email/enquiry row is missing`);
   ok(await page.locator('a:has-text("WhatsApp")').first().isVisible(), `${where}: "WhatsApp" is missing`);
   await noOverflow(page, width, where);
 

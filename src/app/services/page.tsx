@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CalculatorModal from "@/components/CalculatorModal";
 import {
   Boxes,
   ClipboardCheck,
@@ -11,6 +12,10 @@ import {
   Warehouse,
 } from "lucide-react";
 import Container from "@/components/Container";
+
+/** The page's primary action, used by both CTA bands. */
+const PRIMARY_CTA =
+  "inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md";
 
 export const metadata: Metadata = {
   title: "Fulfilment & Prep Services",
@@ -200,12 +205,19 @@ export default function ServicesPage() {
               <article
                 key={service.id}
                 id={service.id}
-                className="group scroll-mt-24 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-brand-green/30 hover:shadow-md sm:p-8"
+                /* INFORMATION CARD. These twelve are the anchor
+                   TARGETS the homepage, header and footer link into —
+                   destinations, not navigation. They held no link or
+                   button at all, yet lit their border green and lifted
+                   their shadow under the cursor, which is the single
+                   biggest source of the "I click and nothing happens"
+                   report. No hover, no pointer, no shadow lift. */
+                className="scroll-mt-24 rounded-lg border border-brand-border bg-white p-6 sm:p-8"
               >
                 <div className="flex items-center gap-4">
                   <span
                     aria-hidden="true"
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#2E7D5A] transition-colors group-hover:text-[#1E6F4F]"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#2E7D5A]"
                   >
                     <service.Icon className="h-7 w-7" strokeWidth={1.75} />
                   </span>
@@ -236,6 +248,29 @@ export default function ServicesPage() {
         </Container>
       </section>
 
+      {/* MID-PAGE NEXT STEP. The page's only action used to sit at
+          y=4,773px on a phone — seven screens of reading before the
+          visitor was offered anything to do. */}
+      <section aria-label="Next step" className="bg-white">
+        <Container className="pb-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-brand-border bg-brand-mint-soft/60 px-6 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <p className="text-base font-semibold text-brand-navy">
+              Ready to move your fulfilment to Dockentra?
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
+              <Link href="/become-a-client" className={PRIMARY_CTA}>
+                Become a Client
+              </Link>
+              <CalculatorModal
+                variant="secondary"
+                label="Get Price"
+                icon={false}
+              />
+            </div>
+          </div>
+        </Container>
+      </section>
+
       <section
         aria-labelledby="marketplace-services-heading"
         className="bg-slate-50"
@@ -260,7 +295,8 @@ export default function ServicesPage() {
               <article
                 key={service.id}
                 id={service.id}
-                className="scroll-mt-24 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
+                /* INFORMATION CARD — same rule as the core services. */
+                className="scroll-mt-24 rounded-lg border border-brand-border bg-white p-6 sm:p-8"
               >
                 <h3 className="text-xl font-semibold tracking-tight text-brand-navy">
                   {service.title}
@@ -292,12 +328,17 @@ export default function ServicesPage() {
                 Not sure which services you need? Tell us how you sell and
                 we&apos;ll suggest a setup.
               </p>
-              <Link
-                href="/contact"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
-              >
-                Send an enquiry
+              <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
+              <Link href="/become-a-client" className={PRIMARY_CTA}>
+                Become a Client
               </Link>
+              <Link
+                href="/contact#enquiry"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+              >
+                Ask a question
+              </Link>
+              </div>
             </div>
           </div>
         </Container>

@@ -131,16 +131,18 @@ describe("C. no public component can render a monetary value", () => {
     assert.ok(calculator.includes("don&apos;t publish prices"));
   });
 
-  it("the quote form attaches the selection without any price", () => {
-    const quoteForm = read("src/components/QuoteForm.tsx");
+  it("the general enquiry form carries no price either", () => {
+    const quoteForm = read("src/components/EnquiryForm.tsx");
     for (const banned of ["formatEuro", "€", "subtotal", "lineTotal"]) {
       assert.equal(
         quoteForm.includes(banned),
         false,
-        `QuoteForm must not contain "${banned}"`,
+        `EnquiryForm must not contain "${banned}"`,
       );
     }
-    assert.ok(quoteForm.includes("personalised pricing in our reply"));
+    // It routes anyone who wants a number to the private flow rather
+    // than showing one.
+    assert.ok(quoteForm.includes("privately by WhatsApp or email"));
   });
 
   it("the retired priced-display helper is gone", () => {

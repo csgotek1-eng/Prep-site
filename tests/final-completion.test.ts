@@ -8,9 +8,14 @@ const read = (path: string) => readFileSync(path, "utf8");
 
 describe("double-submit protection", () => {
   it("both forms guard re-entry and disable the submit button", () => {
-    const quote = read("src/components/QuoteForm.tsx");
-    assert.ok(quote.includes('if (state === "submitting")'));
-    assert.ok(quote.includes('disabled={state === "submitting"}'));
+    // /contact's 27-field quote form was replaced by a short general
+    // enquiry (name, email, message): it competed with the detailed
+    // intake on /become-a-client for the same intention, and the page
+    // a visitor reaches by clicking "Ask a question" is the wrong
+    // place to ask for their SKU count.
+    const enquiry = read("src/components/EnquiryForm.tsx");
+    assert.ok(enquiry.includes('if (phase === "sending") return;'));
+    assert.ok(enquiry.includes('disabled={phase === "sending"}'));
 
     // Help no longer submits anything — it routes. The guard moved to
     // the two forms that DO submit, which each carry their own.
@@ -36,7 +41,7 @@ describe("privacy notice on both forms", () => {
     // details are used for and links the policy. Help collects
     // nothing, so it is no longer in this list.
     for (const path of [
-      "src/components/QuoteForm.tsx",
+      "src/components/EnquiryForm.tsx",
       "src/components/BecomeClientForm.tsx",
       "src/components/PartnershipForm.tsx",
     ]) {

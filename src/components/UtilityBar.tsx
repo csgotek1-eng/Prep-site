@@ -6,7 +6,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
-import { contactEmailHref, siteContact } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -42,7 +42,7 @@ export default function UtilityBar() {
               <Mail aria-hidden="true" className="h-3.5 w-3.5" />
               {/* The raw address is only shown once a real one is
                   configured — never an invented placeholder. */}
-              {siteContact.email ?? "Email us"}
+              {siteContact.email ?? contactEmailLabel}
             </a>
             <a
               href={siteConfig.social.whatsapp}

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { FileText, Handshake, Mail, UserPlus } from "lucide-react";
 import Modal from "@/components/Modal";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { contactEmailHref } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 /**
@@ -52,8 +51,8 @@ const ACTIONS: readonly HelpAction[] = [
   },
   {
     id: "quote",
-    label: "Get a Quote",
-    description: "Tell us what you need",
+    label: "Send an enquiry",
+    description: "Ask us anything in writing",
     href: "/contact#enquiry",
     Icon: FileText,
   },
@@ -67,7 +66,7 @@ const ACTIONS: readonly HelpAction[] = [
   },
   {
     id: "email",
-    label: "Email us",
+    label: contactEmailLabel,
     description: "Send us the details in writing",
     href: contactEmailHref,
     Icon: Mail,
@@ -77,41 +76,21 @@ const ACTIONS: readonly HelpAction[] = [
 export default function HelpPanel({
   open,
   onClose,
-  onOpenRequest,
 }: {
   open: boolean;
   onClose: () => void;
-  /** A #contact-enquiry deep link asks the dock to open the panel. */
-  onOpenRequest: () => void;
+  /**
+   * Kept for callers that still pass it. The "#contact-enquiry opens
+   * the Help panel" convention is gone: that hash matched no element
+   * on /contact, it was the dead fallback five "Email us" links
+   * pointed at, and a link labelled "Contact Support" that opened a
+   * MENU is exactly the "I clicked and got something else" the audit
+   * reported. Every one of those links now goes to the real form
+   * anchor instead.
+   */
+  onOpenRequest?: () => void;
 }) {
-  // Any link to #contact-enquiry opens the panel instead of jumping.
-  // The dock owns `open`, so the deep link asks it to open. This is
-  // also the fallback destination for "Email us" while no public email
-  // address is configured — see lib/site-contact.
-  useEffect(() => {
-    const openFromHash = () => {
-      if (window.location.hash === "#contact-enquiry") {
-        onOpenRequest();
-      }
-    };
-    openFromHash();
-    window.addEventListener("hashchange", openFromHash);
-    return () => window.removeEventListener("hashchange", openFromHash);
-  }, [onOpenRequest]);
-
-  const close = () => {
-    onClose();
-    // Clear the deep-link hash, otherwise clicking the same
-    // #contact-enquiry link again fires no hashchange and the panel
-    // would refuse to reopen.
-    if (window.location.hash === "#contact-enquiry") {
-      window.history.replaceState(
-        null,
-        "",
-        window.location.pathname + window.location.search,
-      );
-    }
-  };
+  const close = onClose;
 
   return (
     <Modal

@@ -104,12 +104,20 @@ export default function SlaPage() {
                 <p className="text-lg font-semibold text-brand-navy">
                   Want to discuss service levels for your account?
                 </p>
-                <Link
-                  href="/contact"
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
-                >
-                  Send an enquiry
-                </Link>
+              <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
+                  <Link
+                    href="/become-a-client"
+                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+                  >
+                    Become a Client
+                  </Link>
+                  <Link
+                    href="/contact#enquiry"
+                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+                  >
+                    Ask a question
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

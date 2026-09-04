@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
@@ -103,7 +104,9 @@ export default async function PricingPage() {
             {pricingFactors.map((factor) => (
               <div
                 key={factor.title}
-                className="rounded-lg border border-slate-200 p-6"
+                /* INFORMATION CARD — brand border, not the one
+                   off-system slate the audit found here. */
+                className="rounded-lg border border-brand-border p-6"
               >
                 <dt className="text-base font-semibold text-brand-navy">
                   {factor.title}
@@ -124,17 +127,32 @@ export default async function PricingPage() {
                   Get a price tailored to your business
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Tell us your monthly volume and the services you need. We
-                  calculate your price and send it to you privately.
+                  Tell us your monthly volume and the services you need.
+                  You&apos;ll receive your price privately by WhatsApp or email
+                  — no call needed.
                 </p>
               </div>
+              {/* Same label, same behaviour as everywhere else: this
+                  band used to say "Get Price" and navigate to a page
+                  while the identical header button opened a dialog.
+                  /pricing-calculator stays as the no-JS and shareable
+                  route, linked below. */}
+              <CalculatorModal
+                variant="primary"
+                label="Get Price"
+                icon={false}
+              />
+            </div>
+            <p className="mt-4 text-sm text-slate-600">
+              Prefer a full page?{" "}
               <Link
                 href="/pricing-calculator"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
+                className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
               >
-                Get Price
+                Open the calculator page
               </Link>
-            </div>
+              .
+            </p>
           </div>
         </Container>
       </section>

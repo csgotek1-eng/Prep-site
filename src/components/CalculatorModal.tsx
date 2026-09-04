@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Calculator } from "lucide-react";
+import { useCalculator } from "@/components/FloatingChrome";
 import Modal from "@/components/Modal";
 import PricingCalculator from "@/components/PricingCalculator";
 import { prefetchCatalogue } from "@/lib/pricing/catalogue-client";
@@ -66,13 +67,19 @@ const VARIANTS = {
   header:
     "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
   /**
-   * The single homepage hero action: same generous size as before, but
-   * OUTLINED rather than solid green. Two solid green buttons on one
-   * screen (header + hero) fought each other; the hero now reads as the
-   * calm, wide secondary surface it is.
+   * The homepage hero's PRIMARY action — solid, not outlined.
+   *
+   * It was outlined so it would not fight the solid header button.
+   * That made the first screen's only action read as secondary, which
+   * is the wrong trade: the header CTA is 44px of chrome, the hero CTA
+   * is the page's actual invitation. The hero wins the contest now,
+   * and the pair beside it ("See how it works") carries the outline.
    */
   hero:
-    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg border-2 border-brand-green bg-white/80 px-10 text-lg font-semibold text-brand-green-dark shadow-sm backdrop-blur-sm transition hover:border-brand-green-dark hover:bg-brand-mint-soft hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto sm:min-w-[20rem]",
+    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-brand-green px-10 text-lg font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto sm:min-w-[16rem]",
+  /** The hero's calm second door, same height as the primary. */
+  heroSecondary:
+    "inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-lg border border-brand-navy/25 bg-white px-8 text-lg font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto",
   primary:
     "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
   onDark:
@@ -92,7 +99,7 @@ const VARIANTS = {
  * button and keeps ONE CalculatorDialog somewhere that stays mounted.
  */
 export function CalculatorTrigger({
-  label = "Calculator",
+  label = "Get Price",
   variant = "primary",
   onClick,
   block = false,
@@ -123,13 +130,16 @@ export function CalculatorTrigger({
 }
 
 /**
- * A button that opens the canonical dialog and owns its open state.
- * Safe wherever the button itself stays mounted across the click —
- * the homepage hero, a page section. Where it does not, use
- * CalculatorTrigger with a dialog held higher up.
+ * A Get Price button. It owns NO dialog state — it flips the shared
+ * one, and the single CalculatorHost in the layout renders the dialog.
+ *
+ * This is what guarantees one calculator: there is no per-trigger
+ * `open` boolean left to get out of step, so tapping the header button
+ * while the dock button is open re-opens nothing, and neither can
+ * stack a second focus trap over the first.
  */
 export default function CalculatorModal({
-  label = "Calculator",
+  label = "Get Price",
   variant = "primary",
   onOpen,
   block = false,
@@ -144,21 +154,17 @@ export default function CalculatorModal({
   /** The header CTA reads as plain text; everywhere else keeps the icon. */
   icon?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-
+  const { openCalculator } = useCalculator();
   return (
-    <>
-      <CalculatorTrigger
-        label={label}
-        variant={variant}
-        block={block}
-        icon={icon}
-        onClick={() => {
-          onOpen?.();
-          setOpen(true);
-        }}
-      />
-      <CalculatorDialog open={open} onClose={() => setOpen(false)} />
-    </>
+    <CalculatorTrigger
+      label={label}
+      variant={variant}
+      block={block}
+      icon={icon}
+      onClick={() => {
+        onOpen?.();
+        openCalculator();
+      }}
+    />
   );
 }

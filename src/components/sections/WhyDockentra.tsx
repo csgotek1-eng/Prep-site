@@ -33,9 +33,10 @@ const reasons = [
       "Designed around sellers using multiple marketplaces at the same time.",
   },
   {
-    title: "Practical",
+    title: "Clear process",
     Icon: Workflow,
-    description: "Receive → Store → Pick → Pack → Dispatch → Returns.",
+    description:
+      "You always know where an order is: receiving, storage, picking, packing, dispatch and returns each have a defined step.",
   },
 ];
 
@@ -55,8 +56,8 @@ export default function WhyDockentra() {
             Why Dockentra
           </h2>
           <p className="mt-3 text-base leading-7 text-slate-600">
-            A practical fulfilment partner in Ireland, built around how
-            e-commerce sellers actually work.
+            Practical fulfilment in Ireland with people you can reach —
+            built around how growing sellers actually work.
           </p>
         </div>
 
@@ -64,12 +65,16 @@ export default function WhyDockentra() {
           {reasons.map((item) => (
             <div
               key={item.title}
-              className="group rounded-xl border border-brand-border bg-brand-surface-soft p-6 transition-colors hover:border-brand-green/30"
+              /* INFORMATION CARD. These carry no link and no button,
+                 so they carry no hover either: a card that lit up under
+                 the cursor and then did nothing is exactly the "I
+                 clicked and nothing happened" the audit found. */
+              className="rounded-lg border border-brand-border bg-brand-surface-soft p-6"
             >
               <dt className="flex items-center gap-3 text-lg font-semibold tracking-tight text-brand-navy">
                 <span
                   aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E7D5A] shadow-sm transition-colors group-hover:text-[#1E6F4F]"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E7D5A] shadow-sm"
                 >
                   <item.Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>

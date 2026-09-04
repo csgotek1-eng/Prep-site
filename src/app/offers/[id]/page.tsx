@@ -26,10 +26,10 @@ export async function generateMetadata({
   const { id } = await params;
   const promotion = await getLivePromotionById(id);
   if (!promotion) {
-    return { title: "Offer not available | Dockentra", robots: { index: false } };
+    return { title: "Offer not available", robots: { index: false } };
   }
   return {
-    title: `${promotion.publicTitle} | Dockentra`,
+    title: promotion.publicTitle,
     description: promotion.shortText,
     alternates: { canonical: `/offers/${promotion.id}` },
     openGraph: {
@@ -54,6 +54,18 @@ export default async function OfferPage({
 
   const offer = toPublicPromotion(promotion);
   const deadline = formatOfferDeadline(offer.endsAt);
+  /**
+   * Land the visitor ON the application, not at the top of the page
+   * above it. The form sat 2.6 screens down behind two explanatory
+   * sections, so "Become a Founding Partner" delivered them to a hero
+   * that did not mention the offer.
+   *
+   * Only for the application route — an offer pointing anywhere else
+   * keeps its own destination untouched.
+   */
+  const ctaHref = offer.ctaUrl.startsWith("/become-a-client")
+    ? `${offer.ctaUrl}#form`
+    : offer.ctaUrl;
 
   return (
     <main>
@@ -103,7 +115,7 @@ export default async function OfferPage({
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href={offer.ctaUrl}
+                href={ctaHref}
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
               >
                 {offer.ctaLabel}
