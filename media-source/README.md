@@ -49,44 +49,45 @@ and only then, the captions may say what the footage actually is —
 that edit is the one that turns "illustrative" into "ours", so it
 should happen in the same commit as the file swap, never before it.
 
-## Still outstanding — the team photo
+## The team photograph — integrated
 
-**Approved to publish, waiting only on the file.**
+| source | web version | what changed |
+|---|---|---|
+| `dockentra-team-illustrative.source.jpg` | `public/media/about/dockentra-team-illustrative.jpg` | re-encoded at native 996x1600, metadata stripped. 138 KB → 123 KB. **No crop, no resize.** |
 
-The owner has approved the supplied still as temporary illustrative
-material (2026-09-04) and has explicitly accepted that the high-vis
-vests in it read "Dockcentra" rather than Dockentra. That decision is
-made; it is not to be re-litigated.
+It is on `/about`, above the company story, where a still frame of the
+packing clip used to be. That frame is gone; it was a video still and
+the clip it came from is still on the homepage.
 
-What is missing is mechanical: the image has reached the session twice
-as a **pasted image in the conversation** rather than an uploaded
-file, so there are no bytes to commit. Send it with the attachment
-control (the paperclip), not by pasting it into the message.
+### Why there is no aspect-ratio box around it
 
-### When the file arrives
+The photo is 996x1600 portrait. Giving it a fixed-ratio container and
+`object-cover` would crop it, and the part a crop most naturally
+tightens on is the torsos — which is where the vest lettering is. So
+the element carries the photo's own intrinsic width and height and
+shows the whole frame; the WIDTH is capped instead (18rem on phones,
+22rem from `sm`), because a full-bleed portrait in a text column would
+be over 1200px tall and bury the page.
 
-1. Save the original to `media-source/dockentra-team-illustrative.source.jpg`.
-2. Produce the web version — no crop, the whole frame, so nothing
-   enlarges the lettering on the vests:
+`tests/media-assets.test.ts` fails on any `aspect-[`, `object-cover`,
+`object-position`, `fill` or `scale-` inside that figure.
 
-   ```
-   ffmpeg -i media-source/dockentra-team-illustrative.source.jpg \
-     -vf "scale=1600:-2" -q:v 4 \
-     public/media/process/dockentra-team-illustrative.jpg
-   ```
+### Wording
 
-3. In `src/app/about/page.tsx`, swap the figure's `src` to
-   `/media/process/dockentra-team-illustrative.jpg`, set the caption to
-   **"Illustrative fulfilment team imagery"**, and change the aspect
-   ratio from `aspect-[16/9]` to `aspect-[4/5]` — the photo is
-   portrait and 16/9 would crop the people.
-   Alt text describes WHAT is shown and never who it belongs to:
-   *"Two people in high-visibility vests taping and labelling a carton
-   at a packing bench."*
-4. `npm test` — `tests/media-assets.test.ts` enforces the rest: no
-   "our team", "our staff", "our warehouse" anywhere near it, no
-   ownership words in the alt text, `next/image` with `sizes`, and no
-   off-centre or zoomed crop pointed at the vests.
+Caption: **Illustrative fulfilment team imagery**
+Alt: *Two people in high-visibility vests taping and labelling a carton
+at a packing bench* — what is shown, never whose it is.
 
-The shelving still it replaces stays in the repository; it is a frame
-of the packing clip and costs nothing to keep.
+Neither the caption nor the alt may say "our team", "our staff", "our
+people", "our warehouse", "our facility" or "our operation", and the
+alt may not contain "our", "we", "us" or "Dockentra's" at all. The
+owner accepted publishing the photo with the "Dockcentra" lettering on
+the vests as-is; the condition attached to that decision is precisely
+this wording, so it is enforced by test rather than by memory.
+
+### Replacing it with real Dockentra photography
+
+Drop the new file at the same two paths and update the `width`/`height`
+in `src/app/about/page.tsx` to the new intrinsic size. The caption edit
+that turns "illustrative" into a statement about Dockentra's own team
+belongs in the same commit as the file swap, never before it.

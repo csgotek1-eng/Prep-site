@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const read = (path: string) => readFileSync(path, "utf8");
@@ -13,7 +13,7 @@ const HERO_VIDEO = "public/media/hero/dockentra-process-packing.mp4";
 const HERO_POSTER = "public/media/hero/dockentra-process-packing.jpg";
 const PROCESS_VIDEO = "public/media/process/dockentra-process-dispatch.mp4";
 const PROCESS_POSTER = "public/media/process/dockentra-process-dispatch.jpg";
-const ABOUT_STILL = "public/media/process/dockentra-process-shelving.jpg";
+const ABOUT_PHOTO = "public/media/about/dockentra-team-illustrative.jpg";
 
 /** Walk the MP4 box tree far enough to answer "what tracks are in here". */
 function trackHandlers(path: string): string[] {
@@ -83,13 +83,16 @@ describe("the process clips are silent by construction", () => {
     // The originals were 1.67 MB and 1.22 MB with audio.
     assert.ok(kb(HERO_VIDEO) < 800, `hero clip is ${Math.round(kb(HERO_VIDEO))} KB`);
     assert.ok(kb(PROCESS_VIDEO) < 600, `process clip is ${Math.round(kb(PROCESS_VIDEO))} KB`);
-    for (const path of [HERO_POSTER, PROCESS_POSTER, ABOUT_STILL]) {
+    for (const path of [HERO_POSTER, PROCESS_POSTER]) {
       assert.ok(kb(path) < 120, `${path} is ${Math.round(kb(path))} KB`);
     }
+    // The /about photograph is a real 996x1600 frame, not a video
+    // still, so it gets its own budget.
+    assert.ok(kb(ABOUT_PHOTO) < 250, `${ABOUT_PHOTO} is ${Math.round(kb(ABOUT_PHOTO))} KB`);
   });
 
   it("every clip has a poster, so the slot is never empty", () => {
-    for (const path of [HERO_POSTER, PROCESS_POSTER, ABOUT_STILL]) {
+    for (const path of [HERO_POSTER, PROCESS_POSTER]) {
       assert.ok(statSync(path).isFile(), `${path} is missing`);
     }
   });
@@ -110,10 +113,14 @@ describe("the process clips are silent by construction", () => {
         false,
         `${path} still carries the original filename`,
       );
-      assert.match(path, /^\/media\/(hero|process)\/dockentra-process-[a-z-]+\.(mp4|jpg)$/);
+      assert.match(
+        path,
+        /^\/media\/(hero|process|about)\/dockentra-(process|team)-[a-z-]+\.(mp4|jpg)$/,
+      );
     }
     assert.ok(markup.includes("/media/hero/"));
     assert.ok(markup.includes("/media/process/"));
+    assert.ok(markup.includes("/media/about/"));
   });
 });
 
@@ -168,8 +175,10 @@ describe("the clips are decorative and honest", () => {
       .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
       .map((m) => m[1]);
     assert.equal(shown.length, 3, `${shown.length} figures, expected 3`);
+    // Two clips say "footage"; the /about photograph says "imagery".
+    // Both are the same promise in the words that fit the medium.
     for (const caption of shown) {
-      assert.match(caption, /Illustrative footage/);
+      assert.match(caption, /Illustrative (footage of fulfilment work|fulfilment team imagery)/);
     }
   });
 
@@ -272,18 +281,46 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     assert.match(figure, /<Image\b/);
     assert.match(figure, /sizes=/);
     assert.equal(/<img\b/.test(figure), false);
+    // Responsive on both ends: a narrow cap on phones, a wider one
+    // from sm up, and the image itself always 100% of that box.
+    assert.match(figure, /max-w-\[\d+rem\][\s\S]*sm:max-w-\[\d+rem\]/);
+    assert.match(figure, /w-full/);
   });
 
-  it("people imagery is never cropped onto the lettering on the vests", () => {
+  it("the people photo is the /about asset, at its own proportions", () => {
+    const about = read("src/app/about/page.tsx");
+    assert.match(about, /src="\/media\/about\/dockentra-team-illustrative\.jpg"/);
+    assert.ok(
+      existsSync("public/media/about/dockentra-team-illustrative.jpg"),
+      "the web version is missing",
+    );
+    assert.ok(
+      existsSync("media-source/dockentra-team-illustrative.source.jpg"),
+      "the original is missing",
+    );
+    // The intrinsic size is declared, which is what lets the element
+    // keep the whole frame instead of filling a box of someone
+    // else's shape.
+    assert.match(about, /width=\{996\}/);
+    assert.match(about, /height=\{1600\}/);
+    assert.match(about, /className="h-auto w-full"/);
+  });
+
+  it("people imagery is never cropped at all", () => {
     // The supplied photo shows branded vests whose wording is not
     // Dockentra's own. The owner accepted publishing it as-is; what
-    // must not happen is the site ENLARGING that detail. A figure
-    // holding people imagery is a plain object-cover frame, never a
-    // zoomed object-position crop pointed at the torsos.
+    // must not happen is the site ENLARGING that detail.
+    //
+    // The guarantee here is stronger than "centred crop": there is NO
+    // crop. No aspect-ratio box for the image to fill, no object-fit
+    // rule deciding what survives, no zoom, no off-centre focus — the
+    // element carries the photo's own 996x1600 and shows all of it.
     const about = read("src/app/about/page.tsx");
     const figure = (about.match(/<figure[\s\S]*?<\/figure>/) ?? [""])[0];
-    assert.equal(/object-(top|bottom|left|right)/.test(figure), false, "the frame is cropped off-centre");
+    assert.equal(/aspect-\[/.test(figure), false, "a fixed aspect box would crop the frame");
+    assert.equal(/object-(cover|top|bottom|left|right)/.test(figure), false, "object-fit crops");
+    assert.equal(/object-position/.test(figure), false, "an off-centre focus point");
     assert.equal(/scale-\[?[1-9]/.test(figure), false, "the frame is zoomed in");
-    assert.match(figure, /object-cover/);
+    assert.equal(/\bfill\b/.test(figure), false, "fill makes the image take the box's shape");
   });
 });

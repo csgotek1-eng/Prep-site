@@ -31,27 +31,33 @@ export default function AboutPage() {
 
       <section aria-label="About Dockentra" className="bg-white">
         <Container className="py-16 sm:py-20">
-          {/* A STILL, not the hero clip again: this page is read, not
-              scanned, and a second autoplaying loop would compete with
-              the paragraph beside it. The frame is a different moment
-              from the homepage poster — putaway rather than packing —
-              so the two pages do not look like the same picture twice.
+          {/* TEMPORARY ILLUSTRATIVE IMAGERY — owner decision, 2026-09-04.
+              These are NOT Dockentra's people and this is NOT
+              Dockentra's warehouse; real Dockentra photography replaces
+              this later. Nothing on the page says "our team", "our
+              staff" or "our warehouse" anywhere near it, and
+              tests/media-assets.test.ts fails if that changes.
 
-              Illustrative fulfilment work. Not presented as
-              Dockentra's own warehouse, staff or current operation. */}
+              THE WHOLE FRAME, uncropped. No aspect-ratio box and no
+              object-cover: the intrinsic 996x1600 is given to
+              next/image and the element keeps its own proportions, so
+              nothing can enlarge or centre on the lettering on the
+              vests. The width is capped rather than the height —
+              a full-bleed portrait would be 1200px tall in a text
+              column and bury the page. */}
           <figure className="mx-auto mb-10 max-w-3xl">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft">
+            <div className="mx-auto w-full max-w-[18rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft sm:max-w-[22rem]">
               <Image
-                src="/media/process/dockentra-process-shelving.jpg"
-                alt="A gloved hand sliding a labelled carton onto a warehouse shelf beside other labelled cartons."
-                fill
-                sizes="(min-width: 768px) 48rem, 100vw"
-                className="object-cover"
+                src="/media/about/dockentra-team-illustrative.jpg"
+                alt="Two people in high-visibility vests taping and labelling a carton at a packing bench"
+                width={996}
+                height={1600}
+                sizes="(min-width: 640px) 22rem, 18rem"
+                className="h-auto w-full"
               />
             </div>
-            <figcaption className="mt-3 text-xs leading-5 text-brand-text-muted">
-              Illustrative footage of fulfilment work — labelled stock going to
-              its shelf location.
+            <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted">
+              Illustrative fulfilment team imagery
             </figcaption>
           </figure>
           <div className="mx-auto max-w-3xl space-y-6 text-base leading-7 text-slate-700">

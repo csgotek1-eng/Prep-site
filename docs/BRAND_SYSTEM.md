@@ -123,9 +123,14 @@ stays for errors only.
     captioned *illustrative footage of fulfilment work*, and no
     surface beside it says "our warehouse", "our team", "our staff" or
     "our facility". The media on the site today is TEMPORARY
-    ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04),
-    awaiting real Dockentra photography and video; see
-    `media-source/README.md` for how to swap it in.
+    ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04) —
+    two process clips and one photograph of people — awaiting real
+    Dockentra photography and video; see `media-source/README.md` for
+    how to swap it in;
+  - **imagery of PEOPLE is never cropped.** A crop tightens on torsos,
+    which is where uniform lettering sits. Such a photo carries its own
+    intrinsic width/height and shows the whole frame; cap the WIDTH,
+    never impose an aspect ratio.
   - **a brand mark that is not ours never ships.** Any supplied
     material showing branded uniforms, signage or packaging must read
     "Dockentra" exactly. A misspelling of our own name on our own site
