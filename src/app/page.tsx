@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import CalculatorModal from "@/components/CalculatorModal";
+import ProcessMedia from "@/components/sections/ProcessMedia";
+import ProcessVideo from "@/components/ProcessVideo";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
@@ -54,7 +56,8 @@ export default async function HomePage() {
           />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-mint/70 to-transparent" />
         </div>
-        <Container className="relative py-16 sm:py-24 lg:py-32">
+        <Container className="relative py-16 sm:py-24 lg:py-28">
+          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center lg:gap-14 xl:grid-cols-[minmax(0,1fr)_23rem]">
           <div className="max-w-3xl">
             {/* The eyebrow used to repeat the H1 almost word for word
                 ("Fulfilment & Prep Centre" above "Fulfilment & Prep
@@ -119,6 +122,35 @@ export default async function HomePage() {
               call needed.
             </p>
           </div>
+
+          {/* THE one prioritised visual on the page.
+              The right half of the hero was empty space on lg+ with a
+              6%-opacity watermark in it, and the site carried no
+              photography at all — the strategic audit's single biggest
+              visual finding. A 9:16 clip suits the audience arriving
+              from vertical video, and it stacks BELOW the text and the
+              CTA on a phone so nothing is pushed off the first screen.
+
+              ILLUSTRATIVE PROCESS FOOTAGE, and the caption says so.
+              It is not presented as Dockentra's own warehouse, staff
+              or current operation, because that has not been
+              confirmed. */}
+          <figure className="mt-10 lg:mt-0">
+            <div className="relative mx-auto aspect-[9/16] w-full max-w-[17rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft shadow-sm sm:max-w-[19rem] lg:max-w-none">
+              <ProcessVideo
+                priority
+                src="/media/hero/dockentra-process-packing.mp4"
+                poster="/media/hero/dockentra-process-packing.jpg"
+                alt="Gloved hands wrapping a boxed item, packing it into a carton and placing labelled cartons onto warehouse shelving."
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted lg:text-left">
+              Illustrative footage of fulfilment work — packing, labelling and
+              putaway.
+            </figcaption>
+          </figure>
+          </div>
         </Container>
       </section>
 
@@ -146,6 +178,7 @@ export default async function HomePage() {
       <SellerFit />
       <ServicesSection />
       <HowItWorksSection />
+      <ProcessMedia />
       <WhyDockentra />
       <PricingSection />
       <HomeFaq />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/Container";
 
@@ -30,6 +31,29 @@ export default function AboutPage() {
 
       <section aria-label="About Dockentra" className="bg-white">
         <Container className="py-16 sm:py-20">
+          {/* A STILL, not the hero clip again: this page is read, not
+              scanned, and a second autoplaying loop would compete with
+              the paragraph beside it. The frame is a different moment
+              from the homepage poster — putaway rather than packing —
+              so the two pages do not look like the same picture twice.
+
+              Illustrative fulfilment work. Not presented as
+              Dockentra's own warehouse, staff or current operation. */}
+          <figure className="mx-auto mb-10 max-w-3xl">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft">
+              <Image
+                src="/media/process/dockentra-process-shelving.jpg"
+                alt="A gloved hand sliding a labelled carton onto a warehouse shelf beside other labelled cartons."
+                fill
+                sizes="(min-width: 768px) 48rem, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <figcaption className="mt-3 text-xs leading-5 text-brand-text-muted">
+              Illustrative footage of fulfilment work — labelled stock going to
+              its shelf location.
+            </figcaption>
+          </figure>
           <div className="mx-auto max-w-3xl space-y-6 text-base leading-7 text-slate-700">
             <p>
               Dockentra is an Irish e-commerce fulfilment and prep business

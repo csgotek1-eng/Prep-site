@@ -111,7 +111,18 @@ stays for errors only.
     public display;
   - every image goes through `next/image`, so temporary illustrative
     material can later be swapped for real Dockentra photography by
-    replacing the file — no page needs redesigning.
+    replacing the file — no page needs redesigning;
+  - **moving footage** lives in `public/media/**` with its originals in
+    `media-source/` (see that README). Clips are silent by
+    construction — the audio track is stripped, not just muted — they
+    are decorative (`aria-hidden`, no controls, not focusable), and a
+    visitor who asks for reduced motion gets the poster frame instead
+    of a loop. Exactly ONE clip on a page may load eagerly;
+  - **captions on unconfirmed footage say what it is.** Until the
+    owner confirms footage shows Dockentra's own operation it is
+    captioned *illustrative footage of fulfilment work*, and no
+    surface beside it says "our warehouse", "our team", "our staff" or
+    "our facility".
 - **Card variants** — exactly two, and the difference is behavioural:
   - **Clickable card**: the WHOLE card is one link and contains no
     other control. `rounded-lg`, `border-brand-border`,
