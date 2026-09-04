@@ -187,3 +187,103 @@ describe("the clips are decorative and honest", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------
+// People imagery — illustrative, never a claim about a real team
+// ---------------------------------------------------------------------
+
+/**
+ * Owner decision, 2026-09-04: the media on the site is TEMPORARY
+ * illustrative material, published on the explicit condition that it
+ * is never presented as Dockentra's real team, real staff or real
+ * warehouse. Real Dockentra photography and video replace it later.
+ *
+ * A photograph of PEOPLE is where that condition is easiest to break,
+ * because the natural caption for it is "our team". These assertions
+ * hold for whichever asset occupies the /about figure — the shelving
+ * still today, the supplied team photo once its file is in the
+ * repository — so the rule cannot lapse during the swap.
+ */
+
+/** Every alt/figcaption a visitor can read on a page, in one string. */
+function visibleMediaText(path: string): string {
+  const source = read(path);
+  const alts = [...source.matchAll(/alt="([^"]*)"/g)].map((m) => m[1]);
+  const captions = [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)].map(
+    (m) => m[1].replace(/\s+/g, " "),
+  );
+  return [...alts, ...captions].join(" \n ");
+}
+
+const MEDIA_SURFACES = [
+  "src/app/about/page.tsx",
+  "src/app/page.tsx",
+  "src/components/sections/ProcessMedia.tsx",
+];
+
+describe("illustrative people imagery is never claimed as Dockentra's own", () => {
+  it("no alt text or caption calls anyone our team, our staff or our people", () => {
+    for (const path of MEDIA_SURFACES) {
+      const text = visibleMediaText(path).toLowerCase();
+      for (const claim of [
+        "our team",
+        "our staff",
+        "our people",
+        "our warehouse",
+        "our facility",
+        "our operation",
+        "dockentra team",
+        "dockentra staff",
+        "the dockentra warehouse",
+      ]) {
+        assert.equal(text.includes(claim), false, `${path} says "${claim}" about illustrative media`);
+      }
+    }
+  });
+
+  it("describes what is shown, not who it belongs to", () => {
+    // Alt text answers "what is in the picture". The moment it starts
+    // answering "whose picture is this", it has become a claim.
+    for (const path of MEDIA_SURFACES) {
+      for (const match of read(path).matchAll(/alt="([^"]*)"/g)) {
+        const alt = match[1];
+        if (!alt) continue;
+        assert.equal(
+          /\b(our|we|us|dockentra'?s)\b/i.test(alt),
+          false,
+          `${path}: alt text asserts ownership — "${alt}"`,
+        );
+      }
+    }
+  });
+
+  it("the /about figure stays labelled illustrative whatever asset it holds", () => {
+    const about = read("src/app/about/page.tsx");
+    const figures = [...about.matchAll(/<figure[\s\S]*?<\/figure>/g)];
+    assert.equal(figures.length, 1, `/about has ${figures.length} figures, expected 1`);
+    const figure = figures[0][0];
+    assert.match(
+      figure,
+      /Illustrative (footage|fulfilment team imagery|imagery)/,
+      "the /about figure lost its illustrative caption",
+    );
+    // Whatever the asset is, it goes through the image pipeline and
+    // stays responsive — no fixed pixel width, no raw <img>.
+    assert.match(figure, /<Image\b/);
+    assert.match(figure, /sizes=/);
+    assert.equal(/<img\b/.test(figure), false);
+  });
+
+  it("people imagery is never cropped onto the lettering on the vests", () => {
+    // The supplied photo shows branded vests whose wording is not
+    // Dockentra's own. The owner accepted publishing it as-is; what
+    // must not happen is the site ENLARGING that detail. A figure
+    // holding people imagery is a plain object-cover frame, never a
+    // zoomed object-position crop pointed at the torsos.
+    const about = read("src/app/about/page.tsx");
+    const figure = (about.match(/<figure[\s\S]*?<\/figure>/) ?? [""])[0];
+    assert.equal(/object-(top|bottom|left|right)/.test(figure), false, "the frame is cropped off-centre");
+    assert.equal(/scale-\[?[1-9]/.test(figure), false, "the frame is zoomed in");
+    assert.match(figure, /object-cover/);
+  });
+});

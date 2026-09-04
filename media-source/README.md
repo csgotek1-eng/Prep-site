@@ -49,10 +49,44 @@ and only then, the captions may say what the footage actually is —
 that edit is the one that turns "illustrative" into "ours", so it
 should happen in the same commit as the file swap, never before it.
 
-## Still outstanding
+## Still outstanding — the team photo
 
-The still image supplied alongside these two clips is **not in this
-repository**. See the media round report: it reached the session as a
-pasted image rather than an uploaded file, and separately it shows
-high-vis vests reading **"Dockcentra"**, which is not the company's
-name. It must not be published until a corrected file is supplied.
+**Approved to publish, waiting only on the file.**
+
+The owner has approved the supplied still as temporary illustrative
+material (2026-09-04) and has explicitly accepted that the high-vis
+vests in it read "Dockcentra" rather than Dockentra. That decision is
+made; it is not to be re-litigated.
+
+What is missing is mechanical: the image has reached the session twice
+as a **pasted image in the conversation** rather than an uploaded
+file, so there are no bytes to commit. Send it with the attachment
+control (the paperclip), not by pasting it into the message.
+
+### When the file arrives
+
+1. Save the original to `media-source/dockentra-team-illustrative.source.jpg`.
+2. Produce the web version — no crop, the whole frame, so nothing
+   enlarges the lettering on the vests:
+
+   ```
+   ffmpeg -i media-source/dockentra-team-illustrative.source.jpg \
+     -vf "scale=1600:-2" -q:v 4 \
+     public/media/process/dockentra-team-illustrative.jpg
+   ```
+
+3. In `src/app/about/page.tsx`, swap the figure's `src` to
+   `/media/process/dockentra-team-illustrative.jpg`, set the caption to
+   **"Illustrative fulfilment team imagery"**, and change the aspect
+   ratio from `aspect-[16/9]` to `aspect-[4/5]` — the photo is
+   portrait and 16/9 would crop the people.
+   Alt text describes WHAT is shown and never who it belongs to:
+   *"Two people in high-visibility vests taping and labelling a carton
+   at a packing bench."*
+4. `npm test` — `tests/media-assets.test.ts` enforces the rest: no
+   "our team", "our staff", "our warehouse" anywhere near it, no
+   ownership words in the alt text, `next/image` with `sizes`, and no
+   off-centre or zoomed crop pointed at the vests.
+
+The shelving still it replaces stays in the repository; it is a frame
+of the packing clip and costs nothing to keep.
