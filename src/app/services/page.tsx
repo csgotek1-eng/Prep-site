@@ -20,7 +20,7 @@ const PRIMARY_CTA =
 export const metadata: Metadata = {
   title: "Fulfilment & Prep Services",
   description:
-    "Receiving, inspection, labelling, prep, storage, pick & pack, kitting and returns in Ireland — plus fulfilment support for TikTok Shop, Amazon FBA, Shopify, eBay and WooCommerce sellers.",
+    "Receiving, inspection, labelling, prep, storage, pick & pack, kitting and returns in Ireland for TikTok Shop, Amazon FBA, Shopify, eBay and WooCommerce sellers.",
   alternates: {
     canonical: "/services",
   },

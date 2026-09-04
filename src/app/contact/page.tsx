@@ -16,9 +16,9 @@ import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-con
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Contact Dockentra",
+  title: "Contact Us",
   description:
-    "Contact Dockentra about fulfilment and prep in Ireland. Send an enquiry with your products, sales channels and order volumes and we'll propose a setup that fits your business.",
+    "Contact Dockentra about fulfilment and prep in Ireland. Send an enquiry with your products, sales channels and order volumes and we'll propose a setup.",
   alternates: {
     canonical: "/contact",
   },

@@ -8,7 +8,7 @@ import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Flexible fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote from Dockentra.",
+    "Flexible fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
   alternates: {
     canonical: "/pricing",
   },

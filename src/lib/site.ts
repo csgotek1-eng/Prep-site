@@ -12,7 +12,7 @@ export const siteConfig = {
   title: "Dockentra | Fulfilment & Prep Centre Ireland",
   tagline: "Local fulfilment for growing e-commerce businesses.",
   description:
-    "Dockentra is an Irish fulfilment and prep centre for e-commerce sellers — receiving, inspection, labelling, prep, storage, pick & pack and returns, handled locally in Ireland.",
+    "Irish fulfilment and prep centre for e-commerce sellers: receiving, inspection, labelling, prep, storage, pick & pack and returns, handled locally in Ireland.",
   url: siteUrl,
   // Contact details live in ONE place — ./site-contact.ts. These are
   // re-exports so existing `siteConfig.contact.*` call sites keep

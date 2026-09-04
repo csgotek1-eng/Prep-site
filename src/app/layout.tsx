@@ -95,6 +95,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: siteConfig.name,
   url: siteUrl,
+  logo: `${siteUrl}/brand/dockentra-logo-transparent.png`,
   description: siteConfig.description,
   telephone: "+353851584185",
   // Public profile pages only — WhatsApp/Telegram chat links are not

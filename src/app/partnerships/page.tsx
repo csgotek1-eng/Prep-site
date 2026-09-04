@@ -7,12 +7,12 @@ import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 
 export const metadata: Metadata = {
-  title: "Partner with Dockentra | Fulfilment Ireland",
+  title: "Partner With Us — Fulfilment Ireland",
   description:
     "Agencies, coaches, creators, couriers, technology and referral partners — how to work with a fulfilment and prep operation in Limerick.",
   alternates: { canonical: "/partnerships" },
   openGraph: {
-    title: "Partner with Dockentra | Fulfilment Ireland",
+    title: "Partner With Us — Fulfilment Ireland",
     description:
       "Agencies, coaches, creators, couriers, technology and referral partners — how to work with a fulfilment and prep operation in Limerick.",
     url: "/partnerships",

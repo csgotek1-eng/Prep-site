@@ -338,8 +338,8 @@ describe("the public information architecture", () => {
 
   it("both new pages carry real metadata", () => {
     for (const [path, title] of [
-      ["src/app/become-a-client/page.tsx", "Start Fulfilment with Dockentra | Ireland"],
-      ["src/app/partnerships/page.tsx", "Partner with Dockentra | Fulfilment Ireland"],
+      ["src/app/become-a-client/page.tsx", "Start Fulfilment in Ireland"],
+      ["src/app/partnerships/page.tsx", "Partner With Us — Fulfilment Ireland"],
     ]) {
       const source = read(path);
       assert.ok(source.includes(`title: "${title}"`), path);

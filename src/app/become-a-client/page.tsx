@@ -12,12 +12,12 @@ import {
 import { toPublicPromotion } from "@/lib/promotions/public";
 
 export const metadata: Metadata = {
-  title: "Start Fulfilment with Dockentra | Ireland",
+  title: "Start Fulfilment in Ireland",
   description:
     "Tell us what you sell and how you sell it, and we'll set you up with fulfilment, prep and storage from our Limerick warehouse.",
   alternates: { canonical: "/become-a-client" },
   openGraph: {
-    title: "Start Fulfilment with Dockentra | Ireland",
+    title: "Start Fulfilment in Ireland",
     description:
       "Tell us what you sell and how you sell it, and we'll set you up with fulfilment, prep and storage from our Limerick warehouse.",
     url: "/become-a-client",

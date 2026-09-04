@@ -44,6 +44,20 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      {
+        // Photography and the two silent clips are big and change only
+        // when the owner swaps the files. Next serves /public with
+        // max-age=0, so every visit re-validates ~700 KB of media. An
+        // hour of browser caching plus a day of stale-while-revalidate
+        // removes that without making a replacement invisible for long.
+        source: "/media/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
     ];
   },
 };
