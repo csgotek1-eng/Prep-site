@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { navLinks, siteConfig } from "../src/lib/site.ts";
+import { isOurFailure } from "../src/lib/submit-failure.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
@@ -201,5 +202,79 @@ describe("accessibility audit fixes", () => {
     // The suite loads axe from node_modules; a transitive copy can
     // disappear on any dependency bump.
     assert.ok(pkg.devDependencies["axe-core"], "axe-core must be a declared dependency");
+  });
+});
+
+/**
+ * The failure path on the lead forms. tests/browser/lead-failure-path.mjs
+ * proves the rendered behaviour against a server whose store is really
+ * down; these keep the wiring honest without a browser.
+ */
+describe("lead form failure path", () => {
+  const FORMS = [
+    "src/components/EnquiryForm.tsx",
+    "src/components/BecomeClientForm.tsx",
+    "src/components/PartnershipForm.tsx",
+  ];
+
+  it("every public lead form reports failures through the shared alert", () => {
+    for (const path of FORMS) {
+      const source = read(path);
+      assert.ok(
+        source.includes('import SubmitError from "@/components/SubmitError"') &&
+          source.includes('import { isOurFailure } from "@/lib/submit-failure"'),
+        `${path} does not use the shared failure alert`,
+      );
+      assert.ok(source.includes("<SubmitError"), path);
+      // No form may keep its own bare alert paragraph: that is how one
+      // of them silently loses the fallback again.
+      assert.equal(
+        /<p role="alert"/.test(source),
+        false,
+        `${path} still renders its own alert instead of SubmitError`,
+      );
+    }
+  });
+
+  it("the fallback is offered for our failures and withheld for the visitor's", () => {
+    for (const path of FORMS) {
+      const source = read(path);
+      // Answered, but by us failing: classify from the status.
+      assert.ok(
+        source.includes("setOurFailure(isOurFailure(response.status))"),
+        `${path} does not classify a failed response`,
+      );
+      // Never answered at all: as much ours as a 5xx.
+      assert.ok(
+        /catch \{[\s\S]{0,200}setOurFailure\(true\)/.test(source),
+        `${path} does not treat a dead request as ours`,
+      );
+      assert.ok(source.includes("showFallback={ourFailure}"), path);
+    }
+    assert.ok(
+      read("src/lib/submit-failure.ts").includes("status === null || status >= 500"),
+    );
+    // 4xx is the visitor's to fix, so it must NOT be ours.
+    assert.equal(isOurFailure(400), false);
+    assert.equal(isOurFailure(422), false);
+    assert.equal(isOurFailure(500), true);
+    assert.equal(isOurFailure(503), true);
+    assert.equal(isOurFailure(null), true);
+  });
+
+  it("the fallback channels come from the single contact source", () => {
+    const alert = read("src/components/SubmitError.tsx");
+    assert.ok(alert.includes('from "@/lib/site-contact"'));
+    assert.ok(alert.includes("siteContact.whatsapp"));
+    assert.ok(alert.includes("siteContact.phoneHref"));
+    // A literal number here would be a second source of truth, and
+    // email is deliberately null until the owner supplies one.
+    assert.equal(/\+353\s?\d/.test(alert), false, "a literal phone number is hardcoded");
+    assert.equal(alert.includes("mailto:"), false, "offers an address that may not exist");
+  });
+
+  it("the failure path is part of the browser suite", () => {
+    const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> };
+    assert.ok(pkg.scripts["test:browser"].includes("tests/browser/lead-failure-path.mjs"));
   });
 });

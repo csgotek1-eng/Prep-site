@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import SubmitError from "@/components/SubmitError";
+import { isOurFailure } from "@/lib/submit-failure";
 
 /**
  * THE short general enquiry — name, email, message, and nothing else.
@@ -24,6 +26,9 @@ import { useState } from "react";
 export default function EnquiryForm() {
   const [phase, setPhase] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
+  // Drives whether the alert offers WhatsApp: only when the failure is
+  // ours, never when the visitor simply needs to fix a field.
+  const [ourFailure, setOurFailure] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,9 +54,12 @@ export default function EnquiryForm() {
         setPhase("done");
         return;
       }
+      setOurFailure(isOurFailure(response.status));
       setError(data.error ?? "Something went wrong. Please try again.");
       setPhase("idle");
     } catch {
+      // The request never got an answer: as much ours as a 5xx.
+      setOurFailure(true);
       setError("Something went wrong. Please try again.");
       setPhase("idle");
     }
@@ -150,9 +158,11 @@ export default function EnquiryForm() {
       </p>
 
       {error && (
-        <p role="alert" className="mt-4 text-sm font-medium text-red-700">
-          {error}
-        </p>
+        <SubmitError
+          message={error}
+          showFallback={ourFailure}
+          className="mt-4 text-sm font-medium leading-6 text-red-700"
+        />
       )}
 
       <button

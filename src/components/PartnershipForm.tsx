@@ -3,6 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
+import SubmitError from "@/components/SubmitError";
+import { isOurFailure } from "@/lib/submit-failure";
 
 /**
  * PARTNERSHIPS — a separate form for a separate conversation.
@@ -39,6 +41,7 @@ export default function PartnershipForm({
   const setPartnershipType = setOverrideType;
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
+  const [ourFailure, setOurFailure] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,10 +72,12 @@ export default function PartnershipForm({
         setPhase("done");
       } else {
         setPhase("idle");
+        setOurFailure(isOurFailure(response.status));
         setError(data.error ?? "Something went wrong. Please try again.");
       }
     } catch {
       setPhase("idle");
+      setOurFailure(true);
       setError(
         "We couldn't send that. Please check your connection and try again.",
       );
@@ -200,9 +205,11 @@ export default function PartnershipForm({
       </p>
 
       {error && (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-700">
-          {error}
-        </p>
+        <SubmitError
+          message={error}
+          showFallback={ourFailure}
+          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-700"
+        />
       )}
 
       <button

@@ -7,6 +7,8 @@ import {
   ORDER_VOLUMES,
   SELLING_CHANNELS,
 } from "@/lib/client-intake";
+import SubmitError from "@/components/SubmitError";
+import { isOurFailure } from "@/lib/submit-failure";
 
 /**
  * BECOME A CLIENT — the short form behind "I want Dockentra to fulfil
@@ -39,6 +41,7 @@ export default function BecomeClientForm({
   const [services, setServices] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
+  const [ourFailure, setOurFailure] = useState(false);
   // Read straight from the router rather than syncing it into state in
   // an effect: one source, no cascading render, no hydration gap.
   const offerId = useSearchParams().get("offer")?.slice(0, 64) ?? "";
@@ -83,10 +86,12 @@ export default function BecomeClientForm({
         setPhase("done");
       } else {
         setPhase("idle");
+        setOurFailure(isOurFailure(response.status));
         setError(data.error ?? "Something went wrong. Please try again.");
       }
     } catch {
       setPhase("idle");
+      setOurFailure(true);
       setError(
         "We couldn't send that. Please check your connection and try again.",
       );
@@ -253,9 +258,11 @@ export default function BecomeClientForm({
       </p>
 
       {error && (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-700">
-          {error}
-        </p>
+        <SubmitError
+          message={error}
+          showFallback={ourFailure}
+          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-700"
+        />
       )}
 
       <button
