@@ -306,7 +306,7 @@ describe("server-side validation", () => {
   });
 
   it("removes control characters but keeps paragraphs", () => {
-    assert.equal(sanitizePromotionText("a bc", 50), "abc");
+    assert.equal(sanitizePromotionText("a\u0000b\u0007c", 50), "abc");
     assert.equal(sanitizePromotionText("one\n\ntwo", 50), "one\n\ntwo");
     assert.equal(sanitizePromotionText("a".repeat(80), 10), "a".repeat(10));
     assert.equal(sanitizePromotionText(42, 10), "");
