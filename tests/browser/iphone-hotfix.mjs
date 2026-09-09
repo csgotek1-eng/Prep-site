@@ -24,7 +24,7 @@
  * dependency of the site) and a production build. If either is
  * missing it says so and exits non-zero rather than passing silently.
  */
-import { spawn } from "node:child_process";
+import { startNextServer, stopNextServer } from "./next-server.mjs";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -57,18 +57,8 @@ const store = join(mkdtempSync(join(tmpdir(), "dockentra-ui-")), "pricing.json")
 // Detached so the whole process group can be torn down: `next start`
 // runs under a wrapper, and killing only the wrapper leaves the server
 // holding the port and this process hanging.
-const server = spawn("npx", ["next", "start", "-p", String(PORT)], {
-  env: { ...process.env, PRICING_PERSISTENCE: "file", PRICING_STORE_FILE: store },
-  stdio: ["ignore", "pipe", "pipe"],
-  detached: true,
-});
-function stopServer() {
-  try {
-    process.kill(-server.pid, "SIGTERM");
-  } catch {
-    server.kill("SIGTERM");
-  }
-}
+const server = startNextServer(PORT, { ...process.env, PRICING_PERSISTENCE: "file", PRICING_STORE_FILE: store });
+const stopServer = () => stopNextServer(server);
 process.on("exit", stopServer);
 let serverLog = "";
 server.stdout.on("data", (d) => (serverLog += d));

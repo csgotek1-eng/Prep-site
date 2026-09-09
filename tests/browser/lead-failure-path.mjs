@@ -17,7 +17,7 @@
  *     up. A validation error gets no fallback: a bad email needs
  *     correcting, not a different channel.
  */
-import { spawn } from "node:child_process";
+import { startNextServer, stopNextServer } from "./next-server.mjs";
 import { createRequire } from "node:module";
 
 const PORT = Number(process.env.FAILURE_TEST_PORT ?? 3497);
@@ -47,18 +47,8 @@ delete env.LEADS_STORE_FILE;
 delete env.PROMOTIONS_PERSISTENCE;
 delete env.PROMOTIONS_STORE_FILE;
 
-const server = spawn("npx", ["next", "start", "-p", String(PORT)], {
-  env,
-  stdio: ["ignore", "pipe", "pipe"],
-  detached: true,
-});
-function stopServer() {
-  try {
-    process.kill(-server.pid, "SIGTERM");
-  } catch {
-    server.kill("SIGTERM");
-  }
-}
+const server = startNextServer(PORT, env);
+const stopServer = () => stopNextServer(server);
 process.on("exit", stopServer);
 let log = "";
 server.stdout.on("data", (d) => (log += d));

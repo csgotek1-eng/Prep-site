@@ -4,7 +4,7 @@
  * silent, motion-respecting, lazy where they should be, and never
  * covering something a visitor needs to use.
  */
-import { spawn } from "node:child_process";
+import { startNextServer, stopNextServer } from "./next-server.mjs";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -29,26 +29,16 @@ const ok = (cond, message) => {
 };
 
 const dir = mkdtempSync(join(tmpdir(), "dockentra-media-"));
-const server = spawn("npx", ["next", "start", "-p", String(PORT)], {
-  env: {
-    ...process.env,
-    PRICING_PERSISTENCE: "file",
-    PRICING_STORE_FILE: join(dir, "pricing.json"),
-    PROMOTIONS_PERSISTENCE: "file",
-    PROMOTIONS_STORE_FILE: join(dir, "promotions.json"),
-    LEADS_PERSISTENCE: "file",
-    LEADS_STORE_FILE: join(dir, "leads.json"),
-  },
-  stdio: ["ignore", "pipe", "pipe"],
-  detached: true,
+const server = startNextServer(PORT, {
+  ...process.env,
+  PRICING_PERSISTENCE: "file",
+  PRICING_STORE_FILE: join(dir, "pricing.json"),
+  PROMOTIONS_PERSISTENCE: "file",
+  PROMOTIONS_STORE_FILE: join(dir, "promotions.json"),
+  LEADS_PERSISTENCE: "file",
+  LEADS_STORE_FILE: join(dir, "leads.json"),
 });
-function stopServer() {
-  try {
-    process.kill(-server.pid, "SIGTERM");
-  } catch {
-    server.kill("SIGTERM");
-  }
-}
+const stopServer = () => stopNextServer(server);
 process.on("exit", stopServer);
 let log = "";
 server.stdout.on("data", (d) => (log += d));

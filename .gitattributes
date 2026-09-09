@@ -1,0 +1,30 @@
+# Line endings are part of this repository's test contract.
+#
+# Dozens of assertions across tests/ match multi-line substrings of the
+# source ("panel\n                ? \"flex min-h-0...\"") and slice files
+# at literal markers (code.indexOf("return (\n    <div>")). Every one of
+# those is written with \n. On a Windows checkout with the global
+# core.autocrlf=true — the default that ships with Git for Windows —
+# the working tree gets CRLF, the markers stop matching, indexOf returns
+# -1, and a slice silently becomes the whole file. Nine tests failed
+# that way and none of them was a real defect.
+#
+# So the working tree is LF everywhere, on every platform. The index has
+# always stored LF; this makes the checkout agree with it.
+* text=auto eol=lf
+
+# Binary: never touched, never diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary

@@ -55,6 +55,35 @@ describe("source hygiene", () => {
     assert.deepEqual(offenders, []);
   });
 
+  it("no source file is checked out with CRLF line endings", () => {
+    // NOT cosmetic. Dozens of assertions in tests/ match multi-line
+    // substrings of the source, and several SLICE a file at a literal
+    // marker -- desktop-cta-visibility cuts the calculator at the
+    // opening of its JSX. Every one of those markers is written with a
+    // bare LF escape. Give the working tree CRLF and indexOf returns
+    // -1, the slice quietly hands back the rest of the file, and the
+    // assertions downstream fail for reasons that have nothing to do
+    // with the code they are testing.
+    //
+    // That is exactly what happened: a Windows checkout under the
+    // global core.autocrlf=true that Git for Windows installs by
+    // default produced nine failures across four files, and not one of
+    // them was a real defect. .gitattributes now pins the working tree
+    // to LF; this test is what turns a stale clone into one legible
+    // sentence instead of nine misleading ones.
+    const offenders: string[] = [];
+    for (const path of sourceFiles(["src", "tests", "supabase"])) {
+      if (readFileSync(path).includes(CARRIAGE_RETURN)) offenders.push(path);
+    }
+    assert.deepEqual(
+      offenders,
+      [],
+      "CRLF in the working tree. .gitattributes pins it to LF, so an " +
+        "existing clone needs refreshing: git add --renormalize . && " +
+        "git checkout -- .",
+    );
+  });
+
   it("the rate-limit key separator survives as a real NUL at runtime", () => {
     // The escape changed how the separator is WRITTEN, not what it is.
     // Two different splits of the same characters must still hash apart.

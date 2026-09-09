@@ -1,8 +1,23 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 
 const read = (path: string) => readFileSync(path, "utf8");
+
+/** Every .ts/.tsx file under a root, for repository-wide copy rules. */
+function sourceFilesUnder(root: string): string[] {
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      const path = join(dir, entry);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(path)) out.push(path);
+    }
+  };
+  walk(root);
+  return out;
+}
 
 /** Guards for the calculator action layout, hero D and brand icons. */
 
@@ -191,5 +206,38 @@ describe("brand icons", () => {
     assert.equal(pkg.includes("simple-icons"), false);
     assert.equal(pkg.includes("@fortawesome"), false);
     assert.equal(brandIcon.includes("http"), false);
+  });
+});
+
+// ---------------------------------------------------------------------
+// Brand Book v2.0: one word, and one component that must stay off the
+// page
+// ---------------------------------------------------------------------
+
+describe("Brand Book v2.0 word ban holds across the mounted site", () => {
+  const files = sourceFilesUnder("src");
+
+  it('no source file carries "flexible" outside an explanatory comment', () => {
+    const offenders = files.filter((path) => {
+      const prose = read(path)
+        .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "");
+      return /flexible/i.test(prose);
+    });
+    assert.deepEqual(offenders, [], "Brand Book v2.0 bans the word outright");
+  });
+
+  it("the retired About teaser is imported by nothing", () => {
+    // The file is kept for reference, and its copy is superseded by
+    // Content Master v2.1 §3.7. Mounting it again would put retired
+    // wording back on the site beside the page that replaced it, so
+    // the reintroduction has to be deliberate enough to change this
+    // test.
+    const importers = files.filter(
+      (path) =>
+        !path.endsWith("AboutSection.tsx") && read(path).includes("AboutSection"),
+    );
+    assert.deepEqual(importers, []);
   });
 });

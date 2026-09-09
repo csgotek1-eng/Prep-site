@@ -1,6 +1,23 @@
 import Link from "next/link";
 import Container from "@/components/Container";
 
+/**
+ * NOT MOUNTED. Kept, not deleted, and not to be re-mounted as it is.
+ *
+ * This was the homepage About teaser. It came off the page in the
+ * approved UX round — it repeated /about and added no conversion value
+ * — and the copy below is now superseded twice over: Content Master
+ * v2.1 §3.7 replaced the /about text wholesale, and Brand Book v2.0
+ * banned the word this paragraph used to carry ("flexible", removed
+ * here so a stray import cannot put it back on the site).
+ *
+ * Re-mounting this component would republish retired copy alongside
+ * the approved page that replaced it. tests/brand-ux.test.ts fails if
+ * anything imports it, so that cannot happen quietly. If the teaser is
+ * ever wanted again, take the wording from src/app/about/page.tsx
+ * rather than from here.
+ */
+
 export default function AboutSection() {
   return (
     <section
@@ -20,7 +37,7 @@ export default function AboutSection() {
             <p>
               Dockentra is an Irish e-commerce fulfilment and prep business
               focused on giving small and growing online sellers access to
-              flexible local fulfilment.
+              local fulfilment.
             </p>
             <p>
               Many fulfilment providers are built around large brands with huge
