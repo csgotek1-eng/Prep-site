@@ -146,8 +146,12 @@ export const faqItems: FaqItem[] = [
   {
     category: "Returns",
     question: "What about returns of anything with a battery in it?",
+    // The approved answer opened by stating what An Post will and will
+    // not carry. That is a named carrier's published policy, unverified
+    // for publication here, so it is out until someone confirms it. What
+    // remains is Dockentra's own offer, unchanged and self-contained.
     answer:
-      "An Post won't carry lithium-ion batteries, including inside devices — which means an Irish customer physically can't post one back. If your products have batteries, tell us early and we'll work out the courier before it becomes your problem.",
+      "If your products have batteries, tell us early and we'll work out the courier before it becomes your problem.",
   },
   {
     category: "Contact & support",

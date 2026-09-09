@@ -23,8 +23,12 @@ const reasons = [
   {
     title: "No minimum order volume",
     Icon: PackageOpen,
-    description:
-      "The larger Irish 3PLs start at 100 orders a month. We start at your first box.",
+    // The approved copy opened with "The larger Irish 3PLs start at 100
+    // orders a month." That is a claim about other companies' minimums,
+    // sourced to a single competitor check, and it has not been
+    // independently verified for publication. Dockentra's own half of
+    // the sentence — the part that is ours to promise — stands alone.
+    description: "We start at your first box.",
   },
   {
     title: "A photo of every batch, on arrival",
