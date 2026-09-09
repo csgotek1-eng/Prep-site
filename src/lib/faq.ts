@@ -1,10 +1,27 @@
 /**
- * FAQ content. Every answer is drawn from already-approved site copy:
- * services page, pricing page, contact page, warehouse location,
- * marketplace support wording and the calculator's own behaviour.
- * No cut-off times, guaranteed dispatch windows, volumes, insurance
- * limits, compensation figures, carriers or certifications are stated —
- * none of those exist as owner-approved facts yet.
+ * FAQ content. The sixteen original answers are drawn from
+ * already-approved site copy: services page, pricing page, contact
+ * page, warehouse location, marketplace support wording and the
+ * calculator's own behaviour.
+ *
+ * Content Master v2.1 §6 adds to that. Still absent, deliberately: no
+ * cut-off time, no guaranteed dispatch window, no insurance limit, no
+ * compensation figure and no certification — those live on the
+ * /dispatch-commitment page the owner has approved but not yet
+ * commissioned, and none of them may appear here first.
+ *
+ * TWO OF THE SEVEN NEW QUESTIONS ARE NOT HERE.
+ *  - "I'm a UK brand. Why would I hold stock in Ireland?" quotes the
+ *    /uk-brands figures (about EUR 10 vs EUR 4.55 a parcel), and the
+ *    document itself marks those for re-verification before
+ *    publication: the GBP/EUR rate and the carrier tariffs behind them
+ *    can move.
+ *  - "How long does switching take?" ends on "Goods in on your first
+ *    shipment is free with us". That is the Founding Partner offer,
+ *    which is time-limited data the owner publishes and withdraws from
+ *    the admin screen. Hard-coding it here would restate a limited
+ *    offer as a standing policy and would outlive the offer itself.
+ * Both wait for an owner decision.
  */
 export interface FaqItem {
   category: string;
@@ -92,10 +109,15 @@ export const faqItems: FaqItem[] = [
       "Pricing is based on how your business actually runs — factors like SKUs, storage, incoming stock, monthly orders, units per order, packaging, prep work and returns. You only pay for the services you use, and every quote is tailored rather than fixed.",
   },
   {
+    // FIX, Content Master v2.1 §6 — priority. The old answer promised an
+    // on-screen estimate the calculator does not produce (it sends a
+    // price request; no total is ever rendered), and it sat inside the
+    // FAQPage structured data, so Google could show that promise in a
+    // search result.
     category: "Pricing",
     question: "Can I get an estimate before contacting Dockentra?",
     answer:
-      "Yes — the Pricing Calculator lets you select services and build a non-binding estimate yourself. You can then send that estimate to Dockentra as a quote request. It is an estimate only, not a binding quotation.",
+      "You can build your service selection in the calculator and send it to us. We come back with your price by WhatsApp or email, within one working day. The calculator doesn't show a total on screen, because the final figure depends on product dimensions, handling and how fast your stock moves.",
   },
   {
     category: "Contact & support",
@@ -108,6 +130,36 @@ export const faqItems: FaqItem[] = [
     question: "Can I visit the Dockentra warehouse?",
     answer:
       "The warehouse address is published on the Contact page. It is a fulfilment warehouse rather than a shop, so deliveries and visits are arranged in advance rather than as unannounced walk-ins.",
+  },
+  {
+    category: "Getting started",
+    question: "Are you actually open?",
+    answer:
+      "Not yet. We're opening in 2026, our first site is in Limerick, and there are two of us. We'd rather you knew that now than found out later.",
+  },
+  {
+    category: "Orders",
+    question: "Who pays if a parcel goes missing?",
+    answer:
+      "In Ireland, you do — and that's not our policy, it's the platform's. Ship by Seller is the only shipping type available on TikTok Shop here, so there's no platform fallback the way there is in the UK. What we can do is give you every piece of evidence the platform asks for when you dispute it.",
+  },
+  {
+    category: "Returns",
+    question: "What about returns of anything with a battery in it?",
+    answer:
+      "An Post won't carry lithium-ion batteries, including inside devices — which means an Irish customer physically can't post one back. If your products have batteries, tell us early and we'll work out the courier before it becomes your problem.",
+  },
+  {
+    category: "Contact & support",
+    question: "Can I still handle my own customer service?",
+    answer:
+      "Yes, and most of our clients will want to. You keep the relationship; we do the boxes. The batch photos are there so you're not answering a complaint blind.",
+  },
+  {
+    category: "Contact & support",
+    question: "What do you do with my data from the form?",
+    answer:
+      "We use it to answer you and prepare your pricing, and nothing else. We don't add anyone to a mailing list. The full detail is in the privacy policy.",
   },
 ];
 

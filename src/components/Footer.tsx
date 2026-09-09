@@ -57,10 +57,16 @@ export default function Footer() {
             </p>
           </div>
 
+          {/* FIX, Content Master v2.1 §12: these three labels were
+              <h2>. They are column labels, not document sections, and
+              they put three same-level headings into the outline of
+              every page on the site. Each <nav>/region already carries
+              its own accessible name, so the label goes back to being
+              a paragraph and the outline belongs to the page again. */}
           <nav aria-label="Footer navigation">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white">
               Pages
-            </h2>
+            </p>
             <ul className="mt-4 space-y-1">
               {navLinks.map((link) => (
                 <li key={link.href}>
@@ -76,9 +82,9 @@ export default function Footer() {
           </nav>
 
           <nav aria-label="Footer services">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white">
               Services
-            </h2>
+            </p>
             <ul className="mt-4 space-y-1">
               {serviceLinks.map((link) => (
                 <li key={link.href}>
@@ -94,9 +100,9 @@ export default function Footer() {
           </nav>
 
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white">
               Contact
-            </h2>
+            </p>
             {/* ORDER IS THE PRIORITY: email first, then WhatsApp, then
                 the location. The phone number follows below in smaller,
                 dimmer type — this footer block is the ONE persistent

@@ -11,21 +11,30 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Content Master v2.1 §3.3, REPLACE: the same two turnaround lines the
+ * homepage step 2 carries, so the two surfaces cannot drift apart.
+ * Owner-approved operational commitments — nothing beyond the document
+ * wording is published.
+ */
 const steps = [
   {
     title: "Send your stock",
     description:
       "Tell us what you sell and roughly how many orders you handle. We agree the services you need, and you — or your supplier — send stock to Dockentra in Ireland.",
+    timings: [] as string[],
   },
   {
     title: "We receive and prepare it",
     description:
       "Deliveries are counted and checked, products are prepared to your requirements, and inventory goes into local storage, ready for orders.",
+    timings: ["Receipt and count — same day", "Photos — same day"],
   },
   {
     title: "Orders are picked, packed and dispatched",
     description:
       "As orders come in, items are picked, checked, packed and made ready for dispatch. You focus on products and customers — the fulfilment is handled.",
+    timings: [] as string[],
   },
 ];
 
@@ -65,6 +74,13 @@ export default function HowItWorksPage() {
                   <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
                     {step.description}
                   </p>
+                  {step.timings.length > 0 && (
+                    <ul className="font-mono-data mt-3 space-y-1 text-xs leading-5 text-brand-green-dark">
+                      {step.timings.map((timing) => (
+                        <li key={timing}>{timing}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </li>
             ))}

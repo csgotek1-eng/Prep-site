@@ -1,4 +1,10 @@
-import { Boxes, ClipboardCheck, MessageSquare, Warehouse } from "lucide-react";
+import {
+  Boxes,
+  ClipboardCheck,
+  MessageSquare,
+  Ship,
+  Warehouse,
+} from "lucide-react";
 import Container from "@/components/Container";
 
 /**
@@ -6,8 +12,8 @@ import Container from "@/components/Container";
  *
  * The old first screen said "growing e-commerce businesses", which is
  * everyone, so a seller landing from TikTok had no moment where the
- * page said "this is about you". These four are the real audience, in
- * the visitor's own situation rather than in ours — the same four the
+ * page said "this is about you". These are the real audience, in
+ * the visitor's own situation rather than in ours — the same list the
  * Become a Client page uses, kept in one file so they cannot drift
  * apart.
  *
@@ -35,6 +41,17 @@ export const SELLER_FIT = [
     Icon: MessageSquare,
     title: "People who want a person",
     body: "You would rather talk to someone who knows your account than open a ticket.",
+  },
+  /* FIFTH SEGMENT — Content Master v2.1 §3.1-E, NEW.
+     The document links this card to /uk-brands. That route does not
+     exist yet and route work is frozen for this round, so the card is
+     added WITHOUT a link rather than with a dead one: a card that says
+     nothing is better than a card that 404s. The link goes on with the
+     page, in the same change. */
+  {
+    Icon: Ship,
+    title: "UK brands selling into Ireland",
+    body: "Your parcels cross a customs border every time, and your customer pays for it at the door.",
   },
 ] as const;
 

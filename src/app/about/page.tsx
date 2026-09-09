@@ -6,7 +6,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Dockentra is an Irish e-commerce fulfilment and prep business giving small and growing online sellers access to flexible local fulfilment in Ireland.",
+    "Dockentra is an Irish e-commerce fulfilment and prep business giving small and growing online sellers access to local fulfilment in Ireland.",
   alternates: {
     canonical: "/about",
   },
@@ -19,7 +19,7 @@ export default function AboutPage() {
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              About Dockentra
+              The people who will be holding your stock
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               An Irish fulfilment and prep business built around small and
@@ -62,21 +62,31 @@ export default function AboutPage() {
           </figure>
           <div className="mx-auto max-w-3xl space-y-6 text-base leading-7 text-slate-700">
             <p>
-              Dockentra is an Irish e-commerce fulfilment and prep business
-              focused on giving small and growing online sellers access to
-              flexible local fulfilment.
+              Dockentra is a fulfilment and prep centre in Limerick. We hold
+              your stock, pick and pack your orders, and post them out — one
+              at a time, as they come in.
             </p>
             <p>
-              Many fulfilment providers are built around large brands with
-              huge order volumes. Dockentra takes a different approach: a
-              practical, personal service designed around sellers on TikTok
-              Shop, Amazon, Shopify, eBay and WooCommerce who need their stock
-              received, stored, prepared, packed and shipped — without needing
-              to be a big company to get taken seriously.
+              There are two of us. We&apos;re opening in 2026, and we&apos;re
+              building this for the size of brand we can actually see from
+              here: someone shipping a few orders a day now, more before
+              Christmas, who has run out of evenings to spend at the kitchen
+              table with a roll of tape.
             </p>
             <p>
-              Because inventory is stored and handled locally in Ireland, you
-              stay close to your stock and to the people looking after it.
+              We&apos;re not the biggest option in Ireland. We&apos;re the one
+              that gives you a price without a sales call, tells you what
+              happens when something goes wrong, and answers the phone.
+            </p>
+
+            {/* THE NAMED PERSON — Content Master v2.1, Decision No.4.
+                Deliberately text only and deliberately NOT inside the
+                figure above: that photograph is temporary illustrative
+                imagery, and attaching a real person's name to it would
+                turn an illustration into a claim about who works here. */}
+            <p className="!mt-8 rounded-lg border border-brand-border bg-brand-surface-soft px-5 py-4 text-base leading-7 text-brand-navy">
+              <span className="block font-semibold">Viktor</span>
+              He&apos;s the one who answers.
             </p>
 
             <h2 className="pt-4 text-2xl font-bold tracking-tight text-brand-navy">

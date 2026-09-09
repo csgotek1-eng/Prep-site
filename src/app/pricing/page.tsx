@@ -8,7 +8,7 @@ import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Flexible fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
+    "Fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
   alternates: {
     canonical: "/pricing",
   },
@@ -64,8 +64,8 @@ export default async function PricingPage() {
               Pricing
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Flexible pricing based on your operation — you only pay for the
-              services your business actually uses.
+              Priced on how your business actually runs. You pay for the
+              services you use, and nothing else.
             </p>
             <p className="mt-4 text-base leading-7 text-slate-300">
               We don&apos;t publish rates: every operation is priced

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 const STEPS = [
   "You send us your details and what you need.",
-  "We review your requirements and come back to you with your pricing, privately.",
+  "We review your requirements and come back to you with your pricing, privately — within one working day.",
   "We agree how your stock arrives and how your orders reach us.",
   "Your first delivery is booked in and you start dispatching.",
 ];

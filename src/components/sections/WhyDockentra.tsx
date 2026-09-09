@@ -1,42 +1,42 @@
-import {
-  LayoutGrid,
-  MapPin,
-  MessageSquareText,
-  SlidersHorizontal,
-  Workflow,
-} from "lucide-react";
+import { Camera, PackageOpen, UserRound } from "lucide-react";
 import Container from "@/components/Container";
+
+/**
+ * WHY DOCKENTRA — Content Master v2.1 §3.1-J, REPLACE.
+ *
+ * The five generic claims that stood here ("Ireland-based", "Personal
+ * Support", "Flexible", "Multi-channel", "Clear process") were replaced
+ * wholesale by the owner: each of these is checkable, and none of them
+ * can be copied by a competitor without changing how they operate.
+ * "Flexible" additionally is banned outright by Brand Book v2.0.
+ *
+ * THE FOURTH APPROVED POINT IS NOT HERE. "Your price before the
+ * conversation" carries an unresolved [REQUIRES CLARIFICATION] in the
+ * source document — its copy has to say either "comes straight back to
+ * you" (automatic send) or "within one working day" (a person prepares
+ * it), and the document leaves that choice to the owner. Guessing would
+ * publish a delivery promise the site may not keep, so the point waits
+ * for the decision rather than being paraphrased into one.
+ */
 
 const reasons = [
   {
-    title: "Ireland-based",
-    Icon: MapPin,
+    title: "No minimum order volume",
+    Icon: PackageOpen,
     description:
-      "Inventory can be stored and fulfilled locally in Ireland — close to your customers.",
+      "The larger Irish 3PLs start at 100 orders a month. We start at your first box.",
   },
   {
-    title: "Personal Support",
-    Icon: MessageSquareText,
+    title: "A photo of every batch, on arrival",
+    Icon: Camera,
     description:
-      "A local and more personal service, where you can actually talk to the people handling your stock.",
+      "What turned up and what condition it's in, before anything goes on a shelf. Same day. Included, not an add-on.",
   },
   {
-    title: "Flexible",
-    Icon: SlidersHorizontal,
+    title: "One named person",
+    Icon: UserRound,
     description:
-      "Suitable for small and growing businesses — no need to be a huge brand to get started.",
-  },
-  {
-    title: "Multi-channel",
-    Icon: LayoutGrid,
-    description:
-      "Designed around sellers using multiple marketplaces at the same time.",
-  },
-  {
-    title: "Clear process",
-    Icon: Workflow,
-    description:
-      "You always know where an order is: receiving, storage, picking, packing, dispatch and returns each have a defined step.",
+      "Not a ticket queue. His name is Viktor, and he's the one who reads your message.",
   },
 ];
 

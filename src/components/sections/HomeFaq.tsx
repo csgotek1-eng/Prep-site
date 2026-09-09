@@ -10,17 +10,21 @@ import { faqItems } from "@/lib/faq";
  * written for the homepage. Which four is a content decision, not a
  * layout one, so it lives in this list rather than in a slice(0, 4).
  *
- * The genuinely load-bearing questions a seller asks — carriers,
- * cut-off times, minimums, insurance, notice period — are NOT here,
- * because the business has not supplied those facts and inventing
- * them would be worse than omitting them. When the owner answers
- * FAQ_INPUTS_REQUIRED.md, this is the list that should change.
+ * Carriers, cut-off times, insurance and notice period are still NOT
+ * here: the cut-off and its compensation belong on the
+ * /dispatch-commitment page the owner has approved but not yet
+ * commissioned, and the rest remain unsupplied facts. Inventing any of
+ * them would be worse than omitting them.
  */
 const HOMEPAGE_FAQ_QUESTIONS = [
   "How do I start working with Dockentra?",
   "Do I need to be a large business to work with Dockentra?",
   "How does Dockentra's pricing work?",
-  "Can I visit the Dockentra warehouse?",
+  /* Content Master v2.1 §3.1-N, REPLACE. "Can I visit the Dockentra
+     warehouse?" answered nothing a visitor is deciding on; this one
+     names the single structural fact of selling on TikTok Shop from
+     Ireland, which is the argument no competitor's rate card can beat. */
+  "Who pays if a parcel goes missing?",
 ] as const;
 
 export default function HomeFaq() {

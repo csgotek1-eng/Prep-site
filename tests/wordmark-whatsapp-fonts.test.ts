@@ -58,9 +58,49 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
     }
   });
 
-  it("does not fabricate a personal name — uses the owner-chosen role label", () => {
+  /**
+   * SUPERSEDED BY AN OWNER DECISION, NOT WEAKENED.
+   *
+   * This used to assert `role: "Support Team"`. The guarantee it exists
+   * for is that the site never invents a person: at the time, no
+   * personal name had been approved, so the role label was the only
+   * honest thing to print. Content Master v2.1, Decision No.4 (owner,
+   * 07.09.2026) supplies the name — Viktor — and directs it to appear
+   * under the photograph in the homepage "Talk to us" block, on /about
+   * and in "One named person" on the homepage.
+   *
+   * So the assertion now pins the approved name instead of the
+   * placeholder, and still refuses every made-up stand-in the old rule
+   * was protecting against. Changing the name again is a content
+   * decision that has to go through the owner, and this test is where
+   * it lands.
+   */
+  it("prints only the owner-approved name, never an invented one", () => {
     const team = read("src/lib/team.ts");
-    assert.ok(team.includes('role: "Support Team"'));
+    assert.ok(
+      team.includes('name: "Viktor"'),
+      "team.ts must carry the name approved in Content Master v2.1 Decision No.4",
+    );
+    for (const invented of [
+      "John Doe",
+      "Jane Doe",
+      "Sales Team",
+      "Customer Success",
+      "Account Manager",
+    ]) {
+      assert.equal(team.includes(invented), false);
+    }
+  });
+
+  it("renders the name without a dangling empty role label", () => {
+    // `role` is empty because the approved copy is the bare first name,
+    // so the block must not print "Viktor " with a trailing space.
+    const section = read("src/components/sections/ContactSection.tsx");
+    assert.equal(
+      section.includes("{teamMembers[0].name} {teamMembers[0].role}"),
+      false,
+    );
+    assert.ok(section.includes(".filter(Boolean)"));
   });
 
   it("the approved photo asset actually exists in public/team", () => {

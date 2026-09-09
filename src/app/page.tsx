@@ -201,11 +201,13 @@ export default async function HomePage() {
                   id="cta-heading"
                   className="text-balance text-2xl font-bold tracking-tight text-white sm:text-3xl"
                 >
-                  Ready to hand over your fulfilment?
+                  Send us your numbers. You&apos;ll have a price within one
+                  working day.
                 </h2>
                 <p className="mt-3 max-w-xl text-base leading-7 text-slate-300">
-                  Send a few details about your products and volumes and
-                  we&apos;ll propose a setup that fits.
+                  Tell us what you sell and roughly how much of it moves.
+                  We&apos;ll come back with a setup that fits — and the price
+                  with it.
                 </p>
               </div>
               {/* The page's stated goal is "hand over your fulfilment",

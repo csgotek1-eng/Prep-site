@@ -1,21 +1,32 @@
 import Link from "next/link";
 import Container from "@/components/Container";
 
+/**
+ * Content Master v2.1 §3.1-I, REPLACE: step 2 gains the two turnaround
+ * lines the owner approved. They are set in the mono accent face at a
+ * small size, which is how the brand book presents data.
+ *
+ * These are OPERATIONAL COMMITMENTS, not decoration. Nothing beyond the
+ * two lines the document states is published here.
+ */
 const steps = [
   {
     title: "Send your stock",
     description:
       "Tell us what you sell and roughly how many orders you handle. We agree the services you need, and stock is sent to Dockentra in Ireland.",
+    timings: [] as string[],
   },
   {
     title: "We receive and prepare it",
     description:
       "Deliveries are counted and checked, products are prepared to your requirements, and inventory goes into local storage.",
+    timings: ["Receipt and count — same day", "Photos — same day"],
   },
   {
     title: "Orders are picked, packed and dispatched",
     description:
       "As orders come in, items are picked, checked, packed and made ready for dispatch.",
+    timings: [] as string[],
   },
 ];
 
@@ -56,6 +67,13 @@ export default function HowItWorksSection() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     {step.description}
                   </p>
+                  {step.timings.length > 0 && (
+                    <ul className="font-mono-data mt-3 space-y-1 text-xs leading-5 text-brand-green-dark">
+                      {step.timings.map((timing) => (
+                        <li key={timing}>{timing}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </li>

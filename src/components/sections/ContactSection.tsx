@@ -57,10 +57,10 @@ export default function ContactSection() {
                 then showed nobody: not a face, not a name, not a role.
                 This is the one real, owner-approved photograph the
                 repository holds (see lib/team.ts) — not stock, not
-                generated, not a borrowed warehouse — and it identifies
-                the role rather than a person, which is the owner's
-                choice. No claim is made here that is not already true
-                on the Contact page. */}
+                generated, not a borrowed warehouse — and it now carries
+                the name the owner approved in Content Master v2.1,
+                Decision No.4. No claim is made here that is not already
+                true on the Contact page. */}
             {teamMembers[0] && (
               <div className="mt-6 flex items-center gap-3">
                 <Image
@@ -72,7 +72,9 @@ export default function ContactSection() {
                 />
                 <p className="text-sm leading-6 text-slate-600">
                   <span className="block font-semibold text-brand-navy">
-                    {teamMembers[0].name} {teamMembers[0].role}
+                    {[teamMembers[0].name, teamMembers[0].role]
+                      .filter(Boolean)
+                      .join(" ")}
                   </span>
                   A real person reads every message.
                 </p>
