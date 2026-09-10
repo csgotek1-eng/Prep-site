@@ -43,11 +43,20 @@ export default async function HomePage() {
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-brand-mint/40 to-brand-teal/15 blur-2xl" />
           <div className="absolute -bottom-32 right-1/4 hidden h-72 w-72 rounded-full bg-gradient-to-tr from-brand-green/10 to-brand-mint/25 blur-2xl lg:block" />
-          {/* unoptimized: rendered at 460px from a 512px source, the
-              optimizer would upscale — and its upscale+avif path has
-              shown a nondeterministic hang. Decorative, lg+ only. */}
+          {/* unoptimized, for the reason it always was: next/image
+              builds a 2x srcset, so this 460px slot would ask for 920px
+              from a 512px master and upscale — pointless, and the path
+              where an intermittent hang was seen. What changed is the
+              file. Serving the 223 KB master to draw it at SIX PERCENT
+              opacity was the single heaviest thing on the desktop
+              homepage after the hero clip; the watermark encoding is
+              the same 512x512 mark in WebP at 21.8 KB
+              (scripts/derive-brand-watermark.mjs, regenerable from the
+              approved master, which is untouched and still feeds the
+              header lockup, the OG image and the icons). Decorative,
+              lg+ only. */}
           <Image
-            src="/brand/dockentra-logo-mark-transparent.png"
+            src="/brand/dockentra-logo-mark-watermark.webp"
             alt=""
             width={460}
             height={460}

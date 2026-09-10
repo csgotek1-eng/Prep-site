@@ -115,10 +115,17 @@ describe("calculator primary actions stay reachable", () => {
 
 describe("hero decorative D", () => {
   const home = read("src/app/page.tsx");
-  const heroImage = home.slice(
-    home.indexOf("dockentra-logo-mark-transparent"),
-    home.indexOf("dockentra-logo-mark-transparent") + 600,
-  );
+  // The anchor is the watermark's FILENAME, and the file changed: the
+  // hero now serves a 21.8 KB WebP resample instead of the 223 KB
+  // master, which it was downloading to draw at 6% opacity. Only the
+  // anchor moved — every assertion below is the one that was here, and
+  // each still pins a real property of the decoration. The guard is new:
+  // an unfound anchor used to make indexOf return -1, and the window
+  // then sliced from the END of the file, so these tests failed for a
+  // reason that had nothing to do with what they check.
+  const anchor = home.indexOf("dockentra-logo-mark-watermark");
+  assert.ok(anchor > -1, "the hero watermark image is not in page.tsx at all");
+  const heroImage = home.slice(anchor, anchor + 600);
 
   it("uses no negative right offset and no positive translate-x", () => {
     assert.equal(heroImage.includes("-right-"), false);

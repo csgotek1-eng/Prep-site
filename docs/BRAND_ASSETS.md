@@ -19,6 +19,7 @@ public/og/      # reserved for designed social images (none yet)
 | Full logo, content-cropped | `public/brand/dockentra-logo-transparent.png` | crop to content bbox + 4% padding |
 | D mark (on white) | `public/brand/dockentra-logo-mark.png` | 512×512 crop/resample composited on white |
 | D mark (transparent) | `public/brand/dockentra-logo-mark-transparent.png` | 512×512 crop/resample — used unmodified in header, footer and OG image |
+| D mark, watermark encoding | `public/brand/dockentra-logo-mark-watermark.webp` | 512×512 WebP resample of the transparent mark, 21.8 KB against 223 KB. Used ONLY for the homepage hero's 6%-opacity watermark, which is served as-is because next/image would upscale a 460px slot to 2x from a 512px master. Regenerate with `node scripts/derive-brand-watermark.mjs`. |
 | Favicon | `src/app/icon.png` | 64×64 crop/resample of the transparent mark |
 | Apple touch icon | `src/app/apple-icon.png` | 180×180 mark on opaque white square (iOS requirement) |
 | Open Graph image | `src/app/opengraph-image.tsx` | 1200×630 PNG generated at build time |

@@ -1,5 +1,59 @@
 # PROJECT STATUS
 
+## PERFORMANCE PASS — MEASURED, NOT GUESSED (2026-09-10, branch main)
+
+The quality gate this session had not yet exercised. Page weight was
+measured in a real Chromium at 390 and 1280 px across `/`,
+`/pricing-calculator` and `/about`, recording every response.
+
+Only one finding was worth acting on, and it was worth 202 KB.
+
+The homepage hero paints the official D mark as a WATERMARK at six
+percent opacity. It is deliberately served outside next/image — the
+optimizer builds a 2x srcset, so the 460px slot asks for 920px from a
+512px master and upscales, which is pointless and the path where an
+intermittent build hang was seen. The consequence went unnoticed: every
+desktop visitor downloaded the full 223 KB approved master PNG to have
+it drawn at 6% opacity. It was the heaviest thing on the page after the
+hero clip.
+
+The pipeline is not the problem, so it was not changed. The file was:
+`public/brand/dockentra-logo-mark-watermark.webp` is the same 512x512
+mark, same geometry, same colours, same alpha, WebP at quality 90 —
+21.8 KB, a 90% cut, and invisible at 6% opacity. It is produced by
+`scripts/derive-brand-watermark.mjs`, which refuses to run against
+anything but the 512x512 master, so it is regenerable rather than a
+mystery binary in the tree. This is a RESAMPLE of the approved file,
+which is what docs/BRAND_ASSETS.md permits; the master is untouched and
+still feeds the header lockup, the Organization logo and the icons.
+
+Measured before and after, same browser, same pages:
+
+    desktop 1280  /                914 KB -> 712 KB   (-202 KB, -22%)
+    mobile 390    /                683 KB    683 KB   (unchanged — the
+                                                       watermark is lg+
+                                                       and was never
+                                                       fetched there)
+    both          /pricing-calculator  82 KB (unchanged)
+    both          /about              104 KB (unchanged)
+
+What was measured and left alone, deliberately: the 553 KB hero clip is
+the deliberate hero asset and already has a poster, lazy loading and a
+Save-Data opt-out (1f51799); 81 KB of woff2 across three families is
+self-hosted, subset and preloaded; no page carries an oversized image;
+`/pricing-calculator` and `/about` are already light.
+
+`tests/brand-watermark-weight.test.ts` holds the saving, the WebP magic
+bytes (a renamed PNG would pass a size check), the master's byte size,
+and the documentation row. Three assertions in `tests/brand-ux.test.ts`
+were re-anchored: they slice the hero block by FILENAME, and the
+filename changed. Every assertion in them is unchanged, and they now
+fail loudly if the anchor is ever missing instead of silently slicing
+from the end of the file.
+
+Verified: lint clean, typecheck clean, 743/743 unit tests, build 36
+routes, and the media, accessibility and approved-UX browser suites.
+
 ## PRIVATE-PRICING BOUNDARY MADE STRUCTURAL (2026-09-10, branch main)
 
 The follow-up the hardening round below recommended, and the last item
