@@ -19,9 +19,18 @@ export default function PromotionCard({
   tone?: "block" | "inline";
   eyebrow?: string;
 }) {
+  // Both tones paint an OPAQUE mint. They used to be bg-brand-mint-soft
+  // at 60% and 50%, which meant the card took its real background from
+  // whatever it was placed on. Over white that is invisible; over the
+  // NAVY hero on /pricing the same mint blends to #92a4aa, and the
+  // card's own dark-on-light text lands at 3.47:1 (eyebrow, link) and
+  // 2.93:1 (short text) — both below the 4.5:1 AA floor, on a surface
+  // that only appears when the owner activates an offer. Opaque, the
+  // ratios are 8.19:1 and 6.92:1 wherever the card is put, and its
+  // legibility no longer depends on its parent.
   if (tone === "inline") {
     return (
-      <div className="rounded-lg border border-brand-green/30 bg-brand-mint-soft/60 p-4">
+      <div className="rounded-lg border border-brand-green/30 bg-brand-mint-soft p-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
           {eyebrow}
         </p>
@@ -43,7 +52,7 @@ export default function PromotionCard({
   }
 
   return (
-    <div className="rounded-2xl border border-brand-green/30 bg-brand-mint-soft/50 p-6 sm:p-8">
+    <div className="rounded-2xl border border-brand-green/30 bg-brand-mint-soft p-6 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
         {eyebrow}
       </p>

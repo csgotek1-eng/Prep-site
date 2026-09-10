@@ -170,6 +170,43 @@ describe("accessibility audit fixes", () => {
     assert.ok(dock.includes('aria-label="Quick actions"'));
   });
 
+  it("A-3b: the offer strip is a landmark too, with a name of its own", () => {
+    // Third element outside header/main/footer, and it repeated the
+    // finding the other two were fixed for. It went unnoticed because
+    // the axe suite ran with no active offer, so the strip did not
+    // render while it was being audited (that fixture is fixed too).
+    const banner = read("src/components/PromotionBanner.tsx");
+    assert.ok(banner.includes("<aside"), "the strip is a bare <div> again");
+    assert.ok(banner.includes('aria-label="Offer announcement"'));
+
+    // And the name must stay UNIQUE: /become-a-client labels its own
+    // offer aside "Current offer", and two complementary landmarks with
+    // the same role and name are indistinguishable when navigating by
+    // landmark (axe: landmark-unique).
+    const client = read("src/app/become-a-client/page.tsx");
+    assert.ok(client.includes('aria-label="Current offer"'));
+    assert.equal(
+      banner.includes('aria-label="Current offer"'),
+      false,
+      "the strip and the page aside share a landmark name",
+    );
+  });
+
+  it("A-4: the offer card carries its own background, not its parent's", () => {
+    // bg-brand-mint-soft/60 over the NAVY pricing hero blends to
+    // #92a4aa, and the card's dark-on-light text lands at 3.47:1 and
+    // 2.93:1 against a 4.5:1 floor. Opaque, it is 8.19:1 and 6.92:1
+    // wherever the card is placed.
+    const card = read("src/components/PromotionCard.tsx");
+    const code = card.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(
+      /bg-brand-mint-soft\/\d/.test(code),
+      false,
+      "a translucent card takes its real background from whatever is behind it",
+    );
+    assert.ok(code.includes("bg-brand-mint-soft"));
+  });
+
   it("A-1: no text on a dark or light ground uses a sub-AA slate", () => {
     // slate-400 (#90a1b9) is 3.73:1 on brand-navy-deep and 2.63:1 on
     // white — both below the 4.5:1 AA threshold for normal text.

@@ -13,7 +13,7 @@
  * sitting outside every landmark.
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
@@ -40,12 +40,57 @@ const AXE = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const fails = [];
 
 const dir = mkdtempSync(join(tmpdir(), "dockentra-a11y-"));
+
+// AN OFFER IS ACTIVE WHILE THIS AUDIT RUNS.
+//
+// It did not used to be, and that hole cost three real violations. The
+// promotions store was left empty, so the site-wide offer strip and
+// every PromotionCard were absent from all 24 page audits — and both
+// carried findings. The strip was a bare <div> above <header>,
+// belonging to no landmark; the inline card painted mint at 60% over
+// whatever was behind it, which on the NAVY pricing hero blended to
+// #92a4aa and put its own text at 3.47:1 and 2.93:1 against a 4.5:1
+// floor. Nothing was wrong with the audit's method: it simply never saw
+// the markup, because the markup only exists when the owner has an
+// offer running.
+//
+// Same fixture as the approved-UX round, on every public placement.
+const OFFER_ID = "11111111-1111-1111-1111-111111111111";
+const promoFile = join(dir, "promotions.json");
+const now = new Date().toISOString();
+writeFileSync(
+  promoFile,
+  JSON.stringify([
+    {
+      id: OFFER_ID,
+      internalName: "INTERNAL-ONLY-NAME",
+      publicTitle: "Founding Partner offer",
+      shortText: "Your first agreed stock transfer is on us.",
+      longDescription: "The first three approved clients help us set the standard.",
+      promotionType: "welcome",
+      templateId: null,
+      status: "ACTIVE",
+      audience: "NEW_CLIENTS",
+      startAt: null,
+      endAt: null,
+      ctaLabel: "Become a Founding Partner",
+      ctaUrl: "/become-a-client",
+      placements: { topBanner: true, homepage: true, pricing: true, contact: true },
+      priority: 10,
+      termsText: "Terms apply to eligible new clients.",
+      createdAt: now,
+      updatedAt: now,
+      createdBy: "audit",
+    },
+  ]),
+);
+
 const server = startNextServer(PORT, {
   ...process.env,
   PRICING_PERSISTENCE: "file",
   PRICING_STORE_FILE: join(dir, "pricing.json"),
   PROMOTIONS_PERSISTENCE: "file",
-  PROMOTIONS_STORE_FILE: join(dir, "promotions.json"),
+  PROMOTIONS_STORE_FILE: promoFile,
   LEADS_PERSISTENCE: "file",
   LEADS_STORE_FILE: join(dir, "leads.json"),
 });
@@ -101,6 +146,50 @@ step("starting the production server");
 await waitForServer();
 const browser = await launch();
 step("browser ready");
+
+// The promo-bearing pages are statically prerendered with
+// `revalidate: 60`, and the BUILD had no offer in it. Two things follow,
+// and the second one is not obvious:
+//
+//  - the first request after the entry goes stale serves the old markup
+//    and only SCHEDULES the regeneration, so one fetch is never enough;
+//  - immediately after a build the entry is fresh, so for the length of
+//    the revalidate window nothing revalidates at all. A suite run right
+//    after `npm run build` therefore audits pages with no offer in them,
+//    which is precisely the blind spot this fixture exists to close.
+//
+// So the warm-up polls for longer than that window rather than sleeping
+// a guessed interval. In the normal case the first fetch triggers the
+// regeneration and the second one is warm, about a second later.
+const PROMO_PAGES = ["/", "/pricing", "/contact", "/become-a-client", "/partnerships"];
+const WARM_ATTEMPTS = 100; // ~100s: longer than the 60s revalidate window
+for (const path of PROMO_PAGES) {
+  let warm = false;
+  for (let attempt = 0; attempt < WARM_ATTEMPTS && !warm; attempt += 1) {
+    const html = await (await fetch(BASE + path)).text();
+    warm = html.includes("Offer announcement");
+    if (!warm) await new Promise((r) => setTimeout(r, 1000));
+  }
+  if (!warm) fails.push(`${path} never revalidated with the active offer — nothing promo-related was audited there`);
+}
+step("offer pages warm");
+
+// The offer surfaces only exist while an offer is live, so PROVE they
+// were on screen before claiming this run audited them. A stale
+// prerender, a fixture that stopped parsing or a placement rename would
+// otherwise hand back a green audit of markup nobody looked at — which
+// is exactly how the strip and the card went unaudited until now.
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(`${BASE}/pricing`, { waitUntil: "networkidle" });
+  const strip = await page.locator('aside[aria-label="Offer announcement"]').count();
+  const card = await page.getByText("New client offer available").count();
+  if (strip === 0) fails.push("the offer strip did not render — this audit did not cover it");
+  if (card === 0) fails.push("the inline offer card did not render — this audit did not cover it");
+  await context.close();
+  step("offer surfaces present");
+}
 
 // ==================== 1. every public page, both widths ====================
 for (const [name, viewport] of [

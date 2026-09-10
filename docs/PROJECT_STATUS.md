@@ -1,5 +1,52 @@
 # PROJECT STATUS
 
+## ACCESSIBILITY: THE OFFER SURFACES HAD NEVER BEEN AUDITED (2026-09-10, branch main)
+
+Found by running the full browser suite end to end rather than suite by
+suite. Three WCAG 2.1 AA violations, on markup that only exists when the
+owner has an offer running — which is the reason nobody had seen them:
+the axe audit ran with an EMPTY promotions store, so the site-wide offer
+strip and every PromotionCard were absent from all 24 page audits.
+
+**Contrast, serious.** `PromotionCard` painted `bg-brand-mint-soft` at
+60% (inline) and 50% (block). A translucent card takes its real
+background from whatever is behind it. Over white that is invisible;
+over the NAVY hero on /pricing the same mint blends to #92a4aa, and the
+card's own dark-on-light text lands at 3.47:1 (eyebrow, link) and 2.93:1
+(short text) against a 4.5:1 floor. Both tones are opaque now — 8.19:1
+and 6.92:1 wherever the card is placed — so its legibility no longer
+depends on its parent. The computed blend and both ratios were derived
+independently before the fix and match what axe reported to two decimal
+places.
+
+**Landmark, moderate.** The offer strip was a bare `<div>` above
+`<header>`, so its content belonged to no region and a screen-reader
+user browsing by landmark could not reach it — the same finding the
+utility bar and the floating dock were fixed for in 5f3f049. It is now
+`<aside aria-label="Offer announcement">`. NOT "Current offer": that is
+what /become-a-client already calls its own offer aside, and two
+complementary landmarks sharing a role and a name are indistinguishable
+when navigating by landmark. axe caught that second-order mistake within
+a minute of the first fix.
+
+**The audit gap is closed, which matters more than the two fixes.** The
+accessibility suite now seeds the same live offer the approved-UX round
+uses, on every public placement, and it PROVES the surfaces rendered
+before claiming to have audited them — a stale prerender or a renamed
+placement would otherwise hand back a green audit of markup nobody
+looked at. Warming those pages needed care: they are prerendered with
+`revalidate: 60`, so a run started straight after a build audits pages
+that are still FRESH, with no offer in them. The suite polls past that
+window instead of sleeping a guessed interval, and says plainly which
+page never revalidated.
+
+Verified both ways, not just the green one: with the card fix reverted
+and everything else in place, the same audit fails on /pricing at both
+viewports with exactly the original ratios; restored, it passes from a
+cold ISR cache. lint clean, typecheck clean, 745/745 unit tests (two new
+assertions in tests/seo-audit pin the landmark name's uniqueness and the
+card's opacity), build 36 routes, all six browser suites.
+
 ## PERFORMANCE PASS — MEASURED, NOT GUESSED (2026-09-10, branch main)
 
 The quality gate this session had not yet exercised. Page weight was
