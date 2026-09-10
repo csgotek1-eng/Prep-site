@@ -49,7 +49,7 @@ manages the role on existing users without SQL, credentials via env only.
 configured Supabase origin), HSTS and the rest of the security headers;
 `GET /api/health` configuration readiness (`{ok, pricing, leadStore}`,
 no DB traffic, no secrets); SEO (canonical/OG/sitemap/robots from the
-deployment's real host until a domain is set); 743 node:test checks
+deployment's real host until a domain is set); 745 node:test checks
 plus six Playwright browser suites (`npm run test:browser`, including
 an axe WCAG 2.1 AA audit — needs `npm install --no-save playwright`);
 lint/typecheck/build clean; npm audit 0 vulnerabilities.
