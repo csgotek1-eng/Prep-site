@@ -68,7 +68,14 @@ export default async function OfferPage({
     : offer.ctaUrl;
 
   return (
-    <main>
+    // A fragment, NOT <main>: src/app/layout.tsx already opens
+    // <main id="main-content"> around every page, and a second one
+    // nested inside it is three separate axe findings at once
+    // (landmark-main-is-top-level, landmark-no-duplicate-main,
+    // landmark-unique). Two other pages were fixed for exactly this in
+    // 5f3f049; this one was missed because it is not in the sitemap, so
+    // neither the audit nor the test that pins the rule enumerated it.
+    <>
       <section className="bg-brand-mint-soft/50">
         <Container className="py-14 sm:py-20">
           {/* break-words on every owner-authored string below. The
@@ -146,6 +153,6 @@ export default async function OfferPage({
           </div>
         </Container>
       </section>
-    </main>
+    </>
   );
 }

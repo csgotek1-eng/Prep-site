@@ -1,11 +1,30 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { navLinks, siteConfig } from "../src/lib/site.ts";
 import { isOurFailure } from "../src/lib/submit-failure.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
+
+/** Source with comments removed — a comment that QUOTES the markup a
+ *  test forbids would otherwise fail the test that explains it. */
+const readCode = (path: string) =>
+  read(path)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+/** Every page.tsx under src/app, admin included, found on disk. */
+function pageFiles(dir = "src/app"): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) found.push(...pageFiles(full));
+    else if (entry.name === "page.tsx") found.push(full);
+  }
+  return found;
+}
+
 
 /**
  * Findings from the professional SEO/technical audit of the merged site.
@@ -136,24 +155,20 @@ describe("accessibility audit fixes", () => {
   it("A-2: only the layout opens a <main>", () => {
     const layout = read("src/app/layout.tsx");
     assert.ok(layout.includes('<main id="main-content"'));
-    // Every page renders inside that one. A page-level <main> nests a
-    // second main landmark inside the first.
-    const pages = [
-      "src/app/page.tsx",
-      "src/app/about/page.tsx",
-      "src/app/become-a-client/page.tsx",
-      "src/app/contact/page.tsx",
-      "src/app/faq/page.tsx",
-      "src/app/how-it-works/page.tsx",
-      "src/app/partnerships/page.tsx",
-      "src/app/pricing/page.tsx",
-      "src/app/pricing-calculator/page.tsx",
-      "src/app/privacy/page.tsx",
-      "src/app/services/page.tsx",
-      "src/app/sla/page.tsx",
-    ];
+
+    // EVERY page file, found on disk rather than listed by hand. The
+    // hand-written list held twelve routes and missed /offers/[id],
+    // which opened its own <main> inside the layout's and produced
+    // three axe findings at once. It was missed because it is not in
+    // the navigation or the sitemap, so nothing enumerated it — the
+    // same reason the offer surfaces went unaudited. A list that has to
+    // be remembered is a list that will be wrong again.
+    const pages = pageFiles();
+    assert.ok(pages.length >= 13, `only ${pages.length} page files found`);
+    assert.ok(pages.includes("src/app/offers/[id]/page.tsx"));
     for (const path of pages) {
-      const source = read(path);
+      if (path === "src/app/layout.tsx") continue;
+      const source = readCode(path);
       assert.equal(/<main[\s>]/.test(source), false, `${path} opens its own <main>`);
     }
   });

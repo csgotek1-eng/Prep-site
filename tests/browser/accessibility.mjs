@@ -21,9 +21,17 @@ import { createRequire } from "node:module";
 const PORT = Number(process.env.A11Y_TEST_PORT ?? 3490);
 const BASE = `http://127.0.0.1:${PORT}`;
 
+const OFFER_ID = "11111111-1111-1111-1111-111111111111";
+
+// The twelve pages in the navigation, plus the two that render for
+// real visitors and were in no audit: the offer page a visitor reaches
+// from the strip, and the 404 anyone gets from a stale link. Both were
+// missing for the same reason the offer surfaces were — they are not
+// in the sitemap, so nothing enumerated them.
 const PAGES = [
   "/", "/about", "/services", "/pricing", "/how-it-works", "/become-a-client",
   "/partnerships", "/contact", "/faq", "/sla", "/privacy", "/pricing-calculator",
+  `/offers/${OFFER_ID}`, "/this-route-does-not-exist",
 ];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 
@@ -55,7 +63,6 @@ const dir = mkdtempSync(join(tmpdir(), "dockentra-a11y-"));
 // offer running.
 //
 // Same fixture as the approved-UX round, on every public placement.
-const OFFER_ID = "11111111-1111-1111-1111-111111111111";
 const promoFile = join(dir, "promotions.json");
 const now = new Date().toISOString();
 writeFileSync(

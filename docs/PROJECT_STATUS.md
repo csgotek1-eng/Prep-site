@@ -1,5 +1,31 @@
 # PROJECT STATUS
 
+## TWO MORE PAGES NOBODY AUDITED (2026-09-10, branch main)
+
+Immediately after the round below, the same question asked once more:
+what else renders for a visitor and appears in no audit? Two things. The
+offer page a visitor reaches from the strip, `/offers/[id]`, and the 404
+anyone gets from a stale link. Both are absent from the navigation and
+from the sitemap, so nothing enumerated them — the same shape of gap as
+the offer surfaces.
+
+Adding them found a real defect on the first run. `/offers/[id]` opened
+its own `<main>` inside the layout's, which is three axe findings at
+once: landmark-main-is-top-level, landmark-no-duplicate-main and
+landmark-unique. Two other pages were fixed for exactly this in
+5f3f049; this one was missed then for the reason it was missed now.
+It returns a fragment.
+
+The test that pins the rule (`A-2`, tests/seo-audit) held a hand-written
+list of twelve routes. It now enumerates every `page.tsx` under
+`src/app` from disk, so a route that nobody remembers to add cannot slip
+past it again — which is the actual lesson of both rounds. The 404 page
+is clean.
+
+Verified: lint clean, typecheck clean, 745/745 unit tests, build 36
+routes, and the accessibility audit over 14 pages x 2 widths plus the
+five other browser suites.
+
 ## ACCESSIBILITY: THE OFFER SURFACES HAD NEVER BEEN AUDITED (2026-09-10, branch main)
 
 Found by running the full browser suite end to end rather than suite by
