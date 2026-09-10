@@ -4,6 +4,7 @@ import {
   parseMonthlyOrders,
   tiersForService,
 } from "./tiers.ts";
+import { MAX_QUANTITY, MAX_SELECTIONS } from "./limits.ts";
 import type {
   Estimate,
   EstimateLine,
@@ -12,8 +13,10 @@ import type {
   VolumeTier,
 } from "./types";
 
-export const MAX_QUANTITY = 1_000_000;
-export const MAX_SELECTIONS = 50;
+// MAX_QUANTITY and MAX_SELECTIONS live in ./limits.ts and are NOT
+// re-exported here. The browser needs both to clamp its own inputs, and
+// re-exporting would let a client component keep importing this module
+// for them — which is exactly the edge the split removed.
 
 /** Quantity must be a positive integer within bounds. */
 export function isValidQuantity(value: unknown): value is number {

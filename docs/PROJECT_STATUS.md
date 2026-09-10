@@ -1,5 +1,49 @@
 # PROJECT STATUS
 
+## PRIVATE-PRICING BOUNDARY MADE STRUCTURAL (2026-09-10, branch main)
+
+The follow-up the hardening round below recommended, and the last item
+on that list that was engineering rather than an owner decision.
+
+"No price reaches the browser" was already true, and two layers of tests
+proved it: the public projections are field whitelists, and a browser
+suite greps every served chunk and API response for a pricing field or a
+euro amount. What neither could see was WHY it was true. The calculator
+component imported `calculate.ts` and `tiers.ts` for four bound
+constants — `MAX_QUANTITY`, `MAX_SELECTIONS`, `MIN_MONTHLY_ORDERS`,
+`MAX_MONTHLY_ORDERS` — so the pricing engine and the tier resolver were
+both in the browser's import graph, and the guarantee rested on the
+bundler shaking them out. An edit that made `calculate.ts` import the
+seed data or a repository would have ended that quietly, with every
+existing test still green.
+
+The four constants now live in `src/lib/pricing/limits.ts`: a leaf that
+imports nothing, holds bounds rather than prices, and is the single
+declaration of each. The engines read them from there and deliberately
+do NOT re-export them, so a client component cannot reach an engine by
+asking it for a constant. The calculator, the modal and the catalogue
+client import the leaf and nothing else from the priced half of the
+domain.
+
+`tests/pricing-boundary.test.ts` (13 tests) walks the real import graph
+from the three client entry points and fails if any price-bearing module
+becomes reachable. It carries its own control cases: the same walk is
+run against the server's estimate route, where `calculate.ts` and the
+repository MUST be found — without that, a resolver that silently
+returned nothing would let every other assertion pass while proving
+nothing. Against the previous commit the suite fails 4 of 10, including
+both "cannot reach" cases; the honesty checks pass there, as they should.
+
+No behaviour changed anywhere: the same four numbers, in one place
+instead of two, imported from a module that cannot drag anything with
+it. Verified: lint clean, typecheck clean, 738/738 unit tests, build 36
+routes, and the three browser suites that exercise the calculator —
+pricing-privacy (411 responses scanned, none carrying pricing), the
+approved UX round and the media round.
+
+docs/PRICING_CALCULATOR.md now states all three layers and which one is
+new, so the next reader does not have to reconstruct the reasoning.
+
 ## SECURITY & CORRECTNESS HARDENING ROUND (2026-09-10, branch main)
 
 The week from 3309634 to 7e31986 (visual round, SEO and a11y fixes,

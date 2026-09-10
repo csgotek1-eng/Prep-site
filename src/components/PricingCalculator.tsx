@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Mail } from "lucide-react";
-import { MAX_QUANTITY } from "@/lib/pricing/calculate";
+import {
+  MAX_MONTHLY_ORDERS,
+  MAX_QUANTITY,
+  MIN_MONTHLY_ORDERS,
+} from "@/lib/pricing/limits";
 import type {
   PublicCatalogueService,
   PublicEstimate,
 } from "@/lib/pricing/public";
-import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "@/lib/pricing/tiers";
 import { isValidEmailAddressInput } from "@/lib/email/address";
 import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";

@@ -42,6 +42,33 @@ subtotal  = sum of priced lineTotals
   reaches the client privately — in the WhatsApp conversation or the
   quote reply — and the UI states exactly that.
 
+### How the boundary is held (2026-09-10)
+
+Three layers, in order of how hard they are to break by accident:
+
+1. **The import graph.** The browser bundle cannot reach a module that
+   knows a price. `src/lib/pricing/limits.ts` is a leaf holding the four
+   input bounds the form needs (`MAX_QUANTITY`, `MAX_SELECTIONS`,
+   `MIN_MONTHLY_ORDERS`, `MAX_MONTHLY_ORDERS`) and importing nothing;
+   the client imports it, and never `calculate.ts`, `tiers.ts`,
+   `seed.ts`, the repositories or `money.ts`. Those bounds are declared
+   once and are deliberately NOT re-exported from the engines, so a
+   client component cannot reach the engines by asking them for a
+   constant. `tests/pricing-boundary.test.ts` walks the real graph from
+   the client entry points and fails if any of them becomes reachable.
+   Until this split the calculator DID import the engine and the tier
+   resolver for those constants, and the guarantee rested on the
+   bundler removing what it could prove was unused.
+2. **The projections.** `toPublicCatalogue()` and `toPublicEstimate()`
+   are field whitelists, pinned by `tests/private-pricing.test.ts`.
+3. **The shipped output.** `tests/browser/pricing-privacy.mjs` loads the
+   real pages and greps every served chunk and API response for a
+   pricing field name or a euro amount.
+
+Layer 1 is new; 2 and 3 already existed and are unchanged. The point of
+adding the first is that layers 2 and 3 catch a leak, while layer 1
+prevents the situation where one becomes possible.
+
 ## Price authority & quote integration
 
 The browser only ever sends `{serviceId, quantity}` pairs

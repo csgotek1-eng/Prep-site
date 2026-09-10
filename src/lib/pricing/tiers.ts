@@ -1,3 +1,4 @@
+import { MAX_MONTHLY_ORDERS, MIN_MONTHLY_ORDERS } from "./limits.ts";
 import type { VolumeTier } from "./types";
 
 /**
@@ -10,8 +11,9 @@ import type { VolumeTier } from "./types";
  * custom quote — never to a guessed rate.
  */
 
-export const MIN_MONTHLY_ORDERS = 1;
-export const MAX_MONTHLY_ORDERS = 10_000_000;
+// MIN_MONTHLY_ORDERS and MAX_MONTHLY_ORDERS live in ./limits.ts and are
+// not re-exported: the calculator form imports them from there, so this
+// module stays off the browser's import graph entirely.
 
 export function isValidMonthlyOrders(value: unknown): value is number {
   return (
