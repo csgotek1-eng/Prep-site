@@ -10,16 +10,33 @@ import type { NextConfig } from "next";
 //    docs/PRODUCTION_CHECKLIST.md. Everything else is locked down:
 //    no external script hosts, no frames, no objects, forms and
 //    connections limited to our own origin plus Supabase Auth.
-//  - connect-src allows https://*.supabase.co for the admin login and
-//    admin API session validation (the project URL is a *.supabase.co
-//    host). If a custom Supabase domain is ever used, extend this list.
+//  - connect-src is pinned to the CONFIGURED Supabase origin whenever
+//    SUPABASE_PUBLIC_URL is set at build time. The wildcard it replaces
+//    (https://*.supabase.co) authorised every Supabase project on the
+//    internet, so a single XSS could have posted the admin session
+//    token to an attacker's own free-tier project and still passed CSP.
+//    The wildcard remains the fallback for builds where the variable is
+//    absent (local development, previews without Supabase) so nothing
+//    silently breaks; a custom Supabase domain is picked up
+//    automatically because the origin is read from the URL itself.
+function supabaseConnectSource(): string {
+  const configured = process.env.SUPABASE_PUBLIC_URL?.trim();
+  if (!configured) return "https://*.supabase.co";
+  try {
+    const { protocol, origin } = new URL(configured);
+    return protocol === "https:" ? origin : "https://*.supabase.co";
+  } catch {
+    return "https://*.supabase.co";
+  }
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co",
+  `connect-src 'self' ${supabaseConnectSource()}`,
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",
@@ -33,6 +50,17 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  {
+    // HSTS. Without it the FIRST request to a typed hostname goes out
+    // over plaintext and can be stripped on a hostile network — and the
+    // forms on this site collect a name, an email and a phone number.
+    // Two years with subdomains, which is what a preload submission
+    // would require; 'preload' itself is deliberately NOT sent, because
+    // it is close to irreversible and belongs to the domain owner's
+    // decision, not to a build config.
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains",
+  },
 ];
 
 const nextConfig: NextConfig = {

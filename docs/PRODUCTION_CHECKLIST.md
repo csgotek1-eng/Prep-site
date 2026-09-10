@@ -31,9 +31,20 @@ Changes on top of the state described below — see
   `/api/quote` and `/api/enquiry`.
 - Webhook mode now REQUIRES `QUOTE_WEBHOOK_SECRET` and an HTTPS
   destination in production.
-- Content-Security-Policy shipped in `next.config.ts`. Follow-up (not
-  blocking): move `script-src` from 'unsafe-inline' to nonces, which
-  requires middleware + dynamic rendering of currently-static pages.
+- Content-Security-Policy shipped in `next.config.ts`. `connect-src` is
+  PINNED to the Supabase origin taken from `SUPABASE_PUBLIC_URL` — read
+  at BUILD time, because Next bakes `headers()` into the build output.
+  Set that variable in the production environment before building (Vercel
+  exposes project env vars to the build, so nothing extra is needed) or
+  the policy falls back to the old `https://*.supabase.co` wildcard,
+  which authorises every Supabase project on the internet. Follow-up
+  (not blocking): move `script-src` from 'unsafe-inline' to nonces,
+  which requires middleware + dynamic rendering of currently-static
+  pages.
+- HSTS (`Strict-Transport-Security: max-age=63072000; includeSubDomains`)
+  shipped in the same header block. `preload` is deliberately NOT sent:
+  it is close to irreversible and is the domain owner's call, not a
+  build config's.
 - `/privacy` developer notes removed; `/sla` wording renamed to
   "Service Standards" (informational, not a contract). `/terms` remains
   UNPUBLISHED — blocked on owner legal inputs
@@ -222,8 +233,13 @@ SEO, assets and security:
       "Dockentra", not "D ockentra"
 - [ ] No secrets exposed: view source and the JS bundles contain no
       `QUOTE_WEBHOOK_` values; `curl -I` shows the security headers
-      (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) and no
-      `X-Powered-By`
+      (X-Content-Type-Options, X-Frame-Options, Referrer-Policy,
+      Strict-Transport-Security) and no `X-Powered-By`
+- [ ] `curl -sI https://<domain> | grep -i content-security` shows
+      `connect-src` naming the REAL Supabase host, not `*.supabase.co`
+      (a wildcard here means the build could not see `SUPABASE_PUBLIC_URL`)
+- [ ] `/api/pricing/estimate` returns 413 for an oversized body and
+      `/api/pricing/services` returns 429 under a flood
 - [ ] `/api/quote` rejects garbage: invalid JSON → 400, oversized body →
       413, >5 rapid submissions from one IP → 429
 - [ ] `/api/enquiry` rejects the same way (same limits, plus a honeypot

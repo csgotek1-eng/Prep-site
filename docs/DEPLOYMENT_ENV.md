@@ -17,10 +17,15 @@ this file or anywhere in the repository — values are set in `.env.local`
 
 Notes:
 
-- `NEXT_PUBLIC_SITE_URL` is the **only** `NEXT_PUBLIC_` variable. It is
-  public by design (it appears in canonical URLs, Open Graph, robots and
-  the sitemap). Everything else is server-only and must never gain a
-  `NEXT_PUBLIC_` prefix.
+- Two `NEXT_PUBLIC_` variables exist, and both are public by design:
+  `NEXT_PUBLIC_SITE_URL` (canonical URLs, Open Graph, robots, sitemap)
+  and the optional `NEXT_PUBLIC_OWNER_CONTACT_EMAIL`, which supplies the
+  owner's contact address to `src/lib/site-contact.ts` — an address
+  meant to be printed on the page. This line previously said
+  `NEXT_PUBLIC_SITE_URL` was the only one; the second arrived with the
+  contact/pricing UX round. Everything else is server-only and must
+  never gain a `NEXT_PUBLIC_` prefix — in particular the Supabase keys,
+  which are deliberately unprefixed and passed as props instead.
 - The final production domain has intentionally **not** been invented.
   Deciding/buying it is a user decision; after it exists, set
   `NEXT_PUBLIC_SITE_URL` and redeploy.
@@ -101,6 +106,14 @@ PRODUCTION (Vercel, Production scope)
   icon/OG-image routes all work with Vercel's zero-config Next.js
   support. Add `vercel.json` only if a future need appears (e.g. cron
   jobs or region pinning).
+- **`SUPABASE_PUBLIC_URL` must be present at BUILD time**, not only at
+  runtime. Next bakes `headers()` into the build output, and the CSP's
+  `connect-src` is pinned to that URL's origin; without it the policy
+  falls back to `https://*.supabase.co`, which authorises every
+  Supabase project on the internet. Vercel exposes project environment
+  variables to the build, so setting it normally is enough — just do
+  not scope it to Runtime only. Verify after deploy:
+  `curl -sI https://<domain> | grep -i content-security`.
 - Node.js: `package.json` declares `engines.node >= 20.9.0`; Vercel's
   default Node 20/22 runtime satisfies this.
 - Production branch: `main`.
@@ -165,14 +178,35 @@ The receiver should:
 
 ## Rate limiting — production note
 
-`/api/quote` uses an in-memory sliding-window limiter (5 requests/min
-per IP). **On Vercel this is per serverless instance, not a global
-distributed limit** — parallel instances and cold starts each get a
-fresh window. This is acceptable protection for launch-scale traffic
-combined with the honeypot and size limits. If real abuse appears,
-implement the `RateLimiter` interface in `src/lib/rate-limit.ts` with a
-shared store — e.g. Upstash Redis (has a free tier) or another
-Redis-compatible service. Do not add a paid service until it is needed.
+This section described an in-memory-only limiter. That has not been the
+case since migration 0004: the lead-writing endpoints (`/api/quote`,
+`/api/enquiry`, become-a-client, partnerships) and the WhatsApp/email
+price delivery handler (`src/lib/pricing-delivery/route-handler.ts`,
+which spends real Meta and Resend credit) all run a DURABLE
+fixed-window counter in the website's Supabase project via the
+`check_rate_limit()` RPC, shared across every Vercel instance, with the
+per-instance in-memory window still in front of it as free burst
+protection. Keys are hashed (SHA-256, truncated) with the endpoint
+scope, so the store never sees a raw IP.
+
+The durable check FAILS OPEN on a Supabase error: losing a real
+customer because the limiter store blinked is the worse outcome. With
+the durable layer down the effective ceiling is `limit x instance
+count`. Failures are logged, including a response the RPC was not
+expected to give.
+
+Read-only public endpoints keep the cheap layer only — they write
+nothing and publish no monetary data: `/api/pricing/estimate` at
+120/min and `/api/pricing/services` at 60/min per instance.
+
+**Which header identifies the caller.** `requestClientKey()` reads, in
+order, `x-vercel-forwarded-for`, then `x-real-ip`, then the RIGHTMOST
+`x-forwarded-for` hop. It deliberately does NOT read the leftmost hop:
+that is the one value in the chain the caller writes, so a forged
+prefix would mint a fresh bucket per request and lift the 3-per-window
+ceiling on WhatsApp/email price delivery — which spends real money on
+the Meta and Resend accounts. Behind a different proxy, confirm which
+header that proxy sets from the observed peer before trusting this.
 
 ## Analytics
 

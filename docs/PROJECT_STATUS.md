@@ -1,5 +1,104 @@
 # PROJECT STATUS
 
+## SECURITY & CORRECTNESS HARDENING ROUND (2026-09-10, branch main)
+
+The week from 3309634 to 7e31986 (visual round, SEO and a11y fixes,
+Content Master v2.1, the dependency patch) had never been through an
+independent pass. This round is that pass, plus the fixes it produced.
+No feature was added and no approved copy decision was re-opened.
+
+**Baseline first, on this machine.** lint clean (one pre-existing
+`<img>` warning in the OG image route, which is correct there — satori
+does not run next/image), typecheck clean, 697/697 unit tests, build
+36 routes, and — for the first time on Windows — all six browser
+suites, including the axe WCAG 2.1 AA audit over 12 pages. The
+POSIX-only spawn fixed in 3974c38 holds; playwright is installed with
+`--no-save`, so neither manifest nor lockfile moved.
+
+**What the reviews found, and what was done about each.**
+
+- No HSTS. The first request to a typed hostname went out in plaintext
+  and could be stripped on a hostile network, and these forms carry a
+  name, an email and a phone number. Now sent on every route, two years
+  with subdomains. `preload` is NOT sent: it is close to irreversible
+  and belongs to the domain owner, not to a build config.
+- CSP `connect-src` was `https://*.supabase.co` — every Supabase
+  project on the internet. One XSS could have posted the admin session
+  token to an attacker's own free-tier project and still passed policy.
+  It is now pinned to the origin of `SUPABASE_PUBLIC_URL`, read at
+  BUILD time, with the wildcard kept only as the fallback for builds
+  that have no Supabase configured. A custom Supabase domain is picked
+  up automatically because the origin comes from the URL itself.
+- `/api/pricing/estimate` read the whole request body into a string
+  before checking its size — the only public POST route missing the
+  `content-length` pre-check its three siblings have. A large unauthed
+  body could exhaust a serverless instance before the 20 KB limit fired.
+- `/api/pricing/services` had no ceiling of any kind, and each hit costs
+  two Supabase round-trips against the same project that stores leads
+  and backs the rate limiter. Now 60/min per instance, refused before
+  the database is touched.
+- The rate-limit client key read the LEFTMOST `x-forwarded-for` hop —
+  the one value in the chain a caller writes. A forged prefix per
+  request minted unlimited buckets, which mattered most for the
+  3-per-window ceiling on WhatsApp/email price delivery: bypassing it
+  spends the owner's Meta and Resend credit. It now prefers
+  `x-vercel-forwarded-for`, then `x-real-ip`, then the RIGHTMOST hop.
+- The durable limiter treated any non-`false` answer as "allowed",
+  silently. A schema drift in `check_rate_limit()` would have disabled
+  it with no log line. Only a real boolean is an answer now; anything
+  else still fails open, but says so.
+- Both JSON-LD blocks were injected with raw `JSON.stringify`, which
+  does not escape `<`. Nothing exploitable today — every input is a
+  build-time constant — but the next graph built from the promotions
+  table would have inherited the hole. One shared `serializeJsonLd()`
+  now escapes `<`, U+2028 and U+2029 at both sites.
+
+**Two pieces of published copy described a product we do not have.**
+`/pricing-calculator` promised "see an indicative total" — the
+calculator has never shown a total, and the same promise was already
+removed from the FAQ answer that made it (afe4bfe). And the battery
+question, filed under Returns, lost its only returns sentence when the
+unverified An Post claim came out (67d4078), leaving a returns question
+answered with outbound courier advice — inside the FAQPage structured
+data, so that is what a search result could show. Both now say what the
+product does. No carrier is named and no third party's policy is stated.
+
+**Verified sound, not changed:** the private-pricing boundary (field
+whitelists, nothing monetary in any public response or client chunk);
+the WhatsApp fallback added in dab721e leaks no submitted data into a
+link; admin auth (server-verified `app_metadata.role`, dev-token
+refused in production, timing-safe comparison); no secrets anywhere in
+the tree; `npm audit` 0 vulnerabilities with the 7e31986 lockfile
+carrying no package substitutions; committed media carries no EXIF or
+GPS; every internal link resolves, and none of the five proposed routes
+(/uk-brands, /why-ireland, /batch-photos, /cases, /dispatch-commitment)
+is linked anywhere; sitemap and robots match the routes on disk.
+
+**Checks after the changes:** lint clean, typecheck clean, 725/725 unit
+tests, build 36 routes, all six browser suites pass, and HSTS read off a
+real `next start` response. The 30 new tests were first run against
+7e31986 in a throwaway worktree: 19 fail there, and the 11 that pass are
+the ones asserting what was already true, which is how a test that only
+looks strict is told apart from one that holds a defect down.
+
+Two existing assertions changed, both because the behaviour they pinned
+was the defect: the client-key precedence in `tests/rate-limit` and
+`tests/source-hygiene`. Nothing else was edited to make anything green.
+
+**Corrections to older sections of this file.** Two lines under KNOWN
+ISSUES (2026-08-30) have been untrue for some time and are corrected
+here rather than rewritten there: the rate limiter is no longer
+in-memory-only (durable and shared via Supabase since migration 0004),
+and the CSP is not "deferred" — it ships, and as of this round its
+`connect-src` is pinned. The remaining CSP follow-up is only the
+`script-src` nonce migration.
+
+**Still blocked on the owner, unchanged by this round:** Content Master
+v2.1 sections 11-16; the eight proposed public "from" prices (a
+commercial policy change — nothing was sent to the browser); the five
+proposed routes; the [REQUIRES CLARIFICATION] item behind the fourth
+"Why Dockentra" point; legal and FAQ inputs; the production domain.
+
 ## CONTACT + PRICING UX CLEANUP (2026-08-31, branch claude/contact-pricing-ux-cleanup)
 
 The owner asked for a quieter site: fewer repeated conversion buttons,

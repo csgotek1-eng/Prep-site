@@ -148,10 +148,16 @@ export const faqItems: FaqItem[] = [
     question: "What about returns of anything with a battery in it?",
     // The approved answer opened by stating what An Post will and will
     // not carry. That is a named carrier's published policy, unverified
-    // for publication here, so it is out until someone confirms it. What
-    // remains is Dockentra's own offer, unchanged and self-contained.
+    // for publication here, so it is out until someone confirms it
+    // (commit 67d4078). Removing it, however, took the only sentence
+    // that mentioned RETURNS with it, leaving a returns question under a
+    // Returns heading answered with advice about outbound couriers — and
+    // this entry ships inside the FAQPage structured data, so that
+    // mismatch is what a search result could show. The answer now meets
+    // its own question again. Every claim in it is about how Dockentra
+    // works; no carrier is named and no third party's policy is stated.
     answer:
-      "If your products have batteries, tell us early and we'll work out the courier before it becomes your problem.",
+      "If your products have batteries, tell us early. We arrange the carrier for battery items deliberately, in both directions — out to your customer and back again — so the return route is agreed before your first shipment rather than worked out during your first return.",
   },
   {
     category: "Contact & support",

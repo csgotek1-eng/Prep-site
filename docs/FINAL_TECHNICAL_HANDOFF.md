@@ -45,11 +45,14 @@ dev-token provider refuses production; admin pages noindex and excluded
 from the sitemap; `scripts/admin-user.mjs` (`npm run admin:check|grant|revoke`)
 manages the role on existing users without SQL, credentials via env only.
 
-**Platform** — CSP + security headers; `GET /api/health` configuration
-readiness (`{ok, pricing, leadStore}`, no DB traffic, no secrets);
-SEO (canonical/OG/sitemap/robots from the deployment's real host until
-a domain is set); 270+ node:test checks; lint/typecheck/build clean;
-npm audit 0 vulnerabilities.
+**Platform** — CSP (with `connect-src` pinned at build time to the
+configured Supabase origin), HSTS and the rest of the security headers;
+`GET /api/health` configuration readiness (`{ok, pricing, leadStore}`,
+no DB traffic, no secrets); SEO (canonical/OG/sitemap/robots from the
+deployment's real host until a domain is set); 725 node:test checks
+plus six Playwright browser suites (`npm run test:browser`, including
+an axe WCAG 2.1 AA audit — needs `npm install --no-save playwright`);
+lint/typecheck/build clean; npm audit 0 vulnerabilities.
 
 ## 2. PRODUCTION ACTIVATION CHECKS (operations, in order)
 

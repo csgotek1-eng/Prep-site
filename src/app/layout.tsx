@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
+import { serializeJsonLd } from "@/lib/json-ld";
 import "./globals.css";
 
 /**
@@ -140,7 +141,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
+            __html: serializeJsonLd(organizationJsonLd),
           }}
         />
         <FloatingChromeProvider>

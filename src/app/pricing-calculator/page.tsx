@@ -20,10 +20,16 @@ export default function PricingCalculatorPage() {
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
             Fulfilment Cost Calculator
           </h1>
+          {/* The old wording promised an indicative total on screen.
+              The calculator has never produced one — prices are
+              calculated server-side and delivered privately — and the
+              same promise was already removed from the FAQ answer that
+              made it (commit afe4bfe). This is that fix, on the page the
+              visitor is standing on when they read it. */}
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            Build an estimate based on the services your business needs.
-            Select services, enter your quantities and see an indicative
-            total — then send it to us as a quote request.
+            Build your selection from the services your business needs —
+            quantities included — and send it to us. We come back with
+            your price by WhatsApp or email, within one working day.
           </p>
         </div>
 

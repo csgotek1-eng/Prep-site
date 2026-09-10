@@ -18,9 +18,27 @@ const rateLimiter = createMemoryRateLimiter({ limit: 120, windowMs: 60_000 });
 // quantity} selections plus a monthly order volume. Prices always come
 // from the server-side catalogue — any price or total sent by the
 // browser is discarded by parseSelections() — and the response is the
-// PUBLIC projection: calculated line totals only, never the underlying
-// rate table or unit prices.
+// PUBLIC projection: the confirmed line list only. No line total, no
+// subtotal, no unit price and no rate table ever reaches the browser
+// (toPublicEstimate() is a field whitelist; tests/private-pricing and
+// tests/browser/pricing-privacy hold that boundary). The previous
+// wording here said "calculated line totals only", which described the
+// opposite of what the code does and invited a future reader to
+// "restore" a leak.
 export async function POST(request: Request) {
+  // Refuse an oversized body BEFORE reading it, exactly as the quote,
+  // enquiry and shared intake routes do. Without this the whole body is
+  // decoded into a JS string first, so an unauthenticated caller could
+  // hand a serverless instance hundreds of megabytes and have it die on
+  // memory before the 20 KB check below ever ran.
+  const contentLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, error: "Request is too large." },
+      { status: 413 },
+    );
+  }
+
   let raw: string;
   try {
     raw = await request.text();

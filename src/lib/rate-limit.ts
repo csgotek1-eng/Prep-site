@@ -38,17 +38,49 @@ export interface AsyncRateLimiter {
   allow(key: string): Promise<boolean>;
 }
 
-/** The client key for a request: the first hop the proxy reports. */
+/**
+ * The client key for a request, taken from the hops a PROXY sets rather
+ * than from anything the caller can choose.
+ *
+ * This used to read the LEFTMOST x-forwarded-for entry. That entry is
+ * the one value in the chain the client itself can write: on any proxy
+ * that appends rather than replaces, `X-Forwarded-For: 10.0.0.<n>` with
+ * a fresh n per request mints an unlimited number of distinct buckets.
+ * The limit that matters there is not the 5/min on the forms but the
+ * 3-per-window on WhatsApp/email price delivery, which sends outbound
+ * Meta template messages and Resend emails to a submitter-supplied
+ * destination — bypassing it turns into third-party message-bombing
+ * billed to the owner's accounts.
+ *
+ * Order, most trustworthy first:
+ *  1. x-vercel-forwarded-for — set by Vercel's edge, overwritten on
+ *     every request, so a client-supplied copy cannot survive.
+ *  2. x-real-ip — the same guarantee from nginx/Cloudflare-style
+ *     front ends that set it from the observed peer.
+ *  3. x-forwarded-for, RIGHTMOST entry — the hop the nearest proxy
+ *     actually observed. Anything the client prepended sits to the
+ *     left of it and is ignored.
+ *
+ * The fallback stays "unknown" and is deliberately shared: everything
+ * landing there is in ONE bucket, so on a lead form it would reject
+ * real enquiries rather than merely fail to stop abuse. It is only
+ * reached when no proxy header is present at all (direct local
+ * requests), which is why it is last rather than first.
+ */
 export function requestClientKey(request: Request): string {
-  // Vercel and most proxies set x-forwarded-for; the first entry is the
-  // client. x-real-ip is the common second source, checked before the
-  // shared fallback: everything that lands on "unknown" shares ONE
-  // bucket, so on a lead form that fallback rejects real enquiries
-  // rather than merely failing to stop abuse.
+  const vercel = request.headers.get("x-vercel-forwarded-for");
+  const vercelClient = vercel?.split(",")[0]?.trim();
+  if (vercelClient) return vercelClient;
+
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+
   const forwarded = request.headers.get("x-forwarded-for");
-  const first = forwarded?.split(",")[0]?.trim();
-  if (first) return first;
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  const hops = forwarded?.split(",").map((hop) => hop.trim()).filter(Boolean);
+  const nearest = hops?.[hops.length - 1];
+  if (nearest) return nearest;
+
+  return "unknown";
 }
 
 /** Scope+key → stable anonymised identifier for the durable store. */
@@ -145,7 +177,18 @@ export function createSupabaseRateLimiter(
           return true;
         }
         const allowed = (await response.json()) as unknown;
-        return allowed !== false;
+        if (typeof allowed === "boolean") return allowed;
+        // Anything that is not a boolean means check_rate_limit() no
+        // longer answers the way this client expects — a schema drift,
+        // not an outage. The posture stays fail-open, consistent with
+        // the two branches above, but it is now SAID rather than
+        // silently indistinguishable from "allowed": `allowed !== false`
+        // treated null, {} and a stray error object as a pass with no
+        // log line, so the limiter could be off for weeks unnoticed.
+        console.error(
+          "Durable rate limit check returned an unexpected payload — allowing request (fail open).",
+        );
+        return true;
       } catch {
         console.error(
           "Durable rate limit check failed with a network error — allowing request (fail open).",

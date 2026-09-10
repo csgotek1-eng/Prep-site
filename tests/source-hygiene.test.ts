@@ -100,11 +100,18 @@ describe("source hygiene", () => {
     const key = (headers: Record<string, string>) =>
       requestClientKey(new Request("https://example.test/", { headers }));
 
-    assert.equal(key({ "x-forwarded-for": "9.9.9.9, 10.0.0.1" }), "9.9.9.9");
-    // x-forwarded-for wins when both are present.
+    // These two assertions used to read the LEFTMOST x-forwarded-for
+    // hop and to prefer that header over x-real-ip. Both were changed
+    // deliberately, not to make anything green: the leftmost hop is the
+    // one value in the chain the CALLER writes, so a forged prefix
+    // minted a fresh bucket per request. The nearest proxy's own hop is
+    // the rightmost one, and a header the platform sets (x-real-ip,
+    // x-vercel-forwarded-for) outranks anything in x-forwarded-for.
+    // Precedence and spoofing are pinned in tests/hardening-round.
+    assert.equal(key({ "x-forwarded-for": "9.9.9.9, 10.0.0.1" }), "10.0.0.1");
     assert.equal(
       key({ "x-forwarded-for": "9.9.9.9", "x-real-ip": "8.8.8.8" }),
-      "9.9.9.9",
+      "8.8.8.8",
     );
     // Without it, x-real-ip keeps two visitors in separate buckets
     // instead of both landing in the shared "unknown" one, where a

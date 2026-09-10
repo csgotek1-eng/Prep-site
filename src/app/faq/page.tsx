@@ -3,6 +3,7 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import FaqAccordion from "@/components/FaqAccordion";
 import { faqCategories, faqItems } from "@/lib/faq";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -34,7 +35,7 @@ export default function FaqPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
       />
 
       <section className="bg-brand-navy">

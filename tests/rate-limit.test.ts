@@ -5,7 +5,6 @@ import {
   createMemoryRateLimiter,
   createSupabaseRateLimiter,
   hashRateLimitKey,
-  requestClientKey,
 } from "../src/lib/rate-limit.ts";
 
 describe("memory rate limiter", () => {
@@ -113,16 +112,10 @@ describe("durable rate limiter privacy and failure posture", () => {
   });
 });
 
-describe("client key extraction", () => {
-  it("uses the first x-forwarded-for hop", () => {
-    const request = new Request("https://example.com", {
-      headers: { "x-forwarded-for": "203.0.113.7, 10.0.0.1" },
-    });
-    assert.equal(requestClientKey(request), "203.0.113.7");
-  });
+// Client-key extraction moved to tests/hardening-round.test.ts when the
+// derivation changed: it used to read the LEFTMOST x-forwarded-for hop,
+// which is the one value in the chain a caller can write, so a forged
+// prefix minted a fresh bucket per request. The replacement prefers the
+// headers a proxy sets, and the new suite pins both the precedence and
+// the spoofing case the old single assertion could not express.
 
-  it("falls back to a stable placeholder", () => {
-    const request = new Request("https://example.com");
-    assert.equal(requestClientKey(request), "unknown");
-  });
-});
