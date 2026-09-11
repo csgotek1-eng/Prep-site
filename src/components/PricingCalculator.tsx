@@ -95,9 +95,24 @@ export default function PricingCalculator({
   );
   const [loadError, setLoadError] = useState(false);
   const [selections, setSelections] = useState<SelectionState>({});
-  // Monthly order volume selects the volume band server-side. It is a
-  // rate input only — it never becomes a line quantity of its own.
+  // Monthly order volume does two jobs, and they are different things.
+  //
+  //  1. It selects the volume BAND server-side, which sets the rate.
+  //  2. For a service charged once per ORDER, it is also the quantity
+  //     for a month - shipping 1,500 orders means 1,500 pick-and-packs.
+  //
+  // Only (1) used to happen. Every line defaulted to a quantity of 1,
+  // so a visitor who said "5,000 orders a month" asked for the price of
+  // ONE order and received a figure that was not their monthly cost by
+  // three orders of magnitude. Which services count that way is decided
+  // by the SERVER (quantityFollowsVolume on the public catalogue, from
+  // pricingType === "PER_ORDER"); the browser never guesses from a
+  // label. A visitor who types their own number keeps it - their id
+  // goes in manualQuantities and the volume stops steering that line.
   const [monthlyOrders, setMonthlyOrders] = useState(MIN_MONTHLY_ORDERS);
+  const [manualQuantities, setManualQuantities] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [estimate, setEstimate] = useState<PublicEstimate | null>(null);
   const [estimating, setEstimating] = useState(false);
   const [estimateError, setEstimateError] = useState(false);
@@ -252,9 +267,35 @@ export default function PricingCalculator({
       if (service.id in next) {
         delete next[service.id];
       } else {
-        next[service.id] = 1;
+        next[service.id] = service.quantityFollowsVolume ? monthlyOrders : 1;
       }
       return next;
+    });
+    // Unticking forgets a manual override: ticking the service again is
+    // a fresh start, not a resurrection of a number typed ten minutes
+    // ago against a different volume.
+    setManualQuantities((current) => {
+      if (!current.has(service.id)) return current;
+      const next = new Set(current);
+      next.delete(service.id);
+      return next;
+    });
+  }
+
+  /** The volume input: re-steers every per-order line the visitor has
+   *  not overridden, so the quantity and the band never disagree. */
+  function applyMonthlyOrders(next: number) {
+    clearSendResult();
+    setMonthlyOrders(next);
+    setSelections((current) => {
+      const updated = { ...current };
+      for (const service of services ?? []) {
+        if (!service.quantityFollowsVolume) continue;
+        if (!(service.id in updated)) continue;
+        if (manualQuantities.has(service.id)) continue;
+        updated[service.id] = next;
+      }
+      return updated;
     });
   }
 
@@ -266,6 +307,12 @@ export default function PricingCalculator({
         ? Math.min(parsed, MAX_QUANTITY)
         : 1;
     setSelections((current) => ({ ...current, [serviceId]: quantity }));
+    setManualQuantities((current) => {
+      if (current.has(serviceId)) return current;
+      const next = new Set(current);
+      next.add(serviceId);
+      return next;
+    });
   }
 
   /** Where the chosen channel will send the price, as typed. */
@@ -957,9 +1004,8 @@ export default function PricingCalculator({
                 step={1}
                 value={monthlyOrders}
                 onChange={(event) => {
-                  clearSendResult();
                   const parsed = Number(event.target.value);
-                  setMonthlyOrders(
+                  applyMonthlyOrders(
                     Number.isInteger(parsed) && parsed >= MIN_MONTHLY_ORDERS
                       ? Math.min(parsed, MAX_MONTHLY_ORDERS)
                       : MIN_MONTHLY_ORDERS,
@@ -1049,7 +1095,9 @@ export default function PricingCalculator({
                             >
                               {service.customQuote
                                 ? "Approx. quantity"
-                                : "Quantity"}
+                                : service.quantityFollowsVolume
+                                  ? "Orders per month"
+                                  : "Quantity"}
                             </label>
                             <input
                               id={`qty-${service.id}`}
@@ -1069,6 +1117,14 @@ export default function PricingCalculator({
                                 Helps us prepare your individual quote.
                               </span>
                             )}
+                            {!service.customQuote &&
+                              service.quantityFollowsVolume && (
+                                <span className="text-xs text-slate-500">
+                                  {manualQuantities.has(service.id)
+                                    ? "Your own figure — it no longer follows the volume above."
+                                    : "Taken from your monthly volume. Change it if this service handles a different number."}
+                                </span>
+                              )}
                           </div>
                         )}
                       </li>

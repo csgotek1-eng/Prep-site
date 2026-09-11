@@ -10,6 +10,7 @@ here is served to a visitor; `public/media/**` holds the web versions.
 | `viktor.source.png` | `public/media/team/viktor.webp` | downscale 1122×1402 → 880×1100 (same 4:5, no crop), WebP q85. 1.79 MB → 60 KB |
 | `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
 | `denis.source.png` | `public/media/team/denis.webp` | same treatment. 1.92 MB → 82 KB |
+| `dockentra-team-packing.source.jpeg` | `public/media/about/dockentra-team-packing.webp` | metadata stripped, WebP q85 at native 1122×1402. **No crop, no resize.** 353 KB → 105 KB |
 
 Posters are single frames pulled from the same sources.
 
@@ -73,7 +74,7 @@ should happen in the same commit as the file swap, never before it.
 
 | source | web version | what changed |
 |---|---|---|
-| `dockentra-team-illustrative.source.jpg` | `public/media/about/dockentra-team-illustrative.jpg` | re-encoded at native 996x1600, metadata stripped. 138 KB → 123 KB. **No crop, no resize.** |
+| `dockentra-team-illustrative.source.jpg` | — (retired) | re-encoded at native 996x1600, metadata stripped. 138 KB → 123 KB. **RETIRED 2026-09-11**: the owner replaced it with the packing photograph above, so the web copy was deleted rather than left in `public/` for nobody. The source stays here — provenance does not expire. |
 
 It is on `/about`, above the company story, where a still frame of the
 packing clip used to be. That frame is gone; it was a video still and

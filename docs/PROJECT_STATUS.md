@@ -1,5 +1,93 @@
 # PROJECT STATUS
 
+## BUSINESS FEATURES ROUND (2026-09-11, branch claude/business-features-round)
+
+Ten owner-approved items. What follows is what shipped and, where it
+matters more, what did not.
+
+**Volume now reaches the quote, not just the rate.** The band lookup
+always worked — a bigger monthly volume selected a cheaper unit rate —
+but every line defaulted to a quantity of 1, so "5,000 orders a month"
+asked for the price of ONE pick and pack. Services charged per order now
+take their quantity from the volume the visitor typed, tracking it until
+they type their own number; the server decides which services count that
+way (`quantityFollowsVolume`, from `pricingType`), never a label in the
+browser. A per-order service whose bands are missing is now an
+individual quote rather than being silently priced at the ENTRY band —
+the most expensive rate, handed to the customer who qualifies for the
+cheapest. No rate, band or label reaches the browser; 14 new tests hold
+both halves.
+
+**The UK page does not publish the numbers it was given.** "€10 to cross
+the Irish Sea, €4.55 domestic" was checked before anything was written:
+the €10 is unverifiable (Royal Mail, Parcelforce and Evri refuse
+automated requests) and €4.55 is in no An Post band — the like-for-like
+figure is €9.00. The price argument collapses at that point, so the page
+makes the customs argument instead, which is documented and current:
+€3 duty per item since 1 July 2026, Irish VAT at 23% with no threshold,
+An Post's €6.95 handling fee, declarations on every consignment, the
+IOSS intermediary requirement, irrecoverable duty on returns. Every
+claim is sourced in the markup. See docs/UK_BRANDS_FACT_CHECK.md.
+
+**Reviews cannot publish themselves.** Three independent things enforce
+it: the repository writes PENDING, the column defaults to PENDING, and
+the public projection filters to APPROVED before projecting. The
+reviewer's email is collected for verification, shown only on
+/admin/reviews, and has no field in the public projection at all. A
+moderator can approve, reject and unpublish, and cannot edit the words.
+Migration 0008 is PREPARED, NOT APPLIED.
+
+**Cases has no cases, and says so.** No invented client, logo, figure or
+testimonial — an empty state and the machinery to fill it honestly.
+
+**Google Analytics is wired and off.** No Measurement ID means no
+script, no gtag, and a CSP that names no Google host. With one, the tag
+loads behind Consent Mode v2 with every storage type denied, because
+this site has no consent banner: cookieless pings, nothing stored on a
+visitor's device. The owner supplies one value, documented in
+src/lib/analytics.ts.
+
+**The contact email is live** — viktorkomarovprep@gmail.com, in
+site-contact.ts and nowhere else, so the footer, the contact page, the
+utility bar and every "Email us" became real mailto links at once.
+
+That change also broke the site, which is worth recording: an email
+address is one long unbreakable token, and dropping it into the utility
+bar pushed a 390px phone's LAYOUT viewport to 422 — which took the
+fixed floating dock off-screen on every page. Caught by the browser
+suite, not by review. Phones now get the short label and the address
+appears from sm up.
+
+**Price requests now reach a person.** The owner is emailed when one
+arrives — who, how to reach them, what they picked, their volume, the
+band that was applied and the internal total — strictly AFTER the
+durable save, and never instead of it. Header injection is stripped from
+anything that reaches a subject line. Blocked only on Resend
+credentials: with none, the lead is still saved and nothing is faked.
+
+**/about carries the confirmed address**, read from the config that
+already held it, with "By arrangement" rather than invented hours.
+Hours live in `siteConfig.location.openingHours` for a one-line edit.
+
+**/pricing leads with Get Price** instead of burying it under four
+explanatory cards; exactly one such button in the page, one calculator.
+
+**The packing photograph is the real team.** The stock stand-in whose
+vests read "Dockcentra" is replaced by Viktor and Anna, so the figure's
+caption names them instead of calling it illustrative. The rule still
+governs the hero and process clips, which are still stand-ins.
+
+Verified: lint clean, typecheck clean, 822 unit tests, build, all six
+browser suites, and a browser pass over /, /pricing,
+/pricing-calculator, /about, /cases and /uk-brands at 1440 and 390 —
+axe clean, no overflow, no euro amount outside the sourced customs
+figures. The review lifecycle was exercised end to end against a dev
+server: submit → pending → not public → approve → public → unpublish →
+gone, with the email never appearing publicly.
+
+NOT IMPLEMENTED, as instructed: support bot, items 5 and 11, and the
+"What your quote depends on" section (left exactly as it was).
+
 ## THE REAL TEAM: THREE PEOPLE, ONE SOURCE OF TRUTH (2026-09-11, branch claude/real-team-photos)
 
 The owner supplied three portraits and named them. The site had been

@@ -1,5 +1,6 @@
 import { LeadStoreUnavailableError } from "../leads/errors.ts";
 import { processLead } from "../leads/intake.ts";
+import { sendOwnerPricingNotification } from "../email/owner-notification.ts";
 import { getLeadStore } from "../leads/store.ts";
 import type { LeadStore } from "../leads/store.ts";
 import type { LeadInput, PricingDeliveryChannel } from "../leads/types";
@@ -144,6 +145,8 @@ export interface PricingDeliveryRequestArgs {
   /** The channel's provider step. */
   deliver: PricingDeliverer;
   store?: LeadStore;
+  /** The page the request came from, for the owner notification. */
+  page?: string | null;
 }
 
 function leadInputFor(
@@ -215,22 +218,56 @@ export async function processPricingDeliveryRequest(
   const store = args.store ?? getLeadStore();
   const reference = makePricingReference();
   const channel = args.destination.channel;
+  // ONE timestamp for the stored lead and the owner notification. Two
+  // calls to new Date() would put two different times on the same
+  // request, which is the kind of small lie that wastes an hour when
+  // someone is reconciling an inbox against the admin list.
+  const requestedAt = new Date().toISOString();
 
   const input = leadInputFor(
     args.destination,
     reference,
-    new Date().toISOString(),
+    requestedAt,
     args.selections,
     args.estimate,
   );
 
-  // The durable row + admin inbox is the record for these requests;
-  // the owner-webhook layer stays quote/enquiry-shaped, so the
-  // secondary notification is a compact PII-free log line only.
+  // The durable row + admin inbox is the record for these requests. The
+  // notification below is SECONDARY to it in every sense: it runs after
+  // the save inside processLead, its result cannot change whether the
+  // request counts as received, and a provider outage is logged rather
+  // than surfaced to the visitor - their own delivery outcome is
+  // reported separately and truthfully further down.
+  //
+  // Until 2026-09-11 this was a log line and nothing else, so a price
+  // request sat in /admin/leads until somebody thought to look. Now the
+  // owner is emailed that one arrived.
   const intake = await processLead(
     input,
     async () => {
       console.log(`Pricing request stored (${channel}, ${reference}).`);
+      const notification = await sendOwnerPricingNotification({
+        reference,
+        source: `pricing calculator (${channel})`,
+        page: args.page ?? null,
+        customerName: input.name,
+        customerCompany: input.business,
+        customerEmail: input.email,
+        customerPhone: input.phone,
+        deliveryChannel: channel,
+        deliveryDestination: args.destination.normalized,
+        estimate: args.estimate,
+        submittedAt: requestedAt,
+      });
+      // The lead's delivery status describes the CUSTOMER's delivery,
+      // not ours, so this stays SKIPPED whatever the notification did.
+      // Reporting our own inbox as the customer's delivery would make
+      // the admin inbox lie about what the visitor received.
+      if (notification.outcome === "FAILED") {
+        console.error(
+          `Owner notification for ${reference} failed (${notification.errorCode}); the lead is stored.`,
+        );
+      }
       return { status: "SKIPPED" as const };
     },
     store,

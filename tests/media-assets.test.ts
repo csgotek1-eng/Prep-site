@@ -13,7 +13,7 @@ const HERO_VIDEO = "public/media/hero/dockentra-process-packing.mp4";
 const HERO_POSTER = "public/media/hero/dockentra-process-packing.jpg";
 const PROCESS_VIDEO = "public/media/process/dockentra-process-dispatch.mp4";
 const PROCESS_POSTER = "public/media/process/dockentra-process-dispatch.jpg";
-const ABOUT_PHOTO = "public/media/about/dockentra-team-illustrative.jpg";
+const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 
 /** Walk the MP4 box tree far enough to answer "what tracks are in here". */
 function trackHandlers(path: string): string[] {
@@ -115,7 +115,10 @@ describe("the process clips are silent by construction", () => {
       );
       assert.match(
         path,
-        /^\/media\/(hero|process|about)\/dockentra-(process|team)-[a-z-]+\.(mp4|jpg)$/,
+        // webp joined the list when the /about photo stopped being a
+        // stand-in: it is a still, and a still has no reason to ship as
+        // a 157 KB JPEG when the same frame is 105 KB as WebP.
+        /^\/media\/(hero|process|about)\/dockentra-(process|team)-[a-z-]+\.(mp4|jpg|webp)$/,
       );
     }
     assert.ok(markup.includes("/media/hero/"));
@@ -183,11 +186,16 @@ describe("the clips are decorative and honest", () => {
       .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
       .map((m) => m[1]);
     assert.equal(shown.length, 3, `${shown.length} figures, expected 3`);
-    // Two clips say "footage"; the /about photograph says "imagery".
-    // Both are the same promise in the words that fit the medium.
-    for (const caption of shown) {
-      assert.match(caption, /Illustrative (footage of fulfilment work|fulfilment team imagery)/);
-    }
+    // The two CLIPS are still stand-ins and still say so. The /about
+    // photograph stopped being one on 2026-09-11 — it is Viktor and
+    // Anna — so it names them instead, and must not be called
+    // illustrative. Every caption still has to say what is actually in
+    // the frame; none of them may claim an operation the footage does
+    // not show.
+    const illustrative = shown.filter((c) => /Illustrative footage of fulfilment work/.test(c));
+    const named = shown.filter((c) => /Viktor and Anna/.test(c));
+    assert.equal(illustrative.length, 2, "both stand-in clips must stay labelled illustrative");
+    assert.equal(named.length, 1, "the /about photograph must name the people it shows");
   });
 
   it("describes the stills for people who cannot see them", () => {
@@ -274,15 +282,37 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     }
   });
 
-  it("the /about figure stays labelled illustrative whatever asset it holds", () => {
+  it("the /about figure names the real people it now shows", () => {
+    /**
+     * THE RULE CHANGED WITH THE ASSET, AND ONLY FOR THIS FIGURE.
+     *
+     * This used to require the caption to read "Illustrative ...",
+     * because the figure held a stock-style photograph of two people in
+     * vests lettered "Dockcentra" and the owner published it on the
+     * condition that it was never presented as Dockentra's own team.
+     * On 2026-09-11 the owner replaced it with a photograph of Viktor
+     * and Anna, who are the team (src/lib/team.ts). Calling that
+     * "illustrative" would now be the inaccurate caption.
+     *
+     * The illustrative rule is NOT relaxed anywhere else: the hero and
+     * process clips are still stand-ins and the assertions below still
+     * forbid "our team"/"our warehouse" language on every surface.
+     */
     const about = read("src/app/about/page.tsx");
     const figures = [...about.matchAll(/<figure[\s\S]*?<\/figure>/g)];
     assert.equal(figures.length, 1, `/about has ${figures.length} figures, expected 1`);
     const figure = figures[0][0];
-    assert.match(
-      figure,
-      /Illustrative (footage|fulfilment team imagery|imagery)/,
-      "the /about figure lost its illustrative caption",
+    const teamNames = read("src/lib/team.ts");
+    for (const name of ["Viktor", "Anna"]) {
+      assert.ok(
+        figure.includes(name) && teamNames.includes(`name: "${name}"`),
+        `the caption names ${name}, who must also be in the team data`,
+      );
+    }
+    assert.equal(
+      /Illustrative/i.test(figure),
+      false,
+      "a photograph of the named team must not be captioned as illustrative",
     );
     // Whatever the asset is, it goes through the image pipeline and
     // stays responsive — no fixed pixel width, no raw <img>.
@@ -297,32 +327,29 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
 
   it("the people photo is the /about asset, at its own proportions", () => {
     const about = read("src/app/about/page.tsx");
-    assert.match(about, /src="\/media\/about\/dockentra-team-illustrative\.jpg"/);
+    assert.match(about, /src="\/media\/about\/dockentra-team-packing\.webp"/);
+    assert.ok(existsSync(ABOUT_PHOTO), "the web version is missing");
     assert.ok(
-      existsSync("public/media/about/dockentra-team-illustrative.jpg"),
-      "the web version is missing",
-    );
-    assert.ok(
-      existsSync("media-source/dockentra-team-illustrative.source.jpg"),
+      existsSync("media-source/dockentra-team-packing.source.jpeg"),
       "the original is missing",
     );
     // The intrinsic size is declared, which is what lets the element
     // keep the whole frame instead of filling a box of someone
     // else's shape.
-    assert.match(about, /width=\{996\}/);
-    assert.match(about, /height=\{1600\}/);
+    assert.match(about, /width=\{1122\}/);
+    assert.match(about, /height=\{1402\}/);
     assert.match(about, /className="h-auto w-full"/);
   });
 
   it("people imagery is never cropped at all", () => {
-    // The supplied photo shows branded vests whose wording is not
-    // Dockentra's own. The owner accepted publishing it as-is; what
-    // must not happen is the site ENLARGING that detail.
-    //
-    // The guarantee here is stronger than "centred crop": there is NO
-    // crop. No aspect-ratio box for the image to fill, no object-fit
-    // rule deciding what survives, no zoom, no off-centre focus — the
-    // element carries the photo's own 996x1600 and shows all of it.
+    // The rule outlived the reason it was written for. It existed
+    // because the old stand-in showed vests lettered "Dockcentra" and
+    // the site must not enlarge that detail. The frame is now Viktor
+    // and Anna, and the guarantee is worth keeping for its own sake:
+    // there is NO crop. No aspect-ratio box for the image to fill, no
+    // object-fit rule deciding which half of a face survives, no zoom,
+    // no off-centre focus — the element carries the photo's own
+    // 1122x1402 and shows all of it.
     const about = read("src/app/about/page.tsx");
     const figure = (about.match(/<figure[\s\S]*?<\/figure>/) ?? [""])[0];
     assert.equal(/aspect-\[/.test(figure), false, "a fixed aspect box would crop the frame");

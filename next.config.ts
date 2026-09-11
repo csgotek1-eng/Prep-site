@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { GOOGLE_ANALYTICS_CSP, resolveMeasurementId } from "./src/lib/analytics.ts";
 
 // Conservative security headers for production.
 //
@@ -30,13 +31,22 @@ function supabaseConnectSource(): string {
   }
 }
 
+// Google Analytics is off unless a Measurement ID is configured, and
+// the policy follows it: with no ID, the CSP below names no Google host
+// and the site can talk to nobody but itself and Supabase. The hosts
+// are only added when the tag is actually going to load.
+const analyticsId = resolveMeasurementId();
+const gaScript = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.script.join(" ")}` : "";
+const gaConnect = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.connect.join(" ")}` : "";
+const gaImage = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.image.join(" ")}` : "";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${gaScript}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob:${gaImage}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseConnectSource()}`,
+  `connect-src 'self' ${supabaseConnectSource()}${gaConnect}`,
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",

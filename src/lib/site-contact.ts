@@ -16,19 +16,25 @@
  */
 
 /**
- * OWNER CONTACT EMAIL — NOT YET SUPPLIED.
+ * OWNER CONTACT EMAIL — SUPPLIED BY THE OWNER, 2026-09-11.
  *
- * The exact address has not been given, and an address must never be
- * invented: a wrong mailto: link silently drops real customer
- * enquiries. So the value stays null and the UI degrades honestly —
- * "Email us" opens the enquiry form (which reaches the same inbox
- * through the server) instead of a mailto: that might go nowhere.
+ * This was null for months, deliberately: an address must never be
+ * invented, because a wrong mailto: silently drops real customer
+ * enquiries. Every "Email us" surface therefore fell back to the
+ * enquiry form. The owner has now given the address below, so those
+ * surfaces become real mailto: links and the label changes from
+ * "Send an enquiry" to "Email us" on its own — see contactEmailLabel.
  *
- * TO SUPPLY IT: either replace the null below with the exact address,
- * or set NEXT_PUBLIC_OWNER_CONTACT_EMAIL in the environment. This is
- * the ONLY place that needs changing — every surface reads from here.
+ * It is a gmail.com address, not an @dockentra domain. That is the
+ * owner's decision and not a placeholder to be "improved": no
+ * @dockentra address exists yet, and guessing one would be exactly the
+ * invention this module was written to prevent. When a domain mailbox
+ * exists, replace the constant here and nothing else changes.
+ *
+ * NEXT_PUBLIC_OWNER_CONTACT_EMAIL still overrides it, so a preview or a
+ * staging deployment can point somewhere else without a code change.
  */
-const OWNER_CONTACT_EMAIL: string | null = null;
+const OWNER_CONTACT_EMAIL: string | null = "viktorkomarovprep@gmail.com";
 
 function resolveContactEmail(): string | null {
   const fromEnv = process.env.NEXT_PUBLIC_OWNER_CONTACT_EMAIL?.trim();

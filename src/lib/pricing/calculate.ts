@@ -110,6 +110,22 @@ export function calculateEstimate(
         unitPrice = tier.price;
         volumeTierLabel = formatTierLabel(tier);
       }
+    } else if (allTiers.length > 0 && service.pricingType === "PER_ORDER") {
+      // A DATA GAP, NOT A FLAT RATE.
+      //
+      // A per-order service is priced by volume band by definition, and
+      // this catalogue has bands - just not for this service. That is a
+      // partially applied migration, a renamed service id, or a band
+      // deleted by hand. The old behaviour was to fall through to
+      // `service.price`, which is the ENTRY band figure: a 5,000-order
+      // customer would have been quoted the 0-399 rate without one
+      // visible sign that the band lookup had failed.
+      //
+      // Quoting the wrong rate confidently is worse than not quoting.
+      // The line becomes a custom quote, which is the same outcome a
+      // volume outside every band already produced, and the team sees
+      // "no band" rather than a plausible number.
+      tieredCustomQuote = true;
     }
 
     if (service.pricingType === "CUSTOM_QUOTE" || tieredCustomQuote) {

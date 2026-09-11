@@ -37,15 +37,33 @@ export default function UtilityBar() {
     >
       <Container>
         <div className="flex h-8 items-center justify-between gap-2 text-[13px] sm:gap-3">
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <a
               href={contactEmailHref}
-              className="inline-flex items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
+              className="inline-flex min-w-0 items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
             >
-              <Mail aria-hidden="true" className="h-3.5 w-3.5" />
+              <Mail aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
               {/* The raw address is only shown once a real one is
-                  configured — never an invented placeholder. */}
-              {siteContact.email ?? contactEmailLabel}
+                  configured — never an invented placeholder.
+
+                  AND ONLY WHERE IT FITS. An email address is one long
+                  unbreakable token: the moment a real one replaced the
+                  null here, "viktorkomarovprep@gmail.com" pushed this
+                  row past a 390px phone and widened the LAYOUT viewport
+                  to 422 — which took the fixed dock off-screen with it,
+                  on every page of the site. Phones get the short label
+                  and the same mailto; the address appears from sm up,
+                  where there is room for it. */}
+              {siteContact.email ? (
+                <>
+                  <span className="sm:hidden">{contactEmailLabel}</span>
+                  <span className="hidden truncate sm:inline">
+                    {siteContact.email}
+                  </span>
+                </>
+              ) : (
+                contactEmailLabel
+              )}
             </a>
             <a
               href={siteConfig.social.whatsapp}

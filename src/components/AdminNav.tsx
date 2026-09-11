@@ -4,6 +4,7 @@ const links = [
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/promotions", label: "Promotions" },
   { href: "/admin/leads", label: "Leads" },
+  { href: "/admin/reviews", label: "Reviews" },
 ];
 
 /** Simple navigation between the admin areas. Server component. */

@@ -43,6 +43,18 @@ export interface PublicCatalogueService {
    * the UI can explain why the volume input affects this line.
    */
   volumeTiered: boolean;
+  /**
+   * True when this service is charged once per ORDER, so its quantity
+   * for a month IS the monthly order volume the visitor already typed.
+   *
+   * Non-monetary, and deliberately so: it says how a quantity is
+   * counted, never what anything costs. Before this existed the
+   * calculator defaulted every line to a quantity of 1, so a visitor
+   * shipping 5,000 orders a month asked for a price for ONE pick and
+   * pack and got a figure two orders of magnitude under their real
+   * monthly cost.
+   */
+  quantityFollowsVolume: boolean;
   isFeatured: boolean;
   sortOrder: number;
 }
@@ -69,6 +81,7 @@ export function toPublicCatalogue(
       unitLabel: service.unitLabel,
       customQuote: service.pricingType === "CUSTOM_QUOTE",
       volumeTiered: tieredServiceIds.has(service.id),
+      quantityFollowsVolume: service.pricingType === "PER_ORDER",
       isFeatured: service.isFeatured,
       sortOrder: service.sortOrder,
     }));

@@ -65,6 +65,28 @@ export const siteConfig = {
       encodeURIComponent(
         "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd, Courtbrack, Limerick, V94 PX6A, Ireland",
       ),
+    /**
+     * PUBLISHED OPENING HOURS — NONE, AND NOT INVENTED.
+     *
+     * The owner asked for opening information and has not supplied
+     * times. "Mon-Fri 9-5" is the obvious placeholder and it is exactly
+     * what must not be written: somebody drives to Docklands Business
+     * Park at 16:30 on a Friday because a website said so, finds the
+     * unit shut, and we did that to them.
+     *
+     * So the site publishes what is TRUE instead — see visitPolicy
+     * below. TO PUBLISH REAL HOURS: replace null with lines of
+     * `{ days, hours }`. Every surface reads from here, so that edit is
+     * the entire change and the "by arrangement" note stays beneath
+     * them as context rather than as a substitute.
+     */
+    openingHours: null as readonly { days: string; hours: string }[] | null,
+    /**
+     * True whatever the hours are: this is a working fulfilment unit
+     * inside a self-storage facility, not a shop counter.
+     */
+    visitPolicy:
+      "This is a working fulfilment unit, not a walk-in shop. Visits and deliveries are arranged in advance so someone is there to meet you.",
   },
 };
 

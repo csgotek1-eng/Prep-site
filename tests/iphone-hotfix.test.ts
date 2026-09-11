@@ -57,7 +57,12 @@ describe("the utility bar shows every social icon on a phone", () => {
 
   it("makes room by tightening gaps below sm, nothing else", () => {
     assert.ok(bar.includes("gap-2 text-[13px] sm:gap-3"));
-    assert.ok(bar.includes("flex items-center gap-3 sm:gap-4"));
+    // The GAPS are what this test is about. `min-w-0` joined that same
+    // element on 2026-09-11 so the email address can truncate instead
+    // of widening the layout viewport — it changes no spacing, so the
+    // assertion matches the gap classes rather than the whole
+    // attribute, which would fail for every future utility added here.
+    assert.ok(/items-center gap-3 sm:gap-4/.test(bar));
     assert.ok(bar.includes("gap-0.5 sm:gap-1"));
     // Email, WhatsApp and the sm-only location link all survive. The
     // email row's LABEL is now whatever site-contact says is honest:

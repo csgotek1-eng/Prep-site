@@ -34,6 +34,17 @@ const socialLinks = [
   },
 ];
 
+/**
+ * Pages worth finding that are not in the header.
+ *
+ * /cases lives here rather than in the top navigation: the header
+ * already carries seven items, and an eighth pushes the mobile menu and
+ * the desktop row past what either can hold comfortably. Customer
+ * stories are something a visitor looks for once, near the end of
+ * deciding — the footer is where that search happens.
+ */
+const extraPageLinks = [{ href: "/cases", label: "Customer Stories" }];
+
 const serviceLinks = [
   { href: "/services#receiving", label: "Receiving" },
   { href: "/services#prep", label: "Prep" },
@@ -68,7 +79,7 @@ export default function Footer() {
               Pages
             </p>
             <ul className="mt-4 space-y-1">
-              {navLinks.map((link) => (
+              {[...navLinks, ...extraPageLinks].map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

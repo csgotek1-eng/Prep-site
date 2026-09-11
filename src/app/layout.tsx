@@ -9,6 +9,7 @@ import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { serializeJsonLd } from "@/lib/json-ld";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import "./globals.css";
 
 /**
@@ -144,6 +145,8 @@ export default function RootLayout({
             __html: serializeJsonLd(organizationJsonLd),
           }}
         />
+        {/* Renders nothing at all unless a Measurement ID is set. */}
+        <GoogleAnalytics />
         <FloatingChromeProvider>
           {/* Server-rendered: the offer strip is in the first HTML the
               browser receives, so it never appears late and never

@@ -12,6 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/faq",
       "/sla",
       "/privacy",
+      // Customer stories: indexable, and the place a review is left.
+      "/cases",
     ]),
   ];
   return pages.map((href) => ({

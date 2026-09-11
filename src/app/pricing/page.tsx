@@ -72,6 +72,31 @@ export default async function PricingPage() {
               individually, and your price is sent privately to you — by
               WhatsApp or email, whichever you choose.
             </p>
+
+            {/* THE PRIMARY ACTION, AT THE TOP.
+                It used to sit below four explanatory cards, so the one
+                thing a visitor came to this page to do was the last
+                thing they could reach. It is the same shared dialog the
+                header opens - one calculator for the whole site, not a
+                second instance - and it is the ONLY "Get Price" button
+                on the page now. */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <CalculatorModal variant="primary" label="Get Price" icon={false} />
+              <p className="text-sm leading-6 text-slate-300">
+                Tell us your monthly volume and the services you need — your
+                price comes back privately, with no call.
+              </p>
+            </div>
+            <p className="mt-3 text-sm text-slate-400">
+              Prefer a full page?{" "}
+              <Link
+                href="/pricing-calculator"
+                className="font-semibold text-brand-mint underline-offset-2 hover:underline"
+              >
+                Open the calculator page
+              </Link>
+              .
+            </p>
           </div>
           {offer && (
             <div className="mt-8 max-w-md">
@@ -118,42 +143,16 @@ export default async function PricingPage() {
             ))}
           </dl>
 
-          {/* ONE conversion section on this page — the page explains
-              how pricing works, and this is the single way onward. */}
-          <div className="mt-12 rounded-lg bg-brand-mint-soft p-6 sm:p-8">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-lg font-semibold text-brand-navy">
-                  Get a price tailored to your business
-                </p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Tell us your monthly volume and the services you need.
-                  You&apos;ll receive your price privately by WhatsApp or email
-                  — no call needed.
-                </p>
-              </div>
-              {/* Same label, same behaviour as everywhere else: this
-                  band used to say "Get Price" and navigate to a page
-                  while the identical header button opened a dialog.
-                  /pricing-calculator stays as the no-JS and shareable
-                  route, linked below. */}
-              <CalculatorModal
-                variant="primary"
-                label="Get Price"
-                icon={false}
-              />
-            </div>
-            <p className="mt-4 text-sm text-slate-600">
-              Prefer a full page?{" "}
-              <Link
-                href="/pricing-calculator"
-                className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
-              >
-                Open the calculator page
-              </Link>
-              .
-            </p>
-          </div>
+          {/* The action for this page is at the TOP, in the hero. What
+              stays here is the quiet reassurance that closes the
+              section - no second "Get Price" button, because two
+              primary CTAs on one page is two decisions, not one. */}
+          <p className="mt-12 max-w-3xl text-base leading-7 text-slate-600">
+            Whatever your volume, the price is worked out on your own numbers
+            and sent to you privately — by WhatsApp or email, whichever you
+            chose. No call, and nothing published.
+          </p>
+
         </Container>
       </section>
     </>
