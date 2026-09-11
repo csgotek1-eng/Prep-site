@@ -456,12 +456,24 @@ describe("the brand documents agree with the website", () => {
     assert.ok(doc.includes("Information card"));
   });
 
-  it("the one real people asset is used only where it is approved", () => {
+  it("the owner-supplied people assets are used where they are approved", () => {
+    // This asserted the single docstring phrase "owner-approved real
+    // photograph", written when the repository held ONE people asset.
+    // The owner supplied three portraits on 2026-09-11, and the
+    // docstring now records what can actually be checked: who supplied
+    // them, when, and that the untouched originals are archived beside
+    // them. The guarantee the assertion exists for is unchanged - the
+    // people assets must not sit unused while the site shows nobody.
     const team = read("src/lib/team.ts");
-    assert.ok(team.includes("owner-approved real photograph"));
+    assert.ok(team.includes("owner-supplied"), "team.ts no longer records provenance");
+    assert.ok(team.includes("media-source/"), "team.ts no longer points at the archived originals");
     assert.ok(
       read("src/components/sections/ContactSection.tsx").includes("teamMembers"),
-      "the approved photo should not sit unused while the site shows nobody",
+      "the approved photos should not sit unused while the site shows nobody",
+    );
+    assert.ok(
+      read("src/app/about/page.tsx").includes("<TeamSection />"),
+      "/about shows nobody",
     );
   });
 });

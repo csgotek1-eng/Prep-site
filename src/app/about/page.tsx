@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/Container";
+import TeamSection from "@/components/sections/TeamSection";
 
 export const metadata: Metadata = {
   title: "About",
@@ -66,8 +67,13 @@ export default function AboutPage() {
               your stock, pick and pack your orders, and post them out — one
               at a time, as they come in.
             </p>
+            {/* "There are two of us" until 2026-09-11. The owner
+                supplied three people for the team block further down
+                this same page, so the old count contradicted the
+                portraits a reader sees a screen later. Only the number
+                moved. */}
             <p>
-              There are two of us. We&apos;re opening in 2026, and we&apos;re
+              There are three of us. We&apos;re opening in 2026, and we&apos;re
               building this for the size of brand we can actually see from
               here: someone shipping a few orders a day now, more before
               Christmas, who has run out of evenings to spend at the kitchen
@@ -77,16 +83,6 @@ export default function AboutPage() {
               We&apos;re not the biggest option in Ireland. We&apos;re the one
               that gives you a price without a sales call, tells you what
               happens when something goes wrong, and answers the phone.
-            </p>
-
-            {/* THE NAMED PERSON — Content Master v2.1, Decision No.4.
-                Deliberately text only and deliberately NOT inside the
-                figure above: that photograph is temporary illustrative
-                imagery, and attaching a real person's name to it would
-                turn an illustration into a claim about who works here. */}
-            <p className="!mt-8 rounded-lg border border-brand-border bg-brand-surface-soft px-5 py-4 text-base leading-7 text-brand-navy">
-              <span className="block font-semibold">Viktor</span>
-              He&apos;s the one who answers.
             </p>
 
             <h2 className="pt-4 text-2xl font-bold tracking-tight text-brand-navy">
@@ -99,6 +95,13 @@ export default function AboutPage() {
               your business — and that can grow as you do.
             </p>
           </div>
+
+          {/* THE TEAM. This replaced a single named person and one line
+              saying he answered everything. Three people work here, and
+              a page that names only one of them tells a visitor
+              something that is not true about who they will deal
+              with. */}
+          <TeamSection />
 
           <div className="mx-auto mt-12 max-w-3xl rounded-lg bg-brand-navy p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">

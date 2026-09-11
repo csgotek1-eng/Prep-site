@@ -7,10 +7,30 @@ here is served to a visitor; `public/media/**` holds the web versions.
 |---|---|---|
 | `dockentra-process-packing.source.mp4` | `public/media/hero/dockentra-process-packing.mp4` | audio track removed, H.264 High, CRF 28, faststart. 1.67 MB → 553 KB |
 | `dockentra-process-dispatch.source.mp4` | `public/media/process/dockentra-process-dispatch.mp4` | same treatment. 1.22 MB → 335 KB |
+| `viktor.source.png` | `public/media/team/viktor.webp` | downscale 1122×1402 → 880×1100 (same 4:5, no crop), WebP q85. 1.79 MB → 60 KB |
+| `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
+| `denis.source.png` | `public/media/team/denis.webp` | same treatment. 1.92 MB → 82 KB |
 
 Posters are single frames pulled from the same sources.
 
+The three portraits were supplied by the owner on 2026-09-11 to be
+published as the Dockentra team. They are downscaled and re-encoded and
+nothing else: no retouching, no face edit, no background change, no
+generated stand-in. The identity of each file was checked against the
+picture rather than its filename before a name was attached to it —
+`viktor.source.png` is the same person as the earlier owner-approved
+contact photograph (`public/team/dockentra-contact.jpg`), which is what
+settled which of the two men is Viktor.
+
 ## Regenerating
+
+Portraits:
+
+```
+node scripts/derive-team-portraits.mjs
+```
+
+Clips and posters:
 
 ```
 ffmpeg -i media-source/<source>.mp4 \

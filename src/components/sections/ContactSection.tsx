@@ -10,7 +10,7 @@ import {
 } from "@/components/SocialIcons";
 import Image from "next/image";
 import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
-import { teamMembers } from "@/lib/team";
+import { teamMemberNames, teamMembers } from "@/lib/team";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -55,31 +55,37 @@ export default function ContactSection() {
             {/* WHO YOU WILL BE TALKING TO.
                 The site promised "people you can actually talk to" and
                 then showed nobody: not a face, not a name, not a role.
-                This is the one real, owner-approved photograph the
-                repository holds (see lib/team.ts) — not stock, not
-                generated, not a borrowed warehouse — and it now carries
-                the name the owner approved in Content Master v2.1,
-                Decision No.4. No claim is made here that is not already
-                true on the Contact page. */}
-            {teamMembers[0] && (
-              <div className="mt-6 flex items-center gap-3">
-                <Image
-                  src={teamMembers[0].photoUrl}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 shrink-0 rounded-full object-cover"
-                />
-                <p className="text-sm leading-6 text-slate-600">
-                  <span className="block font-semibold text-brand-navy">
-                    {[teamMembers[0].name, teamMembers[0].role]
-                      .filter(Boolean)
-                      .join(" ")}
-                  </span>
-                  A real person reads every message.
-                </p>
-              </div>
-            )}
+                It then showed exactly ONE face and one name, which was
+                the opposite error - three people work here, and naming
+                one of them as the person who reads every message was a
+                claim nobody had decided. All three, from the single
+                source in lib/team.ts, with team-level wording. */}
+            <div className="mt-6 flex items-center gap-3">
+              <ul className="flex shrink-0 items-center -space-x-2">
+                {teamMembers.map((member) => (
+                  <li key={member.id}>
+                    <Image
+                      src={member.image}
+                      alt=""
+                      width={48}
+                      height={48}
+                      // Decorative here: the names are printed in the
+                      // sentence beside them, so alt text would make a
+                      // screen reader read the team out twice.
+                      aria-hidden="true"
+                      style={{ objectPosition: member.imagePosition }}
+                      className="h-12 w-12 rounded-full border-2 border-white object-cover"
+                    />
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm leading-6 text-slate-600">
+                <span className="block font-semibold text-brand-navy">
+                  {teamMemberNames()}
+                </span>
+                A real person reads every message.
+              </p>
+            </div>
 
             {/* Email first, WhatsApp second. No phone CTA here — the
                 number lives in the footer and at the bottom of the

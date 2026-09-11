@@ -42,7 +42,7 @@ describe("wordmark wired into header and footer", () => {
 
 describe("owner-approved team data survives the phone de-emphasis", () => {
   // The phone contact card was removed when the site moved off
-  // phone-first contact. The owner-approved data and photo stay in the
+  // phone-first contact. The owner-approved data and photos stay in the
   // repository so a future non-phone contact surface can use them
   // without asking for approval again.
   it("no component promotes calling any more", () => {
@@ -50,37 +50,25 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
     assert.equal(existsSync("src/components/TeamContactCard.tsx"), false);
   });
 
-  it("uses the real owner-approved photo asset, not a stock/AI placeholder path", () => {
-    const team = read("src/lib/team.ts");
-    assert.ok(team.includes("/team/dockentra-contact.jpg"));
-    for (const banned of ["unsplash", "pexels", "placeholder", "lorem", "avatar.com", "dicebear"]) {
-      assert.equal(team.toLowerCase().includes(banned), false);
-    }
-  });
-
   /**
-   * SUPERSEDED BY AN OWNER DECISION, NOT WEAKENED.
+   * SUPERSEDED BY AN OWNER DECISION, NOT WEAKENED — for the second time.
    *
-   * This used to assert `role: "Support Team"`. The guarantee it exists
-   * for is that the site never invents a person: at the time, no
-   * personal name had been approved, so the role label was the only
-   * honest thing to print. Content Master v2.1, Decision No.4 (owner,
-   * 07.09.2026) supplies the name — Viktor — and directs it to appear
-   * under the photograph in the homepage "Talk to us" block, on /about
-   * and in "One named person" on the homepage.
+   * These assertions used to pin ONE member: the name Viktor, the file
+   * /team/dockentra-contact.jpg, and a `role` field. The guarantee they
+   * exist for has never changed: the site must not invent a person.
    *
-   * So the assertion now pins the approved name instead of the
-   * placeholder, and still refuses every made-up stand-in the old rule
-   * was protecting against. Changing the name again is a content
-   * decision that has to go through the owner, and this test is where
-   * it lands.
+   * The owner supplied three portraits on 2026-09-11 and named them, so
+   * the rule now covers three people instead of one. Every made-up
+   * stand-in the old version rejected is still rejected, and two things
+   * the old version could not express are now pinned as well: that no
+   * job title or biography is invented for anyone, and that no email
+   * address is invented for anyone.
    */
-  it("prints only the owner-approved name, never an invented one", () => {
+  it("prints only owner-approved names, never an invented one", () => {
     const team = read("src/lib/team.ts");
-    assert.ok(
-      team.includes('name: "Viktor"'),
-      "team.ts must carry the name approved in Content Master v2.1 Decision No.4",
-    );
+    for (const name of ['name: "Viktor"', 'name: "Anna"', 'name: "Denis"']) {
+      assert.ok(team.includes(name), `team.ts must carry ${name}`);
+    }
     for (const invented of [
       "John Doe",
       "Jane Doe",
@@ -92,19 +80,41 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
     }
   });
 
-  it("renders the name without a dangling empty role label", () => {
-    // `role` is empty because the approved copy is the bare first name,
-    // so the block must not print "Viktor " with a trailing space.
-    const section = read("src/components/sections/ContactSection.tsx");
-    assert.equal(
-      section.includes("{teamMembers[0].name} {teamMembers[0].role}"),
-      false,
-    );
-    assert.ok(section.includes(".filter(Boolean)"));
+  it("uses the real owner-supplied photos, not a stock/AI placeholder path", () => {
+    const team = read("src/lib/team.ts");
+    for (const id of ["viktor", "anna", "denis"]) {
+      assert.ok(team.includes(`/media/team/${id}.webp`), `no portrait path for ${id}`);
+    }
+    for (const banned of ["unsplash", "pexels", "placeholder", "lorem", "avatar.com", "dicebear"]) {
+      assert.equal(team.toLowerCase().includes(banned), false);
+    }
   });
 
-  it("the approved photo asset actually exists in public/team", () => {
-    assert.ok(existsSync("public/team/dockentra-contact.jpg"));
+  it("invents no title, no biography and no email for anyone", () => {
+    const team = read("src/lib/team.ts");
+    // An address is the easiest thing to guess and the most damaging to
+    // publish wrongly: a visitor writes to it and nobody ever reads it.
+    assert.equal(/@[a-z0-9.-]+\.[a-z]{2,}/i.test(team.replace(/^\s*(\/\/|\*).*$/gm, "")), false,
+      "team.ts contains something shaped like an email address");
+    assert.ok(team.includes("email: null"));
+    for (const field of ["role:", "title:", "jobTitle", "bio:", "biography"]) {
+      assert.equal(team.includes(field), false, `team.ts invents a ${field}`);
+    }
+  });
+
+  it("the portrait files actually exist and are one consistent set", () => {
+    for (const id of ["viktor", "anna", "denis"]) {
+      assert.ok(existsSync(`public/media/team/${id}.webp`), `missing portrait for ${id}`);
+    }
+  });
+
+  it("no surface names one member as the person who answers", () => {
+    // The whole point of the three-person model: a single name beside
+    // "reads every message" is a claim about who handles an account.
+    const section = read("src/components/sections/ContactSection.tsx");
+    assert.equal(section.includes("teamMembers[0]"), false,
+      "the contact block singles out one member again");
+    assert.ok(section.includes("teamMemberNames()"));
   });
 });
 

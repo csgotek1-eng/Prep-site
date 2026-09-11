@@ -37,10 +37,17 @@ const reasons = [
       "What turned up and what condition it's in, before anything goes on a shelf. Same day. Included, not an add-on.",
   },
   {
-    title: "One named person",
+    // WAS "One named person": "His name is Viktor, and he's the one who
+    // reads your message." Three people work here (src/lib/team.ts), so
+    // that sentence told a visitor something untrue about who would
+    // handle their account, and it would have had to be rewritten the
+    // first time anyone else replied. The promise the owner actually
+    // makes - people rather than a queue - survives without naming one
+    // of them.
+    title: "A real team, not a ticket queue",
     Icon: UserRound,
     description:
-      "Not a ticket queue. His name is Viktor, and he's the one who reads your message.",
+      "You'll deal directly with the people looking after your account — not an anonymous support queue.",
   },
 ];
 

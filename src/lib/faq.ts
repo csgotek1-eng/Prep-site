@@ -135,7 +135,11 @@ export const faqItems: FaqItem[] = [
     category: "Getting started",
     question: "Are you actually open?",
     answer:
-      "Not yet. We're opening in 2026, our first site is in Limerick, and there are two of us. We'd rather you knew that now than found out later.",
+      // The headcount follows the team on /about (src/lib/team.ts):
+      // three named people are published there, so "two of us" here
+      // contradicted the About page and this answer ships inside the
+      // FAQPage structured data. Only the number moved.
+      "Not yet. We're opening in 2026, our first site is in Limerick, and there are three of us. We'd rather you knew that now than found out later.",
   },
   {
     category: "Orders",

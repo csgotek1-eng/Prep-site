@@ -1,5 +1,60 @@
 # PROJECT STATUS
 
+## THE REAL TEAM: THREE PEOPLE, ONE SOURCE OF TRUTH (2026-09-11, branch claude/real-team-photos)
+
+The owner supplied three portraits and named them. The site had been
+naming ONE person and saying he answered everything.
+
+**Identity was checked against the pictures, not the filenames.** The
+owner's own brief warned that the order might not match, and it did not
+match the order the files were pasted in. The woman is Anna; the other
+two are Viktor and Denis, and which is which was settled by the earlier
+owner-approved contact photograph already in the repository
+(`public/team/dockentra-contact.jpg`): it is the same man as
+`viktor.source.png`. Nothing was assigned on filename order alone.
+
+**One module owns all three.** `src/lib/team.ts` holds id, name, image,
+crop position and email, and every surface reads from it —
+`getTeamMember("anna")` for a specific person, `teamMemberNames()` for
+copy that names the whole team. No name, path or address is written
+down anywhere else.
+
+**Nothing was invented.** No surnames, no job titles, no biographies, no
+social links, no phone extensions. `email` is `null` for all three, so
+no mailto renders anywhere and the enquiry form stays the way to reach
+the team; one edit in that file publishes an address on every surface
+the member appears on. A test asserts that team.ts contains nothing
+shaped like an email address.
+
+**The photographs.** Originals archived untouched in `media-source/`;
+served versions are a pure downscale, 1122x1402 to 880x1100 — the same
+4:5, so no crop, so no chin or forehead is cut from a portrait framed
+differently by the camera. WebP q85: 60, 71 and 82 KB against 1.9 MB
+PNGs, metadata stripped. `scripts/derive-team-portraits.mjs` refuses to
+run on anything that is not 4:5, because the moment it is not, the
+script starts cropping faces.
+
+**What changed on the pages.**
+
+- /about: the "Viktor / He's the one who answers" block is gone,
+  replaced by OUR TEAM / Meet the team and three equal cards — names
+  only, no titles. Verified in a real browser at 1440, 768 and 390:
+  identical card boxes, faces large and uncropped, no horizontal
+  overflow, correct name under each face.
+- Why Dockentra: "One named person — His name is Viktor, and he's the
+  one who reads your message" became "A real team, not a ticket queue".
+- The homepage "Talk to us" block showed one face and one name. It now
+  shows all three as an avatar group over "Viktor, Anna and Denis". The
+  round 48px avatars are the one place `imagePosition` matters, because
+  a square window is cut from a 4:5 frame.
+- A consequence the brief did not mention: /about and one FAQ answer
+  both said "there are two of us", which contradicted three portraits
+  on the same page. Only the number moved, in both places, and a test
+  keeps the count tied to the length of the team array.
+
+Verified: lint clean, typecheck clean, 765/765 unit tests, build 36
+routes, all six browser suites, npm audit 0.
+
 ## TWO MORE PAGES NOBODY AUDITED (2026-09-10, branch main)
 
 Immediately after the round below, the same question asked once more:

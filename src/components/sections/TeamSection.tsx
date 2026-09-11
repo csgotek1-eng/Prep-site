@@ -1,0 +1,86 @@
+import Image from "next/image";
+import { teamMemberEmailHref, teamMembers } from "@/lib/team";
+
+/**
+ * The team block on /about: three people, three names, nothing else.
+ *
+ * NO JOB TITLES AND NO BIOGRAPHIES. None has been supplied, and a card
+ * with an invented title under a real face is a claim about how the
+ * company is organised. The names are the whole content.
+ *
+ * ONE SET, NOT THREE PICTURES. Every portrait is the same file size and
+ * the same 4:5 ratio, and the card holds that ratio, so the three boxes
+ * are identical and no face is cropped to fit a shape it was not shot
+ * for. `imagePosition` comes from the data, so a single member can be
+ * nudged without disturbing the other two.
+ *
+ * NOT A <figure>. /about already has exactly one, and
+ * tests/media-assets.test.ts counts them: that figure carries the
+ * "illustrative imagery" caption which must never be attached to a real
+ * person. These cards are a different kind of thing and stay outside it.
+ *
+ * EMAIL. A member's address is rendered only when the data holds one.
+ * All three are null today, so no mailto appears anywhere and the
+ * enquiry form remains the way to reach the team.
+ */
+export default function TeamSection() {
+  return (
+    <div className="mx-auto mt-14 max-w-5xl">
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+        Our team
+      </p>
+      <h2 className="mt-2 text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+        Meet the team
+      </h2>
+      <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+        A small, hands-on team you can reach directly. You&apos;ll speak with
+        real people who understand your account and how your stock and orders
+        are handled.
+      </p>
+
+      <ul
+        // One column on a phone so the faces stay large, three from sm up.
+        // No horizontal scroller: a visitor should never have to swipe to
+        // find out who the third person is.
+        className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-5 lg:gap-6"
+      >
+        {teamMembers.map((member) => {
+          const mailto = teamMemberEmailHref(member);
+          return (
+            <li
+              key={member.id}
+              className="overflow-hidden rounded-2xl border border-brand-border bg-white"
+            >
+              <div className="relative aspect-[4/5] w-full bg-brand-mint-soft">
+                <Image
+                  src={member.image}
+                  alt={`Portrait of ${member.name}`}
+                  fill
+                  // One card per row below sm, three across the 64rem
+                  // container above it; the cap stops a desktop browser
+                  // fetching more than the card can ever show.
+                  sizes="(min-width: 1024px) 21rem, (min-width: 640px) 33vw, 100vw"
+                  style={{ objectPosition: member.imagePosition }}
+                  className="object-cover"
+                />
+              </div>
+              <div className="px-4 py-3 sm:px-5 sm:py-4">
+                <p className="text-base font-semibold text-brand-navy">
+                  {member.name}
+                </p>
+                {mailto && (
+                  <a
+                    href={mailto}
+                    className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+                  >
+                    Email {member.name}
+                  </a>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
