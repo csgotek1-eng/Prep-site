@@ -294,8 +294,14 @@ for (const width of [320, 390, 430]) {
     (await page.locator('a[href="/become-a-client"]').count()) >= 1,
     "the Become a Client route is gone from the homepage",
   );
+  // NOT networkidle. This tab has just opened and closed the
+  // calculator, and a tab that has run the calculator does not reach
+  // idle again reliably - it times out the whole suite perhaps one run
+  // in three. The assertion reads server-rendered text, which is there
+  // at DOMContentLoaded.
   for (const path of ["/", "/about"]) {
-    await page.goto(BASE + path, { waitUntil: "networkidle" });
+    await page.goto(BASE + path, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(300);
     ok(!/€\s?\d/.test(await page.innerText("body")), `${path} shows a monetary amount`);
   }
   await context.close();

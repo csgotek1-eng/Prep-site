@@ -55,15 +55,18 @@ export default function LocationSection() {
         <div className="rounded-2xl border border-brand-border bg-white p-5 sm:p-6">
           <h3 className="flex items-center gap-2 text-base font-semibold text-brand-navy">
             <Clock aria-hidden="true" className="h-5 w-5 shrink-0 text-brand-green-dark" />
-            Visits and deliveries
+            Warehouse opening hours
           </h3>
 
           {openingHours ? (
-            <dl className="mt-3 space-y-1 text-base leading-7 text-slate-700">
+            <dl className="mt-3 text-base leading-7 text-slate-700">
               {openingHours.map((line) => (
-                <div key={line.days} className="flex flex-wrap gap-x-3">
+                <div
+                  key={line.days}
+                  className="flex flex-wrap justify-between gap-x-6 border-b border-brand-border/60 py-1.5 last:border-0"
+                >
                   <dt className="font-medium text-brand-navy">{line.days}</dt>
-                  <dd>{line.hours}</dd>
+                  <dd className="tabular-nums">{line.hours}</dd>
                 </div>
               ))}
             </dl>

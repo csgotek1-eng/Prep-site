@@ -66,21 +66,28 @@ export const siteConfig = {
         "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd, Courtbrack, Limerick, V94 PX6A, Ireland",
       ),
     /**
-     * PUBLISHED OPENING HOURS — NONE, AND NOT INVENTED.
+     * PUBLISHED OPENING HOURS — owner-supplied, 2026-09-12.
      *
-     * The owner asked for opening information and has not supplied
-     * times. "Mon-Fri 9-5" is the obvious placeholder and it is exactly
-     * what must not be written: somebody drives to Docklands Business
-     * Park at 16:30 on a Friday because a website said so, finds the
-     * unit shut, and we did that to them.
+     * These were deliberately null until the owner gave real times,
+     * because "Mon-Fri 9-5" as a placeholder is how somebody drives to
+     * Docklands Business Park on a Friday afternoon and finds the unit
+     * shut. They are now the approved hours, exactly as given.
      *
-     * So the site publishes what is TRUE instead — see visitPolicy
-     * below. TO PUBLISH REAL HOURS: replace null with lines of
-     * `{ days, hours }`. Every surface reads from here, so that edit is
-     * the entire change and the "by arrangement" note stays beneath
-     * them as context rather than as a substitute.
+     * THE ONE COPY. /about and the footer both read this array — a
+     * second copy is how the two surfaces end up disagreeing after the
+     * next change. Editing here changes both, and setting it back to
+     * null returns both to "By arrangement" without touching a
+     * component.
+     *
+     * Note these are the hours somebody is ON SITE, not a promise that
+     * a visitor can walk in: visitPolicy below still applies and is
+     * still shown beside them.
      */
-    openingHours: null as readonly { days: string; hours: string }[] | null,
+    openingHours: [
+      { days: "Monday to Friday", hours: "08:00 - 17:00" },
+      { days: "Saturday", hours: "09:00 - 11:00" },
+      { days: "Sunday", hours: "Closed" },
+    ] as readonly { days: string; hours: string }[] | null,
     /**
      * True whatever the hours are: this is a working fulfilment unit
      * inside a self-storage facility, not a shop counter.

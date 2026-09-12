@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
-import CalculatorModal from "@/components/CalculatorModal";
 import ProcessMedia from "@/components/sections/ProcessMedia";
 import ProcessVideo from "@/components/ProcessVideo";
 import PromotionCard from "@/components/PromotionCard";
@@ -114,21 +113,27 @@ export default async function HomePage() {
               </p>
             </div>
 
-            {/* A PAIR, and the primary is solid. The hero used to carry
-                one outlined button labelled "Calculator" — the page's
-                only action, styled as a secondary, naming a tool rather
-                than promising a result. Get Price is now the solid
-                primary, and the visitor who is not ready to be priced
-                has somewhere to go that is not the back button. */}
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CalculatorModal variant="hero" label="Get Price" icon={false} />
+            {/* ONE action in the hero, not two.
+                Get Price was here as the solid primary, directly beneath
+                the identical Get Price in the header — the same button,
+                the same dialog, twice on one screen. The owner asked for
+                the in-page copy to go and the header one to stay
+                untouched, so this is now a single secondary route for
+                the visitor who wants to understand the service before
+                being priced. The header carries the ask.
+
+                The margin drops from mt-9 to mt-8 and the supporting
+                line moves up with it: a gap sized for a button pair
+                reads as something missing once there is one link in it. */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/how-it-works" className={SECONDARY_HERO}>
                 See how it works
               </Link>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-6 text-brand-text-muted">
-              You&apos;ll receive your price privately by WhatsApp or email — no
-              call needed.
+              Ask for a price from the button at the top of any page —
+              you&apos;ll receive it privately by WhatsApp or email, with no
+              call.
             </p>
           </div>
 
@@ -145,7 +150,17 @@ export default async function HomePage() {
               or current operation, because that has not been
               confirmed. */}
           <figure className="mt-10 lg:mt-0">
-            <div className="relative mx-auto aspect-[9/16] w-full max-w-[17rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft shadow-sm sm:max-w-[19rem] lg:max-w-none">
+            {/* 16rem at phone width, not 17rem. The clip is centred and
+                the floating dock is pinned 62px in from the right, so a
+                centred box wider than (viewport - 124px) runs under it:
+                at 390 the old 17rem put the clip's right edge 2px
+                inside the dock. That went unnoticed while the hero
+                carried a button below the text — the extra 48px pushed
+                the clip past the dock's bottom edge — and surfaced the
+                moment the button was removed. Sizing the clip to clear
+                the dock fixes it at every phone width instead of only
+                the one the suite measures. */}
+            <div className="relative mx-auto aspect-[9/16] w-full max-w-[16rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft shadow-sm sm:max-w-[19rem] lg:max-w-none">
               <ProcessVideo
                 priority
                 src="/media/hero/dockentra-process-packing.mp4"

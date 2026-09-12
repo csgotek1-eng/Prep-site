@@ -154,6 +154,32 @@ export default function Footer() {
                 </li>
               )}
             </ul>
+            {/* OPENING HOURS, from the same array /about reads
+                (siteConfig.location.openingHours). Compact by design:
+                this column already carries email, WhatsApp, location,
+                phone and four social icons, and three more lines of
+                normal-size type would crowd it at 390px. Renders
+                nothing at all if the hours are ever set back to null,
+                rather than leaving an empty heading behind. */}
+            {siteConfig.location.openingHours && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Opening hours
+                </p>
+                <dl className="mt-1.5 space-y-0.5 text-xs leading-5 text-slate-300">
+                  {siteConfig.location.openingHours.map((line) => (
+                    <div key={line.days} className="flex flex-wrap gap-x-2">
+                      <dt>{line.days}</dt>
+                      <dd className="tabular-nums text-slate-400">{line.hours}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-1.5 text-xs leading-5 text-slate-400">
+                  Visits and deliveries by arrangement.
+                </p>
+              </div>
+            )}
+
             {/* Phone: kept for the people who need it, deliberately
                 quiet — small, dim, and never a button. */}
             <p className="mt-3 text-xs text-slate-400">

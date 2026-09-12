@@ -282,15 +282,16 @@ describe("CTA vocabulary and repetition", () => {
     );
   });
 
-  it("the homepage hero has ONE pricing action, plus a calm second door", () => {
+  it("the homepage hero has NO pricing action of its own, just the calm door", () => {
+    // The rule is still "one pricing ask" - it is the header's now.
+    // Owner decision, 2026-09-12: the hero's Get Price sat directly
+    // under the header's identical one, so the in-page copy went and
+    // the header's was left untouched.
     const home = withoutComments(read("src/app/page.tsx"));
-    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
-    assert.ok(home.includes('variant="hero"'));
-    // ONE public pricing label, everywhere: the hero says the same
-    // words as the header rather than naming a tool ("Calculator").
-    assert.ok(home.includes('label="Get Price"'));
+    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 0);
+    assert.ok(read("src/components/Header.tsx").includes('label="Get Price"'));
     assert.equal(home.includes('href="/pricing-calculator"'), false);
-    // The visitor who is not ready to be priced has somewhere to go.
+    // The visitor who is not ready to be priced still has somewhere to go.
     assert.ok(home.includes("See how it works"));
   });
 

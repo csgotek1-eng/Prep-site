@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
+import {
+  pricingDisclaimer,
+  pricingFactorDisplays,
+} from "@/lib/pricing/public-display";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 
@@ -14,40 +17,12 @@ export const metadata: Metadata = {
   },
 };
 
-const pricingFactors = [
-  {
-    title: "SKUs",
-    description: "How many different products you sell.",
-  },
-  {
-    title: "Storage",
-    description: "How much space your inventory takes up.",
-  },
-  {
-    title: "Incoming stock",
-    description: "How often and how much stock arrives.",
-  },
-  {
-    title: "Monthly orders",
-    description: "How many orders we fulfil for you each month.",
-  },
-  {
-    title: "Units per order",
-    description: "How many items a typical order contains.",
-  },
-  {
-    title: "Packaging",
-    description: "What your orders ship in.",
-  },
-  {
-    title: "Prep work",
-    description: "Labelling, polybagging, bundling and similar tasks.",
-  },
-  {
-    title: "Returns",
-    description: "How many returns come back and what happens to them.",
-  },
-];
+// The eight cards and their published lines both live in
+// src/lib/pricing/public-display.ts — the one module allowed to carry a
+// price the browser can see, and a leaf that cannot reach the pricing
+// engine. See its header for the five proposed figures that did not
+// survive checking against the approved catalogue.
+
 
 export default async function PricingPage() {
   // CONTEXT, not a price change. A promotion never rewrites the
@@ -86,27 +61,22 @@ export default async function PricingPage() {
               </div>
             )}
 
-            {/* THE PRIMARY ACTION, AT THE TOP.
-                It used to sit below four explanatory cards, so the one
-                thing a visitor came to this page to do was the last
-                thing they could reach. It is the same shared dialog the
-                header opens - one calculator for the whole site, not a
-                second instance - and it is the ONLY "Get Price" button
-                on the page now. */}
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CalculatorModal variant="primary" label="Get Price" icon={false} />
-              <p className="text-sm leading-6 text-slate-300">
-                Three questions: your monthly volume, the services you need,
-                and where to send it.
-              </p>
-            </div>
-            <p className="mt-3 text-sm text-slate-400">
-              Prefer a full page?{" "}
+            {/* NO in-page Get Price here either.
+                One round ago this hero carried the primary button; the
+                header carries the identical one on every page, and two
+                of the same button on one screen is not two chances to
+                convert, it is a repeated question. What stays is the
+                route for somebody who wants the calculator as a page
+                rather than a dialog — a different thing, not a second
+                copy of the same thing. */}
+            <p className="mt-8 text-sm leading-6 text-slate-300">
+              Three questions — your monthly volume, the services you need,
+              and where to send it. Use Get Price at the top of the page, or{" "}
               <Link
                 href="/pricing-calculator"
                 className="font-semibold text-brand-mint underline-offset-2 hover:underline"
               >
-                Open the calculator page
+                open the calculator as a full page
               </Link>
               .
             </p>
@@ -130,27 +100,50 @@ export default async function PricingPage() {
           </div>
 
           <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {pricingFactors.map((factor) => (
+            {pricingFactorDisplays.map((factor) => (
               <div
                 key={factor.title}
                 /* INFORMATION CARD — brand border, not the one
-                   off-system slate the audit found here. */
-                className="rounded-lg border border-brand-border p-6"
+                   off-system slate the audit found here.
+
+                   flex-col with the price line pushed to the bottom by
+                   mt-auto: the descriptions are different lengths, and
+                   without it the eight price lines sit at eight
+                   different heights across the row — browser QA
+                   measured them 45-69px apart when this was mt-4. The
+                   gap above the rule is mb-4 ON THE DESCRIPTION rather
+                   than a margin on the price line, because mt-auto and
+                   a fixed mt- cannot both apply: in the tallest card
+                   mt-auto collapses to nothing and the rule would sit
+                   against the text. */
+                className="flex flex-col rounded-lg border border-brand-border p-6"
               >
                 <dt className="text-base font-semibold text-brand-navy">
                   {factor.title}
                 </dt>
-                <dd className="mt-2 text-sm leading-6 text-slate-600">
+                <dd className="mt-2 mb-4 text-sm leading-6 text-slate-600">
                   {factor.description}
+                </dd>
+                {/* The price line: noticeable, not shouting. Brand
+                    accent and a hairline above it rather than a box —
+                    eight bordered boxes inside eight bordered cards is
+                    a grid fighting itself. */}
+                <dd className="mt-auto border-t border-brand-border/70 pt-3 text-sm font-semibold text-brand-green-dark">
+                  {factor.priceLine}
                 </dd>
               </div>
             ))}
           </dl>
 
-          {/* The action for this page is at the TOP, in the hero. What
-              stays here is the quiet reassurance that closes the
-              section - no second "Get Price" button, because two
-              primary CTAs on one page is two decisions, not one. */}
+          <p className="mt-6 max-w-3xl text-sm leading-6 text-brand-text-muted">
+            {pricingDisclaimer}
+          </p>
+
+          {/* No "Get Price" here. The only one on this page is in the
+              header, where it is on every page and where it stays: a
+              second copy at the foot of this section would be the same
+              button asking the same question twice. What closes the
+              section is the quiet reassurance instead. */}
           <p className="mt-12 max-w-3xl text-base leading-7 text-slate-600">
             There is no minimum volume to qualify for a price, and asking for
             one does not commit you to anything.

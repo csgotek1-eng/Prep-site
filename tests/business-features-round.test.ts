@@ -424,17 +424,29 @@ describe("the About location block", () => {
     );
   });
 
-  it("invents no opening hours", () => {
-    assert.equal(siteConfig.location.openingHours, null);
+  it("publishes the owner's hours, and invents none of them", () => {
+    // These were null until 2026-09-12 precisely so that no placeholder
+    // could be published; the owner then supplied real times. The test
+    // now pins THOSE, and still refuses to let a component carry its
+    // own copy - which is what would drift from the footer.
+    assert.deepEqual(siteConfig.location.openingHours, [
+      { days: "Monday to Friday", hours: "08:00 - 17:00" },
+      { days: "Saturday", hours: "09:00 - 11:00" },
+      { days: "Sunday", hours: "Closed" },
+    ]);
     const section = readCode("src/components/sections/LocationSection.tsx");
-    assert.equal(/Monday to Friday|Mon-Fri|9:00|09:00/.test(section), false);
-    assert.ok(section.includes("By arrangement"));
+    assert.equal(
+      /08:00|17:00|Monday to Friday/.test(section),
+      false,
+      "the About block hard-codes the hours instead of reading the config",
+    );
   });
 
-  it("keeps the hours in config, ready to publish in one edit", () => {
+  it("still degrades to 'By arrangement' if the hours are withdrawn", () => {
     const section = readCode("src/components/sections/LocationSection.tsx");
     assert.ok(section.includes("openingHours ?"));
     assert.ok(section.includes("openingHours.map"));
+    assert.ok(section.includes("By arrangement"));
   });
 });
 

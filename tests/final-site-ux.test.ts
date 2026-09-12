@@ -123,11 +123,20 @@ describe("hero Get Price is the solid primary", () => {
   });
 
   it("keeps its large, comfortable size and its label", () => {
+    // The hero VARIANT is still defined and still styled this way. What
+    // changed on 2026-09-12 is that the homepage stopped rendering one:
+    // the owner asked for the in-page Get Price to go, because the
+    // header carries the identical button on every page. The variant's
+    // styling is still worth pinning - the header's own CTA and any
+    // future hero use it.
     assert.ok(hero.includes("min-h-14"));
     assert.ok(hero.includes("text-lg"));
     assert.ok(/min-w-\[\d+rem\]/.test(hero));
-    assert.ok(strip(home).includes('variant="hero"'));
-    assert.equal((strip(home).match(/<CalculatorModal/g) ?? []).length, 1);
+    assert.equal(
+      (strip(home).match(/<CalculatorModal/g) ?? []).length,
+      0,
+      "the homepage renders a calculator button again",
+    );
   });
 
   it("has visible hover and focus states", () => {

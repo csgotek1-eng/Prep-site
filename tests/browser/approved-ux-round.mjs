@@ -7,6 +7,7 @@
  * Run with:  npm run build && npm run test:browser:ux
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
+import { pricingFactorDisplays } from "../../src/lib/pricing/public-display.ts";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,6 +27,17 @@ try {
   console.error("playwright is not installed:  npm install --no-save playwright");
   process.exit(1);
 }
+
+/**
+ * The owner-approved starting prices, exactly as /pricing renders them
+ * — read from the module that publishes them rather than copied, so a
+ * new figure widens this test exactly as far as it widens the page.
+ * Only the lines carrying an amount matter: "Quoted individually" was
+ * never something the money check would flag.
+ */
+const PUBLISHED_PRICE_LINES = pricingFactorDisplays
+  .map((factor) => factor.priceLine)
+  .filter((line) => /€\s?\d/.test(line));
 
 const fails = [];
 const ok = (cond, message) => {
@@ -410,11 +422,28 @@ for (const width of [320, 390, 430]) {
   ok(hrefs.includes("/services"), "the mobile menu cannot reach /services");
   await page.keyboard.press("Escape");
 
-  // Private pricing: no amount anywhere a visitor can see.
+  // Private pricing: no amount anywhere a visitor can see, with ONE
+  // exception the owner approved - the starting prices on the /pricing
+  // cards. Those exact strings are allowed, by exact match and only on
+  // /pricing; anything else carrying a figure is still a leak, and so
+  // is one of them turning up on another page. The list comes from the
+  // module that renders them, so this cannot drift wider than the page.
   for (const path of ["/", "/pricing", "/contact", "/become-a-client", `/offers/${OFFER_ID}`]) {
     await page.goto(BASE + path, { waitUntil: "networkidle" });
-    const text = await page.innerText("body");
+    const body = await page.innerText("body");
+    const allowed = path === "/pricing" ? PUBLISHED_PRICE_LINES : [];
+    const text = allowed.reduce((t, line) => t.split(line).join(""), body);
     ok(!/€\s?\d/.test(text), `${path} shows a monetary amount`);
+    if (path === "/pricing") {
+      ok(
+        PUBLISHED_PRICE_LINES.every((line) => body.includes(line)),
+        "a published price line is exempted here but is not on /pricing",
+      );
+    } else {
+      for (const line of PUBLISHED_PRICE_LINES) {
+        ok(!body.includes(line), `a published price line appeared on ${path}`);
+      }
+    }
   }
   await context.close();
 }

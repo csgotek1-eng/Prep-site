@@ -74,10 +74,19 @@ describe("header Get Price", () => {
 describe("homepage hero", () => {
   const home = strip(read("src/app/page.tsx"));
 
-  it("leads with the solid primary Get Price", () => {
-    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
-    assert.ok(home.includes('variant="hero"'));
-    assert.ok(home.includes('label="Get Price"'));
+  it("carries no in-page pricing button — the header has it", () => {
+    // Reversed on 2026-09-12, by owner decision. The hero used to lead
+    // with a solid Get Price sitting directly beneath the identical Get
+    // Price in the header: the same button, opening the same dialog,
+    // twice on one screen. The header one is untouched and is now the
+    // only ask on the page.
+    assert.equal(
+      (home.match(/<CalculatorModal/g) ?? []).length,
+      0,
+      "an in-page calculator button is back in the homepage hero",
+    );
+    const header = read("src/components/Header.tsx");
+    assert.ok(header.includes('label="Get Price"'), "the header CTA went missing");
   });
 
   it("pairs it with a calm second door instead of leaving one way out", () => {

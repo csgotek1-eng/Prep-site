@@ -17,8 +17,19 @@
  *
  * Also asserts the admin surface: no method on any admin route may
  * answer 2xx without a verified admin identity.
+ *
+ * THE ONE DELIBERATE EXCEPTION, added when /pricing began publishing
+ * owner-approved starting prices. Those exact strings are allowed on a
+ * page the owner chose to put them on, and NOTHING ELSE IS: the sweep
+ * removes them by exact match before scanning, so a real leak sitting
+ * beside one is still caught, and they are forbidden outright in any
+ * JSON body. The allowlist is read from the module that renders them,
+ * so publishing a new figure cannot widen this test by accident - it
+ * widens exactly as far as the card does, and the unit suite holds
+ * that card to a real catalogue rate.
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
+import { pricingFactorDisplays } from "../../src/lib/pricing/public-display.ts";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -47,6 +58,22 @@ const PRICING_FIELD =
  * is a scanner artefact, not a leak.
  */
 const AMOUNT = /€\s?\d|\d\s?(EUR|euro)\b/i;
+
+/**
+ * The approved lines, exactly as /pricing renders them. Only the ones
+ * carrying a figure matter here - "Quoted individually" was never
+ * something this scanner would flag.
+ */
+const APPROVED_PUBLIC_LINES = pricingFactorDisplays
+  .map((factor) => factor.priceLine)
+  .filter((line) => AMOUNT.test(line));
+
+/** Remove the approved lines, by exact match, and nothing near them. */
+const withoutApproved = (body) =>
+  APPROVED_PUBLIC_LINES.reduce(
+    (text, line) => text.split(line).join("[approved public price]"),
+    body,
+  );
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -157,14 +184,21 @@ const browser = await launch();
       return;
     }
     scanned += 1;
-    const field = PRICING_FIELD.exec(body);
-    const amount = AMOUNT.exec(body);
+    // A published line is allowed in a document; in a JSON body it
+    // would mean the price had reached an API, so that is still a leak.
+    const isJson = /json/.test(type);
+    if (isJson && APPROVED_PUBLIC_LINES.some((line) => body.includes(line))) {
+      leaks.push(`${response.url().replace(BASE, "")} [${type.split(";")[0]}] a published price line in a JSON body`);
+    }
+    const scannable = isJson ? body : withoutApproved(body);
+    const field = PRICING_FIELD.exec(scannable);
+    const amount = AMOUNT.exec(scannable);
     if (!field && !amount) return;
     const at = (field ?? amount).index;
     leaks.push(
       `${response.url().replace(BASE, "")} [${type.split(";")[0]}] ` +
         `${field ? `field ${field[0]}` : `amount ${amount[0]}`} :: ` +
-        body.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
+        scannable.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
     );
   });
 
@@ -190,6 +224,35 @@ const browser = await launch();
   step("calculator exercised");
 
   ok(scanned > 100, `only ${scanned} responses were scanned — the sweep did not run`);
+
+  // The exception has to be REAL and it has to be SMALL. An empty
+  // allowlist would mean the module stopped publishing and this
+  // redaction is dead code; a large one would mean the rate table had
+  // started leaking out a card at a time.
+  ok(
+    APPROVED_PUBLIC_LINES.length > 0 && APPROVED_PUBLIC_LINES.length <= 3,
+    `${APPROVED_PUBLIC_LINES.length} published price lines — expected 1 to 3`,
+  );
+  // And each one is on the page it was approved for. Redacting a string
+  // that never renders would quietly blind the scanner to it everywhere.
+  // A FRESH page for these: the tab that just ran the calculator never
+  // reaches networkidle again, and reusing it would also re-scan every
+  // response through the listener above for no benefit.
+  const reader = await context.newPage();
+  await reader.goto(BASE + "/pricing", { waitUntil: "domcontentloaded" });
+  const pricingText = await reader.locator("main").innerText();
+  for (const line of APPROVED_PUBLIC_LINES) {
+    ok(pricingText.includes(line), `"${line}" is redacted from the sweep but is not on /pricing`);
+  }
+  // The one page allowed to carry them is the only one that does.
+  for (const path of ["/", "/services", "/how-it-works", "/pricing-calculator"]) {
+    await reader.goto(BASE + path, { waitUntil: "domcontentloaded" });
+    const text = await reader.locator("body").innerText();
+    for (const line of APPROVED_PUBLIC_LINES) {
+      ok(!text.includes(line), `a published price line appeared on ${path}`);
+    }
+  }
+  await reader.close();
   for (const leak of leaks) fails.push(`pricing reached the browser: ${leak}`);
   step(`${scanned} responses scanned, ${leaks.length} carrying pricing`);
   await context.close();

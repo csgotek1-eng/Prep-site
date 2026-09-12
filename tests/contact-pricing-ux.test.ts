@@ -84,11 +84,13 @@ describe("header is navigation only", () => {
 describe("homepage hero keeps ONE conversion action", () => {
   const home = withoutComments(read("src/app/page.tsx"));
 
-  it("offers exactly one Calculator action, now labelled Get Price", () => {
-    // Later round: ONE public label for pricing, everywhere. The hero
-    // is the page's primary and says the same words as the header.
-    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 1);
-    assert.ok(home.includes('label="Get Price"'));
+  it("offers NO in-page Calculator action — the header carries it", () => {
+    // The rule this protects is unchanged: ONE pricing ask, one label,
+    // one dialog. Where it lives moved on 2026-09-12. The hero used to
+    // hold the primary directly beneath the header's identical button;
+    // the owner removed the in-page copy and kept the header's.
+    assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 0);
+    assert.ok(read("src/components/Header.tsx").includes('label="Get Price"'));
     // The homepage renders several section components; the hero is the
     // only one allowed to open the calculator, so none of the others
     // may mount a second opener.
@@ -104,8 +106,10 @@ describe("homepage hero keeps ONE conversion action", () => {
     }
   });
 
-  it("it leads into the ONE canonical calculator", () => {
-    assert.ok(home.includes('variant="hero"'));
+  it("every opener still leads into the ONE canonical calculator", () => {
+    // The homepage no longer opens it, so the assertion follows the
+    // openers that remain: the header and the floating dock.
+    assert.ok(read("src/components/Header.tsx").includes("CalculatorModal"));
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
         'from "@/components/PricingCalculator"',

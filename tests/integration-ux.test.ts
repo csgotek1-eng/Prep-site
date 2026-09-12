@@ -139,15 +139,20 @@ describe("one pricing engine behind both calculator entry points", () => {
   });
 
   it("every calculator entry point opens the one canonical dialog", () => {
-    // Header Get Price, the hero, the dock, the pricing band: all of
-    // them flip ONE shared boolean, and one host renders one dialog.
+    // Header Get Price, the dock, the pricing band: all of them flip
+    // ONE shared boolean, and one host renders one dialog. (The
+    // homepage hero was one of them until 2026-09-12, when the owner
+    // removed the in-page button as a duplicate of the header's.)
     const dock = read("src/components/FloatingDock.tsx");
     assert.equal(dock.includes("<CalculatorDialog"), false);
     assert.ok(dock.includes("useCalculator()"));
     assert.equal(dock.includes("calculateEstimate"), false);
     assert.equal(read("src/components/Header.tsx").includes("<CalculatorDialog"), false);
     assert.ok(read("src/components/SiteDialogs.tsx").includes("<CalculatorDialog"));
-    assert.ok(read("src/app/page.tsx").includes("<CalculatorModal"));
+    // The header mounts CalculatorTrigger (the button) rather than
+    // CalculatorModal (button + dialog host) — same shared boolean,
+    // no second dialog.
+    assert.ok(read("src/components/Header.tsx").includes("<CalculatorTrigger"));
     assert.ok(
       read("src/components/CalculatorModal.tsx").includes(
         "export function CalculatorDialog",
