@@ -1,5 +1,58 @@
 # PROJECT STATUS
 
+## PUBLIC PRICES, ONE GET PRICE, REAL HOURS (2026-09-12, branch claude/pricing-display-and-hours)
+
+**The first prices this site has ever published — three of the eight
+the owner proposed.** Each was checked against the approved catalogue
+before it went near the page, and five did not survive:
+
+| Card | Proposed | Published | Why |
+| --- | --- | --- | --- |
+| SKUs | No per-SKU fee | **No per-SKU fee** | true by absence: nothing in the catalogue charges per SKU |
+| Storage | First 14 days free | Quoted on your space | no source anywhere in the repo, catalogue or seed |
+| Incoming stock | From €1.60 / carton | **From €1.60 per carton** | matches `svc-receiving-carton` exactly |
+| Monthly orders | From €2.25 / order | Rate depends on your monthly volume | €2.25 is a SUPERSEDED rate; live bands are €2.60 / €2.30 / €2.05 / €1.80 |
+| Units per order | From €0.52 | Rate depends on your monthly volume | matches no band (€0.60 / €0.50 / €0.42 / €0.36) |
+| Packaging | From €0.24 / mailer | **From €0.24 per mailer** | matches `svc-packaging-mailer` exactly |
+| Prep work | From €0.40 / unit | Quoted individually | those services are INACTIVE, "no approved rates yet" |
+| Returns | From €3.20 / return | Quoted individually | CUSTOM_QUOTE, no automatic price |
+
+€2.25 was the one that mattered: `tests/volume-pricing.test.ts` already
+forbids it reappearing, and publishing it would have undercut the entry
+rate by 35c on every order, in public, in writing.
+
+They live in `src/lib/pricing/public-display.ts` — a LEAF that imports
+nothing, so the rate table can never be pulled in behind a published
+string — and every figure is pinned to the catalogue rate it came from,
+so a rate change that leaves the card behind fails the build. The two
+browser suites that forbid any euro amount reaching a visitor now redact
+those three strings BY EXACT MATCH, read from the same module, and still
+catch a real rate sitting beside one.
+
+**One Get Price, not three.** The homepage hero and the pricing hero
+each carried a button identical to the header's, on the same screen.
+Both are gone. The header's is untouched — `git diff` on Header.tsx is
+empty for this round — and a test asserts it still carries the label in
+both the bar and the mobile menu.
+
+**Opening hours, from one place.** `siteConfig.location.openingHours`
+now holds the owner's approved times (Mon-Fri 08:00-17:00, Sat
+09:00-11:00, Sun closed); /about and the footer both read it, neither
+carries a copy, and setting it back to null returns both to "By
+arrangement" without touching a component. `visitPolicy` still sits
+beside them: these are the hours somebody is on site, not an invitation
+to walk in.
+
+**Two defects browser QA found, which the unit suite could not.** The
+price lines were 45-69px out of alignment across each row — the card
+comment said `mt-auto` and the class said `mt-4`. And the floating dock
+clipped the hero clip at 390px: a centred 17rem box reaches 2px under a
+dock pinned 62px from the right, invisible until the hero lost the 48px
+the removed button occupied and the clip rose into the dock's band.
+
+857 unit tests, six browser suites, axe WCAG 2.1 AA across 16 pages at
+two widths, `npm audit` clean.
+
 ## INDEPENDENT REVIEW OF THE BUSINESS ROUND (2026-09-12, branch claude/business-features-round)
 
 A security pass and a QA pass over the round below, and the fixes they
@@ -140,9 +193,13 @@ credentials: with none, the lead is still saved and nothing is faked.
 **/about carries the confirmed address**, read from the config that
 already held it, with "By arrangement" rather than invented hours.
 Hours live in `siteConfig.location.openingHours` for a one-line edit.
+(SUPERSEDED 2026-09-12: the owner supplied real hours and that one-line
+edit was made — see the round at the top of this file.)
 
 **/pricing leads with Get Price** instead of burying it under four
 explanatory cards; exactly one such button in the page, one calculator.
+(SUPERSEDED 2026-09-12: the owner asked for the in-page button to go
+entirely. The header's is now the only one on the page.)
 
 **The packing photograph is the real team.** The stock stand-in whose
 vests read "Dockcentra" is replaced by Viktor and Anna, so the figure's
