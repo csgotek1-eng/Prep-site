@@ -84,7 +84,8 @@ export default function AboutPage() {
             <p>
               We&apos;re not the biggest option in Ireland. We&apos;re the one
               that gives you a price without a sales call, tells you what
-              happens when something goes wrong, and answers the phone.
+              happens when something goes wrong, and answers you the same
+              day.
             </p>
 
             <h2 className="pt-4 text-2xl font-bold tracking-tight text-brand-navy">

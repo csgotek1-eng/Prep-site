@@ -77,9 +77,28 @@ export default function AdminReviewsManager({
       try {
         await load({ Authorization: `Bearer ${stored.accessToken}` });
         if (active) setSession(stored);
-      } catch {
-        storeSession(null);
-        router.replace("/admin/login");
+      } catch (error) {
+        // ONLY an auth failure may end the session.
+        //
+        // This used to sign the admin out on ANY failed load, and the
+        // one module documented to return 503 on purpose is this one:
+        // with the reviews table not yet migrated, the owner would sign
+        // in, be bounced to /admin/reviews, get a 503, have their valid
+        // session destroyed and land back on /admin/login - forever,
+        // with no message explaining why. A store outage is not an
+        // authentication problem and must not be treated as one.
+        const status = (error as Error & { status?: number }).status;
+        if (status === 401 || status === 403) {
+          storeSession(null);
+          router.replace("/admin/login");
+          return;
+        }
+        if (active) {
+          setSession(stored);
+          setActionError(
+            error instanceof Error ? error.message : "Could not load reviews.",
+          );
+        }
       }
     })();
     return () => {
@@ -129,6 +148,14 @@ export default function AdminReviewsManager({
       });
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !data.ok) {
+        // Same rule as the initial load: an expired session cannot
+        // recover here and must return to sign-in; anything else is
+        // reported in place, with the session left alone.
+        if (supabaseConfig && (response.status === 401 || response.status === 403)) {
+          storeSession(null);
+          router.replace("/admin/login");
+          return;
+        }
         setActionError(data.error ?? "Request failed.");
         return;
       }

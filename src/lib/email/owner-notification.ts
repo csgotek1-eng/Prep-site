@@ -1,6 +1,6 @@
 import { formatEuro } from "../pricing/money.ts";
 import type { Estimate } from "../pricing/types";
-import { siteContact } from "../site-contact.ts";
+import { normalizeEmailAddress } from "./address.ts";
 import {
   resolvePricingEmailDeliveryMode,
   senderAddress,
@@ -121,18 +121,39 @@ export function buildOwnerNotificationText(input: OwnerNotificationInput): strin
 }
 
 /**
+ * The owner's own mailbox, as supplied on 2026-09-11.
+ *
+ * A SERVER-SIDE constant, deliberately not read from
+ * NEXT_PUBLIC_OWNER_CONTACT_EMAIL. That variable exists to change the
+ * "Email us" link in the utility bar; if this read it too, someone
+ * pointing the public contact address at a shared info@ inbox would
+ * silently redirect every internal price breakdown there as well. A
+ * display setting must not decide where private pricing is sent.
+ */
+const OWNER_NOTIFICATION_MAILBOX = "viktorkomarovprep@gmail.com";
+
+/**
  * Where the notification goes.
  *
- * PRICING_NOTIFICATION_TO overrides it (so a preview deployment can
- * send somewhere harmless); otherwise it is the site's own published
- * contact address, which is the owner's mailbox. A free-mail address is
- * perfectly fine as a RECIPIENT — the restriction that rules out Gmail
- * applies to the SENDER, where an unverifiable domain is spoofing.
+ * PRICING_NOTIFICATION_TO overrides the constant, so a preview can send
+ * somewhere harmless. The value is VALIDATED: an unparseable or
+ * multi-address string returns null and the send is skipped rather than
+ * handed to the provider, because `to: [value]` with a comma in it is
+ * how internal pricing reaches somebody it was not meant for.
+ *
+ * A free-mail address is fine as a RECIPIENT — the rule that rules out
+ * Gmail applies to the SENDER, where an unverifiable domain is spoofing.
  */
 export function ownerNotificationRecipient(): string | null {
-  const override = process.env.PRICING_NOTIFICATION_TO?.trim();
-  if (override) return override;
-  return siteContact.email;
+  const raw = process.env.PRICING_NOTIFICATION_TO?.trim() || OWNER_NOTIFICATION_MAILBOX;
+  const normalized = normalizeEmailAddress(raw);
+  if (!("address" in normalized)) {
+    console.error(
+      "Owner pricing notification has no usable recipient: PRICING_NOTIFICATION_TO is not a single valid address.",
+    );
+    return null;
+  }
+  return normalized.address;
 }
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";

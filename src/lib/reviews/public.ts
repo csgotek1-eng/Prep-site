@@ -38,7 +38,11 @@ export function toPublicReview(review: Review): PublicReview {
  */
 export function toPublicReviews(reviews: readonly Review[]): PublicReview[] {
   return reviews
-    .filter((review) => review.status === "APPROVED")
+    // TWO conditions, and both are required. Approval is a decision
+    // somebody made; consent is permission the reviewer gave. A review
+    // approved by mistake on a row with no recorded consent is still
+    // not publishable, and this is where that is enforced.
+    .filter((review) => review.status === "APPROVED" && review.consentToPublish)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .map(toPublicReview);
 }

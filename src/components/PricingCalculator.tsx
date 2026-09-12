@@ -267,7 +267,9 @@ export default function PricingCalculator({
       if (service.id in next) {
         delete next[service.id];
       } else {
-        next[service.id] = service.quantityFollowsVolume ? monthlyOrders : 1;
+        next[service.id] = service.quantityFollowsVolume
+          ? volumeAsQuantity(monthlyOrders)
+          : 1;
       }
       return next;
     });
@@ -282,6 +284,21 @@ export default function PricingCalculator({
     });
   }
 
+  /**
+   * A volume, expressed as a line quantity.
+   *
+   * The two ceilings are not the same number: MAX_MONTHLY_ORDERS is ten
+   * million and MAX_QUANTITY is one million. A volume between them
+   * produced a quantity the SERVER refuses, so parseSelections dropped
+   * the line, the request arrived carrying no selections at all, and the
+   * visitor was told to "select at least one service" while looking at
+   * the one they had selected. Clamped, an absurd volume still gets a
+   * quote instead of a rejection it cannot act on.
+   */
+  function volumeAsQuantity(volume: number): number {
+    return Math.min(volume, MAX_QUANTITY);
+  }
+
   /** The volume input: re-steers every per-order line the visitor has
    *  not overridden, so the quantity and the band never disagree. */
   function applyMonthlyOrders(next: number) {
@@ -293,7 +310,7 @@ export default function PricingCalculator({
         if (!service.quantityFollowsVolume) continue;
         if (!(service.id in updated)) continue;
         if (manualQuantities.has(service.id)) continue;
-        updated[service.id] = next;
+        updated[service.id] = volumeAsQuantity(next);
       }
       return updated;
     });

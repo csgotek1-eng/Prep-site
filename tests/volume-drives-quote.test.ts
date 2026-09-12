@@ -113,9 +113,14 @@ describe("volume reaches the total, not just the rate", () => {
   it("the browser seeds the quantity from the volume, and lets it be overridden", () => {
     const source = read("src/components/PricingCalculator.tsx");
     assert.ok(
-      source.includes("service.quantityFollowsVolume ? monthlyOrders : 1"),
+      source.includes("service.quantityFollowsVolume"),
       "ticking a per-order service no longer seeds its quantity from the volume",
     );
+    // Clamped to MAX_QUANTITY on the way in: the volume ceiling is ten
+    // million and the quantity ceiling is one million, and a value
+    // between them used to make the server drop the line entirely.
+    assert.ok(source.includes("function volumeAsQuantity("));
+    assert.ok(source.includes("Math.min(volume, MAX_QUANTITY)"));
     // Changing the volume re-steers lines the visitor has not typed.
     assert.ok(source.includes("function applyMonthlyOrders("));
     assert.ok(source.includes("manualQuantities.has(service.id)"));
@@ -231,6 +236,10 @@ describe("none of this sends a rate to the browser", () => {
     for (const banned of ['"price"', '"unitPrice"', '"minimumCharge"', '"currency"', "€", "EUR"]) {
       assert.equal(serialised.includes(banned), false, `catalogue leaks ${banned}`);
     }
+    // (A "450 cents" string would never appear in a serialised
+    // catalogue; the field-name checks above are what actually hold
+    // this. Kept as a cheap guard against a future human-readable
+    // price string, not as the primary defence.)
     assert.equal(/\d+\s*cents?/i.test(serialised), false, "catalogue carries an amount");
     assert.ok(serialised.includes("quantityFollowsVolume"));
   });

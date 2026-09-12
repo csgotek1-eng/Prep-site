@@ -39,6 +39,15 @@ export interface ReviewRepository {
   listApproved(): Promise<Review[]>;
   get(id: string): Promise<Review | null>;
   create(submission: ReviewSubmission): Promise<Review>;
+  /**
+   * Erase one review completely.
+   *
+   * The only hard delete in this repository, and it exists because a
+   * reviewer can withdraw consent: "we keep rejected reviews forever"
+   * and "you may ask us to delete your review" cannot both be true, and
+   * the second one is a right rather than a policy.
+   */
+  delete(id: string): Promise<boolean>;
   setStatus(
     id: string,
     status: ReviewStatus,
@@ -64,7 +73,12 @@ function toReview(value: unknown): Review | null {
     email: typeof row.email === "string" ? row.email : "",
     body: row.body,
     rating,
-    consentToPublish: true,
+    // READ, never assumed. This used to be hardcoded `true`, which
+    // meant the one fact the whole feature rests on - that this person
+    // agreed to be published - existed only in transit. A row is
+    // consented only if it says so.
+    consentToPublish: row.consentToPublish === true,
+    consentAt: typeof row.consentAt === "string" ? row.consentAt : null,
     status: row.status,
     createdAt: typeof row.createdAt === "string" ? row.createdAt : new Date(0).toISOString(),
     updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : new Date(0).toISOString(),
@@ -81,21 +95,39 @@ export class FileReviewRepository implements ReviewRepository {
   }
 
   private async read(): Promise<Review[]> {
+    let raw: string;
     try {
-      const raw = await readFile(this.filePath, "utf8");
+      raw = await readFile(this.filePath, "utf8");
+    } catch (error) {
+      // A MISSING file is an empty store - the normal first state in
+      // development. Anything else (a permission error, a directory
+      // where the file should be) is a real outage and must be reported
+      // as one: this used to catch everything and return [], so an
+      // unreadable store looked exactly like "nobody has reviewed us".
+      if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return [];
+      throw new ReviewStoreUnavailableError();
+    }
+    try {
       const parsed = JSON.parse(raw) as unknown;
-      if (!Array.isArray(parsed)) return [];
+      if (!Array.isArray(parsed)) throw new Error("not an array");
       return parsed.map(toReview).filter((review): review is Review => review !== null);
     } catch {
-      // A missing file is an empty store, which in development is the
-      // normal first state rather than an error.
-      return [];
+      // A corrupted store is not an empty one either.
+      throw new ReviewStoreUnavailableError();
     }
   }
 
   private async write(reviews: Review[]): Promise<void> {
-    await mkdir(dirname(this.filePath), { recursive: true });
-    await writeFile(this.filePath, `${JSON.stringify(reviews, null, 2)}\n`, "utf8");
+    try {
+      await mkdir(dirname(this.filePath), { recursive: true });
+      await writeFile(this.filePath, `${JSON.stringify(reviews, null, 2)}
+`, "utf8");
+    } catch {
+      // Same contract as the Supabase store: a write that did not
+      // happen raises the error the route turns into an honest 503,
+      // never a raw fs error surfacing as a 500.
+      throw new ReviewStoreUnavailableError();
+    }
   }
 
   async listAll(): Promise<Review[]> {
@@ -114,6 +146,7 @@ export class FileReviewRepository implements ReviewRepository {
     const now = new Date().toISOString();
     const review: Review = {
       ...submission,
+      consentAt: now,
       id: randomUUID(),
       // A submission is never born approved. Not in development either:
       // a store that behaves differently from production is a store
@@ -128,6 +161,14 @@ export class FileReviewRepository implements ReviewRepository {
     reviews.push(review);
     await this.write(reviews);
     return review;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const reviews = await this.read();
+    const remaining = reviews.filter((review) => review.id !== id);
+    if (remaining.length === reviews.length) return false;
+    await this.write(remaining);
+    return true;
   }
 
   async setStatus(
@@ -159,6 +200,8 @@ interface ReviewRow {
   email: string;
   body: string;
   rating: number | null;
+  consent_to_publish: boolean;
+  consent_at: string | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -174,6 +217,8 @@ function fromRow(row: ReviewRow): Review | null {
     email: row.email,
     body: row.body,
     rating: row.rating,
+    consentToPublish: row.consent_to_publish,
+    consentAt: row.consent_at,
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -226,9 +271,11 @@ export class SupabaseReviewRepository implements ReviewRepository {
   }
 
   async listApproved(): Promise<Review[]> {
+    // Consent is part of the QUERY, not only of the projection: an
+    // approved row without recorded consent must not even be fetched.
     const rows = await this.request<ReviewRow[]>(
       "GET",
-      "website_reviews?select=*&status=eq.APPROVED&order=updated_at.desc",
+      "website_reviews?select=*&status=eq.APPROVED&consent_to_publish=is.true&order=updated_at.desc",
     );
     return SupabaseReviewRepository.parse(rows);
   }
@@ -248,14 +295,27 @@ export class SupabaseReviewRepository implements ReviewRepository {
       email: submission.email,
       body: submission.body,
       rating: submission.rating,
-      // Not sent from the client, not defaulted in the app: the column
-      // default is PENDING and the CHECK constraint allows nothing else
-      // on insert. Two layers agree on where a review starts.
+      // Recorded with the row, not remembered by the request that
+      // happened to validate it.
+      consent_to_publish: submission.consentToPublish === true,
+      consent_at: new Date().toISOString(),
+      // Not sent from the client and not left to chance. The column
+      // DEFAULT is also PENDING, so two layers agree on where a review
+      // starts. (The CHECK constraint allows all three states - it is
+      // what stops an invalid one, not what forces this one.)
       status: "PENDING",
     });
     const review = SupabaseReviewRepository.parse(rows)[0];
     if (!review) throw new ReviewStoreUnavailableError();
     return review;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    await this.request<unknown>(
+      "DELETE",
+      `website_reviews?id=eq.${encodeURIComponent(id)}`,
+    );
+    return true;
   }
 
   async setStatus(
@@ -293,6 +353,9 @@ export class UnavailableReviewRepository implements ReviewRepository {
     return this.fail();
   }
   async create(): Promise<Review> {
+    return this.fail();
+  }
+  async delete(): Promise<boolean> {
     return this.fail();
   }
   async setStatus(): Promise<Review | null> {

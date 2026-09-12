@@ -37,6 +37,17 @@ create table if not exists public.website_reviews (
   -- application refuses 0 and 4.5 rather than rounding them.
   rating smallint check (rating is null or (rating between 1 and 5)),
 
+  -- CONSENT, RECORDED RATHER THAN ASSUMED.
+  --
+  -- Consent is the entire legal basis for publishing a person's words
+  -- under their name, so it is a stored fact with a timestamp, not
+  -- something the application remembers having checked. A row that
+  -- somehow arrives without it defaults to false and can never be
+  -- published: the public read path filters on this column as well as
+  -- on status.
+  consent_to_publish boolean not null default false,
+  consent_at timestamptz,
+
   -- The moderation lifecycle. PENDING is the DEFAULT, so a row that
   -- arrives without a status is not published; APPROVED is the only
   -- value the public read path will return.
@@ -49,13 +60,17 @@ create table if not exists public.website_reviews (
   moderation_note text not null default '',
 
   constraint website_reviews_body_not_empty check (length(btrim(body)) > 0),
-  constraint website_reviews_name_not_empty check (length(btrim(display_name)) > 0)
+  constraint website_reviews_name_not_empty check (length(btrim(display_name)) > 0),
+  -- Consent without a time is not evidence of anything.
+  constraint website_reviews_consent_timed check (
+    consent_to_publish = false or consent_at is not null
+  )
 );
 
 -- The public page reads approved reviews newest-first; the admin screen
 -- reads the pending queue. One index per real query shape.
 create index if not exists website_reviews_approved_idx
-  on public.website_reviews (status, updated_at desc);
+  on public.website_reviews (status, consent_to_publish, updated_at desc);
 
 create index if not exists website_reviews_queue_idx
   on public.website_reviews (status, created_at desc);

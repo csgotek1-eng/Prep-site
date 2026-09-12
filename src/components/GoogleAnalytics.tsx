@@ -14,8 +14,14 @@ import { resolveMeasurementId } from "@/lib/analytics";
  * the dataLayer before gtag/js runs, or the tag will already have
  * written a cookie by the time consent is declared. With storage
  * denied, Google receives cookieless pings — page views and counts,
- * nothing stored on the device and no advertising identifiers. There is
- * no cookie banner on this site yet; when there is one, it calls
+ * nothing stored on the device and no advertising identifiers.
+ *
+ * (There is deliberately no anonymize_ip here: it was a Universal
+ * Analytics setting and does nothing in GA4, where IP anonymisation is
+ * always on. Leaving it in would read as a privacy control that is not
+ * one.)
+ *
+ * There is no cookie banner on this site yet; when there is one, it calls
  * gtag("consent", "update", { analytics_storage: "granted" }) and the
  * same tag starts measuring properly.
  */
@@ -50,7 +56,7 @@ gtag('consent', 'default', {
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${measurementId}', { anonymize_ip: true });`}
+gtag('config', '${measurementId}');`}
       </Script>
     </>
   );

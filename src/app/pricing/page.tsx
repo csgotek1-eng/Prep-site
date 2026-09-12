@@ -73,6 +73,19 @@ export default async function PricingPage() {
               WhatsApp or email, whichever you choose.
             </p>
 
+            {/* The offer belongs BEFORE the button, not after it. It
+                used to sit below, so a visitor who did what the page
+                told them to do clicked Get Price and never saw it. */}
+            {offer && (
+              <div className="mt-8 max-w-md">
+                <PromotionCard
+                  offer={offer}
+                  tone="inline"
+                  eyebrow="New client offer available"
+                />
+              </div>
+            )}
+
             {/* THE PRIMARY ACTION, AT THE TOP.
                 It used to sit below four explanatory cards, so the one
                 thing a visitor came to this page to do was the last
@@ -83,8 +96,8 @@ export default async function PricingPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CalculatorModal variant="primary" label="Get Price" icon={false} />
               <p className="text-sm leading-6 text-slate-300">
-                Tell us your monthly volume and the services you need — your
-                price comes back privately, with no call.
+                Three questions: your monthly volume, the services you need,
+                and where to send it.
               </p>
             </div>
             <p className="mt-3 text-sm text-slate-400">
@@ -98,15 +111,6 @@ export default async function PricingPage() {
               .
             </p>
           </div>
-          {offer && (
-            <div className="mt-8 max-w-md">
-              <PromotionCard
-                offer={offer}
-                tone="inline"
-                eyebrow="New client offer available"
-              />
-            </div>
-          )}
         </Container>
       </section>
 
@@ -148,9 +152,8 @@ export default async function PricingPage() {
               section - no second "Get Price" button, because two
               primary CTAs on one page is two decisions, not one. */}
           <p className="mt-12 max-w-3xl text-base leading-7 text-slate-600">
-            Whatever your volume, the price is worked out on your own numbers
-            and sent to you privately — by WhatsApp or email, whichever you
-            chose. No call, and nothing published.
+            There is no minimum volume to qualify for a price, and asking for
+            one does not commit you to anything.
           </p>
 
         </Container>

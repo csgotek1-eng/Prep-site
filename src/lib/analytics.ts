@@ -49,8 +49,14 @@ export function resolveMeasurementId(
   const raw = env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID?.trim();
   if (!raw) return null;
   if (!MEASUREMENT_ID_PATTERN.test(raw)) {
+    // The VALUE is never printed. The docs above warn that the
+    // Measurement Protocol API secret must not go in this variable,
+    // and an owner who makes exactly that mistake would otherwise have
+    // their secret echoed into the build log and then into every
+    // server render, where log shipping carries it far beyond the
+    // person who typed it.
     console.warn(
-      `Ignoring NEXT_PUBLIC_GOOGLE_ANALYTICS_ID="${raw}": a GA4 Measurement ID looks like G-XXXXXXXXXX. Analytics stays off.`,
+      `Ignoring NEXT_PUBLIC_GOOGLE_ANALYTICS_ID (${raw.length} characters): a GA4 Measurement ID looks like G-XXXXXXXXXX. Analytics stays off.`,
     );
     return null;
   }
@@ -60,10 +66,16 @@ export function resolveMeasurementId(
 /** The Google hosts the tag needs. Added to the CSP only when enabled. */
 export const GOOGLE_ANALYTICS_CSP = {
   script: ["https://www.googletagmanager.com"],
+  // NAMED HOSTS ONLY. The wildcards that were here
+  // (https://*.google-analytics.com, https://*.analytics.google.com)
+  // re-opened exactly the hole that pinning connect-src to one Supabase
+  // project closed: a wildcard third-party origin accepting arbitrary
+  // POST bodies is an exfiltration channel for anything an injected
+  // script can read, and this site still carries 'unsafe-inline'.
+  // These two are the endpoints GA4 actually collects on.
   connect: [
     "https://www.google-analytics.com",
-    "https://*.google-analytics.com",
-    "https://*.analytics.google.com",
+    "https://region1.google-analytics.com",
     "https://www.googletagmanager.com",
   ],
   image: ["https://www.google-analytics.com", "https://www.googletagmanager.com"],

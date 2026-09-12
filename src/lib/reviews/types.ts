@@ -56,9 +56,24 @@ export interface ReviewSubmission {
   consentToPublish: true;
 }
 
-/** A stored review: the submission plus everything the team adds. */
-export interface Review extends ReviewSubmission {
+/**
+ * A stored review: the submission plus everything the team adds.
+ *
+ * `consentToPublish` widens to a plain boolean here, and that is the
+ * point. A SUBMISSION cannot exist without consent — the validator
+ * refuses it — but a ROW read back from a database can say anything,
+ * including false, and the code has to be able to represent that
+ * honestly rather than assume its way past it.
+ */
+export interface Review extends Omit<ReviewSubmission, "consentToPublish"> {
   id: string;
+  consentToPublish: boolean;
+  /**
+   * When consent was given. Null only for a row that predates the
+   * column or was written by hand — and such a row can never be
+   * published, because the public read path requires it.
+   */
+  consentAt: string | null;
   status: ReviewStatus;
   createdAt: string;
   updatedAt: string;

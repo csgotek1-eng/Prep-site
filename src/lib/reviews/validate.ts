@@ -16,7 +16,15 @@ import {
  * an admin then has to read as raw source.
  */
 
-const CONTROL_CHARACTERS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+// C0/C1 controls, plus the characters that reorder or hide text
+// without being visible themselves: bidi embeddings and overrides
+// (U+202A-U+202E), directional isolates (U+2066-U+2069), zero-width
+// joiners and spaces, and the BOM. Without these, a reviewer can submit
+// something that reads as bland approved text in the moderation queue
+// and renders reordered on the public page - a display spoof the
+// moderator has no way to see coming.
+const CONTROL_CHARACTERS =
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
 
 export const REVIEW_LIMITS = {
   displayName: 60,

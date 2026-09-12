@@ -1,5 +1,77 @@
 # PROJECT STATUS
 
+## INDEPENDENT REVIEW OF THE BUSINESS ROUND (2026-09-12, branch claude/business-features-round)
+
+A security pass and a QA pass over the round below, and the fixes they
+produced. Both found things I did not, and two of them were serious.
+
+**The owner could not have opened /admin/reviews.** The manager signed
+the admin out on ANY failed load — and this is the one module documented
+to answer 503 on purpose, because migration 0008 is not applied. Sign
+in, get bounced to /admin/reviews, receive a 503, have a VALID session
+destroyed, land back on /admin/login, forever, with no message. The
+status code was even captured and then never read. Only 401 and 403 end
+a session now; anything else is reported in place with the session
+intact. Three separate comments in the codebase promised the behaviour
+that was missing.
+
+**Consent existed only in transit.** The migration had no consent
+column, the Supabase insert did not send one, and the code read
+`consentToPublish: true` back as a literal for every row — so the one
+fact the whole feature rests on, that this person agreed to be
+published, was fabricated on read. It is now stored with a timestamp,
+required by the public read path as well as approval, and a review can
+be deleted outright, because "kept forever" and "you may ask us to
+delete it" cannot both be true.
+
+**The privacy page said the opposite of what the site does.** It stated
+that the site loads no third-party analytics (this round added Google
+Analytics) and that submissions are never published publicly (reviews
+are, by design). Both corrected, with a reviews section covering what is
+collected, that the email is never published, the legal basis, and the
+right to withdraw.
+
+**/cases and /uk-brands were in no accessibility audit** — the identical
+gap fixed one commit earlier for /offers/[id]. Both are audited now, and
+the star rating was an `aria-label` on a `<p>` with every star
+`aria-hidden`, which ARIA prohibits and which gave a screen-reader user
+an empty paragraph instead of a rating.
+
+**Smaller, all real:** the notification recipient followed a
+NEXT_PUBLIC_ display variable, so changing the footer's "Email us"
+address would have redirected every internal price breakdown with it —
+now a validated server-side constant. The GA CSP added two WILDCARD
+third-party origins, reopening the exfiltration channel that pinning
+Supabase closed. A rejected Measurement ID was echoed into logs, which
+is how an API secret pasted into the wrong variable ends up in log
+shipping. The review sanitiser passed bidi overrides, so a review could
+read as bland text in moderation and render reordered in public. The
+file store returned `[]` for every read failure, so an unreadable store
+looked exactly like "nobody has reviewed us". A volume between
+MAX_QUANTITY and MAX_MONTHLY_ORDERS made the server drop the line and
+tell the visitor to select a service they had already selected.
+
+**Tests that could not fail.** The QA pass found assertions comparing
+IMPORT order rather than call order (moving the auth check below the
+repository read would still have passed), a CSP regex that could never
+match a template literal, and — worst — that nothing ever called the
+proxy, so inverting the geo condition and bouncing every British visitor
+off the page written for them would have passed every geo test. The
+decision is now a pure function in lib/geo that a test invokes, with the
+proxy as four lines of glue; there is a new behavioural suite that runs
+the review lifecycle against a real store rather than grepping source.
+
+**Copy:** /about still promised "answers the phone" on a site built to
+de-emphasise the phone; /cases said "we are opening in 2026, nothing
+here" twice in adjacent sections; the pricing page stated the same
+promise three times and in the past tense about a choice the visitor had
+not made, with the offer card rendering BELOW the CTA it was meant to
+influence. All fixed.
+
+Verified after the fixes: lint clean, typecheck clean, 839 unit tests,
+build 36 routes, all six browser suites with /cases and /uk-brands now
+inside the axe audit.
+
 ## BUSINESS FEATURES ROUND (2026-09-11, branch claude/business-features-round)
 
 Ten owner-approved items. What follows is what shipped and, where it
@@ -77,7 +149,7 @@ vests read "Dockcentra" is replaced by Viktor and Anna, so the figure's
 caption names them instead of calling it illustrative. The rule still
 governs the hero and process clips, which are still stand-ins.
 
-Verified: lint clean, typecheck clean, 822 unit tests, build, all six
+Verified: lint clean, typecheck clean, 839 unit tests, build, all six
 browser suites, and a browser pass over /, /pricing,
 /pricing-calculator, /about, /cases and /uk-brands at 1440 and 390 —
 axe clean, no overflow, no euro amount outside the sourced customs

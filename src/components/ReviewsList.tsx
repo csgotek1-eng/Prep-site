@@ -20,10 +20,15 @@ export default function ReviewsList({ reviews }: { reviews: PublicReview[] }) {
         <p className="text-base font-semibold text-brand-navy">
           Customer stories are coming soon.
         </p>
+        {/* Deliberately does NOT say "nobody has reviewed us yet". This
+            same state renders when the review store is unreachable, and
+            once approved reviews exist that sentence would be the
+            opposite of the truth. What is always true is that nothing is
+            showing and why it would be here. */}
         <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
-          We are opening in 2026. When clients have worked with us and are happy
-          for us to publish what they think, their words will appear here — and
-          only theirs.
+          Nothing to show here yet. When clients have worked with us and are
+          happy for us to publish what they think, their words will appear
+          here — and only theirs.
         </p>
       </div>
     );
@@ -37,10 +42,17 @@ export default function ReviewsList({ reviews }: { reviews: PublicReview[] }) {
           className="rounded-2xl border border-brand-border bg-white p-5 sm:p-6"
         >
           {review.rating !== null && (
-            <p
-              className="flex items-center gap-0.5"
-              aria-label={`Rated ${review.rating} out of 5`}
-            >
+            // The stars are decoration; the SENTENCE is the rating.
+            //
+            // This was an aria-label on a <p>, which ARIA prohibits on a
+            // generic element and browsers do not reliably expose — with
+            // every star aria-hidden, a screen-reader user got an empty
+            // paragraph and no rating at all. A visually hidden line of
+            // real text cannot be ignored by anything.
+            <p className="flex items-center gap-0.5">
+              <span className="sr-only">
+                Rated {review.rating} out of 5
+              </span>
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}

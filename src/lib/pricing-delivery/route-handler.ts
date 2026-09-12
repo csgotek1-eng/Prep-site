@@ -55,6 +55,25 @@ const error = (status: number, message: string): PricingRouteResponse => ({
   body: { ok: false, error: message },
 });
 
+/**
+ * Which page the request came from, for the owner notification only.
+ *
+ * From the Referer, which the browser sets and we do not: it is a hint
+ * for a human reading an email ("they were on /pricing-calculator"),
+ * never an input to any decision. Only the PATH is kept - a full
+ * Referer can carry a query string, and a query string can carry
+ * somebody's search terms. Anything unparseable is simply absent.
+ */
+function requestPage(request: Request): string | null {
+  const referer = request.headers.get("referer");
+  if (!referer) return null;
+  try {
+    return new URL(referer).pathname.slice(0, 120);
+  } catch {
+    return null;
+  }
+}
+
 export async function handlePricingDeliveryRequest(
   request: Request,
   channel: PricingDeliveryChannel,
@@ -140,12 +159,14 @@ export async function handlePricingDeliveryRequest(
             e164: destination.normalized,
             selections,
             estimate,
+            page: requestPage(request),
           })
         : await processEmailPricingRequest({
             rawAddress: destination.raw,
             address: destination.normalized,
             selections,
             estimate,
+            page: requestPage(request),
           });
 
     if (!result.ok) {

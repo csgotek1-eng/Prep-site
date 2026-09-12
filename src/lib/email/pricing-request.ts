@@ -34,6 +34,8 @@ export interface EmailPricingRequestArgs {
   estimate: Estimate;
   provider?: PricingEmailProvider;
   store?: LeadStore;
+  /** Page the request came from, for the owner notification. */
+  page?: string | null;
 }
 
 /** The provider step: send, record the outcome, report it truthfully. */
@@ -106,6 +108,7 @@ export async function processEmailPricingRequest(
     },
     selections: args.selections,
     estimate: args.estimate,
+    page: args.page ?? null,
     deliver: emailDeliverer(args.provider ?? getPricingEmailProvider()),
     store: args.store,
   });

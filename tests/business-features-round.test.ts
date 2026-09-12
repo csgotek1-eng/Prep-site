@@ -5,12 +5,17 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { resolveMeasurementId, GOOGLE_ANALYTICS_CSP } from "../src/lib/analytics.ts";
-import { isIrishVisitor, requestCountry, showsUkContent } from "../src/lib/geo.ts";
+import { isIrishVisitor, requestCountry } from "../src/lib/geo.ts";
 import { FileReviewRepository, UnavailableReviewRepository } from "../src/lib/reviews/repository.ts";
 import { toPublicReview, toPublicReviews } from "../src/lib/reviews/public.ts";
 import { validateReviewSubmission } from "../src/lib/reviews/validate.ts";
 import type { Review, ReviewSubmission } from "../src/lib/reviews/types.ts";
-import { buildOwnerNotificationSubject, buildOwnerNotificationText, headerSafe } from "../src/lib/email/owner-notification.ts";
+import {
+  buildOwnerNotificationSubject,
+  buildOwnerNotificationText,
+  headerSafe,
+  ownerNotificationRecipient,
+} from "../src/lib/email/owner-notification.ts";
 import { siteContact } from "../src/lib/site-contact.ts";
 import { siteConfig } from "../src/lib/site.ts";
 import { calculateEstimate } from "../src/lib/pricing/calculate.ts";
@@ -63,6 +68,7 @@ describe("a review never publishes itself", () => {
     const base: Review = {
       ...submission,
       id: "r1",
+      consentAt: "2026-09-01T10:00:00.000Z",
       status: "PENDING",
       createdAt: "2026-09-01T10:00:00.000Z",
       updatedAt: "2026-09-01T10:00:00.000Z",
@@ -108,6 +114,7 @@ describe("a reviewer's email address never leaves the server", () => {
     const review: Review = {
       ...submission,
       id: "r1",
+      consentAt: "2026-09-01T10:00:00.000Z",
       status: "APPROVED",
       createdAt: "2026-09-01T10:00:00.000Z",
       updatedAt: "2026-09-02T10:00:00.000Z",
@@ -202,7 +209,17 @@ describe("the review routes follow the house rules for a public POST", () => {
     ]) {
       const source = readCode(path);
       assert.ok(source.includes("requireAdmin"), `${path} has no admin check`);
-      assert.ok(source.indexOf("requireAdmin") < source.indexOf("getReviewRepository"));
+      // Compare the CALLS, not the imports. `indexOf("requireAdmin")`
+      // used to land on line 2 - the import - so moving the auth check
+      // below the repository read would still have passed.
+      const authCall = source.indexOf("await requireAdmin(request)");
+      const repoCall = source.indexOf("getReviewRepository()");
+      assert.ok(authCall > -1, `${path} never calls requireAdmin(request)`);
+      assert.ok(repoCall > -1, `${path} never reaches the repository`);
+      assert.ok(
+        authCall < repoCall,
+        `${path} touches the review store before authenticating`,
+      );
     }
   });
 
@@ -232,22 +249,21 @@ describe("UK geo visibility", () => {
   it("GB sees the page", () => {
     const country = requestCountry(withCountry("GB"));
     assert.equal(country, "GB");
-    assert.equal(isIrishVisitor(country), false);
-    assert.equal(showsUkContent(country), true);
+    assert.equal(isIrishVisitor(country), false, "GB must not be treated as Ireland");
   });
 
   it("IE is redirected away from it", () => {
     const country = requestCountry(withCountry("IE"));
     assert.equal(isIrishVisitor(country), true);
-    assert.equal(showsUkContent(country), false);
   });
 
   it("a MISSING header lets the visitor through", () => {
     // The fallback that matters: no header must never mean "blocked".
     const country = requestCountry(withCountry());
     assert.equal(country, null);
+    // null is not "IE", which is the whole fallback: an unknown country
+    // can never become a reason to hide the page.
     assert.equal(isIrishVisitor(country), false);
-    assert.equal(showsUkContent(country), true);
   });
 
   it("an unresolvable country is treated as unknown, not as a country", () => {
@@ -257,17 +273,19 @@ describe("UK geo visibility", () => {
 
   it("any other country sees the page", () => {
     for (const code of ["US", "DE", "FR", "AU"]) {
-      assert.equal(showsUkContent(requestCountry(withCountry(code))), true);
+      assert.equal(isIrishVisitor(requestCountry(withCountry(code))), false);
     }
   });
 
-  it("the proxy redirects only on a positive IE, and only for that route", () => {
+  it("the proxy delegates to the tested decision", () => {
+    // The behavioural coverage moved to
+    // tests/reviews-and-geo-behaviour.test.ts, which CALLS the rule
+    // rather than matching words in this file: the assertions that used
+    // to live here would have passed with the condition inverted and
+    // every British visitor bounced off the page written for them.
     const proxy = readCode("src/proxy.ts");
-    assert.ok(proxy.includes("isIrishVisitor"));
+    assert.ok(proxy.includes("ukOnlyPageRedirect("));
     assert.ok(proxy.includes('matcher: ["/uk-brands"]'));
-    // 307, never a permanent redirect: the answer depends on who is asking.
-    assert.ok(proxy.includes("307"));
-    assert.equal(/308|permanent/.test(proxy), false);
   });
 });
 
@@ -350,11 +368,20 @@ describe("Google Analytics is off until an ID is supplied", () => {
     // The hosts are behind the conditional, never in the base policy.
     assert.ok(config.includes("resolveMeasurementId()"));
     assert.ok(config.includes("analyticsId ?"));
+    // The policy line is a TEMPLATE literal, so the old regex - which
+    // required straight double quotes - could never match, and
+    // hard-coding the host inside the backticks would have passed.
+    const scriptLine = /script-src[^`"]*/.exec(config)?.[0] ?? "";
+    assert.ok(scriptLine.length > 0, "no script-src found in the config");
     assert.equal(
-      /"script-src 'self' 'unsafe-inline' https:\/\/www\.googletagmanager\.com"/.test(config),
+      scriptLine.includes("googletagmanager"),
       false,
-      "a Google host is hard-coded into the policy",
+      "a Google host is hard-coded into the base policy",
     );
+    // And no wildcard third-party origin may appear in connect-src.
+    for (const host of GOOGLE_ANALYTICS_CSP.connect) {
+      assert.equal(host.includes("*"), false, `${host} is a wildcard origin`);
+    }
     assert.ok(GOOGLE_ANALYTICS_CSP.script.includes("https://www.googletagmanager.com"));
   });
 });
@@ -462,10 +489,64 @@ describe("the owner is emailed when a price is requested", () => {
     assert.ok(source.includes('status: "SKIPPED" as const'));
   });
 
-  it("goes to the owner's address by default, with an override", () => {
+  it("records the page the request came from, from the Referer", () => {
+    // This was a dead parameter for exactly one commit: the field
+    // existed on the args, no caller passed it, and every notification
+    // said "page: null". The chain is route handler -> channel args ->
+    // processPricingDeliveryRequest, so all three links are pinned.
+    const handler = readCode("src/lib/pricing-delivery/route-handler.ts");
+    assert.ok(handler.includes("function requestPage("));
+    assert.ok(handler.includes('request.headers.get("referer")'));
+    // The PATH only: a Referer can carry a query string, and a query
+    // string can carry somebody's search terms.
+    assert.ok(handler.includes("new URL(referer).pathname"));
+    assert.equal((handler.match(/page: requestPage\(request\)/g) ?? []).length, 2);
+    for (const path of [
+      "src/lib/email/pricing-request.ts",
+      "src/lib/whatsapp/pricing-request.ts",
+    ]) {
+      assert.ok(
+        readCode(path).includes("page: args.page ?? null"),
+        `${path} drops the page before it reaches the notification`,
+      );
+    }
+    assert.ok(readCode("src/lib/pricing-delivery/request.ts").includes("page: args.page ?? null"));
+  });
+
+  it("goes to the owner's address by default, with a VALIDATED override", () => {
     const source = readCode("src/lib/email/owner-notification.ts");
     assert.ok(source.includes("PRICING_NOTIFICATION_TO"));
-    assert.ok(source.includes("siteContact.email"));
+    // A server-side constant, NOT the NEXT_PUBLIC_ display variable.
+    // Reading that one would mean changing the footer's "Email us" link
+    // silently redirected every internal price breakdown with it.
+    assert.ok(source.includes('OWNER_NOTIFICATION_MAILBOX = "viktorkomarovprep@gmail.com"'));
+    assert.equal(
+      source.includes("siteContact"),
+      false,
+      "the notification recipient follows a public display setting",
+    );
+    // And the value is validated, so `to: [value]` cannot carry a
+    // second address smuggled in behind a comma.
+    assert.ok(source.includes("normalizeEmailAddress"));
+  });
+
+  it("refuses a recipient it cannot parse, rather than sending anyway", () => {
+    // No cache-busting import needed: the function reads process.env on
+    // every call, so the variable can be changed under it.
+    const previous = process.env.PRICING_NOTIFICATION_TO;
+    try {
+      process.env.PRICING_NOTIFICATION_TO = "someone@example.test, attacker@evil.test";
+      assert.equal(ownerNotificationRecipient(), null, "a multi-address value was accepted");
+      process.env.PRICING_NOTIFICATION_TO = "not-an-address";
+      assert.equal(ownerNotificationRecipient(), null);
+      process.env.PRICING_NOTIFICATION_TO = "ops@example.test";
+      assert.equal(ownerNotificationRecipient(), "ops@example.test");
+      delete process.env.PRICING_NOTIFICATION_TO;
+      assert.equal(ownerNotificationRecipient(), "viktorkomarovprep@gmail.com");
+    } finally {
+      if (previous === undefined) delete process.env.PRICING_NOTIFICATION_TO;
+      else process.env.PRICING_NOTIFICATION_TO = previous;
+    }
   });
 
   it("never pretends to have sent anything", () => {
@@ -513,6 +594,13 @@ describe("the Cases page", () => {
 
   it("is reachable and in the sitemap, without crowding the header", () => {
     assert.ok(read("src/app/sitemap.ts").includes('"/cases"'));
+    // /uk-brands is in the sitemap too: search is how a British seller
+    // finds it, and a page linked from nowhere is a page nobody reads.
+    assert.ok(read("src/app/sitemap.ts").includes('"/uk-brands"'));
+    // But NOT in the site navigation — an Irish visitor must never be
+    // offered a link that bounces them back to the homepage.
+    assert.equal(read("src/lib/site.ts").includes("/uk-brands"), false);
+    assert.equal(read("src/components/Footer.tsx").includes("/uk-brands"), false);
     assert.ok(read("src/components/Footer.tsx").includes('href: "/cases"'));
     // Seven header items is already the limit; an eighth is a redesign.
     assert.equal(read("src/lib/site.ts").includes('"/cases"'), false);

@@ -144,9 +144,41 @@ export default function PrivacyPage() {
                 systems so your enquiry cannot be lost, and reviewed by
                 Dockentra. Depending on how the website is configured at
                 any given time, a copy may also be sent securely to a
-                delivery endpoint Dockentra controls. Submissions are
-                never published publicly and are only accessible to
-                Dockentra.
+                delivery endpoint Dockentra controls. Quote and enquiry
+                submissions are never published publicly and are only
+                accessible to Dockentra. Customer reviews are the one
+                exception, and only with your explicit permission — see
+                below.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-brand-navy">
+                Customer reviews
+              </h2>
+              <p className="mt-3">
+                If you send us a review, we ask for a display name, your
+                review, optionally your business and a rating, and your
+                email address. The legal basis is your consent: nothing
+                is published unless you tick the box asking us to, and we
+                record that you did and when.
+              </p>
+              <p className="mt-3">
+                <strong>Your email address is never published.</strong>{" "}
+                It is used only so we can check a review came from a real
+                client and contact you about it if we need to. The
+                display name, the review text, the business name if you
+                gave one and the rating are what appear on the site, and
+                only after a person at Dockentra has read and approved
+                them — nothing you send appears automatically.
+              </p>
+              <p className="mt-3">
+                You can withdraw consent at any time using the contact
+                details on this website. We will unpublish the review and
+                delete it if you ask us to. Reviews we decline to publish
+                are kept, unpublished and visible only to Dockentra, so
+                the same submission is not approved later by mistake —
+                and they are deleted on request in the same way.
               </p>
             </div>
 
@@ -172,8 +204,20 @@ export default function PrivacyPage() {
                 which processes standard web request data (such as IP
                 address) as part of serving the site and is used
                 internally to apply a short-lived rate limit against
-                abusive form submissions. This website does not load
-                third-party analytics, advertising or tracking scripts.
+                abusive form submissions. This website loads no
+                advertising or ad-tracking scripts of any kind.
+              </p>
+              <p className="mt-3">
+                This website may use Google Analytics to count visits and
+                see which pages are read. Where it is enabled, it runs
+                with Google Consent Mode set to deny every storage
+                category, which means <strong>no analytics cookies are
+                written and nothing is stored on your device</strong>;
+                Google receives anonymous, aggregated page-view signals
+                only. Google Ireland Limited acts as the processor. If
+                that ever changes — for example if we introduce a cookie
+                banner and fuller measurement — this page will say so
+                before it happens.
               </p>
             </div>
 
@@ -184,9 +228,11 @@ export default function PrivacyPage() {
               <p className="mt-3">
                 Quote and enquiry submissions are retained only for as
                 long as needed to respond to your enquiry and manage the
-                resulting business relationship. You can ask for your
-                submission to be deleted at any time using the contact
-                details on this website.
+                resulting business relationship. Reviews are retained for
+                as long as they are published, and unpublished ones are
+                kept so the same text is not approved again by mistake.
+                You can ask for any submission or review to be deleted at
+                any time using the contact details on this website.
               </p>
             </div>
 

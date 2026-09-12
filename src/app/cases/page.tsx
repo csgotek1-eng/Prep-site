@@ -47,8 +47,10 @@ export default async function CasesPage() {
               Customer stories
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              What clients say about working with us — published only with their
-              permission, and never edited into something they did not write.
+              We are opening in 2026, so this page is mostly empty — and we
+              would rather show you that than somebody else&apos;s results.
+              Whatever appears here will be published with the client&apos;s
+              permission and never edited into something they did not write.
             </p>
           </div>
         </Container>
@@ -80,10 +82,9 @@ export default async function CasesPage() {
               Case studies
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
-              We are opening in 2026, so there is no finished piece of work to
-              write up yet. When there is — real numbers, a real client, with
-              their agreement — it will be here. We would rather show you
-              nothing than show you someone else&apos;s results.
+              None yet: a case study needs finished work, real numbers and the
+              client&apos;s agreement, and we do not have the first of those.
+              When we do, it will be here.
             </p>
             <p className="mt-4 text-base leading-7 text-slate-600">
               In the meantime,{" "}

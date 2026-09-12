@@ -25,6 +25,17 @@ Unpublishing is the same operation as rejecting. Nothing is ever
 deleted, so the same text cannot be re-approved later by somebody who
 never saw the original decision.
 
+## Consent is a stored fact
+
+The reviewer ticks a box, and that is recorded with a timestamp
+(`consent_to_publish`, `consent_at`). It is not simply checked in the
+request and forgotten: the public read path filters on it **as well as**
+on status, so a review approved by mistake on a row with no recorded
+consent still cannot be published. A reviewer can withdraw consent, and
+`ReviewRepository.delete()` exists for exactly that — "we keep rejected
+reviews forever" and "you may ask us to delete yours" cannot both be
+true, and the second is a right rather than a policy.
+
 ## What is never published
 
 The reviewer's **email address**. It is collected so the team can check

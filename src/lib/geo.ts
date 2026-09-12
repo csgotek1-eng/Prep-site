@@ -17,8 +17,13 @@
  * an infrastructure reason they will never understand.
  */
 
-/** United Kingdom. Two letters, and not "UK" — ISO 3166-1 says GB. */
-export const UNITED_KINGDOM = "GB";
+/**
+ * Ireland, the only country this file treats specially.
+ *
+ * (A UNITED_KINGDOM = "GB" constant used to sit here. Nothing ever
+ * referenced it: the rule is written as "is this Ireland", so GB is
+ * simply one of the many countries that are not.)
+ */
 export const IRELAND = "IE";
 
 /**
@@ -40,18 +45,34 @@ export function requestCountry(request: Request): string | null {
 }
 
 /**
- * Should this visitor be shown UK-specific content?
+ * True ONLY when we positively know the visitor is in Ireland.
  *
- * True for Great Britain. True when we do not know. False ONLY when we
- * positively know they are in Ireland — an Irish seller has no use for
- * a page about moving stock into Ireland, and showing it to them makes
- * the site look like it does not know who it is talking to.
+ * Everything reads this one way round, and the asymmetry is the whole
+ * design: GB sees the UK page, every other country sees it, and a
+ * visitor whose country cannot be determined sees it. Ireland is the
+ * single case that is treated differently, because an Irish seller has
+ * no use for a page about moving stock INTO Ireland.
+ *
+ * Written as "is it Ireland" rather than "should they see it" so that
+ * an unknown country can never accidentally become a reason to hide
+ * something: `null` is not `IE`, and that is all it takes.
  */
-export function showsUkContent(country: string | null): boolean {
-  return country !== IRELAND;
-}
-
-/** True only when we positively know the visitor is in Ireland. */
 export function isIrishVisitor(country: string | null): boolean {
   return country === IRELAND;
+}
+
+/**
+ * Where a visitor to a UK-only page should be sent, or null to let them
+ * read it.
+ *
+ * THE DECISION LIVES HERE, not in the proxy, so it can be called by a
+ * test. `next/server` cannot be imported by plain Node, so a test that
+ * exercised the proxy itself was impossible — which meant the only
+ * "tests" of this rule matched strings in the source, and would have
+ * passed just as happily with the condition inverted and every British
+ * visitor bounced off the one page written for them. The proxy is now
+ * four lines of framework glue around this function.
+ */
+export function ukOnlyPageRedirect(country: string | null): "/" | null {
+  return isIrishVisitor(country) ? "/" : null;
 }

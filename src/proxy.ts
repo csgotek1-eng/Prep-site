@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isIrishVisitor, requestCountry } from "@/lib/geo";
+import { requestCountry, ukOnlyPageRedirect } from "@/lib/geo";
 
 /**
  * The only proxy on this site, and it does exactly one thing.
@@ -27,9 +27,11 @@ import { isIrishVisitor, requestCountry } from "@/lib/geo";
  * never be cached as a permanent property of the URL.
  */
 export function proxy(request: NextRequest) {
-  if (isIrishVisitor(requestCountry(request))) {
-    const home = new URL("/", request.url);
-    return NextResponse.redirect(home, 307);
+  // The rule itself is ukOnlyPageRedirect() in lib/geo, where a test can
+  // reach it. Everything here is framework glue.
+  const destination = ukOnlyPageRedirect(requestCountry(request));
+  if (destination) {
+    return NextResponse.redirect(new URL(destination, request.url), 307);
   }
   return NextResponse.next();
 }

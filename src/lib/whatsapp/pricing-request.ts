@@ -39,6 +39,8 @@ export interface WhatsAppPricingRequestArgs {
   estimate: Estimate;
   provider?: WhatsAppProvider;
   store?: LeadStore;
+  /** Page the request came from, for the owner notification. */
+  page?: string | null;
 }
 
 /** The provider step: send, record the outcome, report it truthfully. */
@@ -115,6 +117,7 @@ export async function processWhatsAppPricingRequest(
     },
     selections: args.selections,
     estimate: args.estimate,
+    page: args.page ?? null,
     deliver: whatsAppDeliverer(args.provider ?? getWhatsAppProvider()),
     store: args.store,
   });

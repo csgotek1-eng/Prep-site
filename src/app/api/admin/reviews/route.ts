@@ -24,7 +24,14 @@ export async function GET(request: Request) {
   if (!auth.ok) return denied(auth);
   try {
     const reviews = await getReviewRepository().listAll();
-    return NextResponse.json({ ok: true, reviews });
+    // This is the only response on the site carrying members of the
+    // public's email addresses. Route handlers are not cached by
+    // default, so this is belt and braces rather than a fix - but it is
+    // the one response where a future caching change would be expensive.
+    return NextResponse.json(
+      { ok: true, reviews },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     return unavailable(error);
   }

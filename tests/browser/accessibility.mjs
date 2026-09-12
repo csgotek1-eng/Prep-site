@@ -32,6 +32,11 @@ const PAGES = [
   "/", "/about", "/services", "/pricing", "/how-it-works", "/become-a-client",
   "/partnerships", "/contact", "/faq", "/sla", "/privacy", "/pricing-calculator",
   `/offers/${OFFER_ID}`, "/this-route-does-not-exist",
+  // Added the day they shipped, because the round before this one had
+  // to fix a nested <main> on /offers/[id] that no audit ever visited.
+  // /cases carries the most complex new form on the site and /uk-brands
+  // is a full page that existed in no audit at all.
+  "/cases", "/uk-brands",
 ];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 

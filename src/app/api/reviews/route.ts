@@ -30,15 +30,14 @@ export async function POST(request: Request) {
   const body = await readIntakeBody(request);
   if (body.response) return body.response;
 
-  if (!(await rateLimiter.allow(requestClientKey(request)))) {
-    return fail("Thanks — you have already sent us a review recently.", 429);
-  }
-
   // Honeypot: answer as if it worked so a bot learns nothing, but store
   // nothing. Its own field name, so a bot tuned for another form here
-  // does not pass this one.
+  // does not pass this one. Logged at error level because a honeypot
+  // hit from a REAL browser - autofill reaching a hidden field - is a
+  // genuine review being silently dropped, and the only way anyone
+  // would ever notice is a pattern in these lines.
   if (isSpamSubmission(body.data, "reviewWebsiteConfirm")) {
-    console.warn("Review submission dropped: honeypot filled in.");
+    console.error("Review submission dropped: honeypot filled in.");
     return NextResponse.json({ ok: true });
   }
 
@@ -47,11 +46,21 @@ export async function POST(request: Request) {
     return fail(validated.error ?? "Invalid review.", 400);
   }
 
+  // RATE LIMIT AFTER VALIDATION, deliberately. Spending the allowance on
+  // rejected input meant three typos in an hour locked a genuine
+  // reviewer out for an hour. Only a submission good enough to store
+  // counts against the three.
+  if (!(await rateLimiter.allow(requestClientKey(request)))) {
+    return fail("Thanks — you have already sent us a review recently.", 429);
+  }
+
   try {
-    const review = await getReviewRepository().create(validated.review);
-    // The id is returned, not the row: the visitor has no business
-    // reading back a record that contains their moderation state.
-    return NextResponse.json({ ok: true, reference: review.id.slice(0, 8) });
+    await getReviewRepository().create(validated.review);
+    // Nothing is returned but the acknowledgement. The row would carry
+    // the moderation state, and the 8-character "reference" that used
+    // to be here was a slice of the internal id that no surface could
+    // look up - useless to the visitor, and a prefix of a key.
+    return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof ReviewStoreUnavailableError) {
       // Never claim a review was received when nothing stored it.

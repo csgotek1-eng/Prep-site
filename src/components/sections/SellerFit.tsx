@@ -43,11 +43,21 @@ export const SELLER_FIT = [
     body: "You would rather talk to someone who knows your account than open a ticket.",
   },
   /* FIFTH SEGMENT — Content Master v2.1 §3.1-E, NEW.
-     The document links this card to /uk-brands. That route does not
-     exist yet and route work is frozen for this round, so the card is
-     added WITHOUT a link rather than with a dead one: a card that says
-     nothing is better than a card that 404s. The link goes on with the
-     page, in the same change. */
+     The document links this card to /uk-brands. That route now EXISTS
+     (added 2026-09-11) and this card still does not link to it, which
+     is a decision rather than an oversight.
+
+     /uk-brands is geo-gated: src/proxy.ts redirects a visitor Vercel
+     identifies as Irish away from it. This card sits on the HOMEPAGE,
+     which most visitors to an Irish fulfilment company reach from
+     Ireland - so a link here would show most of them a link that
+     bounces them back to where they already are. The page is reached
+     through search instead, which is where a British seller looks, and
+     it is in the sitemap for exactly that reason.
+
+     If the card should ever link, the link has to be rendered
+     conditionally on the request country, which makes this page
+     dynamic - a real cost, for one card. */
   {
     Icon: Ship,
     title: "UK brands selling into Ireland",

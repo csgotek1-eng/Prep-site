@@ -61,7 +61,12 @@ export default function ContactSection() {
                 claim nobody had decided. All three, from the single
                 source in lib/team.ts, with team-level wording. */}
             <div className="mt-6 flex items-center gap-3">
-              <ul className="flex shrink-0 items-center -space-x-2">
+              {/* aria-hidden on the LIST, not on each image: hiding
+                  only the images still left a screen reader announcing
+                  "list, 3 items" followed by three empty ones before it
+                  reached the names, which are in the sentence beside
+                  this anyway. */}
+              <ul aria-hidden="true" className="flex shrink-0 items-center -space-x-2">
                 {teamMembers.map((member) => (
                   <li key={member.id}>
                     <Image
@@ -69,10 +74,6 @@ export default function ContactSection() {
                       alt=""
                       width={48}
                       height={48}
-                      // Decorative here: the names are printed in the
-                      // sentence beside them, so alt text would make a
-                      // screen reader read the team out twice.
-                      aria-hidden="true"
                       style={{ objectPosition: member.imagePosition }}
                       className="h-12 w-12 rounded-full border-2 border-white object-cover"
                     />
