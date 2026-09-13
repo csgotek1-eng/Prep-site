@@ -1,0 +1,119 @@
+name: Quality gates
+
+# EVERY CHANGE TO THIS SITE GOES THROUGH HERE BEFORE IT CAN BE DEPLOYED.
+#
+# The gates below were run by hand for the whole of the project's life,
+# which worked only because one person was running them. Once the site
+# is live on dockentra.ie, "I meant to run the tests" is a customer
+# seeing a broken quote form. This makes the gates a condition of
+# merging rather than a habit.
+#
+# It deliberately does NOT deploy. Deployment stays a deliberate act —
+# see docs/RELEASE_RUNBOOK.md. CI proves a commit is safe to deploy; a
+# human decides that it should be.
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first: there is no value
+# in finishing a 20-minute browser run for a commit that is already
+# superseded.
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fast feedback. Fails in about a minute when something is obviously
+  # wrong, so nobody waits for the browser suites to learn they have a
+  # type error.
+  static:
+    name: Lint, types, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # 876 tests, including the ones that keep prices off the public
+      # site, the rate card out of this repository, and the geo rule
+      # answering correctly for GB, IE and an unknown country.
+      - name: Unit tests
+        run: npm test
+
+  # Both builds. The Next build alone does not prove the site runs on
+  # Cloudflare — three separate regressions in this project passed
+  # `next build` and broke on Workers.
+  build:
+    name: Next build and Cloudflare build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Next production build
+        run: npm run build
+        env:
+          # Without this the build bakes in localhost for every
+          # canonical URL, sitemap entry and Open Graph tag. It is a
+          # build-time value, so it has to be here and not only in the
+          # Worker's runtime variables.
+          NEXT_PUBLIC_SITE_URL: https://dockentra.ie
+
+      - name: OpenNext Cloudflare build
+        run: npm run cf:build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://dockentra.ie
+
+  # The slow one. Real Chromium against a real production server:
+  # accessibility, the private-pricing sweep, the lead failure path,
+  # and layout at every width from 320 to 1920.
+  browser:
+    name: Browser suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Playwright is intentionally not a dependency of this project —
+      # it is a 300MB browser download that only the browser suites
+      # need. Installed here rather than carried in the lockfile.
+      - name: Install Playwright
+        run: npm install --no-save playwright && npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://dockentra.ie
+
+      - name: Browser suites
+        run: npm run test:browser
