@@ -277,15 +277,31 @@ describe("UK geo visibility", () => {
     }
   });
 
-  it("the proxy delegates to the tested decision", () => {
-    // The behavioural coverage moved to
+  it("the page itself delegates to the tested decision", () => {
+    // This used to read src/proxy.ts. That file is gone: the OpenNext
+    // Cloudflare adapter runs Node-runtime middleware through a path
+    // its own build output calls experimental and unmaintained, and
+    // under it the proxy redirected EVERY visitor off /uk-brands, GB
+    // included. The rule moved into the page, which is ordinary server
+    // code on every host.
+    //
+    // The behavioural coverage is in
     // tests/reviews-and-geo-behaviour.test.ts, which CALLS the rule
-    // rather than matching words in this file: the assertions that used
-    // to live here would have passed with the condition inverted and
-    // every British visitor bounced off the page written for them.
-    const proxy = readCode("src/proxy.ts");
-    assert.ok(proxy.includes("ukOnlyPageRedirect("));
-    assert.ok(proxy.includes('matcher: ["/uk-brands"]'));
+    // rather than matching words in a file: the assertions here would
+    // have passed with the condition inverted.
+    const page = readCode("src/app/uk-brands/page.tsx");
+    assert.ok(page.includes("ukOnlyPageRedirect("), "the page no longer applies the geo rule");
+    assert.ok(page.includes("countryFromHeaders("), "the page no longer reads the country");
+    // Per-visitor answer, so it cannot be cached per URL.
+    assert.ok(
+      page.includes('export const dynamic = "force-dynamic"'),
+      "the page is cacheable, so the redirect would be served to the wrong visitor",
+    );
+    // And nothing reintroduced a proxy behind our back.
+    assert.throws(
+      () => readCode("src/proxy.ts"),
+      "src/proxy.ts is back — on Cloudflare it breaks this page for every visitor",
+    );
   });
 });
 

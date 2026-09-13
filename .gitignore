@@ -35,3 +35,8 @@ Thumbs.db
 
 # Pricing calculator dev store (file-backed repository)
 data/
+
+# Cloudflare / OpenNext build output and local secrets
+.open-next/
+.dev.vars
+.wrangler/

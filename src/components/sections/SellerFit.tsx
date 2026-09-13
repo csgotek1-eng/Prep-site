@@ -47,8 +47,8 @@ export const SELLER_FIT = [
      (added 2026-09-11) and this card still does not link to it, which
      is a decision rather than an oversight.
 
-     /uk-brands is geo-gated: src/proxy.ts redirects a visitor Vercel
-     identifies as Irish away from it. This card sits on the HOMEPAGE,
+     /uk-brands is geo-gated: the page itself redirects a visitor the
+     host identifies as Irish away from it. This card sits on the HOMEPAGE,
      which most visitors to an Irish fulfilment company reach from
      Ireland - so a link here would show most of them a link that
      bounces them back to where they already are. The page is reached

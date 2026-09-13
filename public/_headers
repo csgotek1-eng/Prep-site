@@ -1,0 +1,40 @@
+# SECURITY HEADERS FOR STATIC FILES.
+#
+# next.config.ts sets security headers for every path, and on Vercel
+# that covered everything. On Cloudflare it does not: Workers Assets
+# serves a matching static file BEFORE the Worker script runs, so a
+# request for /brand/logo.png or /_next/static/chunk.js never reaches
+# Next and receives none of them. Measured on the real runtime: an HTML
+# route came back with 6 security headers and /brand/*.png with 0.
+#
+# This file is the documented Cloudflare mechanism for closing that
+# gap. It is not served as an asset itself; Workers parses it and
+# applies the rules to static asset responses.
+#
+# KEEP IN SYNC WITH next.config.ts. tests/cloudflare-deployment.test.ts
+# fails if the two disagree, because the failure mode otherwise is
+# silent: the site keeps working and simply stops being protected.
+#
+# Content-Security-Policy is deliberately NOT here. The real policy is
+# assembled at build time from the configured Supabase origin and the
+# Google Analytics hosts, so a copy in this file would be a second,
+# stale definition of the most security-sensitive header on the site.
+# CSP governs the document, and every document on this site is rendered
+# by the Worker and carries the real policy.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+
+# Photography and the two silent clips: big, and changed only when the
+# owner swaps the files. Mirrors the /media rule in next.config.ts.
+/media/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# Content-hashed build output. A new build means a new filename, so
+# these can be cached hard and forever.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

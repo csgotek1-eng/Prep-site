@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
-import {
-  pricingDisclaimer,
-  pricingFactorDisplays,
-} from "@/lib/pricing/public-display";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 
@@ -17,12 +13,61 @@ export const metadata: Metadata = {
   },
 };
 
-// The eight cards and their published lines both live in
-// src/lib/pricing/public-display.ts — the one module allowed to carry a
-// price the browser can see, and a leaf that cannot reach the pricing
-// engine. See its header for the five proposed figures that did not
-// survive checking against the approved catalogue.
-
+/**
+ * WHAT A QUOTE DEPENDS ON — THE FACTORS, NOT THE RATES.
+ *
+ * These eight cards name what we look at when pricing an operation.
+ * They carry NO figure, and that is the owner's standing decision, not
+ * an oversight: this site does not publish prices, ranges, "from"
+ * lines or indicative rates on any public page. A visitor who wants a
+ * number asks for one and receives it privately.
+ *
+ * For a short period an earlier round published three owner-approved
+ * starting prices here, in a dedicated module. The owner reversed that
+ * decision, so the module is gone and the prices with it — deleted
+ * rather than emptied, so there is no longer any structure on a public
+ * page with a slot shaped like a price waiting to be filled.
+ *
+ * DO NOT ADD A MONETARY VALUE TO THIS ARRAY. tests/pricing-page-and-
+ * hours.test.ts fails on any digit or currency symbol reaching these
+ * cards, and two browser suites fail on any amount reaching a visitor
+ * at all. The internal engine is untouched and still calculates a real
+ * quote server-side; the boundary is about what LEAVES the server.
+ */
+const pricingFactors = [
+  {
+    title: "SKUs",
+    description: "How many different products you sell.",
+  },
+  {
+    title: "Storage",
+    description: "How much space your inventory takes up.",
+  },
+  {
+    title: "Incoming stock",
+    description: "How often and how much stock arrives.",
+  },
+  {
+    title: "Monthly orders",
+    description: "How many orders we fulfil for you each month.",
+  },
+  {
+    title: "Units per order",
+    description: "How many items a typical order contains.",
+  },
+  {
+    title: "Packaging",
+    description: "What your orders ship in.",
+  },
+  {
+    title: "Prep work",
+    description: "Labelling, polybagging, bundling and similar tasks.",
+  },
+  {
+    title: "Returns",
+    description: "How many returns come back and what happens to them.",
+  },
+];
 
 export default async function PricingPage() {
   // CONTEXT, not a price change. A promotion never rewrites the
@@ -100,44 +145,32 @@ export default async function PricingPage() {
           </div>
 
           <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {pricingFactorDisplays.map((factor) => (
+            {pricingFactors.map((factor) => (
               <div
                 key={factor.title}
                 /* INFORMATION CARD — brand border, not the one
                    off-system slate the audit found here.
 
-                   flex-col with the price line pushed to the bottom by
-                   mt-auto: the descriptions are different lengths, and
-                   without it the eight price lines sit at eight
-                   different heights across the row — browser QA
-                   measured them 45-69px apart when this was mt-4. The
-                   gap above the rule is mb-4 ON THE DESCRIPTION rather
-                   than a margin on the price line, because mt-auto and
-                   a fixed mt- cannot both apply: in the tallest card
-                   mt-auto collapses to nothing and the rule would sit
-                   against the text. */
-                className="flex flex-col rounded-lg border border-brand-border p-6"
+                   No longer flex-col: the only thing that needed
+                   pushing to the bottom of these cards was the price
+                   line, and there is no price line. A title and a
+                   sentence do not need a layout mode. */
+                className="rounded-lg border border-brand-border p-6"
               >
                 <dt className="text-base font-semibold text-brand-navy">
                   {factor.title}
                 </dt>
-                <dd className="mt-2 mb-4 text-sm leading-6 text-slate-600">
+                <dd className="mt-2 text-sm leading-6 text-slate-600">
                   {factor.description}
-                </dd>
-                {/* The price line: noticeable, not shouting. Brand
-                    accent and a hairline above it rather than a box —
-                    eight bordered boxes inside eight bordered cards is
-                    a grid fighting itself. */}
-                <dd className="mt-auto border-t border-brand-border/70 pt-3 text-sm font-semibold text-brand-green-dark">
-                  {factor.priceLine}
                 </dd>
               </div>
             ))}
           </dl>
 
-          <p className="mt-6 max-w-3xl text-sm leading-6 text-brand-text-muted">
-            {pricingDisclaimer}
-          </p>
+          {/* The "these are indicative starting prices" disclaimer that
+              used to sit here went with the prices. A disclaimer about
+              figures, under a grid with no figures in it, would tell a
+              visitor to look for something that is not there. */}
 
           {/* No "Get Price" here. The only one on this page is in the
               header, where it is on every page and where it stays: a

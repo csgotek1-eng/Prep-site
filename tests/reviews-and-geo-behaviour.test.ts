@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
 
-import { requestCountry, ukOnlyPageRedirect } from "../src/lib/geo.ts";
+import { countryFromHeaders, requestCountry, ukOnlyPageRedirect } from "../src/lib/geo.ts";
 import { FileReviewRepository } from "../src/lib/reviews/repository.ts";
 import { toPublicReviews } from "../src/lib/reviews/public.ts";
 import { validateReviewSubmission } from "../src/lib/reviews/validate.ts";
@@ -43,6 +43,13 @@ function visit(country?: string): Request {
   });
 }
 
+/** The same visitor arriving through Cloudflare instead of Vercel. */
+function visitViaCloudflare(country?: string): Request {
+  return new Request("https://dockentra.test/uk-brands", {
+    headers: country ? { "cf-ipcountry": country } : {},
+  });
+}
+
 describe("the geo decision, actually invoked", () => {
   /** What the proxy will do with this request, without next/server. */
   const decide = (country?: string) =>
@@ -73,17 +80,65 @@ describe("the geo decision, actually invoked", () => {
     assert.equal(decide("ie"), "/");
   });
 
-  it("the proxy is glue over that decision, and redirects temporarily", () => {
-    // Comments stripped: the one explaining why it is 307 and not 308
+  /**
+   * THE SAME THREE ANSWERS THROUGH CLOUDFLARE.
+   *
+   * The site moved from Vercel to Cloudflare Workers, which sets
+   * `cf-ipcountry` instead of `x-vercel-ip-country`. The rule must not
+   * change with the host, and the unknown case matters more here than
+   * it did before: Cloudflare only sends that header when the zone has
+   * the "Add visitor location headers" managed transform enabled, so
+   * "no header" is a state this site will really be in.
+   */
+  const decideViaCloudflare = (country?: string) =>
+    ukOnlyPageRedirect(requestCountry(visitViaCloudflare(country)));
+
+  it("sends an Irish visitor to the homepage, via Cloudflare", () => {
+    assert.equal(decideViaCloudflare("IE"), "/");
+  });
+
+  it("lets a British visitor through, via Cloudflare", () => {
+    assert.equal(decideViaCloudflare("GB"), null, "a British visitor was redirected away");
+  });
+
+  it("lets a visitor through when Cloudflare sends no country at all", () => {
+    // The managed transform is off, or the Worker is on a workers.dev
+    // subdomain with no zone. Nobody is blocked for that reason.
+    assert.equal(decideViaCloudflare(), null);
+  });
+
+  it("treats Cloudflare's unresolved codes as unknown, not as a country", () => {
+    // XX is Cloudflare's "could not resolve"; T1 is Tor.
+    assert.equal(decideViaCloudflare("XX"), null);
+  });
+
+  it("reads the country straight off a Headers object", () => {
+    // What the /uk-brands page itself calls, now that the rule lives in
+    // the page rather than in a proxy.
+    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "IE" })), "IE");
+    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "gb" })), "GB");
+    assert.equal(countryFromHeaders(new Headers()), null);
+  });
+
+  it("the page is glue over that decision, and redirects temporarily", () => {
+    // This used to read src/proxy.ts, which no longer exists. The
+    // OpenNext Cloudflare adapter's Node-middleware path is
+    // experimental and, measured against the real Workers runtime,
+    // redirected every visitor off /uk-brands rather than only Irish
+    // ones. The rule now runs inside the page.
+    //
+    // Comments stripped: the one explaining why it is temporary
     // contains the word "308".
-    const proxySource = readFileSync("src/proxy.ts", "utf8")
+    const pageSource = readFileSync("src/app/uk-brands/page.tsx", "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
-    assert.ok(proxySource.includes("ukOnlyPageRedirect("));
-    // 307, never 308: the answer depends on who is asking.
-    assert.ok(proxySource.includes("307"));
-    assert.equal(/308|permanent/.test(proxySource), false);
-    assert.ok(proxySource.includes('matcher: ["/uk-brands"]'));
+    assert.ok(pageSource.includes("ukOnlyPageRedirect("));
+    // next/navigation's redirect() is a temporary (307) redirect: the
+    // answer depends on who is asking, so it must never be cached as a
+    // permanent property of the URL.
+    assert.ok(pageSource.includes("redirect(destination)"));
+    assert.equal(/308|permanentRedirect/.test(pageSource), false);
+    assert.ok(pageSource.includes('export const dynamic = "force-dynamic"'));
   });
 });
 

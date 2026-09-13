@@ -17,19 +17,8 @@
  *
  * Also asserts the admin surface: no method on any admin route may
  * answer 2xx without a verified admin identity.
- *
- * THE ONE DELIBERATE EXCEPTION, added when /pricing began publishing
- * owner-approved starting prices. Those exact strings are allowed on a
- * page the owner chose to put them on, and NOTHING ELSE IS: the sweep
- * removes them by exact match before scanning, so a real leak sitting
- * beside one is still caught, and they are forbidden outright in any
- * JSON body. The allowlist is read from the module that renders them,
- * so publishing a new figure cannot widen this test by accident - it
- * widens exactly as far as the card does, and the unit suite holds
- * that card to a real catalogue rate.
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
-import { pricingFactorDisplays } from "../../src/lib/pricing/public-display.ts";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -41,7 +30,36 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const PAGES = [
   "/", "/about", "/services", "/pricing", "/how-it-works", "/become-a-client",
   "/partnerships", "/contact", "/faq", "/sla", "/privacy", "/pricing-calculator",
+  // Added at launch. /cases renders text submitted by members of the
+  // public, which is exactly the kind of surface where an amount
+  // arrives without anyone deciding to put one there. A page missing
+  // from this list is a page where the boundary is unenforced.
+  "/cases",
+  // /uk-brands is swept too, but under a different rule — see below.
+  "/uk-brands",
 ];
+
+/**
+ * THE RULE IS "NO DOCKENTRA RATES", NOT "NO DIGITS".
+ *
+ * /uk-brands argues the customs case for holding stock in Ireland, and
+ * that argument is made of third-party statutory figures: the EUR 3
+ * customs duty per item, An Post's EUR 6.95 handling fee, and the
+ * EUR 150 and EUR 22 reliefs the EU abolished. Each is sourced in the
+ * page's markup to Irish Revenue, the European Commission or An Post.
+ * They are facts about the world, not what we charge, and the page
+ * exists to state them.
+ *
+ * So this page is exempt from the generic amount scan and held to a
+ * STRICTER rule instead: no figure on it may match any rate in the
+ * private catalogue. That is the thing the boundary actually protects,
+ * and it is checked directly below rather than approximated by
+ * counting euro signs.
+ *
+ * Every other page stays under the blanket rule, where any amount at
+ * all is a leak.
+ */
+const STATUTORY_FIGURE_PAGES = ["/uk-brands"];
 
 /**
  * Exact field names from the internal pricing model. Deliberately not a
@@ -58,22 +76,6 @@ const PRICING_FIELD =
  * is a scanner artefact, not a leak.
  */
 const AMOUNT = /€\s?\d|\d\s?(EUR|euro)\b/i;
-
-/**
- * The approved lines, exactly as /pricing renders them. Only the ones
- * carrying a figure matter here - "Quoted individually" was never
- * something this scanner would flag.
- */
-const APPROVED_PUBLIC_LINES = pricingFactorDisplays
-  .map((factor) => factor.priceLine)
-  .filter((line) => AMOUNT.test(line));
-
-/** Remove the approved lines, by exact match, and nothing near them. */
-const withoutApproved = (body) =>
-  APPROVED_PUBLIC_LINES.reduce(
-    (text, line) => text.split(line).join("[approved public price]"),
-    body,
-  );
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -184,21 +186,22 @@ const browser = await launch();
       return;
     }
     scanned += 1;
-    // A published line is allowed in a document; in a JSON body it
-    // would mean the price had reached an API, so that is still a leak.
-    const isJson = /json/.test(type);
-    if (isJson && APPROVED_PUBLIC_LINES.some((line) => body.includes(line))) {
-      leaks.push(`${response.url().replace(BASE, "")} [${type.split(";")[0]}] a published price line in a JSON body`);
-    }
-    const scannable = isJson ? body : withoutApproved(body);
-    const field = PRICING_FIELD.exec(scannable);
-    const amount = AMOUNT.exec(scannable);
+    const path = response.url().replace(BASE, "");
+    // The statutory-figure pages keep the field check — an internal
+    // pricing object reaching one of them is a leak like anywhere else
+    // — but not the blanket amount check. Their own rule is asserted
+    // separately, and it is a stricter one.
+    const exempt = STATUTORY_FIGURE_PAGES.some(
+      (page) => path === page || path.startsWith(`${page}?`),
+    );
+    const field = PRICING_FIELD.exec(body);
+    const amount = exempt ? null : AMOUNT.exec(body);
     if (!field && !amount) return;
     const at = (field ?? amount).index;
     leaks.push(
       `${response.url().replace(BASE, "")} [${type.split(";")[0]}] ` +
         `${field ? `field ${field[0]}` : `amount ${amount[0]}`} :: ` +
-        scannable.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
+        body.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
     );
   });
 
@@ -209,7 +212,14 @@ const browser = await launch();
 
   // A full calculator run: this is where prices would surface if they
   // ever did, so it must be exercised, not just the static pages.
-  await page.goto(BASE, { waitUntil: "networkidle" });
+  //
+  // NOT networkidle. The homepage carries an autoplaying clip, and a
+  // tab that has already loaded every page on the site does not go
+  // quiet for the 500ms networkidle wants — this timed out the whole
+  // suite after the sweep had already passed. What the run actually
+  // needs is the header button, so wait for that.
+  await page.goto(BASE, { waitUntil: "domcontentloaded" });
+  await page.locator('header button:has-text("Get Price")').first().waitFor({ state: "visible" });
   await page.locator('header button:has-text("Get Price")').first().click();
   await page.waitForSelector("#monthly-orders", { state: "visible" });
   await page.fill("#monthly-orders", "1000");
@@ -225,34 +235,33 @@ const browser = await launch();
 
   ok(scanned > 100, `only ${scanned} responses were scanned — the sweep did not run`);
 
-  // The exception has to be REAL and it has to be SMALL. An empty
-  // allowlist would mean the module stopped publishing and this
-  // redaction is dead code; a large one would mean the rate table had
-  // started leaking out a card at a time.
-  ok(
-    APPROVED_PUBLIC_LINES.length > 0 && APPROVED_PUBLIC_LINES.length <= 3,
-    `${APPROVED_PUBLIC_LINES.length} published price lines — expected 1 to 3`,
-  );
-  // And each one is on the page it was approved for. Redacting a string
-  // that never renders would quietly blind the scanner to it everywhere.
-  // A FRESH page for these: the tab that just ran the calculator never
-  // reaches networkidle again, and reusing it would also re-scan every
-  // response through the listener above for no benefit.
-  const reader = await context.newPage();
-  await reader.goto(BASE + "/pricing", { waitUntil: "domcontentloaded" });
-  const pricingText = await reader.locator("main").innerText();
-  for (const line of APPROVED_PUBLIC_LINES) {
-    ok(pricingText.includes(line), `"${line}" is redacted from the sweep but is not on /pricing`);
-  }
-  // The one page allowed to carry them is the only one that does.
-  for (const path of ["/", "/services", "/how-it-works", "/pricing-calculator"]) {
+  // ---- the stricter rule, for the pages that carry statutory facts ----
+  // Every figure on /uk-brands is a third-party number sourced in the
+  // markup. None of them may be one of OUR rates, whatever wording
+  // surrounds it — that is the boundary this file exists to protect,
+  // and on this page it is checked directly instead of by counting
+  // euro signs.
+  const { SEED_SERVICES, SEED_VOLUME_TIERS } = await import("../../src/lib/pricing/seed.ts");
+  const privateRates = [
+    ...SEED_SERVICES.map((service) => service.price),
+    ...SEED_VOLUME_TIERS.map((tier) => tier.price),
+  ]
+    .filter((cents) => typeof cents === "number" && cents > 0)
+    .map((cents) => (cents / 100).toFixed(2));
+  ok(privateRates.length > 0, "no private rates were loaded — this check would pass vacuously");
+
+  for (const path of STATUTORY_FIGURE_PAGES) {
+    const reader = await context.newPage();
     await reader.goto(BASE + path, { waitUntil: "domcontentloaded" });
     const text = await reader.locator("body").innerText();
-    for (const line of APPROVED_PUBLIC_LINES) {
-      ok(!text.includes(line), `a published price line appeared on ${path}`);
+    for (const rate of privateRates) {
+      ok(!text.includes(rate), `${path} publishes €${rate}, which is a real catalogue rate`);
     }
+    // And it must still be saying the thing it is exempt for.
+    ok(/customs|duty|revenue/i.test(text), `${path} no longer makes the customs argument`);
+    await reader.close();
   }
-  await reader.close();
+  step(`${STATUTORY_FIGURE_PAGES.length} statutory-figure page(s) checked against ${privateRates.length} private rates`);
   for (const leak of leaks) fails.push(`pricing reached the browser: ${leak}`);
   step(`${scanned} responses scanned, ${leaks.length} carrying pricing`);
   await context.close();

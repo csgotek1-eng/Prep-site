@@ -1,0 +1,81 @@
+/**
+ * CLOUDFLARE WORKERS DEPLOYMENT.
+ *
+ * This site is NOT static and cannot be deployed as one. It has API
+ * routes, server components, server-side pricing calculation that must
+ * never reach the browser, admin authentication, and a service-role
+ * Supabase key that only exists server-side. It runs as a Worker, via
+ * the OpenNext adapter, which is Cloudflare's supported path for a
+ * full Next.js application.
+ *
+ * WHAT IS DELIBERATELY ABSENT.
+ *
+ * No R2 incremental-cache binding. The adapter's docs recommend an R2
+ * cache for a site that uses `revalidate` (this one does: 60 on the
+ * layout, 300 on /cases), but R2 is not enabled on the account and
+ * enabling it is a billing decision that belongs to the owner. Without
+ * it, revalidated pages are simply rendered per request — correct, and
+ * slower than it needs to be. The site is a brochure with a calculator,
+ * not a high-traffic app, so this is an optimisation to revisit rather
+ * than a launch blocker. Same reasoning for the Images binding.
+ *
+ * `run_worker_first` on /media is NOT an optimisation, it is a
+ * security fix — see the comment on it below.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dockentra-website",
+  "main": ".open-next/worker.js",
+
+  /**
+   * 2025-05-05 or later is required by the adapter: earlier dates hit
+   * a FinalizationRegistry error in the Workers runtime.
+   */
+  "compatibility_date": "2025-05-05",
+
+  /**
+   * nodejs_compat: the app uses node:crypto (timing-safe comparison of
+   * the admin token, HMAC verification of the WhatsApp webhook) and
+   * node:path. global_fetch_strictly_public is required by the adapter
+   * so that fetches to our own public hostname go out through the
+   * internet rather than looping back inside the Worker.
+   */
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+
+    /**
+     * No `run_worker_first`. It was here to force /media through the
+     * Worker so next.config.ts's cache-control rule would apply, but
+     * public/_headers sets that rule directly on the asset response —
+     * which is the documented mechanism, costs no Worker invocation
+     * per image, and covers the security headers at the same time.
+     *
+     * Those security headers are the reason public/_headers exists at
+     * all: Workers Assets serves a matching static file BEFORE the
+     * Worker runs, so nothing under /public was receiving the headers
+     * next.config.ts sets. Measured, not assumed — an HTML route came
+     * back with 6 and /brand/*.png with 0.
+     */
+    "not_found_handling": "none"
+  },
+
+  /**
+   * The Next incremental cache. NEXT_INC_CACHE_KV is the binding name
+   * the adapter looks for — it is not free-form. See open-next.config.ts
+   * for why this is KV rather than R2 or the read-only assets cache,
+   * and for the 500 that its absence caused.
+   */
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "462a119c87504dd79773fb2fedd21edb"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

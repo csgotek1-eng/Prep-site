@@ -55,7 +55,7 @@ Sources: Irish Revenue, the European Commission, An Post. Verified
 
 ## Geo visibility
 
-`src/proxy.ts` redirects a visitor Vercel positively identifies as IE
+The `/uk-brands` page redirects a visitor the host positively identifies as IE
 away from `/uk-brands`. GB, everywhere else, and **anyone whose country
 cannot be determined** see the page. The fallback is deliberate: a
 missing header must never block a real visitor, and this is

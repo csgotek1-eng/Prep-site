@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
+import { countryFromHeaders, ukOnlyPageRedirect } from "@/lib/geo";
 
 export const metadata: Metadata = {
   title: "For UK brands shipping to Ireland",
@@ -79,7 +82,35 @@ const frictions = [
   },
 ];
 
-export default function UkBrandsPage() {
+/**
+ * THE IRISH-VISITOR REDIRECT LIVES HERE, NOT IN A PROXY.
+ *
+ * It used to be `src/proxy.ts` — four lines of Next middleware scoped
+ * to this one route. That worked on Vercel and is BROKEN on Cloudflare:
+ * the OpenNext adapter bundles Node-runtime middleware through a path
+ * its own build output calls "experimental... not officially maintained
+ * ... use at your own risk", and under it this route redirected EVERY
+ * visitor to the homepage — GB, IE and US alike. Verified against the
+ * real Workers runtime: plain `next start` answered 200/200/307 for
+ * none/GB/IE, and the Worker answered 307 to all three.
+ *
+ * A page about why British brands should hold stock in Ireland, which
+ * bounces every British visitor off itself, is worse than no page. So
+ * the rule moved into the page, where it is ordinary server code on
+ * every host and where the decision is still `ukOnlyPageRedirect()` in
+ * lib/geo — the one function the tests can actually call.
+ *
+ * force-dynamic because the answer depends on who is asking. This is
+ * the only page on the site that cannot be cached per-URL.
+ */
+export const dynamic = "force-dynamic";
+
+export default async function UkBrandsPage() {
+  const destination = ukOnlyPageRedirect(countryFromHeaders(await headers()));
+  if (destination) {
+    redirect(destination);
+  }
+
   return (
     <>
       <section className="bg-brand-navy">
