@@ -100,17 +100,26 @@ describe("source hygiene", () => {
     const key = (headers: Record<string, string>) =>
       requestClientKey(new Request("https://example.test/", { headers }));
 
-    // These two assertions used to read the LEFTMOST x-forwarded-for
-    // hop and to prefer that header over x-real-ip. Both were changed
-    // deliberately, not to make anything green: the leftmost hop is the
-    // one value in the chain the CALLER writes, so a forged prefix
-    // minted a fresh bucket per request. The nearest proxy's own hop is
-    // the rightmost one, and a header the platform sets (x-real-ip,
-    // x-vercel-forwarded-for) outranks anything in x-forwarded-for.
-    // Precedence and spoofing are pinned in tests/hardening-round.
+    // The rightmost hop is the one the nearest proxy actually observed;
+    // the leftmost is the one value in the chain the CALLER writes, so
+    // reading it let a forged prefix mint a fresh bucket per request.
     assert.equal(key({ "x-forwarded-for": "9.9.9.9, 10.0.0.1" }), "10.0.0.1");
+
+    // x-real-ip NO LONGER OUTRANKS x-forwarded-for, and that is a
+    // deliberate reversal of what this assertion used to pin. Neither
+    // of this site's hosts sets it, so above the rightmost hop it was
+    // a forgeable value overriding a trustworthy one. It is demoted to
+    // last rather than removed — see below. The header that now leads,
+    // cf-connecting-ip, is set by Cloudflare from the observed peer and
+    // cannot be forged. Precedence and the spoofing case are pinned in
+    // tests/hardening-round.
     assert.equal(
       key({ "x-forwarded-for": "9.9.9.9", "x-real-ip": "8.8.8.8" }),
+      "9.9.9.9",
+      "x-real-ip is being trusted again",
+    );
+    assert.equal(
+      key({ "x-forwarded-for": "9.9.9.9", "cf-connecting-ip": "8.8.8.8" }),
       "8.8.8.8",
     );
     // Without it, x-real-ip keeps two visitors in separate buckets

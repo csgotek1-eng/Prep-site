@@ -1,3 +1,4 @@
+import { verifyAdminToken } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { getLeadStore } from "@/lib/leads/store";
 import { handleWhatsAppStatusWebhook } from "@/lib/whatsapp/webhook";
@@ -26,10 +27,15 @@ export async function GET(request: Request) {
   const token = url.searchParams.get("hub.verify_token");
   const challenge = url.searchParams.get("hub.challenge");
 
+  // Constant-time, like every other secret comparison on this site.
+  // This is Meta's one-time subscription handshake rather than a
+  // per-request credential, so the practical risk was small — but a
+  // `!==` on a secret is exactly the thing nobody notices has been
+  // copied somewhere it matters, and verifyAdminToken already existed.
   if (
     !verifyToken ||
     mode !== "subscribe" ||
-    token !== verifyToken ||
+    !verifyAdminToken(token, verifyToken) ||
     challenge === null
   ) {
     return new NextResponse("Forbidden", { status: 403 });

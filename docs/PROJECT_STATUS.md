@@ -6,20 +6,28 @@
 the owner proposed.** Each was checked against the approved catalogue
 before it went near the page, and five did not survive:
 
-| Card | Proposed | Published | Why |
-| --- | --- | --- | --- |
-| SKUs | No per-SKU fee | **No per-SKU fee** | true by absence: nothing in the catalogue charges per SKU |
-| Storage | First 14 days free | Quoted on your space | no source anywhere in the repo, catalogue or seed |
-| Incoming stock | From €1.60 / carton | **From €1.60 per carton** | matches `svc-receiving-carton` exactly |
-| Monthly orders | From €2.25 / order | Rate depends on your monthly volume | €2.25 is a SUPERSEDED rate; live bands are €2.60 / €2.30 / €2.05 / €1.80 |
-| Units per order | From €0.52 | Rate depends on your monthly volume | matches no band (€0.60 / €0.50 / €0.42 / €0.36) |
-| Packaging | From €0.24 / mailer | **From €0.24 per mailer** | matches `svc-packaging-mailer` exactly |
-| Prep work | From €0.40 / unit | Quoted individually | those services are INACTIVE, "no approved rates yet" |
-| Returns | From €3.20 / return | Quoted individually | CUSTOM_QUOTE, no automatic price |
+> **SUPERSEDED 2026-09-13, AND THE FIGURES ARE REDACTED.** The owner
+> reversed this decision: the site now publishes no prices at all. The
+> table below used to quote the real catalogue rates in full — in a
+> PUBLIC repository, which handed away the entire commercial position
+> the private-pricing boundary exists to protect. They are replaced
+> with service ids; the values live in `src/lib/pricing/seed.ts`.
 
-€2.25 was the one that mattered: `tests/volume-pricing.test.ts` already
-forbids it reappearing, and publishing it would have undercut the entry
-rate by 35c on every order, in public, in writing.
+| Card | Published then | Published now | Why |
+| --- | --- | --- | --- |
+| SKUs | No per-SKU fee | *(nothing)* | true by absence: nothing in the catalogue charges per SKU |
+| Storage | Quoted on your space | *(nothing)* | the proposed "first 14 days free" had no source anywhere |
+| Incoming stock | a rate | *(nothing)* | matched `svc-receiving-carton` exactly |
+| Monthly orders | Rate depends on volume | *(nothing)* | the proposed figure was a SUPERSEDED rate, below the live entry band |
+| Units per order | Rate depends on volume | *(nothing)* | the proposed figure matched no band |
+| Packaging | a rate | *(nothing)* | matched `svc-packaging-mailer` exactly |
+| Prep work | Quoted individually | *(nothing)* | those services are INACTIVE, "no approved rates yet" |
+| Returns | Quoted individually | *(nothing)* | CUSTOM_QUOTE, no automatic price |
+
+The monthly-orders proposal was the one that mattered:
+`tests/volume-pricing.test.ts` already forbids that rate reappearing,
+and publishing it would have undercut the live entry band on every
+order, in public, in writing.
 
 They live in `src/lib/pricing/public-display.ts` — a LEAF that imports
 nothing, so the rate table can never be pulled in behind a published
@@ -793,7 +801,8 @@ What this round changed (full details:
   admin); custom-only estimates say "Custom pricing required" (never
   €0.00); 10,000+ volume presents as custom quote. Boundary matrix
   0/1/399/400/1499/1500/4999/5000/9999/10000/10001 verified against
-  approved rates (2.60/2.30/2.05/1.80/custom) — values unchanged.
+  approved rates (four bands plus a custom-quote band) — values unchanged,
+  and deliberately not reproduced here: this repository is public.
 - **Abuse hardening** — durable shared rate limiting (hashed client
   keys, Supabase RPC, fail-open, auto-expiry) on the lead endpoints;
   webhook mode requires HTTPS + QUOTE_WEBHOOK_SECRET in production;

@@ -76,16 +76,29 @@ describe("static files keep the security headers the Worker gives pages", () => 
     assert.ok(headersFile.includes("/media/*"), "_headers does not scope it to /media");
   });
 
-  it("does not copy the CSP, which would go stale", () => {
-    // Rules only: the comment at the top of _headers explains why the
-    // CSP is absent, and naming it there must not read as setting it.
+  it("carries a STATIC csp, and not a copy of the real one", () => {
+    // Rules only: the comments in _headers discuss the CSP at length
+    // and must not be mistaken for setting one.
     const rules = headersFile.replace(/^\s*#.*$/gm, "");
-    assert.equal(
-      /content-security-policy/i.test(rules),
-      false,
-      "_headers carries a CSP — it cannot include the build-time Supabase " +
-        "and analytics origins, so it would be a weaker duplicate of the real one",
+
+    // A policy that needs no build-time host cannot go stale. It is
+    // inert on an image or a script, and it is what stops an .svg or
+    // .html dropped into public/ from being a same-origin document
+    // with no policy at all.
+    assert.ok(
+      rules.includes("Content-Security-Policy: default-src 'none'; sandbox"),
+      "_headers has no static CSP, so a file added to public/ would be unprotected",
     );
+
+    // But it must NOT reproduce the real policy, which is assembled at
+    // build time from the Supabase origin and the analytics hosts.
+    for (const buildTimeOnly of ["supabase", "googletagmanager", "google-analytics", "unsafe-inline"]) {
+      assert.equal(
+        rules.toLowerCase().includes(buildTimeOnly),
+        false,
+        `_headers names ${buildTimeOnly} — it is duplicating the real CSP and will go stale`,
+      );
+    }
   });
 });
 

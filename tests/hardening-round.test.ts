@@ -215,12 +215,56 @@ describe("client key extraction", () => {
   it("prefers the header the platform sets and the caller cannot forge", () => {
     assert.equal(
       key({
-        "x-vercel-forwarded-for": "203.0.113.7",
+        "cf-connecting-ip": "203.0.113.7",
         "x-forwarded-for": "10.9.9.9, 203.0.113.7",
         "x-real-ip": "198.51.100.4",
       }),
       "203.0.113.7",
     );
+  });
+
+  /**
+   * THE BYPASS THIS ORDERING WAS WRITTEN TO STOP.
+   *
+   * x-vercel-forwarded-for was first, on the reasoning that Vercel's
+   * edge overwrites it. On Cloudflare nothing does — it is not a
+   * Cloudflare header and the adapter never synthesises one — so the
+   * caller's value became the bucket key and a fresh one per request
+   * turned the limiter off. Demonstrated against the running Worker
+   * before the fix: six requests with six forged values all passed a
+   * limiter that was returning 429 to everyone else.
+   */
+  it("cannot be bypassed by sending a Vercel header to Cloudflare", () => {
+    const forged = (n: number) =>
+      key({ "cf-connecting-ip": "203.0.113.7", "x-vercel-forwarded-for": `10.0.0.${n}` });
+    assert.equal(forged(1), "203.0.113.7");
+    assert.equal(forged(2), "203.0.113.7");
+    assert.equal(forged(1), forged(2), "a forged Vercel header minted a second bucket");
+  });
+
+  it("still trusts the Vercel header when there is no Cloudflare one", () => {
+    // Kept so a rollback to Vercel keys correctly on the same code.
+    assert.equal(
+      key({ "x-vercel-forwarded-for": "203.0.113.7", "x-forwarded-for": "10.9.9.9" }),
+      "203.0.113.7",
+    );
+  });
+
+  it("never lets x-real-ip outrank a real observed hop", () => {
+    // Neither host sets it, so above the rightmost x-forwarded-for hop
+    // it was a forgeable value overriding a trustworthy one.
+    assert.equal(
+      key({ "x-real-ip": "198.51.100.4", "x-forwarded-for": "10.0.0.1, 203.0.113.7" }),
+      "203.0.113.7",
+    );
+  });
+
+  it("still uses x-real-ip when it is the only thing there", () => {
+    // Demoted, not deleted. Dropping it entirely would drop every such
+    // request into the shared "unknown" bucket, where a lead form
+    // rejects real enquiries five at a time.
+    assert.equal(key({ "x-real-ip": "198.51.100.4" }), "198.51.100.4");
+    assert.notEqual(key({ "x-real-ip": "198.51.100.4" }), key({ "x-real-ip": "198.51.100.9" }));
   });
 
   it("ignores a spoofed leftmost x-forwarded-for hop", () => {
@@ -235,12 +279,6 @@ describe("client key extraction", () => {
     assert.equal(first, second, "a forged prefix must not create a new bucket");
   });
 
-  it("uses x-real-ip when there is no platform header", () => {
-    assert.equal(
-      key({ "x-real-ip": "198.51.100.4", "x-forwarded-for": "10.0.0.1" }),
-      "198.51.100.4",
-    );
-  });
 
   it("reads a single-hop x-forwarded-for unchanged", () => {
     assert.equal(key({ "x-forwarded-for": "203.0.113.7" }), "203.0.113.7");

@@ -52,14 +52,46 @@ export interface AsyncRateLimiter {
  * destination — bypassing it turns into third-party message-bombing
  * billed to the owner's accounts.
  *
+ * THE ORDER WAS WRONG AFTER THE MOVE TO CLOUDFLARE, AND IT WAS
+ * EXPLOITABLE.
+ *
+ * x-vercel-forwarded-for used to be first, justified — correctly, on
+ * Vercel — as a header the edge overwrites on every request. On
+ * Cloudflare nothing sets or strips it: it is not a Cloudflare header,
+ * and the OpenNext adapter never synthesises it (its wrapper maps only
+ * geo properties off request.cf, no IP). So whatever the caller sent
+ * WAS the bucket key, and a fresh value per request minted unlimited
+ * buckets.
+ *
+ * Demonstrated against the running Worker, in one window: 65 plain
+ * requests drove /api/pricing/services to 429; six requests each
+ * carrying a different x-vercel-forwarded-for sailed through to the
+ * handler; three more plain requests were still 429. The limiter was
+ * off for anyone who sent one header.
+ *
+ * That matters most for the 3-per-window on WhatsApp and email price
+ * delivery, which send outbound Meta template messages and Resend
+ * emails to a SUBMITTER-SUPPLIED destination. An unbounded key space
+ * there is third-party message-bombing billed to the owner.
+ *
  * Order, most trustworthy first:
- *  1. x-vercel-forwarded-for — set by Vercel's edge, overwritten on
- *     every request, so a client-supplied copy cannot survive.
- *  2. x-real-ip — the same guarantee from nginx/Cloudflare-style
- *     front ends that set it from the observed peer.
+ *  1. cf-connecting-ip — set by Cloudflare from the observed peer on
+ *     every request and NOT forgeable by the client. This is the host
+ *     the site runs on, so it goes first.
+ *  2. x-vercel-forwarded-for — the same guarantee on Vercel, which is
+ *     kept as a working rollback. Inert on Cloudflare, where (1)
+ *     always answers first.
  *  3. x-forwarded-for, RIGHTMOST entry — the hop the nearest proxy
  *     actually observed. Anything the client prepended sits to the
  *     left of it and is ignored.
+ *  4. x-real-ip — DEMOTED from second place to last. Neither of this
+ *     site's hosts sets it, so above the rightmost hop it was just a
+ *     second forgeable slot outranking a trustworthy one. It stays,
+ *     below that hop, because the alternative is worse than it looks:
+ *     dropping it entirely puts every such request into the shared
+ *     "unknown" bucket, where a lead form starts rejecting real
+ *     enquiries five at a time. Last place gives the availability
+ *     without letting it override anything.
  *
  * The fallback stays "unknown" and is deliberately shared: everything
  * landing there is in ONE bucket, so on a lead form it would reject
@@ -68,17 +100,20 @@ export interface AsyncRateLimiter {
  * requests), which is why it is last rather than first.
  */
 export function requestClientKey(request: Request): string {
+  const cloudflare = request.headers.get("cf-connecting-ip")?.trim();
+  if (cloudflare) return cloudflare;
+
   const vercel = request.headers.get("x-vercel-forwarded-for");
   const vercelClient = vercel?.split(",")[0]?.trim();
   if (vercelClient) return vercelClient;
-
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
 
   const forwarded = request.headers.get("x-forwarded-for");
   const hops = forwarded?.split(",").map((hop) => hop.trim()).filter(Boolean);
   const nearest = hops?.[hops.length - 1];
   if (nearest) return nearest;
+
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
 
   return "unknown";
 }

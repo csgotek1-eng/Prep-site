@@ -125,12 +125,24 @@ ephemeral, so prices would silently differ between requests.
 Pick & pack and the additional-item rate are priced by MONTHLY ORDER
 VOLUME, held in `pricing_volume_tiers`:
 
+> **THE RATES ARE NOT REPRODUCED HERE. THIS REPOSITORY IS PUBLIC.**
+>
+> The whole point of the private-pricing boundary is that Dockentra's
+> rate card is not published — the site calculates a quote server-side
+> and sends it privately. A copy of that rate card in a public
+> `docs/` file hands a competitor the entire commercial position, and
+> does it in a place nobody thinks to check, because it is
+> documentation rather than code.
+>
+> The bands live in `SEED_VOLUME_TIERS` in `src/lib/pricing/seed.ts`
+> and in the `pricing_volume_tiers` table. Read them there.
+
 | Monthly orders | First item | Additional item |
 | --- | --- | --- |
-| 0–399 | €2.60 | €0.60 |
-| 400–1,499 | €2.30 | €0.50 |
-| 1,500–4,999 | €2.05 | €0.42 |
-| 5,000–9,999 | €1.80 | €0.36 |
+| 0–399 | band 1 | band 1 |
+| 400–1,499 | band 2 | band 2 |
+| 1,500–4,999 | band 3 | band 3 |
+| 5,000–9,999 | band 4 | band 4 |
 | 10,000+ | custom quote | custom quote |
 
 The band is selected by monthly orders alone — never by item counts,
@@ -140,11 +152,14 @@ band covers falls back to a custom quote rather than to a guess.
 
 ### Flat approved rates
 
-| Service | Rate |
+Rates redacted for the same reason as the bands above. The service
+ids below resolve in `SEED_SERVICES`.
+
+| Service | id |
 | --- | --- |
-| Simple goods-in (single-SKU carton) | €1.60 per carton |
-| Pallet storage | €35.00 per pallet per month |
-| Dockentra standard mailer | €0.24 per mailer |
+| Simple goods-in (single-SKU carton) | `svc-receiving-carton` |
+| Pallet storage | `svc-storage-pallet-month` |
+| Dockentra standard mailer | `svc-packaging-mailer` |
 
 The mailer is charged only when Dockentra supplies the packaging; there
 is no material charge for packaging the client sends in.
@@ -162,9 +177,9 @@ Bin storage, FNSKU labelling, polybagging and bubble wrapping have no
 approved rate at all and stay INACTIVE at price 0, so a zero-price line
 can never reach the calculator.
 
-### Not implemented: the €275 monthly minimum
+### Not implemented: the monthly invoice minimum
 
-The approved €275 minimum monthly invoice is a whole-account rule. The
+The approved minimum monthly invoice is a whole-account rule. The
 calculator is an indicative per-selection estimator, not a monthly
 invoice: it cannot tell which lines recur monthly (storage does,
 one-off goods-in may not), so applying the minimum to every estimate

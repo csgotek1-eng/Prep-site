@@ -1,3 +1,9 @@
+import "server-only";
+// A BUILD ERROR, NOT A CONVENTION. This module reads a secret. The
+// server/client split that keeps it off the browser was previously
+// enforced by nothing but discipline: a future refactor that pulled
+// this into a client component would have shipped the secret and
+// failed silently. With this import it fails the build instead.
 import { createHmac } from "node:crypto";
 import type { EnquiryDeliveryResult, EnquiryRequest } from "./enquiry";
 

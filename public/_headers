@@ -28,6 +28,15 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=63072000; includeSubDomains
+  # A STATIC policy, and only for static files. It needs no build-time
+  # host, so it cannot go stale the way a copy of the real CSP would.
+  # On an image or a JS chunk it is inert, because a response's CSP
+  # governs only when that response is itself a document. It matters
+  # the day somebody drops an .svg or .html into public/: opened by
+  # top-level navigation, that file would otherwise be a same-origin
+  # document with no policy at all. Cloudflare does not apply _headers
+  # to Worker responses, so this can never reach a real page.
+  Content-Security-Policy: default-src 'none'; sandbox
 
 # Photography and the two silent clips: big, and changed only when the
 # owner swaps the files. Mirrors the /media rule in next.config.ts.

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { SEED_SERVICES, SEED_VOLUME_TIERS } from "../src/lib/pricing/seed.ts";
@@ -154,6 +154,59 @@ describe("the pricing page publishes no price", () => {
         );
       }
     }
+  });
+});
+
+describe("the rate card is not published in the repository either", () => {
+  /**
+   * THIS REPOSITORY IS PUBLIC.
+   *
+   * Every other check here guards what the SITE serves. None of them
+   * would have caught what a security review found: docs/ carried the
+   * complete rate card in markdown — all four volume bands and five
+   * service rates — committed to a public GitHub repo. The website was
+   * carefully refusing to publish a single figure while the same
+   * numbers sat two directories away in a file nobody thought of as
+   * code.
+   *
+   * Documentation is the natural place for this to come back, because
+   * writing the real number down is genuinely the clearest way to
+   * explain how the pricing works. It is still publishing it.
+   */
+  const docs = readdirSync("docs")
+    .filter((name) => name.endsWith(".md"))
+    .map((name) => `docs/${name}`)
+    .concat(["README.md", "AGENTS.md"].filter((name) => existsSync(name)));
+
+  it("has documentation to check", () => {
+    assert.ok(docs.length > 5, `only ${docs.length} documents found — the sweep is not running`);
+  });
+
+  it("publishes no catalogue rate in any document", () => {
+    const rates = [
+      ...SEED_SERVICES.filter((s) => typeof s.price === "number" && s.price > 0).map((s) => ({
+        value: ((s.price as number) / 100).toFixed(2),
+        label: s.id,
+      })),
+      ...SEED_VOLUME_TIERS.filter((t) => t.price !== null).map((t) => ({
+        value: ((t.price as number) / 100).toFixed(2),
+        label: "a volume band",
+      })),
+    ];
+    assert.ok(rates.length > 0, "no rates were loaded — this check would pass vacuously");
+
+    const offences: string[] = [];
+    for (const path of docs) {
+      const text = readFileSync(path, "utf8");
+      for (const { value, label } of rates) {
+        if (text.includes(value)) offences.push(`${path} publishes ${value} (${label})`);
+      }
+    }
+    assert.deepEqual(
+      offences,
+      [],
+      `the rate card is in the public repository:\n  ${offences.join("\n  ")}`,
+    );
   });
 });
 
