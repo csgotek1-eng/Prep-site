@@ -10,6 +10,8 @@ build/
 .env
 .env.*
 !.env.example
+# Committed: contains the public site URL only, no secrets.
+!.env.production
 
 # TypeScript
 *.tsbuildinfo

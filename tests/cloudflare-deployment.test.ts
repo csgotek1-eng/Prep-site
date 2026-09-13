@@ -176,6 +176,47 @@ describe("the worker configuration", () => {
     );
   });
 
+  it("sets the site URL at BUILD time too, via .env.production", () => {
+    /**
+     * Runtime and build time are different environments here, and
+     * getting only one of them right produces a half-broken site that
+     * reads as fine.
+     *
+     * robots.txt and sitemap.xml are generated once, during the build.
+     * Pages render per request, in the Worker. A deploy whose build
+     * lacked this value shipped
+     *   Sitemap: http://localhost:3000/sitemap.xml
+     * to production while every page canonical was correct.
+     */
+    const env = read(".env.production");
+    assert.ok(
+      /^NEXT_PUBLIC_SITE_URL=https:\/\/dockentra\.ie$/m.test(env),
+      ".env.production does not set the production site URL — robots.txt and " +
+        "sitemap.xml will be built pointing at localhost",
+    );
+  });
+
+  it("keeps secrets out of the committed environment file", () => {
+    // This file is committed deliberately. It may only ever hold
+    // public values.
+    const env = read(".env.production").replace(/^\s*#.*$/gm, "");
+    for (const secret of [
+      "SERVICE_ROLE",
+      "ACCESS_TOKEN",
+      "API_KEY",
+      "APP_SECRET",
+      "WEBHOOK_SECRET",
+      "VERIFY_TOKEN",
+      "PUBLISHABLE_KEY",
+    ]) {
+      assert.equal(
+        env.includes(secret),
+        false,
+        `.env.production names ${secret} — it is committed, so it may hold public values only`,
+      );
+    }
+  });
+
   it("keeps secrets out of the committed worker config", () => {
     // vars are public and version controlled. Anything secret belongs
     // in `wrangler secret put`, which never touches this file.
