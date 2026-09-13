@@ -12,6 +12,7 @@
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --keep-vars",
     "cf:versions": "wrangler versions list",
     "cf:rollback": "wrangler rollback",
+    "cf:purge-cache": "wrangler kv key list --namespace-id 462a119c87504dd79773fb2fedd21edb --remote > .cache-keys.json && node scripts/purge-isr-cache.mjs",
     "gates": "npm run lint && npm run typecheck && npm test && npm run build && npm run cf:build",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "lint": "eslint .",

@@ -40,3 +40,6 @@ data/
 .open-next/
 .dev.vars
 .wrangler/
+
+# Cache-purge working files
+.cache-keys*.json

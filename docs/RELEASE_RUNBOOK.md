@@ -104,6 +104,27 @@ the DNS records and the KV namespace are untouched — only the code
 behind them changes. Expect a few seconds; there is no downtime,
 because Cloudflare switches versions atomically.
 
+### 6a. If you changed configuration rather than code, purge the cache
+
+```bash
+npm run cf:purge-cache
+```
+
+**The KV cache survives deploys, and it holds rendered pages.** That is
+the point of it — but it means a change that alters what a page renders
+*without* altering the page's code, such as an environment variable,
+deploys correctly and then serves the old output anyway.
+
+This is not hypothetical. The first production deploy served
+`<link rel="canonical" href="http://localhost:3000/pricing">` on every
+page. Adding the missing variable and redeploying fixed the rendering
+and changed nothing a visitor saw, because every page was a cache HIT
+— entries from two earlier build ids were still being served. The
+canonicals only became correct after an explicit purge.
+
+An ordinary code change does not need this: a new build produces a new
+build id, so the old entries are simply never read again.
+
 ### 7. Verify production
 
 ```bash
