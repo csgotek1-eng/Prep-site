@@ -75,6 +75,33 @@
     }
   ],
 
+  /**
+   * NEXT_PUBLIC_SITE_URL IS NEEDED AT RUNTIME, NOT ONLY AT BUILD TIME,
+   * AND THE FIRST PRODUCTION DEPLOY PROVED IT THE HARD WAY.
+   *
+   * The build was run with this value set, and the SITEMAP and
+   * ROBOTS.TXT came out correct — they are generated once, at build
+   * time. Every page, however, is rendered per request, and
+   * resolveSiteUrl() reads process.env at that moment. With the value
+   * absent from the Worker's runtime environment it fell through to
+   * its localhost fallback, and the live site served:
+   *
+   *   <link rel="canonical" href="http://localhost:3000/pricing">
+   *   <meta property="og:url" content="http://localhost:3000">
+   *
+   * on every single page, while the sitemap alongside them said
+   * dockentra.ie. Nothing errored. Google would have been told that
+   * the canonical version of every page is a machine on nobody's
+   * network.
+   *
+   * It lives here rather than in the dashboard so it is version
+   * controlled and cannot be lost: it is a public URL, not a secret.
+   * Secrets stay in `wrangler secret put` and never appear in this file.
+   */
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://dockentra.ie"
+  },
+
   "observability": {
     "enabled": true
   }

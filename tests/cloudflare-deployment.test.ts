@@ -150,6 +150,50 @@ describe("the worker configuration", () => {
     assert.ok(wrangler.includes(".open-next/worker.js"));
     assert.ok(wrangler.includes(".open-next/assets"));
   });
+
+  it("sets the site URL as a RUNTIME variable, not only at build time", () => {
+    /**
+     * The first production deploy served
+     *   <link rel="canonical" href="http://localhost:3000/pricing">
+     * on every page, while the sitemap beside them said dockentra.ie.
+     *
+     * The build had the value. Sitemap and robots are generated once,
+     * at build time, so they were right. Pages are rendered per
+     * request and read process.env then — and the Worker's runtime
+     * environment did not have it, so resolveSiteUrl() fell through to
+     * its localhost fallback. Nothing errored; Google would simply
+     * have been told every page canonicalises to a machine on nobody's
+     * network.
+     */
+    assert.ok(
+      /"vars"[\s\S]*?NEXT_PUBLIC_SITE_URL/.test(wrangler),
+      "NEXT_PUBLIC_SITE_URL is not in the wrangler vars block — every page " +
+        "will canonicalise to localhost and nothing will report an error",
+    );
+    assert.ok(
+      wrangler.includes("https://dockentra.ie"),
+      "the runtime site URL is not the production domain",
+    );
+  });
+
+  it("keeps secrets out of the committed worker config", () => {
+    // vars are public and version controlled. Anything secret belongs
+    // in `wrangler secret put`, which never touches this file.
+    for (const secret of [
+      "SERVICE_ROLE",
+      "ACCESS_TOKEN",
+      "API_KEY",
+      "APP_SECRET",
+      "WEBHOOK_SECRET",
+      "VERIFY_TOKEN",
+    ]) {
+      assert.equal(
+        wrangler.includes(secret),
+        false,
+        `wrangler.jsonc names ${secret} — secrets must never be in a committed file`,
+      );
+    }
+  });
 });
 
 describe("nothing host-specific was left behind", () => {

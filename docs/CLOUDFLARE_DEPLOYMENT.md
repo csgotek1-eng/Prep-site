@@ -166,7 +166,21 @@ runtime variables leaves the build with the wrong values baked in.
 
 | Name | Why it must be present at build |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | **Now mandatory.** `src/lib/site-url.ts` falls back to `VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`, then `http://localhost:3000`. Neither `VERCEL_*` exists on Cloudflare, so without this every canonical link, `metadataBase`, Open Graph URL, sitemap entry, `robots.txt` host and the Organization JSON-LD would emit `http://localhost:3000`. Set to `https://dockentra.ie`. |
+| `NEXT_PUBLIC_SITE_URL` | **Mandatory, and needed at RUNTIME as well — see below.** `src/lib/site-url.ts` falls back to `VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`, then `http://localhost:3000`. Neither `VERCEL_*` exists on Cloudflare. Set to `https://dockentra.ie`. |
+
+> **SETTING IT ONLY AT BUILD TIME IS NOT ENOUGH, AND THE FAILURE IS
+> SILENT.** The first production deploy was built with this value set.
+> `sitemap.xml` and `robots.txt` came out correct, because they are
+> generated once at build time. Every *page* is rendered per request
+> and reads `process.env` at that moment — so with the value missing
+> from the Worker's runtime environment, the live site served
+> `<link rel="canonical" href="http://localhost:3000/pricing">` and
+> `og:url` of `http://localhost:3000` on every page, while the sitemap
+> beside them said `dockentra.ie`. Nothing errored.
+>
+> It is now set in the `vars` block of `wrangler.jsonc`, which is
+> version controlled and applied on every deploy. It is a public URL,
+> not a secret.
 | `SUPABASE_PUBLIC_URL` | `next.config.ts` builds the CSP `connect-src` from it. Absent at build, the policy falls back to the `https://*.supabase.co` wildcard, which authorises every Supabase project on the internet. Set in **both** buckets. |
 | `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` | Baked into the CSP and into whether the tag renders at all. Omit to keep analytics off. |
 | `NEXT_PUBLIC_OWNER_CONTACT_EMAIL` | Public by design; rendered into contact surfaces. |
