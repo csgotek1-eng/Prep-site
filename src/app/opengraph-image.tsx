@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { siteConfig } from "@/lib/site";
+import { siteConfig, siteUrl } from "@/lib/site";
 
 export const alt = `${siteConfig.name} — Fulfilment & Prep Services in Ireland`;
 export const size = {
@@ -10,15 +8,55 @@ export const size = {
 };
 export const contentType = "image/png";
 
+/** The owner-supplied master, unmodified. */
+const MARK = "/brand/dockentra-logo-mark-transparent.png";
+
+/**
+ * The brand mark, as base64, from wherever it can actually be read.
+ *
+ * THIS ROUTE 500ed IN PRODUCTION TWICE, FOR THE SAME REASON EACH TIME:
+ * it read the logo off the filesystem, and Cloudflare Workers has no
+ * filesystem.
+ *
+ * Next prerenders this route at build time, and the finished PNG is
+ * stored in the incremental cache — so the first fix was to configure
+ * a cache, and it worked. But it only worked while the cache was
+ * populated. Purging the cache (a documented, routine step after a
+ * configuration change) deleted the one copy of the image and the
+ * route could never re-render it: every link preview on WhatsApp,
+ * Facebook, LinkedIn, Slack and iMessage broken until the next deploy,
+ * with nothing to indicate why.
+ *
+ * So it no longer depends on a cache or on a disk. At build time the
+ * file is on disk and is read directly. At runtime on Workers there is
+ * no disk, so it is fetched from this site's own static assets — which
+ * are served by Workers Assets from the same deployment, so the bytes
+ * are always present and always the deployed version.
+ */
+async function loadMark(): Promise<string> {
+  try {
+    // Build time. The dynamic import keeps node:fs out of the Worker
+    // bundle's static dependency graph.
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    return readFileSync(join(process.cwd(), "public", MARK.slice(1))).toString("base64");
+  } catch {
+    // Runtime on Workers.
+    const response = await fetch(new URL(MARK, siteUrl));
+    if (!response.ok) throw new Error(`Could not load the brand mark: ${response.status}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  }
+}
+
 // Open Graph image in the official Dockentra brand system: deep navy
 // surface, dark-green → emerald → mint gradient accents, white text, and
 // the EXACT official D mark (owner-supplied transparent master,
-// unmodified) directly on the navy surface. Generated statically at
-// build time.
-export default function OpenGraphImage() {
-  const mark = readFileSync(
-    join(process.cwd(), "public", "brand", "dockentra-logo-mark-transparent.png"),
-  ).toString("base64");
+// unmodified) directly on the navy surface.
+export default async function OpenGraphImage() {
+  const mark = await loadMark();
 
   return new ImageResponse(
     (
