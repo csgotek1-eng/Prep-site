@@ -76,6 +76,19 @@
   ],
 
   /**
+   * A binding to ITSELF, so the site can revalidate its own stale
+   * pages. See open-next.config.ts for the "Failed to revalidate
+   * stale page" error this fixes — MemoryQueue reads this exact
+   * binding name (env.WORKER_SELF_REFERENCE) to make the internal HEAD
+   * request that actually regenerates a page past its revalidate
+   * window. `service` must equal `name` above; if the Worker is ever
+   * renamed both need to change together.
+   */
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "dockentra-website" }
+  ],
+
+  /**
    * NEXT_PUBLIC_SITE_URL IS NEEDED AT RUNTIME, NOT ONLY AT BUILD TIME,
    * AND THE FIRST PRODUCTION DEPLOY PROVED IT THE HARD WAY.
    *
@@ -98,8 +111,39 @@
    * controlled and cannot be lost: it is a public URL, not a secret.
    * Secrets stay in `wrangler secret put` and never appear in this file.
    */
+  /**
+   * PRICING_EMAIL_DELIVERY_MODE / PRICING_EMAIL_FROM — NEITHER WAS SET,
+   * AND BOTH ARE REQUIRED FOR "GET PRICE" AND CONTACT TO EMAIL ANYONE.
+   *
+   * Confirmed empirically against live production before this change:
+   * a real /api/pricing/email submission was saved correctly and
+   * returned `"delivery": "unavailable"` — resolvePricingEmailDeliveryMode()
+   * in src/lib/email/provider.ts falls back to "disabled" with neither
+   * var present, regardless of RESEND_API_KEY already being configured
+   * as a secret. The OWNER notification for both the pricing calculator
+   * AND the three lead forms (Contact / Become a Client / Partnerships
+   * — see src/lib/leads/notify.ts) reads this exact same gate, so its
+   * absence silenced every one of them at once.
+   *
+   * PRICING_EMAIL_FROM must be on a domain VERIFIED with Resend — see
+   * src/lib/email/provider.ts's isUnverifiableSender(), which refuses
+   * a free-mail sender outright. notifications@dockentra.ie is used
+   * here because the production domain is what a visitor would
+   * recognise; if it turns out dockentra.ie is not yet added and
+   * verified in the Resend account, every send attempt fails CLOSED
+   * (the lead stays saved, the visitor is told truthfully that
+   * delivery isn't available, nothing is ever reported falsely) and
+   * Resend's own rejection reason is logged as a short error code —
+   * see docs/CLOUDFLARE_DEPLOYMENT.md for how to confirm and fix that.
+   *
+   * Not secrets: a delivery mode and a sending address are
+   * configuration, not credentials. RESEND_API_KEY is the credential,
+   * and it stays a `wrangler secret` and never appears here.
+   */
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://dockentra.ie"
+    "NEXT_PUBLIC_SITE_URL": "https://dockentra.ie",
+    "PRICING_EMAIL_DELIVERY_MODE": "resend",
+    "PRICING_EMAIL_FROM": "notifications@dockentra.ie"
   },
 
   "observability": {

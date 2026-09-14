@@ -3,6 +3,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const read = (path: string) => readFileSync(path, "utf8");
+// Comments stripped: this file itself documents the "direct" mode by
+// name in prose, and a literal-string check must not trip on its own
+// explanation.
+const readCode = (path: string) =>
+  read(path).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 /**
  * THE CLOUDFLARE DEPLOYMENT, PINNED.
@@ -128,6 +133,57 @@ describe("the worker configuration", () => {
     );
   });
 
+  it("configures a real revalidation queue, not the adapter's default", () => {
+    /**
+     * Every page inherits `revalidate = 60` from the root layout, so
+     * every page eventually needs a BACKGROUND refresh once it goes
+     * stale. With no queue configured, the adapter's default is
+     * DummyQueue, whose entire body is
+     *   throw new FatalError("Dummy queue is not implemented")
+     *
+     * Caught live in production via `wrangler tail` against real
+     * /pricing traffic:
+     *   "Failed to revalidate stale page /pricing"
+     *   FatalError: Dummy queue is not implemented
+     *     at revalidateIfRequired (worker.js:9060:30)
+     *
+     * Not a 5xx — the throw happens after the (stale) response has
+     * already been sent — which is exactly why it went unnoticed: no
+     * visitor saw an error, but no page's background refresh ever ran,
+     * on any route, ever, from the day this site first deployed.
+     */
+    assert.ok(
+      openNext.includes("memory-queue") || openNext.includes("do-queue"),
+      "no real queue is configured — background ISR revalidation will throw " +
+        "\"Dummy queue is not implemented\" on every stale page, silently",
+    );
+    assert.equal(
+      /queue:\s*["']direct["']/.test(readCode("open-next.config.ts")),
+      false,
+      'queue: "direct" revalidates synchronously inside the visitor\'s own ' +
+        "request and the adapter's own validator warns it is not for production",
+    );
+  });
+
+  it("binds the memory queue's self-reference under the name it looks for", () => {
+    // MemoryQueue reads env.WORKER_SELF_REFERENCE to make the internal
+    // HEAD request that actually triggers regeneration. Without this
+    // exact binding name it throws IgnorableError("No service binding
+    // for cache revalidation worker") instead — quieter than the
+    // dummy-queue crash, but revalidation still never runs.
+    if (openNext.includes("memory-queue")) {
+      assert.ok(
+        wrangler.includes("WORKER_SELF_REFERENCE"),
+        "memory-queue is configured but no WORKER_SELF_REFERENCE service " +
+          "binding exists — revalidation will silently no-op",
+      );
+      assert.ok(
+        /"service"\s*:\s*"dockentra-website"/.test(wrangler),
+        "the self-reference does not point at this Worker's own name",
+      );
+    }
+  });
+
   it("enables the compatibility flags the app needs", () => {
     // node:crypto for the admin token comparison and the WhatsApp
     // webhook HMAC; the fetch flag is required by the adapter.
@@ -196,6 +252,29 @@ describe("the worker configuration", () => {
     );
   });
 
+  it("sets the Supabase URL at BUILD time too, or the CSP silently widens", () => {
+    /**
+     * The identical bug, one file over. next.config.ts reads
+     * SUPABASE_PUBLIC_URL once, at build time, to pin the CSP
+     * connect-src to the real Supabase origin. Missing at build, it
+     * falls back to the wildcard `https://*.supabase.co` — every
+     * Supabase project on the internet, not just this one — with no
+     * error anywhere. Confirmed in production before this line existed
+     * in .env.production: the deployed CSP carried the wildcard.
+     *
+     * Not a secret. This is the project URL, already shipped to every
+     * browser that loads /admin/login by explicit design (see
+     * src/lib/supabase-config.ts) — Supabase's security model protects
+     * data through RLS, not through hiding this URL.
+     */
+    const env = read(".env.production");
+    assert.ok(
+      /^SUPABASE_PUBLIC_URL=https:\/\/[a-z0-9]+\.supabase\.co$/m.test(env),
+      ".env.production does not set the Supabase URL — the built CSP will " +
+        "fall back to the https://*.supabase.co wildcard",
+    );
+  });
+
   it("keeps secrets out of the committed environment file", () => {
     // This file is committed deliberately. It may only ever hold
     // public values.
@@ -219,7 +298,11 @@ describe("the worker configuration", () => {
 
   it("keeps secrets out of the committed worker config", () => {
     // vars are public and version controlled. Anything secret belongs
-    // in `wrangler secret put`, which never touches this file.
+    // in `wrangler secret put`, which never touches this file. Comments
+    // stripped: this file's own comments document BY NAME why
+    // RESEND_API_KEY stays a secret, and that explanation must not trip
+    // the check it is explaining.
+    const rules = wrangler.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
     for (const secret of [
       "SERVICE_ROLE",
       "ACCESS_TOKEN",
@@ -229,9 +312,9 @@ describe("the worker configuration", () => {
       "VERIFY_TOKEN",
     ]) {
       assert.equal(
-        wrangler.includes(secret),
+        rules.includes(secret),
         false,
-        `wrangler.jsonc names ${secret} — secrets must never be in a committed file`,
+        `wrangler.jsonc names ${secret} outside a comment — secrets must never be in a committed file`,
       );
     }
   });
