@@ -54,10 +54,10 @@ means it. Two concrete symptoms seen here:
 **Production builds should run on Linux** (Cloudflare Workers Builds or
 a GitHub Actions runner), not from a Windows workstation.
 
-## Three things that broke silently in this migration
+## Five things that broke silently in this migration
 
 Each kept the site serving pages while quietly losing a behaviour. All
-three are now pinned by `tests/cloudflare-deployment.test.ts` and
+five are now pinned by `tests/cloudflare-deployment.test.ts` and
 `tests/reviews-and-geo-behaviour.test.ts`.
 
 ### 1. Security headers stopped reaching static files
@@ -133,6 +133,59 @@ bounces every British visitor off itself, is worse than no page.
 After the fix, on the Worker: `GB -> 200`, `IE -> 307`, `US -> 200`,
 `XX -> 200`.
 
+### 4. Every page's background ISR refresh, site-wide, silently
+
+Every page inherits `revalidate = 60` from the root layout. OpenNext
+hands the background regeneration of a stale page to a **queue**;
+with none configured, the adapter defaults to `DummyQueue`, whose
+entire body is `throw new FatalError("Dummy queue is not implemented")`.
+
+Caught live via `wrangler tail` against real `/pricing` traffic:
+
+```
+"Failed to revalidate stale page /pricing"
+FatalError: Dummy queue is not implemented
+  at revalidateIfRequired (worker.js:9060:30)
+```
+
+**Not a 5xx.** The throw happens in `onEnd`/`_flush`, strictly after
+the (stale) response has already been sent, so Cloudflare recorded the
+request outcome as `"ok"` and no visitor ever saw an error. What
+actually broke: the background refresh never ran, on any page, from
+the day this site first deployed. `/pricing` surfaced it first only
+because it is heavily visited and its 60s window lapses constantly —
+every other page has the identical defect and would show the
+identical error the first time its own traffic caught it stale.
+
+Fixed with the adapter's `MemoryQueue` (`open-next.config.ts`), which
+makes one internal `HEAD` request back to the Worker via a
+`WORKER_SELF_REFERENCE` service binding (`wrangler.jsonc`) to trigger
+the real regeneration. Re-verified with the same `wrangler tail`
+method after the fix: a `HEAD /pricing` request carrying `x-isr: 1`
+now appears, `outcome: "ok"`, zero `logs`, zero `exceptions` — the
+self-revalidation succeeds cleanly.
+
+The adapter also ships `queue: "direct"`, which revalidates
+synchronously inside the visitor's own request instead. Not used here:
+the adapter's own config validator prints *"The direct mode queue is
+not recommended for use in production"* when it is selected.
+
+### 5. The deployed CSP ran on the `*.supabase.co` wildcard
+
+The identical class of bug as #3 above, one file over.
+`next.config.ts` reads `SUPABASE_PUBLIC_URL` once, at **build** time,
+to pin the CSP `connect-src` to the real Supabase origin. It was never
+in `.env.production`, so every build fell back to
+`https://*.supabase.co` — authorising every Supabase project on the
+internet — with no error anywhere. Confirmed on live production before
+the fix: the deployed CSP header carried the wildcard.
+
+Not a secret: the project URL is already shipped to every browser that
+loads `/admin/login` by explicit design (the "browser-safe" comment in
+`src/lib/supabase-config.ts`). Added to `.env.production` alongside
+`NEXT_PUBLIC_SITE_URL`. Verified after the fix: `connect-src` now
+names the real project origin, no wildcard.
+
 ## Geo: no zone configuration needed
 
 `cf-ipcountry` is only sent when a zone has the *Add visitor location
@@ -206,13 +259,48 @@ intermediate file.
   `REVIEWS_PERSISTENCE` — **all must be `supabase`**. `file` writes to a
   filesystem Workers does not have and would fail on the first write.
 - `QUOTE_DELIVERY_MODE`, `QUOTE_WEBHOOK_URL`, `QUOTE_WEBHOOK_TIMEOUT_MS`
-- `PRICING_EMAIL_DELIVERY_MODE`, `PRICING_EMAIL_FROM`,
-  `PRICING_EMAIL_REPLY_TO`, `PRICING_NOTIFICATION_TO`
+- `PRICING_EMAIL_DELIVERY_MODE=resend`, `PRICING_EMAIL_FROM=notifications@dockentra.ie`
+  — **set, in `wrangler.jsonc`'s `vars` block, 2026-09-14.** Confirmed live:
+  `dockentra.ie` is a verified Resend sending domain, and both the
+  pricing calculator's owner + customer emails and the Contact / Become
+  a Client / Partnerships owner emails (see below) are sending
+  successfully in production. `PRICING_EMAIL_REPLY_TO` and
+  `PRICING_NOTIFICATION_TO` remain unset deliberately — the code
+  defaults the recipient to the owner's real mailbox, and setting the
+  var here would be a second place that value could go stale.
 - `WHATSAPP_DELIVERY_MODE`, `WHATSAPP_PHONE_NUMBER_ID`,
-  `WHATSAPP_PRICING_TEMPLATE_NAME`, `WHATSAPP_TEMPLATE_LANGUAGE`
+  `WHATSAPP_PRICING_TEMPLATE_NAME`, `WHATSAPP_TEMPLATE_LANGUAGE` — still
+  **not set**. The WhatsApp channel of the pricing calculator ("Get
+  Price" via WhatsApp) saves the request correctly and truthfully
+  reports `delivery: "unavailable"` to the visitor; nothing is sent.
+  Requires a Meta WhatsApp Business API app and its credentials, which
+  is an owner action, not a code or config fix.
 
 Use `wrangler deploy --keep-vars` so a CLI deploy does not wipe
-dashboard-managed variables.
+dashboard-managed variables. **Verify this after every deploy** — the
+CLI prints a diff of what it is about to change before uploading, and
+on 2026-09-14 that diff looked alarming (it listed every
+dashboard-managed var as being removed) even though `--keep-vars` was
+present and the merge completed correctly; `wrangler versions view
+<id>` on the resulting version is the reliable way to confirm every
+variable actually survived, not the pre-upload diff.
+
+### Contact / Become a Client / Partnerships now email the owner
+
+Until 2026-09-14, `notifyEnquiryLead()` (`src/lib/leads/notify.ts`,
+shared by all three forms) only ever attempted a webhook
+(`QUOTE_DELIVERY_MODE=webhook`, never configured), so a submission was
+saved durably and notified nobody. Traced with an import-graph walk:
+of the 23 modules reachable from `POST /api/enquiry`, zero touched
+Resend.
+
+Fixed with `src/lib/email/owner-lead-notification.ts` — a generic
+owner-notification sender, deliberately separate from the pricing
+calculator's `src/lib/email/owner-notification.ts` (that one requires
+a priced `Estimate`; a general enquiry has none, and the two must
+never be tempted to merge). It reads the same
+`PRICING_EMAIL_DELIVERY_MODE` / `PRICING_EMAIL_FROM` gate as the
+pricing emails, so the one domain-verification decision covers both.
 
 `/api/health` reports this: it answers **503** until
 `PRICING_PERSISTENCE` and `LEADS_PERSISTENCE` both resolve, and 200
@@ -254,5 +342,18 @@ Keep using `.env.local` for `next dev`. For the Workers preview, use
 - `next/image` behaviour without an `IMAGES` binding. If images degrade,
   the options are enabling Cloudflare Images (billable) or setting
   `images: { unoptimized: true }`.
-- Real-world ISR behaviour on KV under production traffic.
 - Whether R2 should replace KV once enabled.
+- The WhatsApp channel of the pricing calculator: `WHATSAPP_DELIVERY_MODE`
+  and its Meta credentials are still unset. Requires the owner to
+  create a Meta WhatsApp Business API app; not a code change.
+- Known-safe DNS quirk, not a bug: this development sandbox's own
+  configured resolver (`10.224.219.193`) returns a STALE, MIXED answer
+  for `dockentra.ie` — one real Cloudflare IPv6 address alongside the
+  old Register365 IPv4 — even after an explicit `ipconfig /flushdns`.
+  Three independent public resolvers (Google, Cloudflare, Quad9) all
+  agree on pure Cloudflare anycast addresses, and the authoritative
+  nameservers are Cloudflare's own, so this is a local/upstream
+  resolver cache issue, not a DNS misconfiguration — the same class of
+  symptom end users occasionally reported. All verification in this
+  session was done with `curl --resolve` or a local Cloudflare preview
+  to route around it rather than being misdiagnosed as an app bug.

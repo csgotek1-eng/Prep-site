@@ -218,3 +218,29 @@ Stop and think before any of these. None is part of a normal change.
   Cloudflare `IMAGES` binding is configured, because it is billable.
   Check the photography on `/about` and the homepage after the first
   production deploy.
+- **`wrangler deploy`'s pre-upload diff looks alarming and is not the
+  final word.** It prints a diff of the vars it is ABOUT to change,
+  computed from `wrangler.jsonc` alone — before `--keep-vars` merges in
+  whatever the dashboard already has. Seen once, live: the diff listed
+  every dashboard-managed variable (Supabase, persistence modes, the
+  owner contact email — eight of them) as being removed. The deploy
+  completed correctly and all eight survived. Do not stop a deploy on
+  this diff alone, and do not trust it as confirmation either —
+  **`wrangler versions view <the new id>`** afterwards is the only
+  reliable check; it lists every var and secret NAME (never a secret
+  value) actually live on that version.
+- **A stale page's background refresh needs `WORKER_SELF_REFERENCE`.**
+  If `wrangler.jsonc`'s `services` block is ever removed or the Worker
+  is renamed without updating `service` to match, every page's
+  `revalidate = 60` silently stops refreshing in the background — see
+  `docs/CLOUDFLARE_DEPLOYMENT.md` for the exact failure
+  (`FatalError: Dummy queue is not implemented`) and how it was found
+  (`wrangler tail` against real traffic, not a local repro).
+- **This machine's own DNS resolver can lie about dockentra.ie.** If a
+  `curl` or browser here suddenly can't reach the live site while
+  `wrangler tail` / the Cloudflare dashboard show it healthy, suspect
+  this sandbox's resolver before the site — `nslookup dockentra.ie
+  8.8.8.8` (bypassing the local resolver) is the fast way to check, and
+  `curl --resolve dockentra.ie:443:<the real Cloudflare IP>` routes
+  around it entirely for testing. See "Open questions" in
+  `docs/CLOUDFLARE_DEPLOYMENT.md` for the full finding.
