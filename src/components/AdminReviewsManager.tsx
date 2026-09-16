@@ -12,6 +12,7 @@ import {
   type SupabaseAuthClientConfig,
 } from "@/lib/supabase-browser";
 import { REVIEW_STATUSES, type Review, type ReviewStatus } from "@/lib/reviews/types";
+import { sortForModeration } from "@/lib/reviews/queue";
 
 /**
  * REVIEW MODERATION.
@@ -137,6 +138,23 @@ export default function AdminReviewsManager({
     router.replace("/admin/login");
   }
 
+  /**
+   * Confirm before taking something down, not before putting it up.
+   *
+   * Approving is visible the moment it happens and is undone with the
+   * button beside it. Rejecting something that is already published
+   * removes a customer's words from the site, which is the action worth
+   * a second of thought. Rejecting a PENDING review needs no dialogue:
+   * nothing changes for anyone outside this screen.
+   */
+  function confirmed(review: Review, status: ReviewStatus): boolean {
+    if (status !== "REJECTED") return true;
+    if (review.status !== "APPROVED") return true;
+    return window.confirm(
+      `Unpublish the review from ${review.displayName}? It comes off the site straight away. The record is kept, and you can approve it again later.`,
+    );
+  }
+
   async function moderate(id: string, status: ReviewStatus) {
     setBusy(true);
     setActionError("");
@@ -201,7 +219,10 @@ export default function AdminReviewsManager({
     );
   }
 
-  const all = reviews ?? [];
+  // The store hands back a log (newest first); a queue needs the
+  // undecided at the top. Sorted here rather than in the query — see
+  // sortForModeration for why that is not a SQL job.
+  const all = sortForModeration(reviews ?? []);
   const counts = {
     ALL: all.length,
     PENDING: all.filter((review) => review.status === "PENDING").length,
@@ -258,15 +279,21 @@ export default function AdminReviewsManager({
           {visible.map((review) => (
             <li key={review.id} className="rounded-2xl border border-brand-border bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-brand-navy">
+                {/* min-w-0 is what actually stops the overflow. A flex
+                    child defaults to min-width:auto, so it refuses to
+                    shrink below its longest unbreakable word — one long
+                    address is enough to push the card wider than a
+                    360px phone and give the whole page a sideways
+                    scrollbar. break-words then breaks that word. */}
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold break-words text-brand-navy">
                     {review.displayName}
                     {review.company && (
                       <span className="font-normal text-slate-600"> — {review.company}</span>
                     )}
                   </p>
                   {/* The one place this address is ever rendered. */}
-                  <p className="mt-1 text-sm text-slate-600">{review.email}</p>
+                  <p className="mt-1 break-all text-sm text-slate-600">{review.email}</p>
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
@@ -281,11 +308,27 @@ export default function AdminReviewsManager({
                 </span>
               </div>
 
+              {/* CONSENT IS SHOWN BECAUSE APPROVING WITHOUT IT DOES
+                  NOTHING. toPublicReviews() requires BOTH an approved
+                  status and recorded consent, so a moderator who
+                  approves a review that was submitted without the box
+                  ticked would watch it never appear and have no way to
+                  find out why. The rule is deliberate and stays; what
+                  was missing was any sign of it on this screen. */}
+              {!review.consentToPublish && (
+                <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900">
+                  <span className="font-semibold">No consent to publish.</span>{" "}
+                  This review carries no recorded permission, so approving it
+                  will not put it on the site. Nothing is broken: it is the
+                  rule working.
+                </p>
+              )}
+
               {review.rating !== null && (
                 <p className="mt-2 text-sm text-slate-600">{review.rating} / 5</p>
               )}
 
-              <div className="mt-3 space-y-2 whitespace-pre-line text-base leading-7 text-slate-700">
+              <div className="mt-3 space-y-2 whitespace-pre-line break-words text-base leading-7 text-slate-700">
                 {review.body}
               </div>
 
@@ -294,6 +337,57 @@ export default function AdminReviewsManager({
                 {review.moderatedBy && ` · last decided by ${review.moderatedBy}`}
               </p>
 
+              {/* A native <details>, so it is keyboard operable and
+                  needs no state. The queue stays scannable and the
+                  full record is one key away rather than on another
+                  screen. */}
+              <details className="mt-3 group">
+                <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2">
+                  Details
+                </summary>
+                <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-brand-text-muted">Consent to publish</dt>
+                    <dd className="font-medium text-brand-navy">
+                      {review.consentToPublish ? "Given" : "Not given"}
+                      {review.consentAt && ` · ${review.consentAt.slice(0, 10)}`}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-brand-text-muted">Last updated</dt>
+                    <dd className="font-medium text-brand-navy">
+                      {review.updatedAt.slice(0, 10)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-brand-text-muted">Decided by</dt>
+                    <dd className="font-medium text-brand-navy">
+                      {review.moderatedBy || "Nobody yet"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-brand-text-muted">Rating</dt>
+                    <dd className="font-medium text-brand-navy">
+                      {review.rating === null ? "Not given" : `${review.rating} / 5`}
+                    </dd>
+                  </div>
+                  {review.moderationNote && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-brand-text-muted">Moderation note</dt>
+                      <dd className="whitespace-pre-line break-words font-medium text-brand-navy">
+                        {review.moderationNote}
+                      </dd>
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <dt className="text-brand-text-muted">Reference</dt>
+                    <dd className="break-all font-mono text-xs text-slate-600">
+                      {review.id}
+                    </dd>
+                  </div>
+                </dl>
+              </details>
+
               <div className="mt-4 flex flex-wrap gap-2">
                 {REVIEW_STATUSES.filter((status) => status !== review.status).map(
                   (status) => (
@@ -301,7 +395,9 @@ export default function AdminReviewsManager({
                       key={status}
                       type="button"
                       disabled={busy}
-                      onClick={() => moderate(review.id, status)}
+                      onClick={() => {
+                        if (confirmed(review, status)) moderate(review.id, status);
+                      }}
                       className={`inline-flex min-h-11 items-center rounded-md px-4 text-sm font-semibold disabled:opacity-60 ${
                         status === "APPROVED"
                           ? "bg-brand-green text-white hover:bg-brand-green-dark"
