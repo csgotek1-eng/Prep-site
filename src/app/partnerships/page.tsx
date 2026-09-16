@@ -7,14 +7,14 @@ import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 
 export const metadata: Metadata = {
-  title: "Partner With Us — Fulfilment Ireland",
+  title: "Partner With Us: Fulfilment Ireland",
   description:
-    "Agencies, coaches, creators, couriers, technology and referral partners — how to work with a fulfilment and prep operation in Limerick.",
+    "Agencies, coaches, creators, couriers, technology and referral partners: how to work with a fulfilment and prep operation in Limerick.",
   alternates: { canonical: "/partnerships" },
   openGraph: {
-    title: "Partner With Us — Fulfilment Ireland",
+    title: "Partner With Us: Fulfilment Ireland",
     description:
-      "Agencies, coaches, creators, couriers, technology and referral partners — how to work with a fulfilment and prep operation in Limerick.",
+      "Agencies, coaches, creators, couriers, technology and referral partners: how to work with a fulfilment and prep operation in Limerick.",
     url: "/partnerships",
   },
 };
@@ -39,7 +39,7 @@ export default async function PartnershipsPage() {
             <p className="mt-4 text-lg leading-8 text-white/80">
               We run fulfilment, prep and storage from Limerick for sellers
               across Ireland. If your work touches ecommerce, there is probably
-              a sensible way for us to work together — and we would rather have
+              a sensible way for us to work together. We would rather have
               a proper conversation about it than run a scheme.
             </p>
           </div>

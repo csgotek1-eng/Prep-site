@@ -339,7 +339,7 @@ describe("the public information architecture", () => {
   it("both new pages carry real metadata", () => {
     for (const [path, title] of [
       ["src/app/become-a-client/page.tsx", "Start Fulfilment in Ireland"],
-      ["src/app/partnerships/page.tsx", "Partner With Us — Fulfilment Ireland"],
+      ["src/app/partnerships/page.tsx", "Partner With Us: Fulfilment Ireland"],
     ]) {
       const source = read(path);
       assert.ok(source.includes(`title: "${title}"`), path);
@@ -354,7 +354,7 @@ describe("the public information architecture", () => {
     assert.ok(page.includes("Who Dockentra suits"));
     assert.ok(page.includes("What happens after you send this"));
     const confirmation = read("src/components/BecomeClientForm.tsx");
-    assert.ok(confirmation.includes("Thanks — we&apos;ve received your details."));
+    assert.ok(confirmation.includes("Thanks, we&apos;ve received your details."));
     assert.equal(confirmation.includes("Form submitted"), false);
     // No invented response time.
     assert.equal(/within \d+ (hours?|days?|working)/i.test(confirmation), false);

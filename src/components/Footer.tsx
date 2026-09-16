@@ -227,10 +227,10 @@ export default function Footer() {
             </li>
             <li>
               <Link
-                href="/sla"
+                href="/dispatch-commitment"
                 className="inline-flex min-h-11 items-center text-slate-400 transition-colors hover:text-brand-mint sm:min-h-0"
               >
-                Service Levels
+                Dispatch commitment
               </Link>
             </li>
             <li>

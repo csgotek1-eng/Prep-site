@@ -6,6 +6,7 @@ import ProcessVideo from "@/components/ProcessVideo";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
+import BatchPhotosSection from "@/components/sections/BatchPhotosSection";
 import ContactSection from "@/components/sections/ContactSection";
 import HomeFaq from "@/components/sections/HomeFaq";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
@@ -13,6 +14,7 @@ import PricingSection from "@/components/sections/PricingSection";
 import SellerFit from "@/components/sections/SellerFit";
 import ServicesSection from "@/components/sections/ServicesSection";
 import WhyDockentra from "@/components/sections/WhyDockentra";
+import WhyIrelandSection from "@/components/sections/WhyIrelandSection";
 
 /* THE one platform presentation on the homepage. It used to be a
    four-chip teaser with a near-identical "Works with your sales
@@ -81,7 +83,7 @@ export default async function HomePage() {
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-brand-text-muted sm:text-lg sm:leading-8">
               Dockentra receives, stores, preps and ships stock for TikTok
-              Shop, Amazon, Shopify and eBay sellers in Ireland — from a few
+              Shop, Amazon, Shopify and eBay sellers in Ireland, from a few
               orders a day up. You send the stock; we handle the rest, and you
               can actually talk to the people doing it.
             </p>
@@ -131,9 +133,8 @@ export default async function HomePage() {
               </Link>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-6 text-brand-text-muted">
-              Ask for a price from the button at the top of any page —
-              you&apos;ll receive it privately by WhatsApp or email, with no
-              call.
+              Ask for a price from the button at the top of any page. You&apos;ll
+              receive it privately by WhatsApp or email, with no call.
             </p>
           </div>
 
@@ -170,7 +171,7 @@ export default async function HomePage() {
               />
             </div>
             <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted lg:text-left">
-              Illustrative footage of fulfilment work — packing, labelling and
+              Illustrative footage of fulfilment work: packing, labelling and
               putaway.
             </figcaption>
           </figure>
@@ -200,9 +201,16 @@ export default async function HomePage() {
           an explanation — PricingSection carries the real Get Price
           instead. Both pages still exist and are still linked. */}
       <SellerFit />
+      {/* ТЗ 15.09.2026, A6: the platform argument sits between who the
+          service is for and what it does, because it is the reason the
+          service exists here at all. */}
+      <WhyIrelandSection />
       <ServicesSection />
       <HowItWorksSection />
       <ProcessMedia />
+      {/* ТЗ 15.09.2026, A6: after the process, before the reasons —
+          the photos are the proof that the process happened. */}
+      <BatchPhotosSection />
       <WhyDockentra />
       <PricingSection />
       <HomeFaq />
@@ -230,7 +238,7 @@ export default async function HomePage() {
                 </h2>
                 <p className="mt-3 max-w-xl text-base leading-7 text-slate-300">
                   Tell us what you sell and roughly how much of it moves.
-                  We&apos;ll come back with a setup that fits — and the price
+                  We&apos;ll come back with a setup that fits, and the price
                   with it.
                 </p>
               </div>

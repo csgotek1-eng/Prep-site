@@ -31,7 +31,7 @@ const PUBLIC_PAGES = [
   "src/app/about/page.tsx",
   "src/app/contact/page.tsx",
   "src/app/faq/page.tsx",
-  "src/app/sla/page.tsx",
+  "src/app/dispatch-commitment/page.tsx",
   "src/app/privacy/page.tsx",
 ];
 
@@ -54,7 +54,18 @@ describe("header is navigation only", () => {
     // Cooperation.
     assert.deepEqual(
       navLinks.map((link) => link.label),
-      ["Home", "Services", "How It Works", "Pricing", "Partnerships", "About", "Contact"],
+      // "Why Ireland" joined on 15.09.2026 (ТЗ A8), directly before
+      // Partnerships so that every existing item keeps its position.
+      [
+        "Home",
+        "Services",
+        "How It Works",
+        "Pricing",
+        "Why Ireland",
+        "Partnerships",
+        "About",
+        "Contact",
+      ],
     );
     const labels: string[] = navLinks.map((link) => link.label);
     assert.equal(labels.includes("Cooperation"), false);

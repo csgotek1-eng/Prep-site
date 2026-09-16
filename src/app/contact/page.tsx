@@ -28,17 +28,17 @@ const socials = [
   {
     href: siteConfig.social.instagram,
     Icon: InstagramIcon,
-    text: "Instagram — Dockentra",
+    text: "Instagram: Dockentra",
   },
   {
     href: siteConfig.social.facebook,
     Icon: FacebookIcon,
-    text: "Facebook — Dockentra",
+    text: "Facebook: Dockentra",
   },
   {
     href: siteConfig.social.tiktok,
     Icon: TikTokIcon,
-    text: `TikTok — ${siteConfig.social.tiktokHandle}`,
+    text: `TikTok: ${siteConfig.social.tiktokHandle}`,
   },
 ];
 
@@ -154,7 +154,7 @@ export default async function ContactPage() {
               Send an enquiry
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
-              A short question, a short form — three fields. A real person
+              A short question, a short form: three fields. A real person
               reads every one of these. Prefer to chat?{" "}
               <a
                 href={siteConfig.social.whatsapp}

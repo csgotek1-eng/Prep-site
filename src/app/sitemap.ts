@@ -10,10 +10,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/become-a-client",
       "/pricing-calculator",
       "/faq",
-      "/sla",
+      "/dispatch-commitment",
       "/privacy",
       // Customer stories: indexable, and the place a review is left.
       "/cases",
+      // Batch photos: linked from the homepage block that explains them,
+      // and worth finding on its own from search.
+      "/batch-photos",
       // UK brands. In the sitemap deliberately, even though the page
       // redirects visitors the host identifies as Irish: search is how a
       // British seller finds this page, crawlers are not in Ireland, and

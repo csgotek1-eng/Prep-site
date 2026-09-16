@@ -105,7 +105,7 @@ export default function BecomeClientForm({
         className="rounded-xl border border-brand-green/40 bg-brand-mint-soft/60 p-6 sm:p-8"
       >
         <h2 className="text-xl font-bold text-brand-navy">
-          Thanks — we&apos;ve received your details.
+          Thanks, we&apos;ve received your details.
         </h2>
         {/* No response-time promise: the business has not committed to
             one, so the website must not invent it. */}
@@ -250,7 +250,7 @@ export default function BecomeClientForm({
 
       <p className="text-xs leading-5 text-slate-500">
         We use these details only to respond to your enquiry and prepare
-        your pricing — see our{" "}
+        your pricing. See our{" "}
         <a href="/privacy" className="font-medium text-brand-green-dark underline-offset-2 hover:underline">
           Privacy Policy
         </a>

@@ -66,7 +66,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-3xl space-y-6 text-base leading-7 text-slate-700">
             <p>
               Dockentra is a fulfilment and prep centre in Limerick. We hold
-              your stock, pick and pack your orders, and post them out — one
+              your stock, pick and pack your orders, and post them out, one
               at a time, as they come in.
             </p>
             {/* "There are two of us" until 2026-09-11. The owner
@@ -84,8 +84,8 @@ export default function AboutPage() {
             <p>
               We&apos;re not the biggest option in Ireland. We&apos;re the one
               that gives you a price without a sales call, tells you what
-              happens when something goes wrong, and answers you the same
-              day.
+              happens when something goes wrong, and answers you within one
+              working day.
             </p>
 
             <h2 className="pt-4 text-2xl font-bold tracking-tight text-brand-navy">
@@ -95,7 +95,7 @@ export default function AboutPage() {
               You don&apos;t need to ship thousands of orders to work with
               Dockentra. Whether you&apos;re sending a few orders per day or
               growing quickly, we can discuss a fulfilment setup that fits
-              your business — and that can grow as you do.
+              your business, and that can grow as you do.
             </p>
           </div>
 

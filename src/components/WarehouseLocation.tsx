@@ -37,7 +37,7 @@ export default function WarehouseLocation({
         ))}
       </address>
       <p className="mt-3 text-sm leading-6 text-slate-600">
-        This is a fulfilment warehouse, not a shop — deliveries and visits are
+        This is a fulfilment warehouse, not a shop. Deliveries and visits are
         arranged in advance.
       </p>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">

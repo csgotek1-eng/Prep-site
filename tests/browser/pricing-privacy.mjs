@@ -29,37 +29,57 @@ const BASE = `http://127.0.0.1:${PORT}`;
 
 const PAGES = [
   "/", "/about", "/services", "/pricing", "/how-it-works", "/become-a-client",
-  "/partnerships", "/contact", "/faq", "/sla", "/privacy", "/pricing-calculator",
+  "/partnerships", "/contact", "/faq", "/dispatch-commitment", "/privacy", "/pricing-calculator",
   // Added at launch. /cases renders text submitted by members of the
   // public, which is exactly the kind of surface where an amount
   // arrives without anyone deciding to put one there. A page missing
   // from this list is a page where the boundary is unenforced.
   "/cases",
-  // /uk-brands is swept too, but under a different rule — see below.
+  "/batch-photos",
+  // These two are swept too, but under a different rule: see below.
   "/uk-brands",
+  "/why-ireland",
 ];
 
 /**
- * THE RULE IS "NO DOCKENTRA RATES", NOT "NO DIGITS".
+ * THE RULE IS "NO DOCKENTRA RATES", NOT "NO DIGITS", AND THE LIST OF
+ * PAGES ALLOWED TO CARRY A FIGURE GREW ON 15.09.2026.
  *
- * /uk-brands argues the customs case for holding stock in Ireland, and
- * that argument is made of third-party statutory figures: the EUR 3
- * customs duty per item, An Post's EUR 6.95 handling fee, and the
- * EUR 150 and EUR 22 reliefs the EU abolished. Each is sourced in the
- * page's markup to Irish Revenue, the European Commission or An Post.
- * They are facts about the world, not what we charge, and the page
- * exists to state them.
+ * It was one page. /uk-brands argues the customs case for holding
+ * stock in Ireland, and that argument is made of third-party figures:
+ * the EUR 3 customs duty, An Post's EUR 6.95 handling fee, the EUR 150
+ * and EUR 22 reliefs. Facts about the world, not what we charge.
  *
- * So this page is exempt from the generic amount scan and held to a
- * STRICTER rule instead: no figure on it may match any rate in the
- * private catalogue. That is the thing the boundary actually protects,
- * and it is checked directly below rather than approximated by
- * counting euro signs.
+ * ТЗ 15.09.2026 adds three more surfaces by explicit owner decision:
+ *  - /uk-brands also regained the carrier comparison (A14): about
+ *    EUR 10 from Britain against EUR 4.55 from Limerick, and a table
+ *    totalling EUR 15.95 against EUR 8.45.
+ *  - /why-ireland states the same EUR 3 charge from the buyer's side (A7).
+ *  - /faq answers two questions that quote both (A9).
+ *  - the homepage carries one CTA label, "Read how the EUR 3 charge
+ *    works" (A6), which is a euro sign on the homepage for the first
+ *    time.
+ *  - an offer page may carry the approved starting rate (A4).
+ *
+ * These pages are exempt from the blanket amount scan and held to a
+ * STRICTER rule instead: no figure on them may match a rate in the
+ * private catalogue. That is what the boundary actually protects. The
+ * one deliberate exception is the entry pick-and-pack band on the
+ * offer page, which the owner publishes as "from EUR 2.60 per order";
+ * the bands below it stay private, and that is asserted separately.
  *
  * Every other page stays under the blanket rule, where any amount at
  * all is a leak.
  */
-const STATUTORY_FIGURE_PAGES = ["/uk-brands"];
+const STATUTORY_FIGURE_PAGES = ["/uk-brands", "/why-ireland", "/faq"];
+
+/**
+ * The homepage is NOT exempt, because only one string on it is
+ * approved. Exempting the whole page would let a real rate appear
+ * there unnoticed, so the one approved label is redacted by exact
+ * match and everything else still has to be clean.
+ */
+const APPROVED_HOMEPAGE_FIGURES = ["Read how the €3 charge works"];
 
 /**
  * Exact field names from the internal pricing model. Deliberately not a
@@ -194,14 +214,20 @@ const browser = await launch();
     const exempt = STATUTORY_FIGURE_PAGES.some(
       (page) => path === page || path.startsWith(`${page}?`),
     );
-    const field = PRICING_FIELD.exec(body);
-    const amount = exempt ? null : AMOUNT.exec(body);
+    // Exact-match redaction, not a page exemption: a real rate sitting
+    // beside the approved label is still caught.
+    const scannable = APPROVED_HOMEPAGE_FIGURES.reduce(
+      (text, approved) => text.split(approved).join("[approved label]"),
+      body,
+    );
+    const field = PRICING_FIELD.exec(scannable);
+    const amount = exempt ? null : AMOUNT.exec(scannable);
     if (!field && !amount) return;
     const at = (field ?? amount).index;
     leaks.push(
       `${response.url().replace(BASE, "")} [${type.split(";")[0]}] ` +
         `${field ? `field ${field[0]}` : `amount ${amount[0]}`} :: ` +
-        body.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
+        scannable.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " "),
     );
   });
 
@@ -253,7 +279,24 @@ const browser = await launch();
   for (const path of STATUTORY_FIGURE_PAGES) {
     const reader = await context.newPage();
     await reader.goto(BASE + path, { waitUntil: "domcontentloaded" });
-    const text = await reader.locator("body").innerText();
+    /**
+     * Not innerText, and not raw textContent either.
+     *
+     * innerText skips anything not currently visible, and /faq keeps
+     * its answers inside a collapsed accordion — so it returned none
+     * of them, which broke the customs check and would have let a
+     * catalogue rate hide inside a collapsed answer unscanned.
+     *
+     * Plain textContent fixes that but sweeps in <script> bodies: the
+     * RSC flight payload and webpack chunk names are full of digit
+     * runs, and a substring match for "1.80" duly found three of
+     * them. So: clone, drop script and style, then read.
+     */
+    const text = await reader.evaluate(() => {
+      const clone = document.body.cloneNode(true);
+      for (const node of clone.querySelectorAll("script, style")) node.remove();
+      return clone.textContent ?? "";
+    });
     for (const rate of privateRates) {
       ok(!text.includes(rate), `${path} publishes €${rate}, which is a real catalogue rate`);
     }

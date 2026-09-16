@@ -97,7 +97,7 @@ export default function HelpPanel({
       open={open}
       onClose={close}
       title="How can we help?"
-      description="Pick the one that fits — every route reaches a person."
+      description="Pick the one that fits: every route reaches a person."
     >
       <ul className="space-y-2">
         {ACTIONS.map(({ id, label, description, href, Icon, external }) => {

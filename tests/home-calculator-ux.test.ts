@@ -60,6 +60,8 @@ describe("header Get Price", () => {
       "Services",
       "How It Works",
       "Pricing",
+      // Added 15.09.2026 (ТЗ A8).
+      "Why Ireland",
       "Partnerships",
       "About",
       "Contact",

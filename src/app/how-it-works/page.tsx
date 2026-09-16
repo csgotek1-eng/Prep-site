@@ -5,7 +5,7 @@ import Container from "@/components/Container";
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "How fulfilment with Dockentra works — from telling us about your business to your orders being picked, packed and prepared for dispatch in Ireland.",
+    "How fulfilment with Dockentra works, from telling us about your business to your orders being picked, packed and prepared for dispatch in Ireland.",
   alternates: {
     canonical: "/how-it-works",
   },
@@ -21,19 +21,19 @@ const steps = [
   {
     title: "Send your stock",
     description:
-      "Tell us what you sell and roughly how many orders you handle. We agree the services you need, and you — or your supplier — send stock to Dockentra in Ireland.",
+      "Tell us what you sell and roughly how many orders you handle. We agree the services you need, and you, or your supplier, send stock to Dockentra in Ireland.",
     timings: [] as string[],
   },
   {
     title: "We receive and prepare it",
     description:
       "Deliveries are counted and checked, products are prepared to your requirements, and inventory goes into local storage, ready for orders.",
-    timings: ["Receipt and count — same day", "Photos — same day"],
+    timings: ["Receipt and count: same day", "Photos: same day"],
   },
   {
     title: "Orders are picked, packed and dispatched",
     description:
-      "As orders come in, items are picked, checked, packed and made ready for dispatch. You focus on products and customers — the fulfilment is handled.",
+      "As orders come in, items are picked, checked, packed and made ready for dispatch. You focus on products and customers. The fulfilment is handled.",
     timings: [] as string[],
   },
 ];

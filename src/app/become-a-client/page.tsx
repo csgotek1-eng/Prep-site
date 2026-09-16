@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 const STEPS = [
   "You send us your details and what you need.",
-  "We review your requirements and come back to you with your pricing, privately — within one working day.",
+  "We review your requirements and come back to you with your pricing, privately, within one working day.",
   "We agree how your stock arrives and how your orders reach us.",
   "Your first delivery is booked in and you start dispatching.",
 ];
@@ -68,7 +68,7 @@ export default async function BecomeAClientPage({
             <p className="mt-4 text-lg leading-8 text-white/80">
               Tell us what you sell and how you sell it. We&apos;ll look at what
               you need, prepare your pricing and show you exactly how getting
-              started works — no long forms, no obligation.
+              started works. No long forms, no obligation.
             </p>
           </div>
         </Container>

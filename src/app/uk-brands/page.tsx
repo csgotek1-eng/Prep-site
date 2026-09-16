@@ -15,33 +15,44 @@ export const metadata: Metadata = {
 };
 
 /**
- * §4.2 — FOR UK BRANDS.
+ * §4.2 — FOR UK BRANDS. Two arguments, in this order: OURS, then the
+ * market's.
  *
- * THE DRAFT'S HEADLINE NUMBERS ARE NOT ON THIS PAGE, DELIBERATELY.
+ * THE COST COMPARISON IS BACK, BY OWNER DECISION (ТЗ 15.09.2026, A14),
+ * AND THE HISTORY MATTERS BECAUSE THE RISK HAS NOT CHANGED.
  *
- * The supplied copy led with "Your parcel costs €10 to cross the Irish
- * Sea. Ours costs €4.55." Both figures were checked against carrier
- * tariffs before anything was written:
+ * This page originally shipped WITHOUT the "€10 to cross the Irish Sea
+ * / €4.55 from Limerick" comparison, because neither figure could be
+ * verified for publication:
  *
- *  - €10 GB->IE: UNVERIFIABLE. Royal Mail, Parcelforce and Evri return
- *    403 to every automated request, so no published tariff could be
- *    read. No number was going to be invented to fill the gap.
- *  - €4.55 domestic Irish: NOT A RATE. It appears nowhere in An Post's
- *    current card (effective 3 February 2026) or the 2023 one. The
- *    like-for-like published figure is EUR 9.00 for a parcel up to 2 kg;
- *    EUR 4.40 is a 100 g PACKET, a different product.
+ *  - €10 GB->IE: no published tariff could be read. Royal Mail,
+ *    Parcelforce and Evri return 403 to automated requests, and the
+ *    one GB->IE consumer figure that could be verified was DHL
+ *    Service Point at £32.95 for a box up to 1.9 kg.
+ *  - €4.55 domestic Irish: appears in no An Post band. Effective
+ *    3 February 2026 a parcel up to 2 kg is €9.00; €4.40 is a 100 g
+ *    PACKET, a different product.
  *
- * Published as drafted, the page would have made a checkable claim that
- * a prospect could disprove in one search — and the argument it rests
- * on collapses anyway once the real domestic figure is EUR 9.00 rather
- * than EUR 4.55.
+ * The owner has since approved both figures for publication, together
+ * with the full table below, so they are published. What has NOT
+ * changed is that they are checkable by a prospect in one search and
+ * that the rates behind them were fixed on 07.09.2026: the GBP/EUR
+ * rate and the carrier cards both move. They are due a re-check before
+ * this site is shown to anyone.
  *
- * So the page keeps its structure and its commercial argument and drops
- * the price comparison for the one that is documented and much harder
- * to argue with: CUSTOMS. Every fact below comes from Irish Revenue,
- * the European Commission or An Post, each is sourced in the markup,
- * and each was verified on 11 September 2026. Nothing here is a
- * carrier price.
+ * THE LEGAL HALF STAYS EXACTLY AS IT WAS, and is now second rather
+ * than only. Every fact in it comes from Irish Revenue, the European
+ * Commission or An Post, each is sourced in the markup, and each was
+ * verified on 11 September 2026. Nothing in that half is a carrier
+ * price, which is precisely why it survived when the prices did not.
+ *
+ * "€3 per item type" is not a typo for "per item". Council Regulation
+ * (EU) 2026/382 charges per tariff classification, not per unit: the
+ * Commission's own guidance gives "5 T-shirts = €3 (1 item)" against
+ * "1 T-shirt + 1 watch = €6 (2 items)". The friction card below still
+ * reads "per item", which is the regulation's own word for the same
+ * thing; the new copy says "per item type" because that is what a
+ * seller reading it needs to understand.
  */
 
 const frictions = [
@@ -52,12 +63,12 @@ const frictions = [
   },
   {
     title: "€3 of customs duty per item, since 1 July 2026",
-    body: "The relief that used to apply below €150 was abolished. A flat €3 customs duty now applies per item on goods sold directly to consumers, and it applies whichever VAT scheme you use — IOSS included. It runs until 1 July 2028, when normal tariffs take over.",
+    body: "The relief that used to apply below €150 was abolished. A flat €3 customs duty now applies per item on goods sold directly to consumers, and it applies whichever VAT scheme you use, IOSS included. It runs until 1 July 2028, when normal tariffs take over.",
     source: "Council Regulation (EU) 2026/382",
   },
   {
     title: "Irish VAT on everything, and the €3 is inside the VAT base",
-    body: "There has been no VAT-free threshold since the €22 relief ended in July 2021. Irish VAT is due on the goods at 23% standard rate — and Revenue calculates it on a total that includes the €3 duty.",
+    body: "There has been no VAT-free threshold since the €22 relief ended in July 2021. Irish VAT is due on the goods at 23% standard rate, and Revenue calculates it on a total that includes the €3 duty.",
     source: "Irish Revenue",
   },
   {
@@ -67,7 +78,7 @@ const frictions = [
   },
   {
     title: "An EU intermediary before you can even use IOSS",
-    body: "IOSS lets you charge VAT at checkout instead of surprising the customer on delivery — but a non-EU seller must appoint an EU-established intermediary to use it. That is a contract and a cost before the first parcel moves.",
+    body: "IOSS lets you charge VAT at checkout instead of surprising the customer on delivery, but a non-EU seller must appoint an EU-established intermediary to use it. That is a contract and a cost before the first parcel moves.",
     source: "Irish Revenue, IOSS manual",
   },
   {
@@ -120,44 +131,164 @@ export default async function UkBrandsPage() {
               For UK brands
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Your Irish orders cross a customs border. They don&apos;t have to.
+              Your parcel costs €10 to cross the Irish Sea. Ours costs €4.55.
             </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Every parcel you post from Britain to an Irish customer is an
-              export: a declaration, duty, VAT, a handling fee and a delay that
-              belongs to your customer rather than to you. Stock sitting in
-              Limerick has already crossed. The order that follows is a domestic
-              delivery.
+            <div className="mt-4 space-y-4 text-base leading-7 text-slate-300 sm:text-lg">
+              <p>
+                A 0.5 kg parcel from the UK to Ireland costs about €10 tracked.
+                The same parcel posted from Limerick costs €4.55, because it
+                never leaves the country.
+              </p>
+              <p>
+                Then there&apos;s the charge your customer didn&apos;t agree
+                to. Since 1 July 2026, an Irish buyer pays €3 per item type in
+                customs charges on anything under €150 arriving from outside
+                the EU. It&apos;s collected at the door, not at checkout. A
+                three-item order means €9 the buyer first hears about from the
+                courier, and that&apos;s where refused parcels and returns come
+                from.
+              </p>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* THE NUMBERS — our argument, before the market's. */}
+      <section aria-labelledby="cost-heading" className="bg-white">
+        <Container className="py-16 sm:py-20">
+          <div className="max-w-3xl">
+            <h2
+              id="cost-heading"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+            >
+              The same order, both ways
+            </h2>
+
+            {/* overflow-x-auto: a four-column money table has a floor
+                width that a 320px screen cannot meet, and the
+                alternative to scrolling it is shrinking the figures
+                until nobody reads them. */}
+            {/* tabIndex + role=group: a scrollable region has to be
+                reachable by keyboard, or the columns past the fold are
+                unreachable without a mouse. */}
+            <div
+              className="mt-8 overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+              tabIndex={0}
+              role="group"
+              aria-label="Cost comparison table, scrolls horizontally"
+            >
+              <table className="w-full min-w-[34rem] border-collapse text-left">
+                <caption className="sr-only">
+                  Cost of fulfilling the same order from Britain compared with
+                  from Limerick
+                </caption>
+                <thead>
+                  <tr className="border-b border-brand-border">
+                    <th scope="col" className="py-3 pr-4 text-sm font-semibold text-brand-navy">
+                      <span className="sr-only">Cost</span>
+                    </th>
+                    <th scope="col" className="py-3 px-4 text-sm font-semibold text-brand-navy">
+                      Shipping from Britain
+                    </th>
+                    <th scope="col" className="py-3 pl-4 text-sm font-semibold text-brand-navy">
+                      Shipping from Limerick
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono-data text-sm text-slate-700">
+                  {[
+                    ["Handling and packaging", "€2.81", "€3.90"],
+                    ["Delivery", "€10.14", "€4.55"],
+                    ["Customs charge to your customer", "€3.00", "€0"],
+                  ].map(([label, britain, limerick]) => (
+                    <tr key={label} className="border-b border-brand-border/60">
+                      <th
+                        scope="row"
+                        className="py-3 pr-4 text-left font-sans text-sm font-normal text-slate-700"
+                      >
+                        {label}
+                      </th>
+                      <td className="py-3 px-4 tabular-nums">{britain}</td>
+                      <td className="py-3 pl-4 tabular-nums">{limerick}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-b-2 border-brand-navy">
+                    <th
+                      scope="row"
+                      className="py-3 pr-4 text-left font-sans text-base font-semibold text-brand-navy"
+                    >
+                      Total
+                    </th>
+                    <td className="py-3 px-4 text-base font-semibold tabular-nums text-brand-navy">
+                      €15.95
+                    </td>
+                    <td className="py-3 pl-4 text-base font-semibold tabular-nums text-brand-green-dark">
+                      €8.45
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* REQUIRED, and not to be trimmed: conceding the handling
+                line is what makes the rest of the table believable.
+                A comparison that won every row would read as marketing. */}
+            <p className="mt-6 text-base leading-7 text-slate-700">
+              We&apos;re not cheaper than a British 3PL on handling. We&apos;re
+              within twelve cent of them. The saving is geography, not our rate
+              card. It&apos;s about €4.20 an order before the customs charge,
+              and around €2,100 a month at 500 orders.
             </p>
+
+            {/* Northern Ireland is not the audience for any of this:
+                no €3 charge, and Fulfilled by TikTok is available. Said
+                plainly here because the page cannot be geo-targeted to
+                exclude it — the country header sees "GB" for Belfast
+                exactly as it does for Bristol. */}
+            <p className="mt-4 text-sm leading-6 text-brand-text-muted">
+              This is about moving goods from Great Britain into the EU. If
+              you&apos;re selling from Northern Ireland, neither the customs
+              charge nor the platform limitation below applies to you in the
+              same way.
+            </p>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/become-a-client"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark"
               >
-                Talk to us about moving stock
+                Become a Client
               </Link>
               <Link
-                href="/how-it-works"
-                className="inline-flex min-h-12 items-center justify-center rounded-md border-2 border-white/30 px-6 text-base font-semibold text-white transition hover:border-white"
+                href="/contact#enquiry"
+                className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
               >
-                How it works
+                Ask a question
               </Link>
             </div>
           </div>
         </Container>
       </section>
 
+      {/* THE LEGAL HALF. The connecting heading is doing real work:
+          without it the page runs the commercial argument straight into
+          the regulatory one and reads as a single undifferentiated
+          wall. Above this line are our numbers; below it is what the
+          rules say, sourced. */}
       <section aria-labelledby="friction-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="pb-16 sm:pb-20">
           <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+              The legal side of it
+            </p>
             <h2
               id="friction-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="mt-3 text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               What crossing the border actually costs you
             </h2>
             <p className="mt-3 text-base leading-7 text-slate-600">
-              Not an estimate — the published rules, as they stand today.
+              Not an estimate: the published rules, as they stand today.
             </p>
           </div>
 
@@ -181,8 +312,8 @@ export default async function UkBrandsPage() {
           <p className="mt-8 max-w-3xl text-sm leading-6 text-brand-text-muted">
             Rules checked on 11 September 2026 against Irish Revenue, the
             European Commission and An Post. This is general information about
-            published rules, not customs advice about your specific goods —
-            classification and origin can change the answer, so check your own
+            published rules, not customs advice about your specific goods.
+            Classification and origin can change the answer, so check your own
             position before you plan around it.
           </p>
         </Container>
@@ -235,7 +366,7 @@ export default async function UkBrandsPage() {
                   shipment, before anything is sold.
                 </li>
                 <li>
-                  The order itself is a domestic Irish delivery — no
+                  The order itself is a domestic Irish delivery: no
                   declaration, no per-item duty, no import VAT on the parcel.
                 </li>
                 <li>Nothing is asked of your customer at the door.</li>

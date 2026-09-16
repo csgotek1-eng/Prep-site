@@ -133,7 +133,7 @@ const PAGES = [
   "/partnerships",
   "/how-it-works",
   "/about",
-  "/sla",
+  "/dispatch-commitment",
   "/faq",
 ];
 for (const width of WIDTHS) {
@@ -410,11 +410,50 @@ for (const width of [320, 390, 430]) {
   ok(hrefs.includes("/services"), "the mobile menu cannot reach /services");
   await page.keyboard.press("Escape");
 
-  // Private pricing: no amount anywhere a visitor can see.
+  /**
+   * Private pricing, as the rule now stands (ТЗ 15.09.2026).
+   *
+   * This loop used to ban every euro amount on all five paths. Three
+   * of them still carry none, and those stay banned. The other two
+   * changed by owner decision and are checked against what they are
+   * actually allowed to say:
+   *
+   *  - the homepage gained one CTA label, "Read how the €3 charge
+   *    works" (A6), and nothing else;
+   *  - an offer page may carry the approved starting rate and the
+   *    setup and minimum figures (A4).
+   *
+   * Redaction is by exact string, so a real rate appearing next to an
+   * approved one is still a failure.
+   */
+  const APPROVED = {
+    "/": ["Read how the €3 charge works"],
+    [`/offers/${OFFER_ID}`]: [
+      "from €2.60 per order",
+      "€0 setup",
+      "€275 minimum monthly invoice",
+      "is €0",
+      "the €275",
+    ],
+  };
   for (const path of ["/", "/pricing", "/contact", "/become-a-client", `/offers/${OFFER_ID}`]) {
     await page.goto(BASE + path, { waitUntil: "networkidle" });
     const text = await page.innerText("body");
-    ok(!/€\s?\d/.test(text), `${path} shows a monetary amount`);
+    const scannable = (APPROVED[path] ?? []).reduce(
+      (acc, approved) => acc.split(approved).join("[approved]"),
+      text,
+    );
+    ok(!/€\s?\d/.test(scannable), `${path} shows an unapproved monetary amount`);
+  }
+
+  // The volume bands below the published entry rate stay private,
+  // everywhere, including on the offer page that publishes the entry.
+  {
+    await page.goto(`${BASE}/offers/${OFFER_ID}`, { waitUntil: "networkidle" });
+    const text = await page.innerText("body");
+    for (const band of ["2.30", "2.05", "1.80", "0.50", "0.42", "0.36"]) {
+      ok(!text.includes(band), `the offer page publishes the private band rate ${band}`);
+    }
   }
   await context.close();
 }

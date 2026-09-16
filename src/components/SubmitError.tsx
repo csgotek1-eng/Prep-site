@@ -50,7 +50,7 @@ export default function SubmitError({
           <a href={siteContact.phoneHref} className="font-semibold underline underline-offset-2">
             {siteContact.phone}
           </a>
-          {" — nothing you typed is lost."}
+          {". Nothing you typed is lost."}
         </>
       ) : null}
     </p>

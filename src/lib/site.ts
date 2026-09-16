@@ -102,6 +102,14 @@ export const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
+  /* ТЗ 15.09.2026, A8: "between How It Works and Partnerships", with
+     Pricing explicitly left where it is. Those two cannot both be
+     literally true — Pricing already sits in that gap — so it goes
+     directly before Partnerships, which is inside the named span and
+     leaves every existing item at the index it had. Moving Pricing to
+     the front is a separate, still-unconfirmed decision (Content
+     Master §2) and is deliberately not bundled in here. */
+  { href: "/why-ireland", label: "Why Ireland" },
   // The two public intents, kept apart on purpose: "fulfil my orders"
   // and "work with you" are different conversations with different
   // people. One word each — never Partnership AND Cooperation.

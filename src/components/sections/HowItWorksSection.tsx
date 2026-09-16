@@ -20,7 +20,7 @@ const steps = [
     title: "We receive and prepare it",
     description:
       "Deliveries are counted and checked, products are prepared to your requirements, and inventory goes into local storage.",
-    timings: ["Receipt and count — same day", "Photos — same day"],
+    timings: ["Receipt and count: same day", "Photos: same day"],
   },
   {
     title: "Orders are picked, packed and dispatched",

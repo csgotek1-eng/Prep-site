@@ -27,7 +27,7 @@ export function CalculatorDialog({
       open={open}
       onClose={onClose}
       title="Pricing Calculator"
-      description="Tell us your volume and services — we send your price to you privately."
+      description="Tell us your volume and services. We send your price to you privately."
       size="wide"
     >
       {open && <PricingCalculator variant="modal" />}

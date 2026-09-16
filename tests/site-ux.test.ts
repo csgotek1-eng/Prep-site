@@ -211,7 +211,7 @@ describe("CTA vocabulary and repetition", () => {
     "src/app/how-it-works/page.tsx",
     "src/app/pricing/page.tsx",
     "src/app/about/page.tsx",
-    "src/app/sla/page.tsx",
+    "src/app/dispatch-commitment/page.tsx",
     "src/app/contact/page.tsx",
   ];
 

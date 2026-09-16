@@ -17,17 +17,17 @@ const socials = [
   {
     href: siteConfig.social.instagram,
     Icon: InstagramIcon,
-    text: "Instagram — Dockentra",
+    text: "Instagram: Dockentra",
   },
   {
     href: siteConfig.social.facebook,
     Icon: FacebookIcon,
-    text: "Facebook — Dockentra",
+    text: "Facebook: Dockentra",
   },
   {
     href: siteConfig.social.tiktok,
     Icon: TikTokIcon,
-    text: `TikTok — ${siteConfig.social.tiktokHandle}`,
+    text: `TikTok: ${siteConfig.social.tiktokHandle}`,
   },
 ];
 

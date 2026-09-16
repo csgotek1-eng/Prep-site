@@ -52,10 +52,10 @@ export default function PricingSection() {
             <p className="mt-3 text-base leading-7 text-slate-700">
               Every seller is priced on how they actually run, so a published
               rate would be wrong for most of you. Tell us your volume and the
-              services you need — it takes a minute.
+              services you need. It takes a minute.
             </p>
             <p className="mt-3 text-base font-semibold leading-7 text-brand-navy">
-              You&apos;ll receive your price privately by WhatsApp or email — no
+              You&apos;ll receive your price privately by WhatsApp or email. No
               call needed.
             </p>
           </div>

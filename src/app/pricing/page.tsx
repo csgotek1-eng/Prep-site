@@ -7,7 +7,7 @@ import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Fulfilment pricing based on your operation — SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
+    "Fulfilment pricing based on your operation: SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
   alternates: {
     canonical: "/pricing",
   },
@@ -89,7 +89,7 @@ export default async function PricingPage() {
             </p>
             <p className="mt-4 text-base leading-7 text-slate-300">
               We don&apos;t publish rates: every operation is priced
-              individually, and your price is sent privately to you — by
+              individually, and your price is sent privately to you, by
               WhatsApp or email, whichever you choose.
             </p>
 
@@ -115,7 +115,7 @@ export default async function PricingPage() {
                 rather than a dialog — a different thing, not a second
                 copy of the same thing. */}
             <p className="mt-8 text-sm leading-6 text-slate-300">
-              Three questions — your monthly volume, the services you need,
+              Three questions: your monthly volume, the services you need,
               and where to send it. Use Get Price at the top of the page, or{" "}
               <Link
                 href="/pricing-calculator"

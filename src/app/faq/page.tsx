@@ -76,7 +76,7 @@ export default function FaqPage() {
                   </p>
                   <p className="mt-1 text-sm leading-6 text-slate-700">
                     Didn&apos;t find your answer? Contact Dockentra directly
-                    — by phone, WhatsApp or the quote form.
+                    : by phone, WhatsApp or the quote form.
                   </p>
                 </div>
                 {/* Opens the shared Help panel (ContactLauncher listens

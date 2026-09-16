@@ -6,7 +6,7 @@ import PricingCalculator from "@/components/PricingCalculator";
 export const metadata: Metadata = {
   title: "Fulfilment Cost Calculator",
   description:
-    "Build a fulfilment cost estimate based on the services your e-commerce business needs — receiving, storage, pick & pack, prep, labelling and returns in Ireland.",
+    "Build a fulfilment cost estimate based on the services your e-commerce business needs: receiving, storage, pick & pack, prep, labelling and returns in Ireland.",
   alternates: {
     canonical: "/pricing-calculator",
   },
@@ -27,8 +27,8 @@ export default function PricingCalculatorPage() {
               made it (commit afe4bfe). This is that fix, on the page the
               visitor is standing on when they read it. */}
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            Build your selection from the services your business needs —
-            quantities included — and send it to us. We come back with
+            Build your selection from the services your business needs,
+            quantities included, and send it to us. We come back with
             your price by WhatsApp or email, within one working day.
           </p>
         </div>

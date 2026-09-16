@@ -305,15 +305,58 @@ describe("UK geo visibility", () => {
   });
 });
 
-describe("the UK page publishes no unverifiable number", () => {
+describe("the UK page's two arguments", () => {
   const page = readCode("src/app/uk-brands/page.tsx");
 
-  it("carries neither of the draft's carrier prices", () => {
-    // €10 GB->IE could not be verified against any carrier tariff, and
-    // €4.55 is not an An Post rate in the current or the 2023 card.
-    for (const banned of ["4.55", "€10", "10 to cross", "Irish Sea"]) {
-      assert.equal(page.includes(banned), false, `the page publishes "${banned}"`);
+  /**
+   * THIS TEST USED TO ASSERT THE OPPOSITE, AND THE REVERSAL IS AN
+   * OWNER DECISION, NOT A WEAKENED TEST.
+   *
+   * It read "carries neither of the draft's carrier prices" and banned
+   * "4.55", "€10", "10 to cross" and "Irish Sea" outright, because
+   * neither figure could be verified against a published carrier
+   * tariff. ТЗ 15.09.2026 (A14) puts the whole comparison back by
+   * explicit owner approval, so banning them would now fail the site
+   * rather than protect it.
+   *
+   * What replaces the ban is the thing the ban was really guarding:
+   * the comparison must stay HONEST. The paragraph conceding that we
+   * are not cheaper on handling is what makes the rest of the table
+   * credible, and the brief marks it as not-to-be-removed, so its
+   * absence is what fails now.
+   */
+  it("publishes the cost comparison the owner approved", () => {
+    for (const figure of ["€10", "€4.55", "€15.95", "€8.45"]) {
+      assert.ok(page.includes(figure), `the approved comparison is missing ${figure}`);
     }
+  });
+
+  it("keeps the concession that makes the table believable", () => {
+    assert.match(
+      page,
+      /not cheaper than a British 3PL on handling/,
+      "the handling concession is gone; a comparison that wins every row reads as marketing",
+    );
+    assert.match(page, /within twelve cent/);
+  });
+
+  it("still publishes no Dockentra rate", () => {
+    // The figures above are carrier and statutory costs. Our own
+    // catalogue rates remain private, and that has not changed.
+    for (const rate of ["2.60", "2.30", "2.05", "1.80", "0.60", "0.50", "0.42", "0.36"]) {
+      assert.equal(
+        page.includes(rate),
+        false,
+        `the page publishes ${rate}, which is one of our own rates`,
+      );
+    }
+  });
+
+  it("warns Northern Ireland that none of this applies to them", () => {
+    // Neither the €3 charge nor the platform limitation applies to a
+    // Belfast seller, and the country header cannot tell them apart
+    // from a Bristol one, so the page has to say so in words.
+    assert.match(page, /Northern Ireland/);
   });
 
   it("keeps the argument, sourced", () => {

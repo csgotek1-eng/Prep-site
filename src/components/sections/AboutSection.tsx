@@ -43,7 +43,7 @@ export default function AboutSection() {
               Many fulfilment providers are built around large brands with huge
               order volumes. Dockentra takes a different approach: a practical,
               personal service for sellers who need stock received, stored,
-              prepared, packed and shipped — without needing to be a big company
+              prepared, packed and shipped, without needing to be a big company
               to get taken seriously.
             </p>
           </div>

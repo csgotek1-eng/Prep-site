@@ -126,7 +126,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
     group: "Partnership & support",
     action: "general",
     freeText: true,
-    hint: "A free text box — write anything in your own words",
+    hint: "A free text box: write anything in your own words",
   },
 ];
 

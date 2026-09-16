@@ -1,4 +1,4 @@
-import { Camera, PackageOpen, UserRound } from "lucide-react";
+import { Camera, PackageOpen, Receipt, UserRound } from "lucide-react";
 import Container from "@/components/Container";
 
 /**
@@ -10,25 +10,31 @@ import Container from "@/components/Container";
  * can be copied by a competitor without changing how they operate.
  * "Flexible" additionally is banned outright by Brand Book v2.0.
  *
- * THE FOURTH APPROVED POINT IS NOT HERE. "Your price before the
- * conversation" carries an unresolved [REQUIRES CLARIFICATION] in the
- * source document — its copy has to say either "comes straight back to
- * you" (automatic send) or "within one working day" (a person prepares
- * it), and the document leaves that choice to the owner. Guessing would
- * publish a delivery promise the site may not keep, so the point waits
- * for the decision rather than being paraphrased into one.
+ * TWO THINGS THIS BLOCK USED TO BE MISSING, BOTH RESTORED BY OWNER
+ * DECISION (ТЗ 15.09.2026, A10):
+ *
+ *  - The competitor half of the first point ("The larger Irish 3PLs
+ *    start at 100 orders a month") had been cut as an unverified claim
+ *    about other companies. The owner has since confirmed it for
+ *    publication. It is still a claim about third parties and should
+ *    be re-checked if anyone ever disputes it.
+ *  - The fourth point waited on a [REQUIRES CLARIFICATION]: whether
+ *    the price "comes straight back to you" automatically or arrives
+ *    "within one working day" via a person. The owner settled it as
+ *    the former, and the copy below is the owner's own wording.
+ *
+ * ORDER IS DELIBERATE AND WAS CONFIRMED. The new point goes FOURTH,
+ * after the three that were already live, not third as the source
+ * document's structure would suggest — the owner asked for the live
+ * order to be left alone and the new one appended.
  */
 
 const reasons = [
   {
     title: "No minimum order volume",
     Icon: PackageOpen,
-    // The approved copy opened with "The larger Irish 3PLs start at 100
-    // orders a month." That is a claim about other companies' minimums,
-    // sourced to a single competitor check, and it has not been
-    // independently verified for publication. Dockentra's own half of
-    // the sentence — the part that is ours to promise — stands alone.
-    description: "We start at your first box.",
+    description:
+      "The larger Irish 3PLs start at 100 orders a month. We start at your first box.",
   },
   {
     title: "A photo of every batch, on arrival",
@@ -46,8 +52,16 @@ const reasons = [
     // of them.
     title: "A real team, not a ticket queue",
     Icon: UserRound,
+    // Comma, not an em dash: ТЗ 15.09.2026, A13 removes long dashes
+    // from the site. Wording is otherwise untouched.
     description:
-      "You'll deal directly with the people looking after your account — not an anonymous support queue.",
+      "You'll deal directly with the people looking after your account, not an anonymous support queue.",
+  },
+  {
+    title: "Your price before the conversation",
+    Icon: Receipt,
+    description:
+      "Tell the calculator your volume and the services you need, and your price comes straight back to you on WhatsApp or by email. No call, no meeting, no waiting for someone to book you in.",
   },
 ];
 
@@ -67,12 +81,16 @@ export default function WhyDockentra() {
             Why Dockentra
           </h2>
           <p className="mt-3 text-base leading-7 text-slate-600">
-            Practical fulfilment in Ireland with people you can reach —
+            Practical fulfilment in Ireland with people you can reach,
             built around how growing sellers actually work.
           </p>
         </div>
 
-        <dl className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Two columns, not three. With the fourth point restored
+            (A10) a three-column grid leaves one card orphaned on its
+            own row on desktop; 2x2 also gives the longest description
+            room to breathe. */}
+        <dl className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {reasons.map((item) => (
             <div
               key={item.title}

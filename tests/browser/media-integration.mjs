@@ -299,10 +299,21 @@ for (const width of [320, 390, 430]) {
   // idle again reliably - it times out the whole suite perhaps one run
   // in three. The assertion reads server-rendered text, which is there
   // at DOMContentLoaded.
+  // ONE APPROVED FIGURE, MATCHED EXACTLY. ТЗ 15.09.2026 (A6) puts the
+  // link "Read how the €3 charge works" on the homepage. €3 is the
+  // statutory customs charge an Irish buyer pays, not a Dockentra
+  // rate, and the owner approved publishing it.
+  //
+  // The allowance is an exact-string redaction, not a page exemption:
+  // the homepage is still checked for every other money amount, so a
+  // real rate appearing beside the approved one still fails here.
+  const APPROVED = { "/": ["Read how the €3 charge works"], "/about": [] };
   for (const path of ["/", "/about"]) {
     await page.goto(BASE + path, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(300);
-    ok(!/€\s?\d/.test(await page.innerText("body")), `${path} shows a monetary amount`);
+    let body = await page.innerText("body");
+    for (const phrase of APPROVED[path]) body = body.split(phrase).join("");
+    ok(!/€\s?\d/.test(body), `${path} shows a monetary amount`);
   }
   await context.close();
 }

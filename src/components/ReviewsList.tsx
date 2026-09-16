@@ -28,7 +28,7 @@ export default function ReviewsList({ reviews }: { reviews: PublicReview[] }) {
         <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
           Nothing to show here yet. When clients have worked with us and are
           happy for us to publish what they think, their words will appear
-          here — and only theirs.
+          here, and only theirs.
         </p>
       </div>
     );
@@ -76,7 +76,7 @@ export default function ReviewsList({ reviews }: { reviews: PublicReview[] }) {
           <p className="mt-4 text-sm font-semibold text-brand-navy">
             {review.displayName}
             {review.company && (
-              <span className="font-normal text-slate-600"> — {review.company}</span>
+              <span className="font-normal text-slate-600">, {review.company}</span>
             )}
           </p>
           <p className="mt-1 text-xs text-brand-text-muted">

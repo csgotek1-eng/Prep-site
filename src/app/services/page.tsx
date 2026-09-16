@@ -184,7 +184,7 @@ export default function ServicesPage() {
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Everything your stock needs between your supplier and your
-              customer — from receiving to returns, all handled locally in
+              customer, from receiving to returns, all handled locally in
               Ireland.
             </p>
           </div>

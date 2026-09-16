@@ -30,7 +30,7 @@ const STEPS = [
   },
   {
     title: "Dispatched",
-    body: "Staged, loaded and on its way — with your stock accounted for.",
+    body: "Staged, loaded and on its way, with your stock accounted for.",
   },
 ];
 
@@ -55,7 +55,7 @@ export default function ProcessMedia() {
               />
             </div>
             <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted lg:text-left">
-              Illustrative footage of fulfilment work — staging and dispatch.
+              Illustrative footage of fulfilment work: staging and dispatch.
             </figcaption>
           </figure>
 

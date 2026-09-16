@@ -5,23 +5,25 @@
  * calculator's own behaviour.
  *
  * Content Master v2.1 §6 adds to that. Still absent, deliberately: no
- * cut-off time, no guaranteed dispatch window, no insurance limit, no
- * compensation figure and no certification — those live on the
- * /dispatch-commitment page the owner has approved but not yet
- * commissioned, and none of them may appear here first.
+ * insurance limit, no compensation figure and no certification. The
+ * cut-off time and what happens when it is missed now exist, on
+ * /dispatch-commitment, and may be referenced from here.
  *
- * TWO OF THE SEVEN NEW QUESTIONS ARE NOT HERE.
- *  - "I'm a UK brand. Why would I hold stock in Ireland?" quotes the
- *    /uk-brands figures (about EUR 10 vs EUR 4.55 a parcel), and the
- *    document itself marks those for re-verification before
- *    publication: the GBP/EUR rate and the carrier tariffs behind them
- *    can move.
- *  - "How long does switching take?" ends on "Goods in on your first
- *    shipment is free with us". That is the Founding Partner offer,
- *    which is time-limited data the owner publishes and withdraws from
- *    the admin screen. Hard-coding it here would restate a limited
- *    offer as a standing policy and would outlive the offer itself.
- * Both wait for an owner decision.
+ * THE TWO HELD-BACK QUESTIONS ARE NOW IN, BY OWNER DECISION
+ * (ТЗ 15.09.2026, A9). Both were previously withheld, and the reasons
+ * were real, so they are recorded here rather than quietly dropped:
+ *
+ *  - "I'm a UK brand..." quotes the /uk-brands figures (about EUR 10
+ *    against EUR 4.55 a parcel). Those depend on the GBP/EUR rate and
+ *    on carrier tariffs, both fixed on 07.09.2026. They are published
+ *    now because the owner approved them for publication, but they
+ *    remain the kind of number that goes stale without anyone noticing
+ *    — they are due a re-check before the site goes public.
+ *  - "How long does switching take?" ends on free goods in, which is
+ *    the Founding Partner offer: time-limited data the owner publishes
+ *    and withdraws from the admin screen, restated here as standing
+ *    copy. If that offer is ever withdrawn, this answer has to be
+ *    edited in the same breath or it will outlive it.
  */
 export interface FaqItem {
   category: string;
@@ -40,13 +42,13 @@ export const faqItems: FaqItem[] = [
     category: "Getting started",
     question: "Do I need to be a large business to work with Dockentra?",
     answer:
-      "No. Dockentra is built for small and growing online sellers — there is no minimum size requirement to start a conversation.",
+      "No. Dockentra is built for small and growing online sellers: there is no minimum size requirement to start a conversation.",
   },
   {
     category: "Fulfilment",
     question: "What fulfilment services does Dockentra offer?",
     answer:
-      "Receiving, inspection and quality checks, labelling, prep, storage, pick & pack and returns handling — covering your stock from the moment it arrives to the moment an order is dispatched, and back again for returns.",
+      "Receiving, inspection and quality checks, labelling, prep, storage, pick & pack and returns handling, covering your stock from the moment it arrives to the moment an order is dispatched, and back again for returns.",
   },
   {
     category: "Fulfilment",
@@ -58,13 +60,13 @@ export const faqItems: FaqItem[] = [
     category: "Prep services",
     question: "What does Dockentra's prep service include?",
     answer:
-      "Prep covers polybagging, bubble wrapping, repacking and labelling — including FNSKU and barcode labelling — prepared to the standard your sales channel requires.",
+      "Prep covers polybagging, bubble wrapping, repacking and labelling, including FNSKU and barcode labelling, prepared to the standard your sales channel requires.",
   },
   {
     category: "Prep services",
     question: "Can Dockentra prep stock for Amazon FBA?",
     answer:
-      "Yes. Amazon FBA prep — receiving, FNSKU labelling, inspection, polybagging, bubble wrap, bundling and carton preparation — is one of the services Dockentra offers.",
+      "Yes. Amazon FBA prep, covering receiving, FNSKU labelling, inspection, polybagging, bubble wrap, bundling and carton preparation, is one of the services Dockentra offers.",
   },
   {
     category: "Storage",
@@ -82,13 +84,13 @@ export const faqItems: FaqItem[] = [
     category: "Orders",
     question: "Does Dockentra arrange couriers and dispatch?",
     answer:
-      "Packed orders are made ready and handed over for onward shipment. Carrier arrangements and dispatch scheduling are agreed per client — raise them with Dockentra directly and we'll work out what fits your channels and volumes.",
+      "Packed orders are made ready and handed over for onward shipment. Carrier arrangements and dispatch scheduling are agreed per client. Raise them with Dockentra directly and we'll work out what fits your channels and volumes.",
   },
   {
     category: "Getting started",
     question: "What does getting set up with Dockentra look like?",
     answer:
-      "Tell us about your business, agree the fulfilment requirements, then send us your stock. We receive and prepare it, your inventory goes into storage, and orders are picked, packed and prepared for dispatch as they come in — while you focus on growing your business.",
+      "Tell us about your business, agree the fulfilment requirements, then send us your stock. We receive and prepare it, your inventory goes into storage, and orders are picked, packed and prepared for dispatch as they come in, while you focus on growing your business.",
   },
   {
     category: "Returns",
@@ -106,7 +108,7 @@ export const faqItems: FaqItem[] = [
     category: "Pricing",
     question: "How does Dockentra's pricing work?",
     answer:
-      "Pricing is based on how your business actually runs — factors like SKUs, storage, incoming stock, monthly orders, units per order, packaging, prep work and returns. You only pay for the services you use, and every quote is tailored rather than fixed.",
+      "Pricing is based on how your business actually runs: factors like SKUs, storage, incoming stock, monthly orders, units per order, packaging, prep work and returns. You only pay for the services you use, and every quote is tailored rather than fixed.",
   },
   {
     // FIX, Content Master v2.1 §6 — priority. The old answer promised an
@@ -142,10 +144,26 @@ export const faqItems: FaqItem[] = [
       "Not yet. We're opening in 2026, our first site is in Limerick, and there are three of us. We'd rather you knew that now than found out later.",
   },
   {
+    category: "Getting started",
+    question: "I'm a UK brand. Why would I hold stock in Ireland?",
+    // "per item type", not "per item": Council Regulation (EU) 2026/382
+    // charges per tariff classification rather than per unit, so five
+    // of the same product is one EUR 3, not five. The same wording is
+    // on /uk-brands and /why-ireland and the three move together.
+    answer:
+      "Two reasons, and both are money. A parcel from the UK to Ireland costs about €10; from Limerick it's €4.55. And since July, your Irish customer pays €3 per item type in customs on anything under €150 from outside the EU, collected at the door. Stock held here removes both.",
+  },
+  {
+    category: "Getting started",
+    question: "How long does switching take?",
+    answer:
+      "Longer than anyone likes. The industry reckons three to six months from thinking about it to doing it. Most of that is deciding, not moving. Goods in on your first shipment is free with us, which removes the one bill that arrives before any benefit does.",
+  },
+  {
     category: "Orders",
     question: "Who pays if a parcel goes missing?",
     answer:
-      "In Ireland, you do — and that's not our policy, it's the platform's. Ship by Seller is the only shipping type available on TikTok Shop here, so there's no platform fallback the way there is in the UK. What we can do is give you every piece of evidence the platform asks for when you dispute it.",
+      "In Ireland, you do. That's not our policy, it's the platform's. Ship by Seller is the only shipping type available on TikTok Shop here, so there's no platform fallback the way there is in the UK. What we can do is give you every piece of evidence the platform asks for when you dispute it.",
   },
   {
     category: "Returns",
@@ -161,7 +179,7 @@ export const faqItems: FaqItem[] = [
     // its own question again. Every claim in it is about how Dockentra
     // works; no carrier is named and no third party's policy is stated.
     answer:
-      "If your products have batteries, tell us early. We arrange the carrier for battery items deliberately, in both directions — out to your customer and back again — so the return route is agreed before your first shipment rather than worked out during your first return.",
+      "If your products have batteries, tell us early. We arrange the carrier for battery items deliberately, in both directions, out to your customer and back again, so the return route is agreed before your first shipment rather than worked out during your first return.",
   },
   {
     category: "Contact & support",

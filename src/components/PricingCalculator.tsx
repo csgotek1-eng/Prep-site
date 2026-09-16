@@ -583,7 +583,7 @@ export default function PricingCalculator({
         {selectedCount === 0 && " Nothing is selected yet."}
         {selectedCount > 0 && estimateError && (
           <span className="mt-2 block text-amber-800">
-            Your selection couldn&apos;t be loaded just now — please try
+            Your selection couldn&apos;t be loaded just now. Please try
             again in a moment.
           </span>
         )}
@@ -592,7 +592,7 @@ export default function PricingCalculator({
 
   const disclaimer = (
     <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
-      We don&apos;t publish prices on the website — every operation is
+      We don&apos;t publish prices on the website: every operation is
       priced individually and your personalised price is sent to you
       directly. Final pricing depends on product dimensions, handling
       requirements, storage profile, packaging and agreed service terms.
@@ -670,7 +670,7 @@ export default function PricingCalculator({
             className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900"
           >
             Your selection couldn&apos;t be re-checked just now. It is
-            kept — try again in a moment.
+            kept. Try again in a moment.
           </p>
         )}
       </div>
@@ -884,7 +884,7 @@ export default function PricingCalculator({
             <p className="mt-1.5 text-xs leading-5 text-slate-500">
               Send my requested Dockentra pricing to this{" "}
               {channel === "whatsapp" ? "WhatsApp number" : "email address"}.
-              Used only to send and respond to your requested pricing —
+              Used only to send and respond to your requested pricing.
               see our{" "}
               <a
                 href="/privacy"
@@ -978,10 +978,10 @@ export default function PricingCalculator({
               </span>
               <span className="sr-only">
                 {state === "current"
-                  ? " — current step"
+                  ? ": current step"
                   : state === "done"
-                    ? " — completed"
-                    : " — not started"}
+                    ? ": completed"
+                    : ": not started"}
               </span>
             </li>
           );
@@ -1085,7 +1085,7 @@ export default function PricingCalculator({
                                   </span>
                                 ) : (
                                   <span className="text-slate-500">
-                                    {service.unitLabel} — priced in your
+                                    {service.unitLabel}, priced in your
                                     personal quote
                                   </span>
                                 )}
@@ -1138,7 +1138,7 @@ export default function PricingCalculator({
                               service.quantityFollowsVolume && (
                                 <span className="text-xs text-slate-500">
                                   {manualQuantities.has(service.id)
-                                    ? "Your own figure — it no longer follows the volume above."
+                                    ? "Your own figure: it no longer follows the volume above."
                                     : "Taken from your monthly volume. Change it if this service handles a different number."}
                                 </span>
                               )}

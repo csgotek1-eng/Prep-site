@@ -71,7 +71,7 @@ export default function ServicesSection() {
           </h2>
           <p className="mt-3 text-base leading-7 text-slate-600">
             From the moment your stock arrives to the moment orders leave
-            — and back again when returns come in.
+            , and back again when returns come in.
           </p>
         </div>
 
@@ -117,12 +117,12 @@ export default function ServicesSection() {
         </ul>
 
         <p className="mt-6 text-sm text-slate-600">
-          Labelling and Kitting &amp; Bundling are covered too —{" "}
+          Labelling and Kitting &amp; Bundling are covered too.{" "}
           <Link
             href="/services"
             className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
           >
-            see all services
+            See all services
           </Link>
           .
         </p>

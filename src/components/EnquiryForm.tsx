@@ -72,7 +72,7 @@ export default function EnquiryForm() {
         className="rounded-lg border border-brand-green/30 bg-brand-mint-soft p-6"
       >
         <p className="text-base font-semibold text-brand-navy">
-          Thanks — your message is with us.
+          Thanks, your message is with us.
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-700">
           A real person reads every one of these. You&apos;ll hear back from us
@@ -147,7 +147,7 @@ export default function EnquiryForm() {
 
       <p className="mt-5 text-xs leading-5 text-slate-500">
         We use these details only to respond to your enquiry and prepare
-        your pricing — see our{" "}
+        your pricing. See our{" "}
         <a
           href="/privacy"
           className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
@@ -175,7 +175,7 @@ export default function EnquiryForm() {
 
       <p className="mt-4 text-sm leading-6 text-slate-600">
         Want a price instead? Use{" "}
-        <span className="font-semibold text-brand-navy">Get Price</span> — you
+        <span className="font-semibold text-brand-navy">Get Price</span>. You
         will receive it privately by WhatsApp or email. Ready to start? Go to{" "}
         <a
           href="/become-a-client"

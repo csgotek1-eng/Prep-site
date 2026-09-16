@@ -79,53 +79,68 @@ describe("FaqAccordion accessibility", () => {
   });
 });
 
-describe("SLA page", () => {
-  const page = read("src/app/sla/page.tsx");
+/**
+ * THE DISPATCH COMMITMENT PAGE — and a deliberate reversal.
+ *
+ * This block used to be "SLA page", and every one of its assertions
+ * protected the OPPOSITE of what the page now says. It required the
+ * page to state NO numeric guarantee (banning "same-day" outright) and
+ * to say instead that targets "can be discussed with Dockentra".
+ *
+ * ТЗ 15.09.2026 (A3) replaced the page wholesale for exactly that
+ * reason: a page whose centrepiece was the absence of a promise. The
+ * new page names a cut-off and attaches a consequence to missing it.
+ * So the old assertions are not weakened here, they are inverted —
+ * what used to be required is now what fails.
+ *
+ * What did NOT change is the underlying rule: nothing invented. Every
+ * number on the page is one the owner has committed to, and the
+ * banned list below still keeps out the figures nobody has agreed to
+ * (accuracy percentages, response-time guarantees).
+ */
+describe("Dispatch commitment page", () => {
+  const page = read("src/app/dispatch-commitment/page.tsx");
 
-  it("renders the SLA route", () => {
-    assert.ok(page.includes("Service Level"));
+  it("states the cut-off and the consequence of missing it", () => {
+    assert.ok(page.includes("14:00") || page.includes("2pm"), "no cut-off time is stated");
+    assert.match(
+      page,
+      /pick and pack is\s*\n?\s*free|pick and pack is free/,
+      "the page states a cut-off with nothing attached to it, which is the thing it exists to avoid",
+    );
   });
 
-  it("never states invented numeric SLA guarantees", () => {
-    for (const banned of [
-      "15:00",
-      "24-hour receiving",
-      "same-day",
-      "next-day",
-      "99.9%",
-      "2-hour response",
-      "2 hour response",
-    ]) {
+  it("promises the compensation without conditions attached", () => {
+    // "You don't have to ask for it" is the whole point: a remedy you
+    // have to argue for is not a remedy.
+    assert.match(page, /don&apos;t have to ask for it/);
+    assert.match(page, /whose fault it was/);
+  });
+
+  it("makes no claim about being first, and no comparison on time", () => {
+    // Eco Fulfillment in Limerick publishes the same 2pm cut-off, so
+    // both would be checkable and false.
+    for (const banned of ["first to publish", "the only Irish", "faster than"]) {
       assert.equal(
         page.toLowerCase().includes(banned.toLowerCase()),
         false,
-        `SLA page must not state "${banned}"`,
+        `the page claims "${banned}", which is checkable and not true`,
       );
     }
   });
 
-  it("explains that targets are discussed per client rather than fixed", () => {
-    assert.ok(/can be discussed (directly )?with dockentra/i.test(page));
-  });
-
-  it("never asserts an unverified onboarding/agreement business policy", () => {
-    // Correction round: statements implying an established formal
-    // process ("agreed with you", "as part of onboarding", "case by
-    // case") were replaced with neutral "can be discussed" wording —
-    // SLA UNVERIFIED CLAIMS must stay at 0.
-    for (const banned of [
-      "onboarding",
-      "agreed with",
-      "agreed directly",
-      "case by case",
-      "set out for your account",
-    ]) {
+  it("still invents no figure nobody has committed to", () => {
+    for (const banned of ["99.9%", "2-hour response", "2 hour response", "24-hour receiving"]) {
       assert.equal(
         page.toLowerCase().includes(banned.toLowerCase()),
         false,
-        `SLA page must not assert unverified policy: "${banned}"`,
+        `the page states "${banned}", which nobody has agreed to`,
       );
     }
+  });
+
+  it("commits to publishing its own numbers once there are any", () => {
+    assert.match(page, /last month&apos;s\s*\n?\s*actual numbers|actual numbers are published/);
   });
 });
 
@@ -163,7 +178,7 @@ describe("footer links to the new pages", () => {
 
   it("links FAQ, Service Levels and Privacy", () => {
     assert.ok(footer.includes('href="/faq"'));
-    assert.ok(footer.includes('href="/sla"'));
+    assert.ok(footer.includes('href="/dispatch-commitment"'));
     assert.ok(footer.includes('href="/privacy"'));
   });
 });
@@ -173,7 +188,7 @@ describe("sitemap includes the new public pages", () => {
 
   it("adds /faq, /sla and /privacy", () => {
     assert.ok(sitemap.includes('"/faq"'));
-    assert.ok(sitemap.includes('"/sla"'));
+    assert.ok(sitemap.includes('"/dispatch-commitment"'));
     assert.ok(sitemap.includes('"/privacy"'));
   });
 

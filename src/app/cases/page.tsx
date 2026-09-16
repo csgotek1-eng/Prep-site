@@ -47,7 +47,7 @@ export default async function CasesPage() {
               Customer stories
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              We are opening in 2026, so this page is mostly empty — and we
+              We are opening in 2026, so this page is mostly empty, and we
               would rather show you that than somebody else&apos;s results.
               Whatever appears here will be published with the client&apos;s
               permission and never edited into something they did not write.
@@ -96,10 +96,10 @@ export default async function CasesPage() {
               </Link>{" "}
               sets out exactly what we do with your stock, and{" "}
               <Link
-                href="/sla"
+                href="/dispatch-commitment"
                 className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
               >
-                service standards
+                dispatch commitment
               </Link>{" "}
               sets out what happens when something goes wrong.
             </p>

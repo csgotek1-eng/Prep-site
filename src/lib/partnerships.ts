@@ -47,7 +47,7 @@ export const PARTNERSHIP_KINDS: readonly PartnershipKind[] = [
     id: "technology",
     label: "Technology & Software Partners",
     blurb:
-      "Integrations, order flow and stock data — tell us what you connect and how.",
+      "Integrations, order flow and stock data: tell us what you connect and how.",
   },
   {
     id: "referral",

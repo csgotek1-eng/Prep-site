@@ -30,13 +30,18 @@ const OFFER_ID = "11111111-1111-1111-1111-111111111111";
 // in the sitemap, so nothing enumerated them.
 const PAGES = [
   "/", "/about", "/services", "/pricing", "/how-it-works", "/become-a-client",
-  "/partnerships", "/contact", "/faq", "/sla", "/privacy", "/pricing-calculator",
+  "/partnerships", "/contact", "/faq", "/dispatch-commitment", "/privacy", "/pricing-calculator",
   `/offers/${OFFER_ID}`, "/this-route-does-not-exist",
   // Added the day they shipped, because the round before this one had
   // to fix a nested <main> on /offers/[id] that no audit ever visited.
   // /cases carries the most complex new form on the site and /uk-brands
   // is a full page that existed in no audit at all.
   "/cases", "/uk-brands",
+  // Same rule, same day they shipped (ТЗ 15.09.2026): /why-ireland and
+  // /batch-photos are new full pages, and /uk-brands gained a data
+  // table, which is the single most common source of a real
+  // accessibility failure on this site.
+  "/why-ireland", "/batch-photos",
 ];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 

@@ -43,6 +43,39 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * THE FOUNDING PARTNER OFFER, AND ONLY THAT OFFER.
+ *
+ * ТЗ 15.09.2026 (A4) specifies a price strip and a "Moving in costs
+ * nothing" block for one offer, by id. This template renders EVERY
+ * offer, so the content is gated on the id rather than added to the
+ * template unconditionally: a future offer with different terms must
+ * never inherit "from €2.60 per order" and "goods in is €0" from this
+ * one. If the id changes, the blocks simply do not render — the offer
+ * page still works, it just loses the extras, which is the safe way
+ * round.
+ *
+ * Generalising this later means moving these fields onto the promotion
+ * model itself (a Supabase migration, owner-authorised), at which
+ * point this constant goes away.
+ */
+const FOUNDING_PARTNER_OFFER_ID = "0e9ba484-cab0-4de3-bae5-13fc362ee199";
+
+/**
+ * The four facts, in the owner's order and wording.
+ *
+ * "from €2.60 per order" is the entry pick-and-pack band, published
+ * deliberately as a starting rate. The bands BELOW it (the volume
+ * discounts) stay private — this is one figure the owner chose to
+ * publish, not the rate card.
+ */
+const OFFER_PRICE_STRIP = [
+  "from €2.60 per order",
+  "€0 setup",
+  "€275 minimum monthly invoice",
+  "batch photos included",
+] as const;
+
 export default async function OfferPage({
   params,
 }: {
@@ -54,6 +87,7 @@ export default async function OfferPage({
 
   const offer = toPublicPromotion(promotion);
   const deadline = formatOfferDeadline(offer.endsAt);
+  const showFoundingPartnerExtras = offer.id === FOUNDING_PARTNER_OFFER_ID;
   /**
    * Land the visitor ON the application, not at the top of the page
    * above it. The form sat 2.6 screens down behind two explanatory
@@ -97,6 +131,33 @@ export default async function OfferPage({
             <p className="mt-4 break-words text-lg leading-8 text-slate-700">
               {offer.shortText}
             </p>
+
+            {showFoundingPartnerExtras && (
+              <div className="mt-6">
+                <ul className="font-mono-data flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-brand-navy">
+                  {OFFER_PRICE_STRIP.map((fact, index) => (
+                    <li key={fact} className="flex items-center gap-3">
+                      {index > 0 && (
+                        <span aria-hidden="true" className="text-brand-border">
+                          &middot;
+                        </span>
+                      )}
+                      <span className="rounded-md bg-white px-2.5 py-1 shadow-sm ring-1 ring-brand-border">
+                        {fact}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                  That&apos;s the starting rate, not a teaser. Your own price
+                  comes back to you when you send us your volumes.
+                </p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                  On the €275: this exists so we can take small clients, not to
+                  screen them out.
+                </p>
+              </div>
+            )}
           </div>
         </Container>
       </section>
@@ -119,6 +180,40 @@ export default async function OfferPage({
                   {paragraph}
                 </p>
               ))}
+
+            {showFoundingPartnerExtras && (
+              <div className="mt-10 rounded-2xl border border-brand-border bg-brand-surface-soft p-6 sm:p-8">
+                <h2 className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl">
+                  Moving in costs nothing
+                </h2>
+                <div className="mt-4 space-y-4 text-base leading-7 text-slate-700">
+                  <p>
+                    Goods in on your first agreed inbound, the shipment that
+                    brings your existing stock over from wherever it sits now,
+                    is €0. We agree the shape of it beforehand: pallets or
+                    cartons, mixed or single-SKU, and roughly how much.
+                  </p>
+                  <p>
+                    That&apos;s the bill that usually stops a brand switching:
+                    you&apos;re paying two providers in the same month and
+                    haven&apos;t shipped a single order from the new one yet.
+                    It shouldn&apos;t be the reason anyone stays somewhere that
+                    isn&apos;t working.
+                  </p>
+                  <p>
+                    And since every inbound gets photographed, the move is also
+                    the first time you find out what condition your stock is
+                    actually in. After a spell in someone else&apos;s
+                    warehouse, that isn&apos;t always what the stock report
+                    says.
+                  </p>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-brand-text-muted">
+                  We agree the size of the first shipment with you in advance.
+                  No surprises either way.
+                </p>
+              </div>
+            )}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link

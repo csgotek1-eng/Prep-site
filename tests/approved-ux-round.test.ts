@@ -220,7 +220,7 @@ describe("Become a Client is reachable from every explanatory page", () => {
       "src/app/services/page.tsx",
       "src/app/how-it-works/page.tsx",
       "src/app/about/page.tsx",
-      "src/app/sla/page.tsx",
+      "src/app/dispatch-commitment/page.tsx",
     ]) {
       const source = read(path);
       assert.ok(
@@ -240,7 +240,7 @@ describe("Become a Client is reachable from every explanatory page", () => {
       "src/app/services/page.tsx",
       "src/app/how-it-works/page.tsx",
       "src/app/about/page.tsx",
-      "src/app/sla/page.tsx",
+      "src/app/dispatch-commitment/page.tsx",
     ]) {
       assert.ok(read(path).includes('href="/contact#enquiry"'), path);
     }
@@ -319,9 +319,13 @@ describe("the first screen says who it is for and what happens next", () => {
 
   it("states the private-pricing mechanic BEFORE the click", () => {
     assert.ok(home.includes("privately by WhatsApp or email"));
+    // "No call needed", capitalised: ТЗ 15.09.2026 (A13) replaced the
+    // em dash before it with a full stop, which starts a sentence. The
+    // promise is unchanged; only the punctuation is.
+    const pricingSection = read("src/components/sections/PricingSection.tsx");
     assert.ok(
-      read("src/components/sections/PricingSection.tsx").includes("no\n              call needed") ||
-        read("src/components/sections/PricingSection.tsx").includes("no call needed"),
+      /[Nn]o\s+call needed/.test(pricingSection),
+      "the no-call promise is gone from PricingSection",
     );
   });
 

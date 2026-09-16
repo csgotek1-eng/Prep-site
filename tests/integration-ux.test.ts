@@ -252,11 +252,11 @@ describe("nothing extra was rebranded during integration", () => {
   });
 
   it("keeps the FAQ, SLA and Privacy routes from the other branch", () => {
-    for (const path of ["src/app/faq/page.tsx", "src/app/sla/page.tsx", "src/app/privacy/page.tsx"]) {
+    for (const path of ["src/app/faq/page.tsx", "src/app/dispatch-commitment/page.tsx", "src/app/privacy/page.tsx"]) {
       assert.ok(read(path).length > 0, `${path} must survive the merge`);
     }
     const sitemap = read("src/app/sitemap.ts");
-    for (const route of ["/faq", "/sla", "/privacy"]) {
+    for (const route of ["/faq", "/dispatch-commitment", "/privacy"]) {
       assert.ok(sitemap.includes(`"${route}"`), `sitemap must list ${route}`);
     }
   });

@@ -65,8 +65,8 @@ export default function PrivacyPage() {
               <p className="mt-3">
                 When you ask the pricing calculator to send you your
                 pricing, you provide either your WhatsApp mobile number
-                or your email address — whichever delivery method you
-                choose — together with your selected services,
+                or your email address, whichever delivery method you
+                choose, together with your selected services,
                 quantities and monthly order volume.
               </p>
               <p className="mt-3">
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
                 quantities and monthly order volume are sent to this
                 website&apos;s own server so it can validate them; they
                 contain no personal details and are not kept at that
-                stage. Pricing itself is not published on the website —
+                stage. Pricing itself is not published on the website.
                 it is calculated on the server and sent to you privately.
               </p>
             </div>
@@ -107,8 +107,8 @@ export default function PrivacyPage() {
                 When you request pricing in the calculator you choose how
                 to receive it: &quot;Send my price to WhatsApp&quot; or
                 &quot;Send my price by email&quot;. The destination you
-                give — your WhatsApp mobile number or your email address
-                — and your request details (selected services,
+                give, your WhatsApp mobile number or your email address
+                and your request details (selected services,
                 quantities, monthly order volume and the calculated
                 pricing) are used to send and respond to your requested
                 pricing. The request is stored in Dockentra&apos;s own
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
                 delivered. WhatsApp messages are sent through an official
                 WhatsApp Business provider; emails are sent through a
                 transactional email provider. Your number or address is
-                used only for this — neither is added to any marketing
+                used only for this. Neither is added to any marketing
                 list.
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                 delivery endpoint Dockentra controls. Quote and enquiry
                 submissions are never published publicly and are only
                 accessible to Dockentra. Customer reviews are the one
-                exception, and only with your explicit permission — see
+                exception, and only with your explicit permission. See
                 below.
               </p>
             </div>
@@ -170,14 +170,14 @@ export default function PrivacyPage() {
                 display name, the review text, the business name if you
                 gave one and the rating are what appear on the site, and
                 only after a person at Dockentra has read and approved
-                them — nothing you send appears automatically.
+                them: nothing you send appears automatically.
               </p>
               <p className="mt-3">
                 You can withdraw consent at any time using the contact
                 details on this website. We will unpublish the review and
                 delete it if you ask us to. Reviews we decline to publish
                 are kept, unpublished and visible only to Dockentra, so
-                the same submission is not approved later by mistake —
+                the same submission is not approved later by mistake.
                 and they are deleted on request in the same way.
               </p>
             </div>
@@ -215,8 +215,8 @@ export default function PrivacyPage() {
                 written and nothing is stored on your device</strong>;
                 Google receives anonymous, aggregated page-view signals
                 only. Google Ireland Limited acts as the processor. If
-                that ever changes — for example if we introduce a cookie
-                banner and fuller measurement — this page will say so
+                that ever changes, for example if we introduce a cookie
+                banner and fuller measurement, this page will say so
                 before it happens.
               </p>
             </div>

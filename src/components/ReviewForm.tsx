@@ -70,7 +70,7 @@ export default function ReviewForm() {
         className="rounded-2xl border border-brand-green/30 bg-brand-mint-soft p-6"
       >
         <p className="text-base font-semibold text-brand-navy">
-          Thank you — we have your review.
+          Thank you, we have your review.
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-700">
           One of us will read it before anything is published. If we have a
@@ -109,7 +109,7 @@ export default function ReviewForm() {
             className="mt-2 block h-12 w-full rounded-md border border-slate-300 bg-white px-3 text-base text-brand-navy focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
           />
           <p className="mt-1 text-xs text-slate-500">
-            However you want to be credited — a first name is fine.
+            However you want to be credited: a first name is fine.
           </p>
         </div>
 
