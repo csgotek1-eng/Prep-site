@@ -277,30 +277,36 @@ describe("UK geo visibility", () => {
     }
   });
 
-  it("the page itself delegates to the tested decision", () => {
-    // This used to read src/proxy.ts. That file is gone: the OpenNext
-    // Cloudflare adapter runs Node-runtime middleware through a path
-    // its own build output calls experimental and unmaintained, and
-    // under it the proxy redirected EVERY visitor off /uk-brands, GB
-    // included. The rule moved into the page, which is ordinary server
-    // code on every host.
+  it("the page applies no geo decision to anybody", () => {
+    // THIS ASSERTION IS THE INVERSE OF THE ONE IT REPLACES, and the
+    // reversal is an owner decision.
     //
-    // The behavioural coverage is in
-    // tests/reviews-and-geo-behaviour.test.ts, which CALLS the rule
-    // rather than matching words in a file: the assertions here would
-    // have passed with the condition inverted.
+    // It used to require that the page call ukOnlyPageRedirect() and
+    // declare force-dynamic, so that Irish visitors were sent to the
+    // homepage. That worked. The problem was never the mechanism: the
+    // site links here on purpose from the homepage and /why-ireland,
+    // most visitors are in Ireland, so most people who clicked those
+    // CTAs were thrown back to where they started.
+    //
+    // Explicit navigation now always wins over a guess about who should
+    // want a page. Reading a visitor's country is still fine and still
+    // tested above; refusing them a page they asked for is not.
     const page = readCode("src/app/uk-brands/page.tsx");
-    assert.ok(page.includes("ukOnlyPageRedirect("), "the page no longer applies the geo rule");
-    assert.ok(page.includes("countryFromHeaders("), "the page no longer reads the country");
-    // Per-visitor answer, so it cannot be cached per URL.
-    assert.ok(
+    assert.equal(/\bredirect\s*\(/.test(page), false, "the page still redirects somebody");
+    assert.equal(
+      /ukOnlyPageRedirect|countryFromHeaders/.test(page),
+      false,
+      "the page still decides something from the visitor's country",
+    );
+    assert.equal(
       page.includes('export const dynamic = "force-dynamic"'),
-      "the page is cacheable, so the redirect would be served to the wrong visitor",
+      false,
+      "the page is still rendered per request, paying for a decision it no longer makes",
     );
     // And nothing reintroduced a proxy behind our back.
     assert.throws(
       () => readCode("src/proxy.ts"),
-      "src/proxy.ts is back — on Cloudflare it breaks this page for every visitor",
+      "src/proxy.ts is back, and on Cloudflare it breaks this page for every visitor",
     );
   });
 });
@@ -453,7 +459,15 @@ describe("the owner's contact address", () => {
   it("is the approved one, in exactly one module", () => {
     assert.equal(siteContact.email, "viktorkomarovprep@gmail.com");
     assert.equal(siteContact.emailHref, "mailto:viktorkomarovprep@gmail.com");
-    const hits = ["src/components/Footer.tsx", "src/app/contact/page.tsx", "src/components/ContactLauncher.tsx"];
+    const hits = [
+      "src/components/Footer.tsx",
+      "src/app/contact/page.tsx",
+      "src/components/ContactLauncher.tsx",
+      // UtilityBar joined the list when the owner asked for the raw
+      // address to disappear from public UI: its old comment quoted
+      // the address in full, which is one more copy to forget.
+      "src/components/UtilityBar.tsx",
+    ];
     for (const path of hits) {
       assert.equal(
         read(path).includes("viktorkomarovprep"),

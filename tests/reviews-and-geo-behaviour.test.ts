@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
 
-import { countryFromHeaders, requestCountry, ukOnlyPageRedirect } from "../src/lib/geo.ts";
+import { countryFromHeaders, requestCountry } from "../src/lib/geo.ts";
 import { FileReviewRepository } from "../src/lib/reviews/repository.ts";
 import { toPublicReviews } from "../src/lib/reviews/public.ts";
 import { validateReviewSubmission } from "../src/lib/reviews/validate.ts";
@@ -50,95 +50,83 @@ function visitViaCloudflare(country?: string): Request {
   });
 }
 
-describe("the geo decision, actually invoked", () => {
-  /** What the proxy will do with this request, without next/server. */
-  const decide = (country?: string) =>
-    ukOnlyPageRedirect(requestCountry(visit(country)));
+/**
+ * THE REDIRECT IS GONE, AND THESE ASSERTIONS ARE ITS INVERSE.
+ *
+ * Every test in this block used to require that an Irish visitor was
+ * sent from /uk-brands to the homepage, and they all passed. The rule
+ * worked exactly as written. It was the rule itself that was wrong.
+ *
+ * The site links to /uk-brands deliberately: "Read how the €3 charge
+ * works" on the homepage, "See the numbers for a UK brand" on
+ * /why-ireland. Nearly every visitor who clicks those is in Ireland, so
+ * nearly every click bounced back to the top of the homepage. The CTAs
+ * were not merely ineffective, they were dead ends, and the tests
+ * guarded the behaviour that made them dead ends.
+ *
+ * So what was required is now what fails. Reading a visitor's country
+ * is still supported and still tested below, because knowing where
+ * someone is remains legitimate. Using it to refuse them a page they
+ * asked for is not (owner decision).
+ */
+describe("no visitor is redirected away from /uk-brands", () => {
+  const pageSource = readFileSync("src/app/uk-brands/page.tsx", "utf8");
 
-  it("sends an Irish visitor to the homepage", () => {
-    assert.equal(decide("IE"), "/");
+  it("the page performs no redirect at all", () => {
+    const code = pageSource
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(/\bredirect\s*\(/.test(code), false, "the page still redirects somebody");
+    assert.equal(/permanentRedirect|\b308\b/.test(code), false);
   });
 
-  it("lets a British visitor through", () => {
-    assert.equal(decide("GB"), null, "a British visitor was redirected away");
+  it("the page no longer reads the visitor's country to decide anything", () => {
+    const code = pageSource
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(/countryFromHeaders|ukOnlyPageRedirect|isIrishVisitor/.test(code), false);
   });
 
-  it("lets a visitor through when the country header is MISSING", () => {
-    // The fallback that matters most: no header must never mean
-    // "blocked". Locally, on another host, or if the edge stops setting
-    // it, everybody still reads the page.
-    assert.equal(decide(), null);
+  it("is prerenderable again, because nothing varies by visitor", () => {
+    // force-dynamic existed only to serve the redirect. A page that
+    // answers every visitor identically has no reason to be rendered
+    // per request, and paying for that on every view would be a cost
+    // with nothing bought by it.
+    const code = pageSource
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(/force-dynamic/.test(code), false);
   });
 
-  it("lets every other country through", () => {
-    for (const country of ["US", "DE", "FR", "AU", "XX"]) {
-      assert.equal(decide(country), null, `${country} was redirected`);
-    }
+  it("no redirect rule survives anywhere in lib/geo", () => {
+    const geo = readFileSync("src/lib/geo.ts", "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(/ukOnlyPageRedirect/.test(geo), false);
+  });
+});
+
+describe("reading a visitor's country still works", () => {
+  it("reads the Cloudflare header", () => {
+    assert.equal(requestCountry(visitViaCloudflare("IE")), "IE");
+    assert.equal(requestCountry(visitViaCloudflare("gb")), "GB");
   });
 
-  it("is case-insensitive about the country code", () => {
-    assert.equal(decide("ie"), "/");
+  it("still reads the Vercel header, for a rollback", () => {
+    assert.equal(requestCountry(visit("GB")), "GB");
   });
 
-  /**
-   * THE SAME THREE ANSWERS THROUGH CLOUDFLARE.
-   *
-   * The site moved from Vercel to Cloudflare Workers, which sets
-   * `cf-ipcountry` instead of `x-vercel-ip-country`. The rule must not
-   * change with the host, and the unknown case matters more here than
-   * it did before: Cloudflare only sends that header when the zone has
-   * the "Add visitor location headers" managed transform enabled, so
-   * "no header" is a state this site will really be in.
-   */
-  const decideViaCloudflare = (country?: string) =>
-    ukOnlyPageRedirect(requestCountry(visitViaCloudflare(country)));
-
-  it("sends an Irish visitor to the homepage, via Cloudflare", () => {
-    assert.equal(decideViaCloudflare("IE"), "/");
-  });
-
-  it("lets a British visitor through, via Cloudflare", () => {
-    assert.equal(decideViaCloudflare("GB"), null, "a British visitor was redirected away");
-  });
-
-  it("lets a visitor through when Cloudflare sends no country at all", () => {
-    // The managed transform is off, or the Worker is on a workers.dev
-    // subdomain with no zone. Nobody is blocked for that reason.
-    assert.equal(decideViaCloudflare(), null);
-  });
-
-  it("treats Cloudflare's unresolved codes as unknown, not as a country", () => {
-    // XX is Cloudflare's "could not resolve"; T1 is Tor.
-    assert.equal(decideViaCloudflare("XX"), null);
-  });
-
-  it("reads the country straight off a Headers object", () => {
-    // What the /uk-brands page itself calls, now that the rule lives in
-    // the page rather than in a proxy.
-    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "IE" })), "IE");
-    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "gb" })), "GB");
+  it("treats a missing or unresolved country as unknown, never as a country", () => {
+    // XX is Cloudflare's "could not resolve". Nothing may treat it as a
+    // place.
+    assert.equal(requestCountry(visitViaCloudflare()), null);
+    assert.equal(requestCountry(visitViaCloudflare("XX")), null);
     assert.equal(countryFromHeaders(new Headers()), null);
   });
 
-  it("the page is glue over that decision, and redirects temporarily", () => {
-    // This used to read src/proxy.ts, which no longer exists. The
-    // OpenNext Cloudflare adapter's Node-middleware path is
-    // experimental and, measured against the real Workers runtime,
-    // redirected every visitor off /uk-brands rather than only Irish
-    // ones. The rule now runs inside the page.
-    //
-    // Comments stripped: the one explaining why it is temporary
-    // contains the word "308".
-    const pageSource = readFileSync("src/app/uk-brands/page.tsx", "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/^\s*\/\/.*$/gm, "");
-    assert.ok(pageSource.includes("ukOnlyPageRedirect("));
-    // next/navigation's redirect() is a temporary (307) redirect: the
-    // answer depends on who is asking, so it must never be cached as a
-    // permanent property of the URL.
-    assert.ok(pageSource.includes("redirect(destination)"));
-    assert.equal(/308|permanentRedirect/.test(pageSource), false);
-    assert.ok(pageSource.includes('export const dynamic = "force-dynamic"'));
+  it("reads the country straight off a Headers object", () => {
+    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "IE" })), "IE");
+    assert.equal(countryFromHeaders(new Headers({ "cf-ipcountry": "gb" })), "GB");
   });
 });
 

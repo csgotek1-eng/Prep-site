@@ -81,7 +81,15 @@ export function toPublicCatalogue(
       unitLabel: service.unitLabel,
       customQuote: service.pricingType === "CUSTOM_QUOTE",
       volumeTiered: tieredServiceIds.has(service.id),
-      quantityFollowsVolume: service.pricingType === "PER_ORDER",
+      // NOT `pricingType === "PER_ORDER"`. Charged per order and
+      // applied to every order are different claims, and v2.0 added
+      // several services that are the first without being the second:
+      // rush handling, manual order entry, gift wrapping, bubble wrap.
+      // Deriving this from the pricing type would have prefilled a
+      // 5,000-order month with 5,000 rush surcharges and quoted a
+      // number nobody would recognise. The catalogue now says so
+      // explicitly, and says it only where it is certain.
+      quantityFollowsVolume: service.appliesToEveryOrder === true,
       isFeatured: service.isFeatured,
       sortOrder: service.sortOrder,
     }));

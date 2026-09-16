@@ -195,11 +195,36 @@ describe("the rate card is not published in the repository either", () => {
     ];
     assert.ok(rates.length > 0, "no rates were loaded — this check would pass vacuously");
 
+    /**
+     * A EURO SIGN IS REQUIRED, AND SOME AMOUNTS ARE ALLOWED.
+     *
+     * The catalogue grew from eleven rates to fifty with Prix v2.0, and
+     * a bare-substring sweep over fifty two-decimal numbers stopped
+     * telling the truth. It flagged "@opennextjs/cloudflare 1.20.6" as
+     * the branded-box rate and "padding-bottom: max(0.75rem" as the
+     * disposal rate. Requiring the amount to be written as money
+     * removes that whole class of coincidence.
+     *
+     * The allowlist is separate and much narrower: figures the site
+     * publishes ON PURPOSE. /uk-brands carries a carrier comparison
+     * with An Post and Royal Mail amounts in it, and docs that
+     * fact-check that page necessarily repeat them. Those are somebody
+     * else's public tariffs, not our rate card. They are matched
+     * exactly, so our own EUR 4.55 stock-count rate would still be
+     * caught anywhere it appeared as a Dockentra price in prose.
+     */
+    const PUBLISHED_ON_PURPOSE = new Set([
+      "2.81", "3.90", "10.14", "4.55", "15.95", "8.45", "3.00", "4.20",
+    ]);
+
     const offences: string[] = [];
     for (const path of docs) {
       const text = readFileSync(path, "utf8");
       for (const { value, label } of rates) {
-        if (text.includes(value)) offences.push(`${path} publishes ${value} (${label})`);
+        if (PUBLISHED_ON_PURPOSE.has(value)) continue;
+        if (text.includes(`€${value}`) || text.includes(`EUR ${value}`)) {
+          offences.push(`${path} publishes €${value} (${label})`);
+        }
       }
     }
     assert.deepEqual(

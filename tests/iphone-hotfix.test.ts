@@ -58,7 +58,7 @@ describe("the utility bar shows every social icon on a phone", () => {
   it("makes room by tightening gaps below sm, nothing else", () => {
     assert.ok(bar.includes("gap-2 text-[13px] sm:gap-3"));
     // The GAPS are what this test is about. `min-w-0` joined that same
-    // element on 2026-09-11 so the email address can truncate instead
+    // element on 2026-09-11 so the email address could truncate instead
     // of widening the layout viewport — it changes no spacing, so the
     // assertion matches the gap classes rather than the whole
     // attribute, which would fail for every future utility added here.
@@ -66,8 +66,13 @@ describe("the utility bar shows every social icon on a phone", () => {
     assert.ok(bar.includes("gap-0.5 sm:gap-1"));
     // Email, WhatsApp and the sm-only location link all survive. The
     // email row's LABEL is now whatever site-contact says is honest:
-    // "Email us" only once a real mailto: exists behind it.
+    // "Send email" only once a real mailto: exists behind it.
     assert.ok(bar.includes("contactEmailLabel"));
+    // AND ONLY the label. The owner reversed the earlier decision to
+    // print the raw address from `sm` up, so the breakpoint split that
+    // kept that unbreakable token off a 390px phone is gone with it.
+    assert.equal(bar.includes("siteContact.email"), false);
+    assert.equal(/sm:hidden/.test(bar), false);
     assert.ok(bar.includes("WhatsApp"));
     assert.ok(bar.includes("siteConfig.location.googleMapsUrl"));
   });

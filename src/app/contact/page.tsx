@@ -202,7 +202,10 @@ export default async function ContactPage() {
                   className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
                 >
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  {siteContact.email ?? contactEmailLabel}
+                  {/* The label, never the address: this block printed
+                      the owner's personal mailbox in full. The mailto:
+                      behind it is unchanged. */}
+                  {contactEmailLabel}
                 </a>
               </li>
               <li>

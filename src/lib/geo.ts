@@ -90,22 +90,27 @@ export function isIrishVisitor(country: string | null): boolean {
 }
 
 /**
- * Where a visitor to a UK-only page should be sent, or null to let them
- * read it.
+ * THERE IS NO LONGER A UK-ONLY REDIRECT, AND THAT IS THE POINT.
  *
- * THE DECISION LIVES HERE, not in the page that applies it, so it can
- * be called by a test. It used to live behind a Next proxy, which
- * `next/server` made impossible to import from plain Node — so the only
- * "tests" of this rule matched strings in a source file, and would have
- * passed just as happily with the condition inverted and every British
- * visitor bounced off the one page written for them.
+ * `ukOnlyPageRedirect()` used to live here and sent Irish visitors from
+ * /uk-brands to the homepage. The reasoning was that an Irish seller
+ * has no use for a page about moving stock INTO Ireland, and on its own
+ * terms that was true.
  *
- * That stopped being hypothetical. On the OpenNext Cloudflare adapter
- * the proxy really did redirect every visitor, GB included, because
- * Node-runtime middleware there is experimental and unmaintained. The
- * proxy is gone; /uk-brands calls this function directly, and the tests
- * call it too.
+ * What it missed is that the page is not only reached by accident. The
+ * site links to it on purpose: "Read how the €3 charge works" on the
+ * homepage and "See the numbers for a UK brand" on /why-ireland both
+ * point here. For a visitor in Ireland, which is most of them, every
+ * one of those links threw them back to the top of the homepage. The
+ * CTA looked broken because it WAS broken, and no amount of copy could
+ * have fixed it while the destination refused to open.
+ *
+ * The rule now is simple and owner-approved: an explicit request for a
+ * page always wins over a guess about who should want it. Geography may
+ * still shape what a visitor is OFFERED, never what they are ALLOWED to
+ * read.
+ *
+ * The country helpers below stay because they are still the honest way
+ * to read a visitor's country if an automatic experience ever needs one.
+ * They no longer decide whether a page may be opened.
  */
-export function ukOnlyPageRedirect(country: string | null): "/" | null {
-  return isIrishVisitor(country) ? "/" : null;
-}

@@ -34,17 +34,17 @@ const read = (path: string) => readFileSync(path, "utf8");
 
 const PRICED = calculateEstimate(
   SEED_SERVICES,
-  [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
-  { monthlyOrders: 2000, volumeTiers: SEED_VOLUME_TIERS },
+  [{ serviceId: "svc-pick-pack-order", quantity: 200 }],
+  { monthlyOrders: 1000, volumeTiers: SEED_VOLUME_TIERS },
 );
 const CUSTOM_ONLY = calculateEstimate(SEED_SERVICES, [
-  { serviceId: "svc-detailed-qc", quantity: 10 },
+  { serviceId: "svc-courier-handling", quantity: 10 },
 ]);
 const MIXED = calculateEstimate(
   SEED_SERVICES,
   [
-    { serviceId: "svc-pick-pack-order", quantity: 100 },
-    { serviceId: "svc-detailed-qc", quantity: 10 },
+    { serviceId: "svc-pick-pack-order", quantity: 200 },
+    { serviceId: "svc-courier-handling", quantity: 10 },
   ],
   { monthlyOrders: 500, volumeTiers: SEED_VOLUME_TIERS },
 );
@@ -187,9 +187,9 @@ describe("B. private pricing message", () => {
     const text = buildPricingWhatsAppText(PRICED, "DCK-TEST22");
     assert.ok(text.startsWith("Dockentra — Your Pricing"));
     assert.ok(text.includes("Reference: DCK-TEST22"));
-    assert.ok(text.includes("Monthly orders: 2000"));
+    assert.ok(text.includes("Monthly orders: 1000"));
     assert.ok(text.includes("Pick & pack"));
-    assert.ok(text.includes("Estimated total: €205.00")); // 100 × €2.05
+    assert.ok(text.includes("Estimated total: €450.00"), text); // 200 × €2.25
     assert.ok(text.includes("not a binding") === false); // wording lives on site
   });
 
@@ -197,13 +197,13 @@ describe("B. private pricing message", () => {
     const text = buildPricingWhatsAppText(CUSTOM_ONLY, "DCK-TEST22");
     assert.equal(text.includes("€"), false);
     assert.ok(text.includes("priced individually"));
-    assert.ok(text.includes("Detailed quality check"));
+    assert.ok(text.includes("Courier handling"));
   });
 
   it("mixed: priced portion + custom services identified separately", () => {
     const text = buildPricingWhatsAppText(MIXED, "DCK-TEST22");
     assert.ok(text.includes("Estimated total: €"));
-    assert.ok(text.includes("Custom priced separately: Detailed quality check"));
+    assert.ok(text.includes("Custom priced separately: Courier handling"));
     // The custom line itself never gets a euro amount.
     assert.equal(/Detailed quality check[^\n]*€/.test(text), false);
   });
@@ -218,7 +218,7 @@ describe("B. private pricing message", () => {
       assert.equal(/ {4,}/.test(parameter), false);
     }
     assert.equal(reference, "DCK-TEST22");
-    assert.ok(services.includes("Pick & pack ×100"));
+    assert.ok(services.includes("Pick & pack ×200"));
     assert.ok(pricing.includes("Estimated total €"));
     const [, , customPricing] = buildPricingTemplateParameters(
       CUSTOM_ONLY,

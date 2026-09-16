@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
 import SubmitError from "@/components/SubmitError";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { isOurFailure } from "@/lib/submit-failure";
 
 /**
@@ -42,6 +43,11 @@ export default function PartnershipForm({
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [ourFailure, setOurFailure] = useState(false);
+  // "" whenever there is no valid challenge: no widget configured, not
+  // ticked yet, or the token expired while the form sat open. The
+  // server decides what that means, not this component.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +71,7 @@ export default function PartnershipForm({
           message: form.get("message"),
           offerId,
           organisationConfirm: form.get("organisationConfirm"),
+          turnstileToken,
         }),
       });
       const data = (await response.json()) as { ok: boolean; error?: string };
@@ -72,6 +79,13 @@ export default function PartnershipForm({
         setPhase("done");
       } else {
         setPhase("idle");
+        // A Turnstile token is single use, so the one that was just
+        // refused can never work again. Reset on every rejection
+        // rather than guessing which kind it was: the cost is one
+        // fresh challenge, and the alternative is somebody correcting
+        // a field and failing again for a reason nothing mentioned.
+        setTurnstileToken("");
+        setTurnstileReset((count) => count + 1);
         setOurFailure(isOurFailure(response.status));
         setError(data.error ?? "Something went wrong. Please try again.");
       }
@@ -81,6 +95,10 @@ export default function PartnershipForm({
       setError(
         "We couldn't send that. Please check your connection and try again.",
       );
+      // The token may or may not have been spent, and there is no way
+      // to find out, so it is thrown away rather than retried.
+      setTurnstileToken("");
+      setTurnstileReset((count) => count + 1);
     }
   }
 
@@ -203,6 +221,13 @@ export default function PartnershipForm({
         </a>
         .
       </p>
+
+      <TurnstileWidget
+        onToken={setTurnstileToken}
+        resetSignal={turnstileReset}
+        action="partnerships"
+        className="mt-6"
+      />
 
       {error && (
         <SubmitError

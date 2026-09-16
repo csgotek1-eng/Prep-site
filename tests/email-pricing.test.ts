@@ -30,11 +30,14 @@ const read = (path: string) => readFileSync(path, "utf8");
 
 const PRICED = calculateEstimate(
   SEED_SERVICES,
-  [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
+  // 200 orders at the 400-1,499 band is EUR 450, comfortably above the
+  // EUR 275 monthly minimum, so this fixture exercises the plain-total
+  // path. The minimum path has its own coverage in pricing-v2.test.ts.
+  [{ serviceId: "svc-pick-pack-order", quantity: 200 }],
   { monthlyOrders: 500, volumeTiers: SEED_VOLUME_TIERS },
 );
 const CUSTOM_ONLY = calculateEstimate(SEED_SERVICES, [
-  { serviceId: "svc-detailed-qc", quantity: 10 },
+  { serviceId: "svc-courier-handling", quantity: 10 },
 ]);
 
 /** In-memory LeadStore capturing everything, with switchable failure. */

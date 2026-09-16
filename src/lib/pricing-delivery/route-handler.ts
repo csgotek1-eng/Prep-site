@@ -2,6 +2,7 @@ import { calculateEstimate, parseSelections } from "../pricing/calculate.ts";
 import { PricingUnavailableError } from "../pricing/errors.ts";
 import { getPricingRepository } from "../pricing/repository.ts";
 import { createDurableRateLimiter, requestClientKey } from "../rate-limit.ts";
+import { enforceTurnstile, turnstileRemoteIp } from "../security/turnstile.ts";
 import { normalizeEmailAddress } from "../email/address.ts";
 import { processEmailPricingRequest } from "../email/pricing-request.ts";
 import { normalizeWhatsAppNumber } from "../whatsapp/number.ts";
@@ -112,6 +113,19 @@ export async function handlePricingDeliveryRequest(
   if (!(await rateLimiter.allow(requestClientKey(request)))) {
     return error(429, "Too many requests. Please try again in a minute.");
   }
+
+  // Turnstile BEFORE the destination is even validated, because this
+  // is the one flow where an accepted request costs real money: every
+  // one of them may send an outbound WhatsApp template message or a
+  // transactional email TO AN ADDRESS THE CALLER CHOSE. Unprotected,
+  // that is a free relay pointed at strangers on our sending
+  // reputation. Skipped until a secret is configured, and open on a
+  // Cloudflare outage (see ../security/turnstile.ts).
+  const challenge = await enforceTurnstile(
+    (body as { turnstileToken?: unknown }).turnstileToken,
+    turnstileRemoteIp(request),
+  );
+  if (!challenge.ok) return error(400, challenge.error);
 
   // Destination validation happens BEFORE any pricing work: an
   // unreachable destination is never worth a catalogue read.

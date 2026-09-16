@@ -3,6 +3,7 @@ import { isSpamEnquiry, validateEnquiry } from "@/lib/enquiry";
 import { processLead } from "@/lib/leads/intake";
 import { notifyEnquiryLead } from "@/lib/leads/notify";
 import { createDurableRateLimiter, requestClientKey } from "@/lib/rate-limit";
+import { enforceTurnstile, turnstileRemoteIp } from "@/lib/security/turnstile";
 import type { LeadInput, LeadType } from "@/lib/leads/types";
 
 // An enquiry is a few KB at most; anything bigger is abuse.
@@ -67,6 +68,22 @@ export async function POST(request: Request) {
   if (isSpamEnquiry(data)) {
     console.warn("Enquiry dropped: honeypot field was filled in.");
     return NextResponse.json({ ok: true });
+  }
+
+  // Turnstile BEFORE validation, and therefore long before anything is
+  // stored or emailed: a submission that cannot prove a browser sent it
+  // never reaches the lead store. Skipped entirely until the owner
+  // configures a secret, and never fails the form because Cloudflare is
+  // having a bad day (see lib/security/turnstile.ts for both).
+  const challenge = await enforceTurnstile(
+    (data as { turnstileToken?: unknown })?.turnstileToken,
+    turnstileRemoteIp(request),
+  );
+  if (!challenge.ok) {
+    return NextResponse.json(
+      { ok: false, error: challenge.error },
+      { status: 400 },
+    );
   }
 
   const validated = validateEnquiry(data);

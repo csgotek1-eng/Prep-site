@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import SubmitError from "@/components/SubmitError";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { isOurFailure } from "@/lib/submit-failure";
 
 /**
@@ -29,6 +30,11 @@ export default function EnquiryForm() {
   // Drives whether the alert offers WhatsApp: only when the failure is
   // ours, never when the visitor simply needs to fix a field.
   const [ourFailure, setOurFailure] = useState(false);
+  // "" whenever there is no valid challenge: no widget configured, not
+  // ticked yet, or the token expired while the form sat open. The
+  // server decides what that means, not this component.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,6 +53,7 @@ export default function EnquiryForm() {
           message: form.get("message"),
           // Honeypot — hidden from people, filled in by simple bots.
           website: form.get("website"),
+          turnstileToken,
         }),
       });
       const data = (await response.json()) as { ok: boolean; error?: string };
@@ -54,6 +61,14 @@ export default function EnquiryForm() {
         setPhase("done");
         return;
       }
+      // A Turnstile token is single use, so the one that was just
+      // refused can never work again. Reset on every rejection rather
+      // than trying to tell which kind it was: the cost is one fresh
+      // challenge, and the alternative is a visitor fixing their email
+      // address and failing a second time for a reason the form never
+      // mentioned.
+      setTurnstileToken("");
+      setTurnstileReset((count) => count + 1);
       setOurFailure(isOurFailure(response.status));
       setError(data.error ?? "Something went wrong. Please try again.");
       setPhase("idle");
@@ -62,6 +77,10 @@ export default function EnquiryForm() {
       setOurFailure(true);
       setError("Something went wrong. Please try again.");
       setPhase("idle");
+      // The token may or may not have been spent, and there is no way
+      // to find out, so it is thrown away rather than retried.
+      setTurnstileToken("");
+      setTurnstileReset((count) => count + 1);
     }
   }
 
@@ -156,6 +175,13 @@ export default function EnquiryForm() {
         </a>
         .
       </p>
+
+      <TurnstileWidget
+        onToken={setTurnstileToken}
+        resetSignal={turnstileReset}
+        action="contact-enquiry"
+        className="mt-5"
+      />
 
       {error && (
         <SubmitError

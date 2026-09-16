@@ -125,7 +125,10 @@ export default function Footer() {
                   className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 transition-colors hover:text-brand-mint"
                 >
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  {siteContact.email ?? contactEmailLabel}
+                  {/* The label, never the address. The owner's personal
+                      mailbox used to be printed here in full; the
+                      mailto: still goes to exactly the same place. */}
+                  {contactEmailLabel}
                 </a>
               </li>
               <li>

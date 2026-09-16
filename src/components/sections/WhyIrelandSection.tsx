@@ -35,6 +35,38 @@ export default function WhyIrelandSection() {
           >
             Read how the €3 charge works
           </Link>
+
+          {/* THE SAME PAGE, ADDRESSED TO THE OTHER READER.
+              Everything above is written for a seller already in
+              Ireland. /uk-brands answers a different person entirely, a
+              British brand deciding whether to hold stock here, and
+              nothing on the homepage said so: the only route in was a
+              link about a customs charge, which is not what that
+              visitor is looking for. Hence a second door, labelled
+              with who it is for, rather than a second section
+              repeating the argument. */}
+          <aside
+            aria-labelledby="uk-brands-entry-heading"
+            className="mt-10 rounded-xl border border-brand-border bg-white p-5 sm:p-6"
+          >
+            <p
+              id="uk-brands-entry-heading"
+              className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark"
+            >
+              For UK brands selling into Ireland
+            </p>
+            <p className="mt-2 text-base leading-7 text-slate-700">
+              Sending every order across the Irish Sea has a cost, and so does
+              holding stock on this side. We put both on one page with the
+              numbers behind them.
+            </p>
+            <Link
+              href="/uk-brands"
+              className="mt-4 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            >
+              See the UK cost comparison
+            </Link>
+          </aside>
         </div>
       </Container>
     </section>

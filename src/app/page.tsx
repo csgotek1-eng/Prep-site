@@ -8,6 +8,7 @@ import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
 import BatchPhotosSection from "@/components/sections/BatchPhotosSection";
 import ContactSection from "@/components/sections/ContactSection";
+import CustomerStoriesSection from "@/components/sections/CustomerStoriesSection";
 import HomeFaq from "@/components/sections/HomeFaq";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
 import PricingSection from "@/components/sections/PricingSection";
@@ -212,6 +213,12 @@ export default async function HomePage() {
           the photos are the proof that the process happened. */}
       <BatchPhotosSection />
       <WhyDockentra />
+      {/* Package 2, item 5: the way in to /cases, which until now was
+          linked from the footer and nowhere else. It sits after the
+          reasons to choose us because that is the moment the claim
+          invites checking, and /cases is where a visitor goes to
+          check it. */}
+      <CustomerStoriesSection />
       <PricingSection />
       <HomeFaq />
       <ContactSection />
@@ -227,8 +234,17 @@ export default async function HomePage() {
               <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-brand-green/30 to-brand-mint/20 blur-2xl" />
               <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-brand-green-dark via-brand-green to-brand-mint" />
             </div>
+            {/* min-w-0 on the text, shrink-0 on the buttons.
+                Without this pair the row split its width by content
+                and the button group came off worse: from 1024px up it
+                was handed about 260px for 398px of buttons, the
+                buttons themselves are shrink-0 so they refused to
+                narrow, and the card's overflow-hidden (it clips the
+                decorative blur) sliced "Ask a question first" off at
+                the edge. A CTA that is invisible on every desktop is
+                the one thing this block cannot afford. */}
             <div className="relative flex flex-col items-start gap-7 lg:flex-row lg:items-center lg:justify-between">
-              <div>
+              <div className="min-w-0">
                 <h2
                   id="cta-heading"
                   className="text-balance text-2xl font-bold tracking-tight text-white sm:text-3xl"
@@ -249,7 +265,7 @@ export default async function HomePage() {
                   the client application; the question stays available
                   beside it, one step shorter than the old route
                   through the three-door contact page. */}
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:shrink-0">
                 <Link
                   href="/become-a-client"
                   className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"

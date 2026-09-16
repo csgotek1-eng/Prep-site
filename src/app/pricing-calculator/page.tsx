@@ -29,7 +29,7 @@ export default function PricingCalculatorPage() {
           <p className="mt-4 text-lg leading-8 text-slate-600">
             Build your selection from the services your business needs,
             quantities included, and send it to us. We come back with
-            your price by WhatsApp or email, within one working day.
+            your price by email, within one working day.
           </p>
         </div>
 

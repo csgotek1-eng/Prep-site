@@ -357,8 +357,13 @@ describe("published copy matches the product", () => {
     const page = readCode("src/app/pricing-calculator/page.tsx");
     const copy = page.slice(page.indexOf("export default"));
     assert.equal(copy.includes("indicative"), false);
-    // The calculator delivers privately; that is what the page must say.
-    assert.ok(/WhatsApp or email/.test(copy));
+    // The calculator delivers privately, and the page must say how.
+    // It used to say "WhatsApp or email". Sending a price over WhatsApp
+    // needs the Meta Business API, which is not connected, so every
+    // visitor who chose it was told afterwards that it had failed. The
+    // page now names the channel that actually works.
+    assert.ok(/by email/.test(copy));
+    assert.equal(/WhatsApp or email/.test(copy), false);
   });
 
   it("the whole site makes the on-screen-total promise nowhere", () => {

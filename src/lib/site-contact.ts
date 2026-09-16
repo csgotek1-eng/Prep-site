@@ -20,10 +20,16 @@
  *
  * This was null for months, deliberately: an address must never be
  * invented, because a wrong mailto: silently drops real customer
- * enquiries. Every "Email us" surface therefore fell back to the
- * enquiry form. The owner has now given the address below, so those
- * surfaces become real mailto: links and the label changes from
- * "Send an enquiry" to "Email us" on its own — see contactEmailLabel.
+ * enquiries. Every email surface therefore fell back to the enquiry
+ * form. The owner has now given the address below, so those surfaces
+ * become real mailto: links and the label changes from "Send an
+ * enquiry" to "Send email" on its own — see contactEmailLabel.
+ *
+ * THE ADDRESS IS NEVER PRINTED AS VISIBLE TEXT. It is the owner's
+ * personal mailbox, and a raw address rendered in the utility bar, the
+ * footer and the bottom of /contact is three surfaces a scraper reads
+ * for free. It lives in the href and nowhere else; the label is what a
+ * visitor sees.
  *
  * It is a gmail.com address, not an @dockentra domain. That is the
  * owner's decision and not a placeholder to be "improved": no
@@ -79,12 +85,18 @@ export const contactEmailHref: string =
   siteContact.emailHref ?? "/contact#enquiry";
 
 /**
- * "Email us" ONLY when a mailto: exists behind it. Until the owner
+ * "Send email" ONLY when a mailto: exists behind it. Until the owner
  * supplies NEXT_PUBLIC_OWNER_CONTACT_EMAIL every one of those surfaces
  * says what it actually does, and the day the address is set all of
  * them become real mailto: links with the honest label, together, from
  * this one file.
+ *
+ * THE LABEL AND contactEmailHref ARE ONE DECISION, taken from the same
+ * `siteContact.email`. They may never be branched on separately: a
+ * "Send email" that opens a form, or a "Send an enquiry" that opens a
+ * mail client, is the promise-versus-destination mismatch this module
+ * exists to prevent.
  */
 export const contactEmailLabel: string = siteContact.email
-  ? "Email us"
+  ? "Send email"
   : "Send an enquiry";

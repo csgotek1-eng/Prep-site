@@ -297,8 +297,30 @@ const browser = await launch();
       for (const node of clone.querySelectorAll("script, style")) node.remove();
       return clone.textContent ?? "";
     });
+    /**
+     * MATCHED AS MONEY, AND TWO FIGURES ARE ALLOWED.
+     *
+     * The catalogue went from 11 rates to 47 with Prix v2.0, and a bare
+     * substring match over 47 two-decimal numbers stopped being a
+     * pricing check. "5.95" is inside "€15.95", so the carrier
+     * comparison table reported itself as a leak of the FBA carton
+     * rate. Requiring the euro sign immediately in front, and no digit
+     * immediately after, removes that whole class of coincidence
+     * without loosening what a leak means.
+     *
+     * The allowlist is separate and deliberately tiny: figures this
+     * page exists to publish. €4.55 is the domestic carrier cost in the
+     * approved comparison, which collides with the stock-count rate by
+     * accident. It is matched exactly, so any OTHER catalogue rate is
+     * still a failure here, and €4.55 appearing on a page that is not
+     * making the carrier argument would still be caught by the blanket
+     * rule that covers every non-exempt page.
+     */
+    const PUBLISHED_ON_PURPOSE = new Set(["4.55", "3.00", "4.20"]);
     for (const rate of privateRates) {
-      ok(!text.includes(rate), `${path} publishes €${rate}, which is a real catalogue rate`);
+      if (PUBLISHED_ON_PURPOSE.has(rate)) continue;
+      const asMoney = new RegExp(`€\\s?${rate.replace(".", "\\.")}(?!\\d)`);
+      ok(!asMoney.test(text), `${path} publishes €${rate}, which is a real catalogue rate`);
     }
     // And it must still be saying the thing it is exempt for.
     ok(/customs|duty|revenue/i.test(text), `${path} no longer makes the customs argument`);

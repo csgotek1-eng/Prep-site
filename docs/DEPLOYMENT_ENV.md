@@ -246,3 +246,58 @@ production:
 
 No email provider credentials, WhatsApp API tokens or Telegram bot
 tokens exist in this repository, and none may be committed.
+
+## Cloudflare Turnstile (public forms)
+
+Every public form on the site carries a Turnstile widget and every
+public POST route verifies the token server-side before it stores or
+sends anything: `/api/enquiry`, `/api/become-a-client`,
+`/api/partnerships`, `/api/reviews`, `/api/quote`, `/api/pricing/email`
+and `/api/pricing/whatsapp`. `/api/pricing/estimate` is deliberately
+NOT among them: it is a read-only price preview that writes nothing,
+and a challenge on every quantity change would make the calculator
+unusable.
+
+| Variable | Kind | Where it is set |
+| --- | --- | --- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | public, needed at BUILD time | `.env.production` (committed), `.env.local` for development |
+| `TURNSTILE_SECRET_KEY` | SECRET, server-only, runtime | `wrangler secret put TURNSTILE_SECRET_KEY`, never committed |
+
+**Both unset is a supported state, and it is the current one.** The
+widget renders nothing without a site key, and verification is skipped
+without a secret, so the forms behave exactly as they did before
+Turnstile existed. Set them together: a site key with no secret shows a
+challenge nobody checks, and a secret with no site key rejects every
+genuine visitor.
+
+The site key is read at BUILD time twice over: it is inlined into the
+browser bundle, and `next.config.ts` reads it to decide whether the CSP
+may name `https://challenges.cloudflare.com` in `script-src` and
+`frame-src`. With no key the policy names no Cloudflare host and
+`frame-src` stays `'none'`. Setting it only in `wrangler.jsonc`'s
+`vars` would therefore do nothing at all, which is the same
+build/runtime trap that shipped `localhost:3000` canonicals once
+already.
+
+### The two deliberate degradations
+
+Documented in full at the top of `src/lib/security/turnstile.ts`:
+
+1. **No secret configured:** verification is skipped and the
+   submission proceeds.
+2. **Secret configured, Cloudflare unreachable or answering non-200:**
+   the submission still proceeds and a `turnstile: ...` warning is
+   logged. Capturing enquiries is the only job this site has, and an
+   outage at a third party must never close the front door. Grep the
+   Worker logs for `turnstile:` to see whether this is happening.
+
+A token Cloudflare actively REJECTS is refused with HTTP 400 and the
+visitor is told, honestly, to complete the check again.
+
+### Test keys
+
+Cloudflare publishes keys for development and CI. They are documented
+public values, not credentials: secret `1x0000000000000000000000000000000AA`
+always passes, `2x0000000000000000000000000000000AA` always fails.
+`tests/turnstile.test.ts` stubs the network and never calls the real
+siteverify endpoint.

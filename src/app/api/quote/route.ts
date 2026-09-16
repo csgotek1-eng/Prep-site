@@ -3,6 +3,7 @@ import { isSpamSubmission, validateQuoteRequest } from "@/lib/quote";
 import { processLead } from "@/lib/leads/intake";
 import { notifyQuoteLead } from "@/lib/leads/notify";
 import { createDurableRateLimiter, requestClientKey } from "@/lib/rate-limit";
+import { enforceTurnstile, turnstileRemoteIp } from "@/lib/security/turnstile";
 import { calculateEstimate, parseSelections } from "@/lib/pricing/calculate";
 import { getPricingRepository } from "@/lib/pricing/repository";
 import type { LeadInput } from "@/lib/leads/types";
@@ -65,6 +66,24 @@ export async function POST(request: Request) {
   if (isSpamSubmission(data)) {
     console.warn("Quote submission dropped: honeypot field was filled in.");
     return NextResponse.json({ ok: true });
+  }
+
+  // Turnstile BEFORE validation, pricing and persistence. NOTE that no
+  // component on this site currently posts here: /contact posts to
+  // /api/enquiry and the calculator posts to /api/pricing/{email,
+  // whatsapp}. That is exactly why the check belongs here. A public
+  // lead-writing endpoint with no browser in front of it is the one a
+  // bot finds first, and leaving it as the unguarded door would have
+  // made the other six checks decorative.
+  const challenge = await enforceTurnstile(
+    (data as { turnstileToken?: unknown })?.turnstileToken,
+    turnstileRemoteIp(request),
+  );
+  if (!challenge.ok) {
+    return NextResponse.json(
+      { ok: false, error: challenge.error },
+      { status: 400 },
+    );
   }
 
   const validated = validateQuoteRequest(data);

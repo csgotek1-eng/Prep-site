@@ -88,7 +88,7 @@ describe("public estimate projection", () => {
     SEED_SERVICES,
     [
       { serviceId: "svc-pick-pack-order", quantity: 100 },
-      { serviceId: "svc-detailed-qc", quantity: 25 },
+      { serviceId: "svc-courier-handling", quantity: 25 },
     ],
     { monthlyOrders: 500, volumeTiers: SEED_VOLUME_TIERS },
   );

@@ -63,6 +63,7 @@ export default function Header() {
           <Link
             href="/"
             onClick={closeMenu}
+            aria-label="Dockentra"
             className="flex min-h-11 items-center text-xl font-bold text-brand-navy"
           >
             <BrandLockup markSize={20} priority />

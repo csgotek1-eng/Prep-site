@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
-import { countryFromHeaders, ukOnlyPageRedirect } from "@/lib/geo";
 
 export const metadata: Metadata = {
   title: "For UK brands shipping to Ireland",
@@ -94,34 +91,29 @@ const frictions = [
 ];
 
 /**
- * THE IRISH-VISITOR REDIRECT LIVES HERE, NOT IN A PROXY.
+ * THIS PAGE NO LONGER REDIRECTS ANYONE, AND IT IS STATIC AGAIN.
  *
- * It used to be `src/proxy.ts` — four lines of Next middleware scoped
- * to this one route. That worked on Vercel and is BROKEN on Cloudflare:
- * the OpenNext adapter bundles Node-runtime middleware through a path
- * its own build output calls "experimental... not officially maintained
- * ... use at your own risk", and under it this route redirected EVERY
- * visitor to the homepage — GB, IE and US alike. Verified against the
- * real Workers runtime: plain `next start` answered 200/200/307 for
- * none/GB/IE, and the Worker answered 307 to all three.
+ * Its whole history was about who should be bounced off it. First a
+ * `src/proxy.ts` middleware that turned out to redirect EVERY visitor
+ * on the Cloudflare adapter, GB included. Then the rule moved in here
+ * as ordinary server code, which fixed that and forced the page to be
+ * `force-dynamic`: the answer depended on who was asking, so it was the
+ * one page on the site that could not be cached per-URL.
  *
- * A page about why British brands should hold stock in Ireland, which
- * bounces every British visitor off itself, is worse than no page. So
- * the rule moved into the page, where it is ordinary server code on
- * every host and where the decision is still `ukOnlyPageRedirect()` in
- * lib/geo — the one function the tests can actually call.
+ * Both versions were solving the wrong problem. The page is reached by
+ * people who asked for it: "Read how the €3 charge works" on the
+ * homepage, "See the numbers for a UK brand" on /why-ireland. Since
+ * most visitors are in Ireland, most clicks on those CTAs landed back
+ * on the homepage. The links were not misleading, they were dead.
  *
- * force-dynamic because the answer depends on who is asking. This is
- * the only page on the site that cannot be cached per-URL.
+ * So the redirect is gone (owner decision, and see lib/geo for the
+ * rule that replaced it: explicit navigation always beats a guess).
+ * With nothing left that varies by visitor, the page goes back to being
+ * prerendered like every other one, which is also why there is no
+ * `dynamic` export here any more.
  */
-export const dynamic = "force-dynamic";
 
-export default async function UkBrandsPage() {
-  const destination = ukOnlyPageRedirect(countryFromHeaders(await headers()));
-  if (destination) {
-    redirect(destination);
-  }
-
+export default function UkBrandsPage() {
   return (
     <>
       <section className="bg-brand-navy">

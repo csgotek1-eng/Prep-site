@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { Mail } from "lucide-react";
 import {
   MAX_MONTHLY_ORDERS,
@@ -14,6 +15,10 @@ import type {
 import { isValidEmailAddressInput } from "@/lib/email/address";
 import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
+import {
+  DEFAULT_PRICING_CHANNEL,
+  WHATSAPP_PRICING_ENABLED,
+} from "@/lib/whatsapp/pricing-channel";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { useBottomBarRegistration } from "@/components/FloatingChrome";
 
@@ -120,7 +125,7 @@ export default function PricingCalculator({
   // STEP 3: how the customer wants their private price delivered.
   // Exactly one channel is active at a time, so only one destination
   // field is ever on screen.
-  const [channel, setChannel] = useState<PricingChannel>("whatsapp");
+  const [channel, setChannel] = useState<PricingChannel>(DEFAULT_PRICING_CHANNEL);
   // The customer's OWN destination for the chosen channel, and the
   // send lifecycle for the single "Send my price…" action.
   const [whatsappNumber, setWhatsappNumber] = useState("");
@@ -133,6 +138,11 @@ export default function PricingCalculator({
     reference: string;
   } | null>(null);
   const [sendError, setSendError] = useState("");
+  // "" whenever there is no valid challenge: no widget configured, not
+  // ticked yet, or the token expired while the dialog sat open. The
+  // server decides what that means, not this component.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   // MOBILE WIZARD position. Ignored at lg+ (every step is rendered
   // there), so it can never change the desktop layout.
   const [mobileStep, setMobileStep] = useState<WizardStep>(1);
@@ -405,6 +415,7 @@ export default function PricingCalculator({
             ? { whatsappNumber }
             : { email: emailAddress }),
           website: typeof honeypot === "string" ? honeypot : "",
+          turnstileToken,
         }),
         },
       );
@@ -419,12 +430,23 @@ export default function PricingCalculator({
         setSendOutcome({ delivery: data.delivery, reference: data.reference });
       } else {
         setSendPhase("idle");
+        // A Turnstile token is single use, so the one that was just
+        // refused can never work again. Reset on every rejection
+        // rather than guessing which kind it was: the cost is one
+        // fresh challenge, and the alternative is somebody correcting
+        // their number and failing again for an unmentioned reason.
+        setTurnstileToken("");
+        setTurnstileReset((count) => count + 1);
         setSendError(
           data.error ?? "Something went wrong. Please try again.",
         );
       }
     } catch {
       setSendPhase("idle");
+      // The token may or may not have been spent, and there is no way
+      // to find out, so it is thrown away rather than retried.
+      setTurnstileToken("");
+      setTurnstileReset((count) => count + 1);
       setSendError(
         "We couldn't send your request. Please check your connection and try again.",
       );
@@ -772,13 +794,24 @@ export default function PricingCalculator({
                 announces the choice and arrow keys move between the
                 two options. Exactly ONE destination field is rendered
                 at a time; there are never two forms on screen. */}
+            {/* THE CHOICE IS ONLY OFFERED WHERE IT CAN BE HONOURED.
+                WhatsApp delivery needs the Meta Business API, which is
+                not connected. Asking a visitor to choose it and then
+                telling them afterwards that it could not be sent is a
+                promise the page cannot keep, so when it is unavailable
+                the step states what will happen instead of offering a
+                choice with one working answer. See
+                lib/whatsapp/pricing-channel.ts. */}
             <fieldset className="mb-3">
               <legend className="block text-sm font-medium text-brand-navy">
                 <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
                   Step 3
                 </span>
-                How would you like to receive your pricing?
+                {WHATSAPP_PRICING_ENABLED
+                  ? "How would you like to receive your pricing?"
+                  : "Where should we send your pricing?"}
               </legend>
+              {WHATSAPP_PRICING_ENABLED ? (
               <div
                 role="radiogroup"
                 aria-label="How would you like to receive your pricing?"
@@ -813,6 +846,12 @@ export default function PricingCalculator({
                   );
                 })}
               </div>
+              ) : (
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  We send your price by email. You can always reach us on
+                  WhatsApp if you would rather talk it through.
+                </p>
+              )}
             </fieldset>
 
             {channel === "whatsapp" ? (
@@ -868,6 +907,16 @@ export default function PricingCalculator({
                 />
               </>
             )}
+            {/* Inside the scrolling band with the destination field,
+                for the same reason the alert below it is: the Send
+                button lives in a fixed action footer, and anything
+                that can change height must stay on this side of it. */}
+            <TurnstileWidget
+              onToken={setTurnstileToken}
+              resetSignal={turnstileReset}
+              action="pricing-calculator"
+              className="mt-3"
+            />
             {/* The validation message sits directly under the field it
                 is about, and INSIDE the scrolling band — so it can
                 never push the Send button off the card. */}

@@ -23,17 +23,22 @@ function rateFor(serviceId: string, monthlyOrders: number) {
   return line;
 }
 
+/**
+ * THE LADDER IS SHORTER THAN IT WAS, BY DECISION.
+ *
+ * These cases used to run to 9,999 orders a month at EUR 1.80. Prix
+ * v2.0 withdraws every band above 1,499: not because those rates were
+ * wrong for that volume, but because the capacity to honour them does
+ * not exist, and a published rate is a promise to whoever reads it.
+ * Above the last band the engine now asks for a conversation.
+ */
 describe("approved Pick & Pack volume bands", () => {
   const cases: [number, number, number][] = [
     // monthly orders, first-item cents, additional-item cents
     [1, 260, 60],
     [399, 260, 60],
-    [400, 230, 50],
-    [1499, 230, 50],
-    [1500, 205, 42],
-    [4999, 205, 42],
-    [5000, 180, 36],
-    [9999, 180, 36],
+    [400, 225, 52],
+    [1499, 225, 52],
   ];
 
   for (const [orders, first, additional] of cases) {
@@ -48,7 +53,7 @@ describe("approved Pick & Pack volume bands", () => {
     });
   }
 
-  for (const orders of [10000, 25000, 1_000_000]) {
+  for (const orders of [1500, 5000, 25000, 1_000_000]) {
     it(`${orders} orders/month → custom quote, never an extrapolated rate`, () => {
       for (const serviceId of [PICK_PACK, EXTRA_ITEM]) {
         const line = rateFor(serviceId, orders);
@@ -123,7 +128,7 @@ describe("tier selection comes from monthly orders only", () => {
   it("bands are contiguous with no gap and no overlap", () => {
     for (const serviceId of [PICK_PACK, EXTRA_ITEM]) {
       const bands = tiersForService(SEED_VOLUME_TIERS, serviceId);
-      assert.equal(bands.length, 5);
+      assert.equal(bands.length, 3);
       assert.equal(bands[0].minOrders, 0);
       assert.equal(bands.at(-1)?.maxOrders, null);
       for (let i = 1; i < bands.length; i += 1) {
@@ -141,26 +146,47 @@ describe("tier selection comes from monthly orders only", () => {
   });
 });
 
+/**
+ * WHICH RATES COUNT AS SUPERSEDED HAS CHANGED SIDES.
+ *
+ * Under v1.1 this test banned EUR 2.25. Prix v2.0 makes EUR 2.25 the
+ * approved 400-1,499 rate, and bans instead the ladder v1.1 published
+ * above it. The rule is unchanged: a withdrawn rate must be absent, not
+ * merely unused, because a rate that still exists is a rate that can
+ * still be quoted.
+ */
 describe("superseded rates are gone", () => {
-  it("no stale €2.25, €1.90 or €1.62 rate is reachable as a price", () => {
+  it("no withdrawn v1.1 rate is reachable as a price", () => {
     // Asserted against the resolved catalogue rather than raw text: a
     // sortOrder of 190 is not a price of €1.90.
     const everyPrice = [
       ...SEED_SERVICES.map((service) => service.price),
       ...SEED_VOLUME_TIERS.map((tier) => tier.price),
     ];
-    for (const cents of [225, 190, 162]) {
+    for (const cents of [230, 205, 180, 190, 162]) {
       assert.equal(
         everyPrice.includes(cents),
         false,
         `superseded rate ${cents} cents is still reachable`,
       );
     }
+    // The additional-item side of the same withdrawn ladder.
+    const tierPrices = SEED_VOLUME_TIERS.map((tier) => tier.price);
+    for (const cents of [50, 42, 36]) {
+      assert.equal(
+        tierPrices.includes(cents),
+        false,
+        `superseded additional-item rate ${cents} cents is still in the table`,
+      );
+    }
   });
 
   it("no stale rate appears in a price column of the production import", () => {
-    const sql = read("supabase/seed/0002_approved_pricing.sql");
-    for (const cents of [225, 190, 162]) {
+    // The v2.0 import, which supersedes 0002_approved_pricing.sql. It is
+    // generated from the catalogue by scripts/generate-pricing-sql.mjs,
+    // so this checks that the generator cannot emit a withdrawn rate.
+    const sql = read("supabase/seed/0003_pricing_v2.sql");
+    for (const cents of [230, 205, 180, 190, 162]) {
       // price_cents positions only: "<n>::integer" in the tier table and
       // ", <n>, 'PER_" / ", <n>, 'CUSTOM" in the services insert.
       assert.equal(new RegExp(`${cents}::integer`).test(sql), false);
@@ -168,21 +194,14 @@ describe("superseded rates are gone", () => {
     }
   });
 
-  it("only the approved amounts are reachable as automatic prices", () => {
-    const approved = new Set([260, 230, 205, 180, 60, 50, 42, 36, 160, 3500, 24]);
-    for (const service of SEED_SERVICES) {
-      if (service.isActive && service.pricingType !== "CUSTOM_QUOTE") {
-        assert.ok(
-          approved.has(service.price),
-          `${service.slug} is active at unapproved price ${service.price}`,
-        );
-      }
-    }
-    for (const tier of SEED_VOLUME_TIERS) {
-      if (!tier.customQuote) {
-        assert.ok(approved.has(tier.price!), `tier price ${tier.price} is not approved`);
-      }
-    }
+  it("the band table holds the v2.0 rates and nothing else", () => {
+    // Per-service rates are checked exhaustively against the source
+    // document in tests/pricing-v2.test.ts. What matters here is the
+    // band table, where a wrong number is charged on every order.
+    const bandPrices = SEED_VOLUME_TIERS.filter((t) => !t.customQuote).map(
+      (t) => t.price,
+    );
+    assert.deepEqual(bandPrices.sort((a, b) => a! - b!), [52, 60, 225, 260]);
   });
 });
 
@@ -196,12 +215,16 @@ describe("exact approved prices for the other services", () => {
     assert.equal(service.isActive, true);
   });
 
-  it("pallet storage is €35.00 per pallet per MONTH", () => {
+  it("pallet storage carries no published rate", () => {
+    // v2.0 prices a pallet month internally but records that the
+    // current site cannot supply storage at that rate. Offering it as a
+    // product with a number beside it would be selling something we
+    // cannot deliver, so it is quoted, and the fourteen free days on an
+    // inbound delivery are what the page can actually promise.
     const service = byId("svc-storage-pallet-month");
-    assert.equal(service.price, 3500);
-    assert.equal(service.pricingType, "PER_MONTH");
-    assert.ok(service.unitLabel.includes("month"));
-    assert.equal(service.isActive, true);
+    assert.equal(service.pricingType, "CUSTOM_QUOTE");
+    assert.equal(service.price, 0);
+    assert.match(service.description, /fourteen days/i);
   });
 
   it("the Dockentra mailer is €0.24 and is clearly Dockentra-supplied", () => {
@@ -220,16 +243,23 @@ describe("exact approved prices for the other services", () => {
 });
 
 describe("range-priced services stay custom quote", () => {
+  /**
+   * SHORTER THAN IT WAS, BECAUSE v2.0 PRICED MOST OF THEM.
+   *
+   * Returns, the medium box, mixed-SKU goods-in, inserts, gift wrapping
+   * and detailed QC were all ranges in v1.1 and all have exact figures
+   * in v2.0, so they are now priced and are checked in
+   * tests/pricing-v2.test.ts. What is left here is work whose cost is
+   * genuinely not knowable in advance: someone else's carrier rate,
+   * someone else's specification, a build with no fixed shape.
+   */
   const rangeBased = [
-    "svc-returns-processing",
-    "svc-packaging-medium-box",
-    "svc-receiving-mixed-sku",
     "svc-courier-handling",
+    "svc-fba-freight",
     "svc-packaging-branded",
-    "svc-packaging-inserts",
-    "svc-premium-unboxing",
-    "svc-detailed-qc",
     "svc-custom-kitting",
+    "svc-special-handling",
+    "svc-storage-pallet-month",
   ];
 
   it("carries no automatic price at all", () => {
@@ -266,7 +296,11 @@ describe("no zero-price service is ever publicly priced", () => {
   });
 
   it("services awaiting a price are inactive", () => {
-    for (const id of ["svc-storage-bin-month", "svc-fnsku-labelling", "svc-polybagging", "svc-bubble-wrap"]) {
+    // FBA labelling, polybagging and bubble wrapping were unpriced in
+    // v1.1 and are inactive no longer: v2.0 gives all three an exact
+    // rate, recalculated from the operation rather than carried over.
+    // Bin storage is the one still waiting for a figure.
+    for (const id of ["svc-storage-bin-month"]) {
       const service = SEED_SERVICES.find((s) => s.id === id)!;
       assert.equal(service.isActive, false, `${id} must stay inactive until priced`);
     }
@@ -306,15 +340,18 @@ describe("one engine, server-authoritative", () => {
   });
 
   it("the OUTBOUND server message states the volume and the tier-correct price", () => {
+    // 1,000 orders a month, which is inside the top PRICED band. It
+    // used to be 2,000, which v2.0 moved into quote-on-request
+    // territory, where the correct outcome is no figure at all.
     const estimate = calculateEstimate(
       SEED_SERVICES,
-      [{ serviceId: PICK_PACK, quantity: 100 }],
-      { monthlyOrders: 2000, volumeTiers: SEED_VOLUME_TIERS },
+      [{ serviceId: PICK_PACK, quantity: 500 }],
+      { monthlyOrders: 1000, volumeTiers: SEED_VOLUME_TIERS },
     );
     // Server-side ONLY: this text goes to the customer's own WhatsApp
-    // through the provider — never through a public API response.
+    // through the provider, never through a public API response.
     const message = buildPricingWhatsAppText(estimate, "DCK-TEST22");
-    assert.ok(message.includes("Monthly orders: 2000"));
-    assert.ok(message.includes("Estimated total: €205.00")); // 100 × €2.05
+    assert.ok(message.includes("Monthly orders: 1000"));
+    assert.ok(message.includes("Estimated total: €1,125.00"), message); // 500 × €2.25
   });
 });

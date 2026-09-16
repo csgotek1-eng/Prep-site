@@ -36,18 +36,24 @@ function quote(serviceId: string, quantity: number, monthlyOrders: number) {
 
 describe("a different volume selects a different private band", () => {
   it("the unit rate falls as the monthly volume rises", () => {
-    const rates = [100, 800, 2_000, 6_000].map(
+    // Two priced bands now, not four: Prix v2.0 withdrew everything
+    // above 1,499 orders a month because the capacity to serve it does
+    // not exist. The property under test is unchanged, a bigger month
+    // buys a cheaper rate, there is simply one step left in the ladder.
+    const rates = [100, 800].map(
       (volume) => quote(PICK_PACK, 1, volume).lines[0].unitPrice,
     );
     for (const rate of rates) assert.equal(typeof rate, "number");
-    // Strictly decreasing: four volumes, four different bands.
     for (let i = 1; i < rates.length; i += 1) {
       assert.ok(
         (rates[i] as number) < (rates[i - 1] as number),
         `band ${i} (${rates[i]}) is not cheaper than band ${i - 1} (${rates[i - 1]})`,
       );
     }
-    assert.equal(new Set(rates).size, 4, "two volumes landed in the same band");
+    assert.equal(new Set(rates).size, 2, "two volumes landed in the same band");
+    // And past the last band there is no rate at all, rather than the
+    // cheapest one carried onwards.
+    assert.equal(quote(PICK_PACK, 1, 6_000).lines[0].unitPrice, null);
   });
 
   it("the band is named on the line, so the team can see which one applied", () => {
@@ -88,9 +94,11 @@ describe("volume reaches the total, not just the rate", () => {
     // The cheaper band must not make a 5,000-order month cheaper than a
     // 100-order month. If it ever does, volume is being applied to the
     // rate and nothing else.
+    // Both volumes sit inside priced bands. Above 1,499 there is no
+    // subtotal to compare, by design.
     const small = quote(PICK_PACK, 100, 100).subtotal;
-    const big = quote(PICK_PACK, 5_000, 5_000).subtotal;
-    assert.ok(big > small, `5,000 orders (${big}) is not dearer than 100 (${small})`);
+    const big = quote(PICK_PACK, 1_000, 1_000).subtotal;
+    assert.ok(big > small, `1,000 orders (${big}) is not dearer than 100 (${small})`);
   });
 
   it("the calculator asks the SERVER which services count that way", () => {
@@ -155,10 +163,16 @@ describe("a missing band fails closed instead of quoting the entry rate", () => 
   it("a service that is genuinely flat is still priced normally", () => {
     // The fail-closed rule is scoped to PER_ORDER services. A flat
     // service with no bands is not a data gap - it is a flat service.
+    // Must also have no volume bands of its own. The additional-item
+    // service is PER_ITEM and tiered, so it used to be picked here and
+    // then correctly refused a rate at 5,000 orders, which is the
+    // tiered behaviour rather than the flat behaviour under test.
+    const tieredIds = new Set(SEED_VOLUME_TIERS.map((tier) => tier.serviceId));
     const flat = SEED_SERVICES.find(
       (service: PricingService) =>
         service.pricingType !== "CUSTOM_QUOTE" &&
         service.pricingType !== "PER_ORDER" &&
+        !tieredIds.has(service.id) &&
         service.isActive,
     );
     assert.ok(flat, "no flat service to check");

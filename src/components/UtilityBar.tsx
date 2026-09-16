@@ -6,7 +6,7 @@ import {
   TikTokIcon,
   WhatsAppIcon,
 } from "@/components/SocialIcons";
-import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
 
 const socials = [
@@ -37,39 +37,39 @@ export default function UtilityBar() {
     >
       <Container>
         <div className="flex h-8 items-center justify-between gap-2 text-[13px] sm:gap-3">
+          {/* EVERY LINK IN HERE IS `h-8`, the full height of the bar.
+              A rendered audit found the three text links were 19.5px
+              tall, the height of their own line box, while the social
+              buttons beside them filled all 32px. Two rows of controls
+              in one strip with hit areas that differ by 13px is a
+              phone-sized miss, and the height costs nothing: the row is
+              already 32px, so the links only stop being smaller than
+              the space they sit in. */}
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            {/* ONE LABEL AT EVERY WIDTH.
+                This link used to render the owner's raw address from
+                `sm` up and a short label below it, because an email
+                address is a single unbreakable token: when a real one
+                first landed here it pushed the row past a 390px phone
+                and widened the LAYOUT viewport to 422, which dragged
+                the fixed dock off-screen on every page of the site. The
+                owner has since asked for the address never to be shown
+                in public, so there is no long token left to break the
+                row and no reason to keep a breakpoint split: the label
+                is short, identical at 320px and at 1920px, and the
+                mailto: behind it is unchanged. */}
             <a
               href={contactEmailHref}
-              className="inline-flex min-w-0 items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
+              className="inline-flex h-8 items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
             >
               <Mail aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-              {/* The raw address is only shown once a real one is
-                  configured — never an invented placeholder.
-
-                  AND ONLY WHERE IT FITS. An email address is one long
-                  unbreakable token: the moment a real one replaced the
-                  null here, "viktorkomarovprep@gmail.com" pushed this
-                  row past a 390px phone and widened the LAYOUT viewport
-                  to 422 — which took the fixed dock off-screen with it,
-                  on every page of the site. Phones get the short label
-                  and the same mailto; the address appears from sm up,
-                  where there is room for it. */}
-              {siteContact.email ? (
-                <>
-                  <span className="sm:hidden">{contactEmailLabel}</span>
-                  <span className="hidden truncate sm:inline">
-                    {siteContact.email}
-                  </span>
-                </>
-              ) : (
-                contactEmailLabel
-              )}
+              {contactEmailLabel}
             </a>
             <a
               href={siteConfig.social.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-brand-green-dark"
+              className="inline-flex h-8 items-center gap-1.5 transition-colors hover:text-brand-green-dark"
             >
               <WhatsAppIcon aria-hidden="true" className="h-3.5 w-3.5" />
               WhatsApp
@@ -79,7 +79,7 @@ export default function UtilityBar() {
                 href={siteConfig.location.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden items-center gap-1.5 transition-colors hover:text-brand-green-dark sm:inline-flex"
+                className="hidden h-8 items-center gap-1.5 transition-colors hover:text-brand-green-dark sm:inline-flex"
               >
                 <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
                 {siteConfig.location.shortLabel}

@@ -44,7 +44,7 @@ describe("the wizard is a presentation layer, not a second calculator", () => {
     for (const single of [
       "const [selections, setSelections] = useState<SelectionState>({})",
       "const [monthlyOrders, setMonthlyOrders] = useState(MIN_MONTHLY_ORDERS)",
-      "const [channel, setChannel] = useState<PricingChannel>(\"whatsapp\")",
+      "const [channel, setChannel] = useState<PricingChannel>(DEFAULT_PRICING_CHANNEL)",
       "const [sendPhase, setSendPhase] = useState",
     ]) {
       assert.equal(

@@ -26,7 +26,10 @@ describe("no action promises an email address the site cannot give", () => {
   it("the fallback points at the form anchor that actually exists", () => {
     if (siteContact.email) {
       assert.ok(contactEmailHref.startsWith("mailto:"));
-      assert.equal(contactEmailLabel, "Email us");
+      // Was "Email us". The owner reversed it: the visible text is now
+      // "Send email" everywhere public, because the surfaces that used
+      // to print the raw personal address print the label instead.
+      assert.equal(contactEmailLabel, "Send email");
       return;
     }
     // The old target was /contact#contact-enquiry — an id present on
@@ -50,9 +53,9 @@ describe("no action promises an email address the site cannot give", () => {
       const source = read(path);
       assert.ok(source.includes("contactEmailLabel"), `${path} hard-codes its label`);
       assert.equal(
-        /"Email us"/.test(strip(source)),
+        /"(Email us|Send email)"/.test(strip(source)),
         false,
-        `${path} still hard-codes "Email us"`,
+        `${path} still hard-codes the email label`,
       );
     }
   });

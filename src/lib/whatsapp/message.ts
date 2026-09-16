@@ -74,7 +74,17 @@ export function buildPricingWhatsAppText(
         "",
       );
     }
-    lines.push(`Estimated total: ${formatEuro(estimate.subtotal)}`);
+    // The customer reads this. It must match the email to the cent,
+    // which means quoting what is payable, not the pre-minimum sum.
+    if (estimate.monthlyMinimumApplied) {
+      lines.push(
+        `Services as selected: ${formatEuro(estimate.subtotal)}`,
+        `Minimum monthly invoice: ${formatEuro(estimate.monthlyMinimum)}`,
+        `Estimated monthly total: ${formatEuro(estimate.payable)}`,
+      );
+    } else {
+      lines.push(`Estimated total: ${formatEuro(estimate.payable)}`);
+    }
     if (custom.length > 0) {
       lines.push(
         "",
@@ -124,7 +134,10 @@ export function buildPricingTemplateParameters(
 
   let pricingLine: string;
   if (priced.length > 0) {
-    pricingLine = `Estimated total ${formatEuro(estimate.subtotal)}`;
+    pricingLine = `Estimated total ${formatEuro(estimate.payable)}`;
+    if (estimate.monthlyMinimumApplied) {
+      pricingLine += " (minimum monthly invoice applied)";
+    }
     if (custom.length > 0) {
       pricingLine += ` (custom priced separately: ${custom
         .map((line) => line.name)

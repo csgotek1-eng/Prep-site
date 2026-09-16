@@ -5,6 +5,7 @@ import {
   tiersForService,
 } from "./tiers.ts";
 import { MAX_QUANTITY, MAX_SELECTIONS } from "./limits.ts";
+import { applyMonthlyMinimum } from "./account-terms.ts";
 import type {
   Estimate,
   EstimateLine,
@@ -165,11 +166,21 @@ export function calculateEstimate(
     });
   }
 
+  // The minimum monthly invoice is an ACCOUNT rule, not a line rule, so
+  // it is applied once here rather than folded into any service. Doing
+  // it at the end also keeps `subtotal` meaning what it says: the sum of
+  // the work, before the floor. The UI needs both numbers to explain
+  // itself, and the email has to state the same pair.
+  const { payable, minimumApplied, minimum } = applyMonthlyMinimum(subtotal);
+
   return {
     lines,
     subtotal,
     currency: "EUR",
     hasCustomQuoteItems,
     monthlyOrders: allTiers.length > 0 ? monthlyOrders : null,
+    payable,
+    monthlyMinimumApplied: minimumApplied,
+    monthlyMinimum: minimum,
   };
 }

@@ -117,6 +117,13 @@ export function buildOwnerNotificationText(input: OwnerNotificationInput): strin
   }
   lines.push("");
   lines.push(`Internal total: ${formatEuro(estimate.subtotal)}`);
+  if (estimate.monthlyMinimumApplied) {
+    // Worth seeing at a glance: this account is under the floor, so the
+    // handling work is not what it will be invoiced.
+    lines.push(
+      `Billed at the minimum monthly invoice: ${formatEuro(estimate.payable)}`,
+    );
+  }
   if (estimate.hasCustomQuoteItems) {
     lines.push("Some lines need an individual quote — the total above excludes them.");
   }

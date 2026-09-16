@@ -89,8 +89,8 @@ export default async function PricingPage() {
             </p>
             <p className="mt-4 text-base leading-7 text-slate-300">
               We don&apos;t publish rates: every operation is priced
-              individually, and your price is sent privately to you, by
-              WhatsApp or email, whichever you choose.
+              individually, and your price is sent privately to you by
+              email.
             </p>
 
             {/* The offer belongs BEFORE the button, not after it. It

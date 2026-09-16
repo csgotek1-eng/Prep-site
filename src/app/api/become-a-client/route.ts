@@ -5,6 +5,7 @@ import { processLead } from "@/lib/leads/intake";
 import { notifyEnquiryLead } from "@/lib/leads/notify";
 import { resolvePromotionAttribution } from "@/lib/promotions/service";
 import { createDurableRateLimiter, requestClientKey } from "@/lib/rate-limit";
+import { enforceTurnstile, turnstileRemoteIp } from "@/lib/security/turnstile";
 import type { LeadInput } from "@/lib/leads/types";
 
 /**
@@ -37,6 +38,16 @@ export async function POST(request: Request) {
     console.warn("Become-a-client submission dropped: honeypot filled in.");
     return NextResponse.json({ ok: true });
   }
+
+  // Turnstile BEFORE validation, so nothing is stored or emailed for a
+  // submission that cannot show a browser sent it. Skipped until the
+  // owner configures a secret; never closes the form over a Cloudflare
+  // outage (see lib/security/turnstile.ts).
+  const challenge = await enforceTurnstile(
+    (body.data as { turnstileToken?: unknown })?.turnstileToken,
+    turnstileRemoteIp(request),
+  );
+  if (!challenge.ok) return fail(challenge.error, 400);
 
   const validated = validateBecomeClient(body.data);
   if (!validated.request) {

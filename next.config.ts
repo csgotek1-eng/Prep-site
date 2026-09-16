@@ -40,15 +40,34 @@ const gaScript = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.script.join(" ")}` : "";
 const gaConnect = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.connect.join(" ")}` : "";
 const gaImage = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.image.join(" ")}` : "";
 
+// Cloudflare Turnstile, and it follows its site key exactly the way
+// the Google hosts follow the Measurement ID. With no site key the
+// widget renders nothing (src/components/TurnstileWidget.tsx), so
+// naming challenges.cloudflare.com in the policy would authorise a
+// script host and, worse, REOPEN frame-src for a widget that is not
+// on the page. Two directives and no more: script-src for api.js and
+// frame-src for the challenge iframe it inserts, which is the exact
+// pair Cloudflare documents. The widget's own network calls happen
+// inside that cross-origin iframe and are governed by its policy, not
+// ours, so connect-src stays as it was.
+//
+// Read at BUILD time, like every other value in this policy, and the
+// same build/runtime split that bit the Supabase origin applies: the
+// key must be present in .env.production, not only in wrangler's vars.
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+const TURNSTILE_HOST = "https://challenges.cloudflare.com";
+const turnstileScript = turnstileSiteKey ? ` ${TURNSTILE_HOST}` : "";
+const turnstileFrame = turnstileSiteKey ? TURNSTILE_HOST : "'none'";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${gaScript}`,
+  `script-src 'self' 'unsafe-inline'${gaScript}${turnstileScript}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob:${gaImage}`,
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseConnectSource()}${gaConnect}`,
   "frame-ancestors 'none'",
-  "frame-src 'none'",
+  `frame-src ${turnstileFrame}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

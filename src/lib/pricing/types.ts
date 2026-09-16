@@ -48,6 +48,24 @@ export interface PricingService {
   pricingType: PricingType;
   /** Optional minimum charge in integer euro cents. */
   minimumCharge: number | null;
+  /**
+   * True when EVERY order incurs this service, so its monthly quantity
+   * is the monthly order volume and the calculator may prefill it.
+   *
+   * Separate from `pricingType` on purpose. "Per order" is a unit of
+   * charge; this is a statement about how often it is actually
+   * incurred, and plenty of services are the first without being the
+   * second. Rush handling is charged per order and applies to the few
+   * that are urgent; gift wrapping to the few that are gifts. Treating
+   * those as automatic would prefill a month with thousands of
+   * surcharges nobody asked for and quote a total far above the truth.
+   *
+   * Optional, and absent means false. The safe default is to let the
+   * visitor state the quantity: understating an assumption is
+   * recoverable, quoting somebody a number they do not recognise is
+   * not.
+   */
+  appliesToEveryOrder?: boolean;
   isActive: boolean;
   isFeatured: boolean;
   sortOrder: number;
@@ -145,4 +163,17 @@ export interface Estimate {
    * number the prices were based on.
    */
   monthlyOrders: number | null;
+  /**
+   * What the month actually comes to once the minimum monthly invoice
+   * is applied: equal to `subtotal` unless the subtotal fell below it.
+   *
+   * Carried on the estimate rather than computed by each caller, so the
+   * page, the email and the owner notification cannot arrive at three
+   * different totals for the same basket.
+   */
+  payable: number;
+  /** True when `payable` is the monthly minimum rather than the subtotal. */
+  monthlyMinimumApplied: boolean;
+  /** The monthly minimum itself, in cents, so callers need not import it. */
+  monthlyMinimum: number;
 }

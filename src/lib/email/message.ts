@@ -60,7 +60,23 @@ export function buildPricingEmailText(
         )}`,
       );
     }
-    lines.push("", `Estimated total: ${formatEuro(estimate.subtotal)}`);
+    // THE MINIMUM IS STATED, NEVER APPLIED SILENTLY. Quoting the
+    // services at EUR 90 and then invoicing EUR 275 would make this
+    // email worse than no email: the figure a customer is given is the
+    // figure they will be charged, and where the floor does the work
+    // they are told so and told what the work itself came to.
+    if (estimate.monthlyMinimumApplied) {
+      lines.push(
+        "",
+        `Services as selected: ${formatEuro(estimate.subtotal)}`,
+        `Minimum monthly invoice: ${formatEuro(estimate.monthlyMinimum)}`,
+        `Estimated monthly total: ${formatEuro(estimate.payable)}`,
+        "",
+        "Your selection comes to less than the minimum monthly invoice, so the minimum applies. It is the same figure for every volume band.",
+      );
+    } else {
+      lines.push("", `Estimated total: ${formatEuro(estimate.payable)}`);
+    }
     if (custom.length > 0) {
       lines.push(
         "",
@@ -132,11 +148,27 @@ export function buildPricingEmailHtml(
           "</tr>",
       );
     }
-    parts.push(
-      '<tr><td style="text-align:left;font-weight:bold">Estimated total</td>' +
-        `<td style="text-align:right;font-weight:bold;white-space:nowrap">${escapeHtml(formatEuro(estimate.subtotal))}</td></tr>`,
-      "</table>",
-    );
+    // Same rule as the text part: where the monthly minimum does the
+    // work, both numbers are shown. The HTML and the plain text are two
+    // renderings of one estimate and must never state different totals.
+    if (estimate.monthlyMinimumApplied) {
+      parts.push(
+        '<tr><td style="text-align:left">Services as selected</td>' +
+          `<td style="text-align:right;white-space:nowrap">${escapeHtml(formatEuro(estimate.subtotal))}</td></tr>`,
+        '<tr><td style="text-align:left">Minimum monthly invoice</td>' +
+          `<td style="text-align:right;white-space:nowrap">${escapeHtml(formatEuro(estimate.monthlyMinimum))}</td></tr>`,
+        '<tr><td style="text-align:left;font-weight:bold">Estimated monthly total</td>' +
+          `<td style="text-align:right;font-weight:bold;white-space:nowrap">${escapeHtml(formatEuro(estimate.payable))}</td></tr>`,
+        "</table>",
+        '<p style="margin:12px 0 0;color:#475569;font-size:14px">Your selection comes to less than the minimum monthly invoice, so the minimum applies. It is the same figure for every volume band.</p>',
+      );
+    } else {
+      parts.push(
+        '<tr><td style="text-align:left;font-weight:bold">Estimated total</td>' +
+          `<td style="text-align:right;font-weight:bold;white-space:nowrap">${escapeHtml(formatEuro(estimate.payable))}</td></tr>`,
+        "</table>",
+      );
+    }
     if (custom.length > 0) {
       parts.push(
         '<p style="margin:16px 0 4px"><strong>Priced individually</strong> (not included in the total above):</p>',

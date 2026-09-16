@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isSpamSubmission } from "@/lib/client-intake";
 import { fail, readIntakeBody } from "@/lib/leads/intake-http";
 import { createDurableRateLimiter, requestClientKey } from "@/lib/rate-limit";
+import { enforceTurnstile, turnstileRemoteIp } from "@/lib/security/turnstile";
 import { getReviewRepository, ReviewStoreUnavailableError } from "@/lib/reviews/repository";
 import { validateReviewSubmission } from "@/lib/reviews/validate";
 
@@ -40,6 +41,16 @@ export async function POST(request: Request) {
     console.error("Review submission dropped: honeypot filled in.");
     return NextResponse.json({ ok: true });
   }
+
+  // Turnstile BEFORE validation and therefore before the repository is
+  // ever touched: a generated review must not become a PENDING row for
+  // a person to read and reject by hand. Skipped until a secret is
+  // configured, and open on a Cloudflare outage, like the lead forms.
+  const challenge = await enforceTurnstile(
+    (body.data as { turnstileToken?: unknown })?.turnstileToken,
+    turnstileRemoteIp(request),
+  );
+  if (!challenge.ok) return fail(challenge.error, 400);
 
   const validated = validateReviewSubmission(body.data);
   if (!validated.review) {

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import SubmitError from "@/components/SubmitError";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { REVIEW_LIMITS } from "@/lib/reviews/validate";
 
 /**
@@ -21,6 +22,11 @@ export default function ReviewForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
   const [showFallback, setShowFallback] = useState(false);
+  // "" whenever there is no valid challenge: no widget configured, not
+  // ticked yet, or the token expired while the form sat open. The
+  // server decides what that means, not this component.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,11 +49,19 @@ export default function ReviewForm() {
           rating: data.get("rating") || null,
           consentToPublish: data.get("consentToPublish") === "on",
           reviewWebsiteConfirm: data.get("reviewWebsiteConfirm") ?? "",
+          turnstileToken,
         }),
       });
       const result = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !result.ok) {
         setStatus("idle");
+        // A Turnstile token is single use, so the one that was just
+        // refused can never work again. Reset on every rejection
+        // rather than guessing which kind it was: the cost is one
+        // fresh challenge, and the alternative is somebody fixing
+        // their email and failing again for an unmentioned reason.
+        setTurnstileToken("");
+        setTurnstileReset((count) => count + 1);
         setError(result.error ?? "Something went wrong. Please try again.");
         // A validation message is the visitor's to fix; anything else is
         // ours, and ours is where another way to reach us belongs.
@@ -58,6 +72,10 @@ export default function ReviewForm() {
       setStatus("sent");
     } catch {
       setStatus("idle");
+      // The token may or may not have been spent, and there is no way
+      // to find out, so it is thrown away rather than retried.
+      setTurnstileToken("");
+      setTurnstileReset((count) => count + 1);
       setError("Something went wrong. Please try again.");
       setShowFallback(true);
     }
@@ -194,6 +212,12 @@ export default function ReviewForm() {
           website.
         </label>
       </div>
+
+      <TurnstileWidget
+        onToken={setTurnstileToken}
+        resetSignal={turnstileReset}
+        action="leave-a-review"
+      />
 
       {error && (
         <SubmitError
