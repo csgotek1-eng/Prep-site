@@ -10,6 +10,8 @@ import {
   applyMonthlyMinimum,
 } from "../src/lib/pricing/account-terms.ts";
 import { buildPricingEmailText } from "../src/lib/email/message.ts";
+import { toPublicCatalogue } from "../src/lib/pricing/public.ts";
+import type { PricingService } from "../src/lib/pricing/types.ts";
 
 /**
  * PRICING v2.0 (25.08.2026).
@@ -344,5 +346,72 @@ describe("no internal pricing analysis reaches the code that renders to a custom
         );
       }
     }
+  });
+});
+
+/**
+ * THE RULE MUST SURVIVE THE DATABASE.
+ *
+ * Development reads the catalogue from seed.ts; production reads it
+ * from Supabase. Anything the rule depends on that only exists in the
+ * TypeScript object is correct locally and silently wrong in
+ * production, which is the shape of several bugs this project has
+ * already shipped once.
+ *
+ * `quantityFollowsVolume` briefly depended on exactly that: an
+ * `appliesToEveryOrder` flag set in seed.ts, with no matching column.
+ * In production every row would have mapped it undefined, the
+ * calculator would have stopped prefilling pick & pack with the
+ * monthly order volume, and a seller shipping 1,000 orders a month
+ * would have been quoted for one order.
+ *
+ * So this builds rows the way the Supabase mapper does: exactly the
+ * columns that exist, and nothing else.
+ */
+describe("the every-order rule survives a database row", () => {
+  const fromDatabase = (slug: string, name: string): PricingService => ({
+    id: "9f1c7c4e-0000-4000-8000-000000000001",
+    name,
+    slug,
+    description: "",
+    category: "Pick & Pack",
+    unitLabel: "per order",
+    price: 260,
+    currency: "EUR",
+    pricingType: "PER_ORDER",
+    minimumCharge: null,
+    isActive: true,
+    isFeatured: true,
+    sortOrder: 10,
+  });
+
+  it("prefills pick & pack from a row that carries no such column", () => {
+    const catalogue = toPublicCatalogue(
+      [fromDatabase("pick-pack", "Pick & pack")],
+      [],
+    );
+    assert.equal(
+      catalogue.services[0].quantityFollowsVolume,
+      true,
+      "production rows would stop prefilling the monthly volume",
+    );
+  });
+
+  it("does not prefill a per-order service that is not incurred every time", () => {
+    // Rush handling is charged per order and applies to the few that
+    // are urgent. Prefilling it would quote a month of surcharges.
+    const catalogue = toPublicCatalogue(
+      [fromDatabase("rush-same-day", "Rush or same-day handling")],
+      [],
+    );
+    assert.equal(catalogue.services[0].quantityFollowsVolume, false);
+  });
+
+  it("agrees with the seed catalogue, so both stores behave alike", () => {
+    const fromSeed = toPublicCatalogue(SEED_SERVICES, SEED_VOLUME_TIERS);
+    const prefilled = fromSeed.services
+      .filter((service) => service.quantityFollowsVolume)
+      .map((service) => service.slug);
+    assert.deepEqual(prefilled, ["pick-pack"]);
   });
 });

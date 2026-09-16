@@ -4,6 +4,7 @@ import type {
   ServiceCategory,
   VolumeTier,
 } from "./types";
+import { appliesToEveryOrder } from "./every-order.ts";
 
 /**
  * PUBLIC projections of the pricing domain.
@@ -81,15 +82,19 @@ export function toPublicCatalogue(
       unitLabel: service.unitLabel,
       customQuote: service.pricingType === "CUSTOM_QUOTE",
       volumeTiered: tieredServiceIds.has(service.id),
-      // NOT `pricingType === "PER_ORDER"`. Charged per order and
-      // applied to every order are different claims, and v2.0 added
-      // several services that are the first without being the second:
-      // rush handling, manual order entry, gift wrapping, bubble wrap.
-      // Deriving this from the pricing type would have prefilled a
-      // 5,000-order month with 5,000 rush surcharges and quoted a
-      // number nobody would recognise. The catalogue now says so
-      // explicitly, and says it only where it is certain.
-      quantityFollowsVolume: service.appliesToEveryOrder === true,
+      // NOT `pricingType === "PER_ORDER"`, and NOT a field on the row.
+      //
+      // Charged per order and incurred by every order are different
+      // claims, and v2.0 added several services that are the first
+      // without being the second: rush handling, manual order entry,
+      // gift wrapping. Deriving this from the pricing type would
+      // prefill a 1,000-order month with 1,000 rush surcharges.
+      //
+      // It is keyed by slug rather than carried on the service because
+      // production reads this catalogue from Supabase, which has no
+      // such column: a row-level flag was silently undefined there and
+      // correct only in development. See ./every-order.ts.
+      quantityFollowsVolume: appliesToEveryOrder(service.slug),
       isFeatured: service.isFeatured,
       sortOrder: service.sortOrder,
     }));

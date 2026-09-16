@@ -52,9 +52,6 @@ export const SEED_SERVICES: PricingService[] = [
     currency: "EUR",
     pricingType: "PER_ORDER",
     minimumCharge: null,
-    // The only service on the list that every single order incurs by
-    // definition: if an order shipped, it was picked and packed.
-    appliesToEveryOrder: true,
     isActive: true,
     isFeatured: true,
     sortOrder: 10,

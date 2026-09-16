@@ -48,24 +48,6 @@ export interface PricingService {
   pricingType: PricingType;
   /** Optional minimum charge in integer euro cents. */
   minimumCharge: number | null;
-  /**
-   * True when EVERY order incurs this service, so its monthly quantity
-   * is the monthly order volume and the calculator may prefill it.
-   *
-   * Separate from `pricingType` on purpose. "Per order" is a unit of
-   * charge; this is a statement about how often it is actually
-   * incurred, and plenty of services are the first without being the
-   * second. Rush handling is charged per order and applies to the few
-   * that are urgent; gift wrapping to the few that are gifts. Treating
-   * those as automatic would prefill a month with thousands of
-   * surcharges nobody asked for and quote a total far above the truth.
-   *
-   * Optional, and absent means false. The safe default is to let the
-   * visitor state the quantity: understating an assumption is
-   * recoverable, quoting somebody a number they do not recognise is
-   * not.
-   */
-  appliesToEveryOrder?: boolean;
   isActive: boolean;
   isFeatured: boolean;
   sortOrder: number;
