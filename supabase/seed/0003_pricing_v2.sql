@@ -45,7 +45,7 @@ values
   ('Stock count on request', 'stock-count', 'A physical count of a SKU on request, outside the normal cycle counts, with the result reported against the system figure.', 'Receiving', 'per SKU', 455, 'PER_UNIT', null, true, false, 58),
   ('Pallet storage', 'pallet-storage', 'Transit storage of a pallet inside your fulfilment account. The first fourteen days of every inbound delivery are free; beyond that, longer-term storage is quoted to the space and the length of stay.', 'Storage', 'custom quote', 0, 'CUSTOM_QUOTE', null, true, false, 60),
   ('Bin storage', 'bin-storage', 'Small-item bin storage, billed monthly.', 'Storage', 'per bin / month', 0, 'PER_MONTH', null, false, false, 70),
-  ('Mailing bag', 'dockentra-standard-mailer', 'Our standard mailing bag, used where the goods do not need a box.', 'Packaging', 'per mailer', 24, 'PER_UNIT', null, true, false, 80),
+  ('Mailing bag', 'dockentra-standard-mailer', 'A mailing bag supplied by Dockentra, used where the goods do not need a box. There is no material charge when you send your own packaging; the handling of it is priced separately.', 'Packaging', 'per mailer', 24, 'PER_UNIT', null, true, false, 80),
   ('Small box', 'small-box', 'Our small shipping box.', 'Packaging', 'per box', 113, 'PER_UNIT', null, true, false, 82),
   ('Medium box with protective fill', 'medium-box-with-fill', 'Our medium shipping box, including the protective fill that goes in it.', 'Packaging', 'per box', 130, 'PER_UNIT', null, true, false, 84),
   ('Large box', 'large-box', 'Our large shipping box.', 'Packaging', 'per box', 245, 'PER_UNIT', null, true, false, 86),
@@ -80,7 +80,7 @@ values
   ('Rush or same-day handling', 'rush-same-day', 'Pulling an order out of the normal run so it goes today. Charged per order, because it interrupts the batch everything else is picked in.', 'Other', 'per order', 245, 'PER_ORDER', null, true, false, 152),
   ('Manual order entry', 'manual-order-entry', 'Entering an order by hand where an integration does not cover it, such as a wholesale or off-platform sale.', 'Other', 'per order', 360, 'PER_ORDER', null, true, false, 154),
   ('Investigating a disputed order', 'dispute-investigation', 'Working through a contested delivery with you: pulling the batch photographs, the handover record and the carrier trail into one answer.', 'Other', 'per case', 970, 'FLAT', null, true, false, 156),
-  ('Courier handling', 'courier-handling', 'Booking the carrier, producing the label and handing the parcel over. Charged at the carrier''s cost plus a handling margin, so the rate follows the contract rather than a published figure.', 'Other', 'custom quote', 0, 'CUSTOM_QUOTE', null, true, false, 158),
+  ('Courier handling', 'courier-handling', 'Booking the carrier, producing the label and handing the parcel over. Charged at the carrier''s rate for your parcel plus a fixed handling fee, so it follows your actual shipping rather than a published figure.', 'Other', 'custom quote', 0, 'CUSTOM_QUOTE', null, true, false, 158),
   ('Special handling / oversized items', 'special-handling', 'Goods that do not fit the normal process: oversized, fragile, temperature-sensitive or restricted. Quoted to what the goods actually need.', 'Other', 'custom quote', 0, 'CUSTOM_QUOTE', null, true, false, 160)
 on conflict (slug) do update set
   name = excluded.name,

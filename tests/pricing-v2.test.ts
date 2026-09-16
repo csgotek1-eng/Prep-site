@@ -415,3 +415,58 @@ describe("the every-order rule survives a database row", () => {
     assert.deepEqual(prefilled, ["pick-pack"]);
   });
 });
+
+/**
+ * THE PRODUCTION IMPORT MUST NOT DRIFT FROM THE CATALOGUE.
+ *
+ * supabase/seed/0003_pricing_v2.sql is generated from seed.ts, and the
+ * whole point of generating it is that two hand-kept copies of fifty
+ * prices diverge on the first edit that touches one of them.
+ *
+ * Generating it does not help if nobody regenerates. This caught a real
+ * drift during the pre-deploy check: two service descriptions had been
+ * edited in the catalogue after the SQL was written, and one of the
+ * stale descriptions was the courier line that still said "handling
+ * margin", wording deliberately removed from customer-facing copy. The
+ * SQL is what production actually serves those descriptions from, so
+ * the stale copy would have published it.
+ */
+describe("the generated production seed is in sync", () => {
+  it("matches what the generator produces from the current catalogue", () => {
+    const sql = read("supabase/seed/0003_pricing_v2.sql");
+    for (const service of SEED_SERVICES) {
+      // Postgres escaping: a quote in a description is doubled.
+      const escaped = service.description.replace(/'/g, "''");
+      assert.ok(
+        sql.includes(`'${escaped}'`),
+        `0003_pricing_v2.sql is stale for "${service.slug}": run node scripts/generate-pricing-sql.mjs`,
+      );
+      assert.ok(
+        sql.includes(`'${service.slug}'`),
+        `0003_pricing_v2.sql is missing the service "${service.slug}"`,
+      );
+    }
+    for (const tier of SEED_VOLUME_TIERS) {
+      const price = tier.price === null ? "null" : String(tier.price);
+      const max = tier.maxOrders === null ? "null" : String(tier.maxOrders);
+      assert.ok(
+        sql.includes(`${tier.minOrders}, ${max}, ${price}, ${tier.customQuote}`),
+        `0003_pricing_v2.sql is stale for a volume band at ${tier.minOrders}+`,
+      );
+    }
+  });
+
+  it("publishes no internal commentary through a service description", () => {
+    // The descriptions in this file are what a customer reads in the
+    // calculator, so they are customer-facing copy that happens to live
+    // in SQL.
+    const sql = read("supabase/seed/0003_pricing_v2.sql");
+    for (const [label, pattern] of [
+      ["margin", /\bmargins?\b(?!\s*:)/i],
+      ["cost price", /\bcost price\b/i],
+      ["unprofitable", /\bunprofitable\b/i],
+    ] as [string, RegExp][]) {
+      assert.equal(pattern.test(sql), false, `the production seed publishes "${label}"`);
+    }
+  });
+});
