@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { SEED_SERVICES, SEED_VOLUME_TIERS } from "../src/lib/pricing/seed.ts";
@@ -172,69 +172,169 @@ describe("the rate card is not published in the repository either", () => {
    * Documentation is the natural place for this to come back, because
    * writing the real number down is genuinely the clearest way to
    * explain how the pricing works. It is still publishing it.
+   *
+   * THE SWEEP IS RECURSIVE, AND THAT IS A FIX, NOT A DETAIL. It used to
+   * read `readdirSync("docs")` and keep only the `.md` entries, which
+   * silently meant `docs/*.md` and nothing below it. For most of this
+   * project's life docs/ had no subdirectories, so the gap was
+   * invisible. The moment one appeared (docs/security/, created by a
+   * public-exposure audit) there was a place a price could be written
+   * where nothing would look for it. A guard with a blind spot is worse
+   * than no guard, because it is trusted.
    */
-  const docs = readdirSync("docs")
-    .filter((name) => name.endsWith(".md"))
-    .map((name) => `docs/${name}`)
-    .concat(["README.md", "AGENTS.md"].filter((name) => existsSync(name)));
+  const collectDocs = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) return collectDocs(path);
+      // Markdown and plain text: the formats someone writes prose in.
+      // A price pasted into a .txt note is published exactly as much as
+      // one in a .md file.
+      return /\.(md|markdown|txt)$/i.test(entry.name) ? [path] : [];
+    });
 
-  it("has documentation to check", () => {
-    assert.ok(docs.length > 5, `only ${docs.length} documents found — the sweep is not running`);
-  });
+  const docs = collectDocs("docs").concat(
+    ["README.md", "AGENTS.md"].filter((name) => existsSync(name)),
+  );
 
-  it("publishes no catalogue rate in any document", () => {
-    const rates = [
-      ...SEED_SERVICES.filter((s) => typeof s.price === "number" && s.price > 0).map((s) => ({
-        value: ((s.price as number) / 100).toFixed(2),
-        label: s.id,
-      })),
-      ...SEED_VOLUME_TIERS.filter((t) => t.price !== null).map((t) => ({
-        value: ((t.price as number) / 100).toFixed(2),
-        label: "a volume band",
-      })),
-    ];
-    assert.ok(rates.length > 0, "no rates were loaded — this check would pass vacuously");
+  /**
+   * Amounts the site publishes ON PURPOSE.
+   *
+   * /uk-brands carries a carrier comparison with An Post and Royal Mail
+   * figures in it, and the documents that fact-check that page
+   * necessarily repeat them. Those are somebody else's public tariffs,
+   * not our rate card. Matched exactly, so our own EUR 4.55 stock-count
+   * rate is still caught anywhere it appears as a Dockentra price.
+   */
+  const PUBLISHED_ON_PURPOSE = new Set([
+    "2.81", "3.90", "10.14", "4.55", "15.95", "8.45", "3.00", "4.20",
+  ]);
 
-    /**
-     * A EURO SIGN IS REQUIRED, AND SOME AMOUNTS ARE ALLOWED.
-     *
-     * The catalogue grew from eleven rates to fifty with Prix v2.0, and
-     * a bare-substring sweep over fifty two-decimal numbers stopped
-     * telling the truth. It flagged "@opennextjs/cloudflare 1.20.6" as
-     * the branded-box rate and "padding-bottom: max(0.75rem" as the
-     * disposal rate. Requiring the amount to be written as money
-     * removes that whole class of coincidence.
-     *
-     * The allowlist is separate and much narrower: figures the site
-     * publishes ON PURPOSE. /uk-brands carries a carrier comparison
-     * with An Post and Royal Mail amounts in it, and docs that
-     * fact-check that page necessarily repeat them. Those are somebody
-     * else's public tariffs, not our rate card. They are matched
-     * exactly, so our own EUR 4.55 stock-count rate would still be
-     * caught anywhere it appeared as a Dockentra price in prose.
-     */
-    const PUBLISHED_ON_PURPOSE = new Set([
-      "2.81", "3.90", "10.14", "4.55", "15.95", "8.45", "3.00", "4.20",
-    ]);
+  const catalogueRates = [
+    ...SEED_SERVICES.filter((s) => typeof s.price === "number" && s.price > 0).map((s) => ({
+      value: ((s.price as number) / 100).toFixed(2),
+      label: s.id,
+    })),
+    ...SEED_VOLUME_TIERS.filter((t) => t.price !== null).map((t) => ({
+      value: ((t.price as number) / 100).toFixed(2),
+      label: "a volume band",
+    })),
+  ];
 
+  /**
+   * Internal pricing analysis, which is not a number.
+   *
+   * The source document behind Prix v2.0 carries cost per operation,
+   * margin percentages, labour assumptions and capacity arithmetic. A
+   * price is not the only thing worth keeping out of a public repo: a
+   * sentence saying which lines are thin tells a competitor more than
+   * the rate does.
+   *
+   * "margin" is matched only when it is not followed by a colon, so a
+   * CSS snippet in a design document is not a disclosure.
+   */
+  const INTERNAL_COMMENTARY: [string, RegExp][] = [
+    ["margin", /\bmargins?\b(?!\s*:)/i],
+    ["себестоимость", /себестоим/i],
+    ["cost price", /\bcost price\b/i],
+    ["cost base", /\bcost base\b/i],
+    ["unit economics", /\bunit economics\b/i],
+    ["landed cost", /\blanded cost\b/i],
+    ["thin margin", /\bthin margins?\b/i],
+  ];
+
+  /**
+   * Everything a document may not contain, in one function, so the
+   * probe below can plant a file and ask the same question the real
+   * check asks. A guard that cannot be pointed at a known-bad input is
+   * a guard nobody has tested.
+   */
+  const leaksIn = (paths: readonly string[]): string[] => {
     const offences: string[] = [];
-    for (const path of docs) {
+    for (const path of paths) {
       const text = readFileSync(path, "utf8");
-      for (const { value, label } of rates) {
+      for (const { value, label } of catalogueRates) {
         if (PUBLISHED_ON_PURPOSE.has(value)) continue;
         if (text.includes(`€${value}`) || text.includes(`EUR ${value}`)) {
           offences.push(`${path} publishes €${value} (${label})`);
         }
       }
+      for (const [label, pattern] of INTERNAL_COMMENTARY) {
+        if (pattern.test(text)) {
+          offences.push(`${path} contains internal pricing analysis: "${label}"`);
+        }
+      }
     }
+    return offences;
+  };
+
+  it("has documentation to check", () => {
+    assert.ok(docs.length > 5, `only ${docs.length} documents found — the sweep is not running`);
+    assert.ok(catalogueRates.length > 0, "no rates were loaded — this check would pass vacuously");
+  });
+
+  it("descends into subdirectories, not just docs/*.md", () => {
+    // The specific hole this block was rewritten to close. Asserted on
+    // the collected list rather than on the implementation, so it stays
+    // true however the walk is written.
+    const nested = docs.filter((path) => path.split("/").length > 2);
+    assert.ok(
+      nested.length > 0,
+      "no document below docs/ was collected — the sweep is flat again and a price in a subfolder would go unnoticed",
+    );
+  });
+
+  it("publishes no catalogue rate or internal analysis in any document", () => {
+    const offences = leaksIn(docs);
     assert.deepEqual(
       offences,
       [],
       `the rate card is in the public repository:\n  ${offences.join("\n  ")}`,
     );
   });
-});
 
+  /**
+   * THE GUARD IS POINTED AT A KNOWN-BAD FILE.
+   *
+   * Every assertion above passes when the sweep finds nothing, which is
+   * also what happens when the sweep is broken. This one plants a real
+   * catalogue rate in a subdirectory, confirms it is caught, and
+   * removes it again. It is the only test here that fails if the walk
+   * silently stops descending.
+   */
+  it("catches a planted rate inside docs/security/", () => {
+    const probe = "docs/security/__guard-probe__.md";
+    const rate = catalogueRates.find((r) => !PUBLISHED_ON_PURPOSE.has(r.value));
+    assert.ok(rate, "no non-allowlisted rate to plant");
+    try {
+      mkdirSync("docs/security", { recursive: true });
+      writeFileSync(probe, `# probe\n\nOur rate is €${rate!.value} per unit.\n`, "utf8");
+      const caught = leaksIn(collectDocs("docs"));
+      assert.ok(
+        caught.some((o) => o.includes(probe)),
+        `a rate in a docs subdirectory was NOT caught. Offences seen: ${JSON.stringify(caught)}`,
+      );
+    } finally {
+      // Removed whether the assertion passed or threw: a probe left
+      // behind would fail every later run and look like a real leak.
+      rmSync(probe, { force: true });
+    }
+  });
+
+  it("catches planted internal analysis inside docs/security/", () => {
+    const probe = "docs/security/__guard-probe-analysis__.md";
+    try {
+      mkdirSync("docs/security", { recursive: true });
+      writeFileSync(probe, "# probe\n\nThat line runs at a 9% margin.\n", "utf8");
+      const caught = leaksIn(collectDocs("docs"));
+      assert.ok(
+        caught.some((o) => o.includes(probe) && o.includes("margin")),
+        `internal analysis in a docs subdirectory was NOT caught. Offences seen: ${JSON.stringify(caught)}`,
+      );
+    } finally {
+      rmSync(probe, { force: true });
+    }
+  });
+});
 describe("the private pricing engine is untouched", () => {
   it("still has its catalogue and its bands", () => {
     // Removing PUBLIC prices must not have removed the rates that
