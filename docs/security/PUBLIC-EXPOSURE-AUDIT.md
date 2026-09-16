@@ -13,7 +13,7 @@ A Playwright browser walked 17 routes and exercised the pricing calculator, capt
 
 **Matches: 0.**
 
-Seven public-exposure issues plus three RLS findings are recorded below. None is a leaked credential; the highest is a personal email address that is published deliberately. Two of them (3 and 7) are about this public repository rather than the live site.
+Seven public-exposure issues plus four RLS findings are recorded below. R3 is now closed on live production evidence; R4 is a broken feature, not a security hole. None is a leaked credential; the highest is a personal email address that is published deliberately. Two of them (3 and 7) are about this public repository rather than the live site.
 
 ---
 
@@ -157,22 +157,25 @@ Non-`NEXT_PUBLIC_` values confirmed server-side only: `SUPABASE_SERVICE_ROLE_KEY
 4. **Scrub the private IP** from the deployment doc if you would rather not publish it (Finding 3).
 5. **Plan a CSP nonce** to remove `'unsafe-inline'` (Finding 2) — its own round, with tests.
 
-6. **Add the `revoke` statements** to the five tables in R1 (defence in depth), and **run the confirmation query** in R3.
+6. **Apply migration `0008_website_reviews.sql`** (R4), or hide the review form until you do. It is the only item here a customer can actually hit.
+7. **Add the `revoke` statements** to the five tables in R1 (defence in depth).
 
-Finding 7 is already done. Nothing here blocks a deploy. No credential rotation is required, because no credential was exposed.
+Findings 7 and R3 are closed. Nothing here blocks a deploy. No credential rotation is required, because no credential was exposed.
 
 ---
 
 ## Supabase Row Level Security — audit (16 September 2026)
 
-**Access:** none. The Supabase CLI is unauthenticated, no access token or connection string exists on this machine, and the service-role key is an encrypted Worker secret that cannot be read back. So this audits the policies **as defined in `supabase/migrations/`** plus what can be observed from outside. It is not a read of the live `pg_policies` table. Confirming production matches needs the read-only access listed at the end.
+**Access:** the policy state was confirmed by the owner running read-only queries against production on 16 September 2026 (see R3). Everything else below was derived from `supabase/migrations/` and verified black-box.
+
+**Original access note:** none at audit time. The Supabase CLI is unauthenticated, no access token or connection string exists on this machine, and the service-role key is an encrypted Worker secret that cannot be read back. So this audits the policies **as defined in `supabase/migrations/`** plus what can be observed from outside. It is not a read of the live `pg_policies` table. Confirming production matches needs the read-only access listed at the end.
 
 ### The posture: deny by default
 
 | Table | RLS | Policies defined | Explicit `revoke` from `anon, authenticated` | Effective anon access |
 |---|---|---|---|---|
 | `website_leads` | **enabled** | **none** | no | **none** |
-| `website_reviews` | **enabled** | **none** | **yes** | **none** |
+| `website_reviews` | n/a — **table does not exist in production** (see R4) | **none** | **yes** (in the unapplied migration) | **none** |
 | `website_promotions` | **enabled** | **none** | **yes** | **none** |
 | `pricing_services` | **enabled** | **none** | no | **none** |
 | `pricing_volume_tiers` | **enabled** | **none** | no | **none** |
@@ -233,13 +236,26 @@ An attacker also has no key to try: the publishable/anon key **is not shipped in
 5. **Severity:** LOW. Raised only because the two interact: an injected script is the threat that makes token-in-storage matter, and `'unsafe-inline'` is what makes injection easier. Neither is a problem alone, and no injection vector was found.
 6. **Fix:** tightening the CSP (Finding 2) is the higher-value half. The storage choice is recorded in `docs/STAGE_5_SUPABASE_AUTH_READINESS.md` and is the owner's decision to keep or revisit.
 
-#### R3. The live policy state is unverified — MEDIUM (confidence, not vulnerability)
+#### R3. The live policy state is unverified — **CLOSED 16 September 2026**
 
-1. **What:** everything above is read from migration files. If a policy was ever added by hand in the Supabase dashboard, it exists in production and in no file here.
-2. **Where:** the production database.
-3. **Real vulnerability?** Unknown, and that is the point. The 401s prove nothing is readable **without a key**; they cannot prove what a holder of the anon key could do.
-4. **Severity:** MEDIUM as a confidence gap. Downgrade to LOW the moment the query below returns nothing unexpected.
-5. **Fix:** run one read-only query and share the output (see below).
+1. **What:** the audit above was read from migration files. A policy added by hand in the dashboard would have existed in production and in no file here.
+2. **Resolved by:** the owner ran the read-only queries against production and supplied the output.
+3. **Live evidence:** every public table reports `rowsecurity = true`, and **`pg_policies` returned 0 rows**.
+4. **Conclusion:** production matches the migrations exactly. RLS is enabled everywhere with no policy, which is deny-all for `anon` and `authenticated`. No hand-added policy exists. Combined with the seven 401s and the anon key not being shipped, **there is no anonymous read or write path to any table.**
+5. **Severity:** none. Closed.
+
+Note: the third query (`role_table_grants`) was not part of the output supplied, so R1 below remains a recommendation rather than a confirmed state.
+
+#### R4. `website_reviews` does not exist in production, and the review form is live — MEDIUM (functional, not a security hole)
+
+1. **What:** production returned six tables. `website_reviews` was **not** among them. Migration `0008_website_reviews.sql` has never been applied; `0001`–`0007` all have.
+2. **Where:** the production database, and `https://dockentra.ie/cases`, which renders a real review form (`displayName`, `body`, `consentToPublish`).
+3. **Visitor-visible:** **yes, as a broken feature.** A customer can fill the form in and submit it. Verified against production with one labelled probe: the API answers **503 `{"ok":false,"error":"Reviews are temporarily unavailable."}`**. No row is created, because there is no table.
+4. **Real vulnerability?** **No — the opposite.** A table that does not exist cannot leak. The failure is also honest: the route returns 503 rather than a false success, so the save-first contract holds. The problem is that a real customer is invited to write a review that cannot be saved.
+5. **Severity:** MEDIUM as a **product** defect; **none** as a security issue. It is listed here because it was found by the RLS audit and because it changes what "RLS is correct on every table" means: it is correct on every table that exists.
+6. **Fix:** apply `supabase/migrations/0008_website_reviews.sql` to production. It carries its own `enable row level security` **and** `revoke all … from anon, authenticated`, so the table arrives already locked down and needs no follow-up policy work. Until it is applied, the honest alternative is to hide the review form on `/cases`.
+
+   `/cases` itself is unaffected: `getPublishedReviews()` fails quiet by design and renders the same empty state a visitor sees when no review has been approved. The homepage Customer Stories section added in Package 2 uses the same helper and is likewise safe.
 
 ### What to run for confirmation
 
