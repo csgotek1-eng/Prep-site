@@ -5,6 +5,8 @@
 **Scope:** what a visitor with DevTools open can obtain. Secrets, tokens, keys, private endpoints, internal addresses, storage, bundles, source maps, env files.
 **Method:** read-only. Nothing was changed, nothing was exploited, no destructive or brute-force testing. Findings were confirmed by observation only.
 
+**Revised 17 September 2026:** R3 and R4 were re-verified against production and are closed. The findings are kept in place with their original wording preserved inside them, because a security record that quietly edits out what used to be true is not a record. Nothing else was altered.
+
 ## Result
 
 **No secret, key, token, password or credential is exposed to the public.**
@@ -13,7 +15,7 @@ A Playwright browser walked 17 routes and exercised the pricing calculator, capt
 
 **Matches: 0.**
 
-Seven public-exposure issues plus four RLS findings are recorded below. R3 is now closed on live production evidence; R4 is a broken feature, not a security hole. None is a leaked credential; the highest is a personal email address that is published deliberately. Two of them (3 and 7) are about this public repository rather than the live site.
+Seven public-exposure issues plus four RLS findings are recorded below. R3 and R4 are both closed on live production evidence, and Finding 7 is fixed; they are kept for the record rather than as open items. None is a leaked credential; the highest is a personal email address that is published deliberately. Two of them (3 and 7) are about this public repository rather than the live site.
 
 ---
 
@@ -159,10 +161,9 @@ Non-`NEXT_PUBLIC_` values confirmed server-side only: `SUPABASE_SERVICE_ROLE_KEY
 4. **Scrub the private IP** from the deployment doc if you would rather not publish it (Finding 3).
 5. **Plan a CSP nonce** to remove `'unsafe-inline'` (Finding 2) — its own round, with tests.
 
-6. **Apply migration `0008_website_reviews.sql`** (R4), or hide the review form until you do. It is the only item here a customer can actually hit.
-7. **Add the `revoke` statements** to the five tables in R1 (defence in depth).
+6. **Add the `revoke` statements** to the five tables in R1 (defence in depth).
 
-Findings 7 and R3 are closed. Nothing here blocks a deploy. No credential rotation is required, because no credential was exposed.
+Findings 7, R3 and R4 are closed. Nothing here blocks a deploy. No credential rotation is required, because no credential was exposed.
 
 ---
 
@@ -248,16 +249,45 @@ An attacker also has no key to try: the publishable/anon key **is not shipped in
 
 Note: the third query (`role_table_grants`) was not part of the output supplied, so R1 below remains a recommendation rather than a confirmed state.
 
-#### R4. `website_reviews` does not exist in production, and the review form is live — MEDIUM (functional, not a security hole)
+#### R4. `website_reviews` did not exist in production — **RESOLVED 17 September 2026**
 
-1. **What:** production returned six tables. `website_reviews` was **not** among them. Migration `0008_website_reviews.sql` has never been applied; `0001`–`0007` all have.
-2. **Where:** the production database, and `https://dockentra.ie/cases`, which renders a real review form (`displayName`, `body`, `consentToPublish`).
-3. **Visitor-visible:** **yes, as a broken feature.** A customer can fill the form in and submit it. Verified against production with one labelled probe: the API answers **503 `{"ok":false,"error":"Reviews are temporarily unavailable."}`**. No row is created, because there is no table.
-4. **Real vulnerability?** **No — the opposite.** A table that does not exist cannot leak. The failure is also honest: the route returns 503 rather than a false success, so the save-first contract holds. The problem is that a real customer is invited to write a review that cannot be saved.
-5. **Severity:** MEDIUM as a **product** defect; **none** as a security issue. It is listed here because it was found by the RLS audit and because it changes what "RLS is correct on every table" means: it is correct on every table that exists.
-6. **Fix:** apply `supabase/migrations/0008_website_reviews.sql` to production. It carries its own `enable row level security` **and** `revoke all … from anon, authenticated`, so the table arrives already locked down and needs no follow-up policy work. Until it is applied, the honest alternative is to hide the review form on `/cases`.
+**Status: outdated. Kept for the record, not as a live finding.**
 
-   `/cases` itself is unaffected: `getPublishedReviews()` fails quiet by design and renders the same empty state a visitor sees when no review has been approved. The homepage Customer Stories section added in Package 2 uses the same helper and is likewise safe.
+**What was true on 16 September 2026.** Production returned six tables and
+`website_reviews` was not among them: migration `0008_website_reviews.sql`
+had never been applied, while `0001`–`0007` all had. `/cases` rendered a
+real review form, so a customer could fill it in and submit it, and the
+API answered **503 "Reviews are temporarily unavailable."** No row was
+created, because there was no table.
+
+That was a **product** defect, never a security hole. A table that does
+not exist cannot leak, and the failure was honest: a 503 rather than a
+false success, so the save-first contract held throughout.
+
+**What is true now.** The owner applied migration `0008` to production.
+Re-verified on **17 September 2026** against the live site and the live
+database, using only non-secret evidence:
+
+| Check | Result |
+|---|---|
+| `POST /api/reviews` with a labelled probe | **200 `{"ok":true}`** — the row is stored `PENDING` |
+| Anonymous PostgREST read of `website_reviews` | **401** |
+| `/cases` | **200**, renders its empty state until something is approved |
+| `/api/admin/reviews` unauthenticated | **401** |
+
+The table arrived with its own `enable row level security` and
+`revoke all … from anon, authenticated`, so it landed locked down and
+needed no follow-up policy work. It matches the deny-all posture of the
+other six tables recorded above.
+
+**Migration `0008` is applied and must not be re-applied.** It is
+idempotent, so a second run would not corrupt anything, but there is no
+reason to run it and this note exists so nobody reads the original
+finding and tries.
+
+**No action remains.** The moderation screen that consumes this table is
+covered by `tests/admin-reviews.test.ts` and
+`tests/browser/admin-reviews.mjs`.
 
 ### What to run for confirmation
 
