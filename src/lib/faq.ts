@@ -146,12 +146,18 @@ export const faqItems: FaqItem[] = [
   {
     category: "Getting started",
     question: "I'm a UK brand. Why would I hold stock in Ireland?",
-    // "per item type", not "per item": Council Regulation (EU) 2026/382
-    // charges per tariff classification rather than per unit, so five
-    // of the same product is one EUR 3, not five. The same wording is
-    // on /uk-brands and /why-ireland and the three move together.
+    // "per DISTINCT item type", never "per item". Council Regulation
+    // (EU) 2026/382 charges per tariff classification rather than per
+    // unit, so five of the same product is one EUR 3, not five.
+    //
+    // This answer is short by necessity, and it is also the version
+    // Google reads: faq.ts feeds the FAQPage structured data on /faq.
+    // So it uses the approved short form rather than the full sentence
+    // carried by /uk-brands and /why-ireland. A reader who wants the
+    // rule in full is one link away; a reader who takes "per item" to
+    // mean per unit gets their own margin wrong.
     answer:
-      "Two reasons, and both are money. A parcel from the UK to Ireland costs about €10; from Limerick it's €4.55. And since July, your Irish customer pays €3 per item type in customs on anything under €150 from outside the EU, collected at the door. Stock held here removes both.",
+      "Two reasons, and both are money. A parcel from the UK to Ireland costs about €10; from Limerick it's €4.55. And since July, your Irish customer pays €3 per distinct item type in customs on anything under €150 from outside the EU, by tariff classification rather than per unit, collected at the door. Stock held here removes both.",
   },
   {
     category: "Getting started",

@@ -43,13 +43,26 @@ export const metadata: Metadata = {
  * verified on 11 September 2026. Nothing in that half is a carrier
  * price, which is precisely why it survived when the prices did not.
  *
- * "€3 per item type" is not a typo for "per item". Council Regulation
- * (EU) 2026/382 charges per tariff classification, not per unit: the
- * Commission's own guidance gives "5 T-shirts = €3 (1 item)" against
- * "1 T-shirt + 1 watch = €6 (2 items)". The friction card below still
- * reads "per item", which is the regulation's own word for the same
- * thing; the new copy says "per item type" because that is what a
- * seller reading it needs to understand.
+ * THE €3 RULE IS WORDED ONE WAY ON THIS PAGE, AND THAT IS THE POINT.
+ *
+ * It used to be worded two ways. The lead paragraph said "€3 per item
+ * type" while the friction card said "€3 customs duty per item", which
+ * are the same rule described in opposite directions: one implies a
+ * basket of five identical shirts is charged once, the other implies it
+ * is charged five times. A seller doing the arithmetic on their own
+ * margin got a different answer depending on which paragraph they read.
+ *
+ * The rule itself: Council Regulation (EU) 2026/382 charges per TARIFF
+ * CLASSIFICATION, not per unit. The Commission's own guidance gives
+ * "5 T-shirts = €3 (1 item)" against "1 T-shirt + 1 watch = €6 (2
+ * items)". The regulation's own word for a classification is "item",
+ * which is exactly why the shorthand misleads: in ordinary English an
+ * item is a thing in a box.
+ *
+ * So every visible reference on this page now says "each distinct item
+ * type ... based on its tariff classification", and the identical-goods
+ * case is stated explicitly rather than left to inference. Tests pin
+ * the phrasing so the short form cannot drift back in.
  */
 
 const frictions = [
@@ -59,8 +72,8 @@ const frictions = [
     source: "European Commission, customs formalities for low-value consignments",
   },
   {
-    title: "€3 of customs duty per item, since 1 July 2026",
-    body: "The relief that used to apply below €150 was abolished. A flat €3 customs duty now applies per item on goods sold directly to consumers, and it applies whichever VAT scheme you use, IOSS included. It runs until 1 July 2028, when normal tariffs take over.",
+    title: "€3 of customs duty per item type, since 1 July 2026",
+    body: "The relief that used to apply below €150 was abolished. A €3 customs duty applies to each distinct item type in a low-value parcel, based on its tariff classification. Multiple identical products under the same tariff classification generally attract one €3 charge, while different product types can each attract a separate €3 charge. It applies whichever VAT scheme you use, IOSS included, and runs until 1 July 2028, when normal tariffs take over.",
     source: "Council Regulation (EU) 2026/382",
   },
   {
@@ -133,12 +146,19 @@ export default function UkBrandsPage() {
               </p>
               <p>
                 Then there&apos;s the charge your customer didn&apos;t agree
-                to. Since 1 July 2026, an Irish buyer pays €3 per item type in
-                customs charges on anything under €150 arriving from outside
-                the EU. It&apos;s collected at the door, not at checkout. A
-                three-item order means €9 the buyer first hears about from the
-                courier, and that&apos;s where refused parcels and returns come
-                from.
+                to. Since 1 July 2026, a €3 customs duty applies to each
+                distinct item type in a low-value parcel, based on its tariff
+                classification, on anything under €150 arriving into Ireland
+                from outside the EU. It&apos;s collected at the door, not at
+                checkout.
+              </p>
+              <p>
+                Multiple identical products under the same tariff
+                classification generally attract one €3 charge, while different
+                product types can each attract a separate €3 charge. So five of
+                the same shirt is €3; a shirt, a candle and a mug is €9, and
+                the buyer first hears about it from the courier. That is where
+                refused parcels and returns come from.
               </p>
             </div>
           </div>
@@ -221,6 +241,19 @@ export default function UkBrandsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* The €3.00 row assumes ONE item type, which is the honest
+                reading of a like-for-like single order. Saying so keeps
+                the table consistent with the rule stated above: a
+                two-type basket would be €6 on the British side and the
+                comparison would look better for us, not worse. Stating
+                the assumption is what stops the figure being read as a
+                per-parcel flat rate. */}
+            <p className="mt-4 text-sm leading-6 text-brand-text-muted">
+              The customs line assumes a parcel containing one item type. A
+              parcel holding two different product types would carry €6 on the
+              British side, and still nothing from Limerick.
+            </p>
 
             {/* REQUIRED, and not to be trimmed: conceding the handling
                 line is what makes the rest of the table believable.
@@ -332,7 +365,10 @@ export default function UkBrandsPage() {
               </h3>
               <ul className="mt-4 space-y-3 text-base leading-7 text-slate-700">
                 <li>An export: customs declaration required, every parcel.</li>
-                <li>€3 customs duty per item, plus Irish VAT at 23%.</li>
+                <li>
+                  €3 customs duty per distinct item type, by tariff
+                  classification, plus Irish VAT at 23%.
+                </li>
                 <li>
                   A customs handling fee, asked of your customer before the
                   parcel is released.

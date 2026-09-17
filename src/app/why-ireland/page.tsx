@@ -20,14 +20,24 @@ export const metadata: Metadata = {
  * has that the homepage block does not: the €3 charge, stated from the
  * buyer's side rather than the seller's.
  *
- * "€3 per item type" IS THE DELIBERATE WORDING, and it is not a typo
- * for "per item". Council Regulation (EU) 2026/382 charges per tariff
- * classification, not per unit: the Commission's own guidance gives
- * "5 T-shirts = €3 (1 item)" against "1 T-shirt + 1 watch = €6 (2
- * items)". The worked example below follows from that — a three-item
- * order means three DIFFERENT products, which is where the €9 comes
- * from. The same wording appears on /uk-brands and in the FAQ; if it
- * ever changes it has to change in all three places together.
+ * THE €3 RULE IS STATED IN FULL, NOT IN SHORTHAND.
+ *
+ * Council Regulation (EU) 2026/382 charges per TARIFF CLASSIFICATION,
+ * not per unit: the Commission's own guidance gives "5 T-shirts = €3
+ * (1 item)" against "1 T-shirt + 1 watch = €6 (2 items)".
+ *
+ * This page used to say "€3 per item type", which is accurate but only
+ * to a reader who already knows the rule. The worked example made that
+ * worse rather than better: "a three-item order means €9" is true only
+ * if the three are three DIFFERENT products, and a reader with three of
+ * the same shirt in a basket would have taken the wrong number away.
+ * /uk-brands carried the same shorthand beside a paragraph reading "per
+ * item", so the two contradicted each other on one page.
+ *
+ * So the long form is now used everywhere, with the identical-goods
+ * case spelled out instead of inferred. The wording appears here, on
+ * /uk-brands and in the FAQ (which also feeds the FAQPage structured
+ * data). All four move together, and a test holds them together.
  */
 export default function WhyIrelandPage() {
   return (
@@ -73,12 +83,19 @@ export default function WhyIrelandPage() {
               The €3 charge your customer sees at the door
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-700">
-              Since 1 July 2026, an Irish buyer pays €3 per item type in
-              customs charges on anything under €150 arriving from outside the
-              EU. It&apos;s collected on delivery, not at checkout. That means
-              the first time your customer hears about it is when the courier
-              asks for it. A three-item order means €9 they didn&apos;t agree
-              to. That&apos;s where refused parcels and returns come from.
+              Since 1 July 2026, a €3 customs duty applies to each distinct
+              item type in a low-value parcel, based on its tariff
+              classification, on anything under €150 arriving into Ireland from
+              outside the EU. It&apos;s collected on delivery, not at checkout,
+              so the first time your customer hears about it is when the
+              courier asks for it.
+            </p>
+            <p className="mt-4 text-base leading-7 text-slate-700">
+              Multiple identical products under the same tariff classification
+              generally attract one €3 charge, while different product types
+              can each attract a separate €3 charge. Five of the same shirt is
+              €3; a shirt, a candle and a mug is €9 they didn&apos;t agree to.
+              That&apos;s where refused parcels and returns come from.
             </p>
             <Link
               href="/uk-brands"
