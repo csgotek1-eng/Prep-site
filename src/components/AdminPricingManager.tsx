@@ -429,7 +429,18 @@ export default function AdminPricingManager({
       if (!response.ok || !data.ok) {
         // An invalidated/expired Supabase session cannot recover here —
         // clear it and return to sign-in.
-        if (supabaseConfig && (response.status === 401 || response.status === 403)) {
+                  // 401 ONLY. A 403 is not an authentication failure.
+          //
+          // Before roles existed the two were interchangeable: anyone
+          // who was not the admin had no business here, so destroying
+          // the session and returning to sign-in was as good an answer
+          // as any. With owner, admin and reviewer that stopped being
+          // true. A reviewer who opens the pricing screen is correctly
+          // refused with 403, and clearing their perfectly valid
+          // session would send them to sign in, succeed, bounce them
+          // back, and refuse them again, forever. It is the same loop
+          // the 503 note above describes, with a different cause.
+        if (supabaseConfig && response.status === 401) {
           storeSession(null);
           router.replace("/admin/login");
           return false;

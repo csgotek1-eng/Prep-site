@@ -368,7 +368,11 @@ describe("who the admin guard lets through", () => {
         request({ "x-admin-token": TOKEN }),
       );
       assert.equal(result.ok, true);
-      assert.equal(result.ok === true && result.identity.role, "ADMIN");
+      // "owner" now, not "ADMIN": the single role became three, and the
+    // local developer gets the widest one so a role model they cannot
+    // edit without a Supabase project never blocks them. The provider
+    // still refuses outright in a production build.
+    assert.equal(result.ok === true && result.identity.role, "owner");
     });
   });
 
@@ -389,7 +393,15 @@ describe("who the admin guard lets through", () => {
     // in. The role is read from app_metadata, which is writable only
     // with service-role access — so a user cannot promote themselves.
     const source = read("src/lib/admin-auth.ts");
-    assert.match(source, /app_metadata\?\.role !== "admin"/);
+    // The check moved from one hardcoded role to a vocabulary, but the
+    // rule it enforces is unchanged and is what this asserts:
+    // authorization reads app_metadata and never user_metadata.
+    assert.ok(source.includes("user.app_metadata?.role"));
+    assert.ok(source.includes("isAdminRole(role)"));
+    // Comments stripped: the module now explains IN A COMMENT why
+    // user_metadata is never consulted, and a raw-text check would
+    // flag the explanation as the offence it warns about.
+    assert.equal(/user_metadata/.test(readCode("src/lib/admin-auth.ts")), false);
     assert.match(source, /status: 403, error: "Forbidden\."/);
     assert.match(source, /app_metadata/);
   });

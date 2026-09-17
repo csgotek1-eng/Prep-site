@@ -178,9 +178,28 @@ export default function AdminPromotionsManager({
       try {
         await load({ Authorization: `Bearer ${stored.accessToken}` });
         if (active) setSession(stored);
-      } catch {
-        storeSession(null);
-        router.replace("/admin/login");
+      } catch (error) {
+        // 401 ONLY. This used to be a bare catch that treated every
+        // failure as an expired session.
+        //
+        // With owner, admin and reviewer, a reviewer who opens this
+        // screen is correctly refused with 403. Clearing their valid
+        // session would send them to sign in, succeed, come back here,
+        // and be refused again, forever, with nothing explaining why.
+        // A store outage (503) had the same problem for the same
+        // reason. Only 401 actually means "sign in again".
+        const status = (error as Error & { status?: number }).status;
+        if (status === 401) {
+          storeSession(null);
+          router.replace("/admin/login");
+          return;
+        }
+        if (active) {
+          setSession(stored);
+          setActionError(
+            error instanceof Error ? error.message : "Could not load promotions.",
+          );
+        }
       }
     })();
     return () => {

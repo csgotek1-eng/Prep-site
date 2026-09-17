@@ -89,7 +89,18 @@ export default function AdminReviewsManager({
         // with no message explaining why. A store outage is not an
         // authentication problem and must not be treated as one.
         const status = (error as Error & { status?: number }).status;
-        if (status === 401 || status === 403) {
+                  // 401 ONLY. A 403 is not an authentication failure.
+          //
+          // Before roles existed the two were interchangeable: anyone
+          // who was not the admin had no business here, so destroying
+          // the session and returning to sign-in was as good an answer
+          // as any. With owner, admin and reviewer that stopped being
+          // true. A reviewer who opens the pricing screen is correctly
+          // refused with 403, and clearing their perfectly valid
+          // session would send them to sign in, succeed, bounce them
+          // back, and refuse them again, forever. It is the same loop
+          // the 503 note above describes, with a different cause.
+          if (status === 401) {
           storeSession(null);
           router.replace("/admin/login");
           return;
@@ -169,7 +180,18 @@ export default function AdminReviewsManager({
         // Same rule as the initial load: an expired session cannot
         // recover here and must return to sign-in; anything else is
         // reported in place, with the session left alone.
-        if (supabaseConfig && (response.status === 401 || response.status === 403)) {
+                  // 401 ONLY. A 403 is not an authentication failure.
+          //
+          // Before roles existed the two were interchangeable: anyone
+          // who was not the admin had no business here, so destroying
+          // the session and returning to sign-in was as good an answer
+          // as any. With owner, admin and reviewer that stopped being
+          // true. A reviewer who opens the pricing screen is correctly
+          // refused with 403, and clearing their perfectly valid
+          // session would send them to sign in, succeed, bounce them
+          // back, and refuse them again, forever. It is the same loop
+          // the 503 note above describes, with a different cause.
+        if (supabaseConfig && response.status === 401) {
           storeSession(null);
           router.replace("/admin/login");
           return;

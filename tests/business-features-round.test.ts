@@ -208,13 +208,16 @@ describe("the review routes follow the house rules for a public POST", () => {
       "src/app/api/admin/reviews/[id]/route.ts",
     ]) {
       const source = readCode(path);
-      assert.ok(source.includes("requireAdmin"), `${path} has no admin check`);
+      // requireRole() on the review routes, because the reviewer role
+      // may moderate; requireAdmin() everywhere else. Either way the
+      // route authorises before it reads anything.
+      assert.ok(/require(Role|Admin)\(/.test(source), `${path} has no admin check`);
       // Compare the CALLS, not the imports. `indexOf("requireAdmin")`
       // used to land on line 2 - the import - so moving the auth check
       // below the repository read would still have passed.
-      const authCall = source.indexOf("await requireAdmin(request)");
+      const authCall = source.search(/await require(Role|Admin)\(request/);
       const repoCall = source.indexOf("getReviewRepository()");
-      assert.ok(authCall > -1, `${path} never calls requireAdmin(request)`);
+      assert.ok(authCall > -1, `${path} never authorises the request`);
       assert.ok(repoCall > -1, `${path} never reaches the repository`);
       assert.ok(
         authCall < repoCall,

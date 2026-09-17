@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireRole } from "@/lib/admin-auth";
+import { ANY_ADMIN_ROLE } from "@/lib/admin-roles";
 import { getReviewRepository, ReviewStoreUnavailableError } from "@/lib/reviews/repository";
 
 /** The store being down is a 503 an admin can act on, not a crash. */
@@ -20,7 +21,7 @@ function denied(auth: { ok: false; error: string; status: number }) {
  * server-verified admin identity.
  */
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireRole(request, ANY_ADMIN_ROLE);
   if (!auth.ok) return denied(auth);
   try {
     const reviews = await getReviewRepository().listAll();

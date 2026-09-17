@@ -6,6 +6,12 @@ import "server-only";
 // failed silently. With this import it fails the build instead.
 import { timingSafeEqual } from "node:crypto";
 import { getSupabasePublicConfig } from "./supabase-config.ts";
+import {
+  ANY_ADMIN_ROLE,
+  isAdminRole,
+  OPERATIONAL_ROLES,
+  type AdminRole,
+} from "./admin-roles.ts";
 
 /**
  * Admin authentication/authorization abstraction.
@@ -26,8 +32,12 @@ import { getSupabasePublicConfig } from "./supabase-config.ts";
  *    only with service-role access, never by the user). Activation steps
  *    in docs/PRICING_PRODUCTION_SETUP.md.
  *
- * Role model: single ADMIN role for now. A future read-mostly MANAGER
- * role is documented in docs/PRICING_PRODUCTION_SETUP.md but not built.
+ * Role model: owner, admin and reviewer, defined in ./admin-roles.ts.
+ * The role is read from app_metadata.role and nowhere else. Callers ask
+ * for the roles they accept with requireRole([...]); requireAdmin() is
+ * kept as the name for "the operational admin", which is owner or
+ * admin, so that adding the reviewer role could not silently widen
+ * access on routes written before it existed.
  */
 
 export interface AdminIdentity {
@@ -36,7 +46,7 @@ export interface AdminIdentity {
   /** Human-readable identity recorded in price history (email or id). */
   label: string;
   email: string | null;
-  role: "ADMIN";
+  role: AdminRole;
   provider: "dev-token" | "supabase";
 }
 
@@ -97,7 +107,11 @@ export class DevTokenAdminAuthProvider implements AdminAuthProvider {
         id: "dev-admin",
         label: "dev-admin",
         email: null,
-        role: "ADMIN",
+        // Owner locally, so a developer is never blocked by a role
+        // model they cannot edit without a Supabase project. This
+        // provider already refuses outright in a production build, so
+        // the generosity cannot reach a real deployment.
+        role: "owner",
         provider: "dev-token",
       },
     };
@@ -167,8 +181,11 @@ export class SupabaseAdminAuthProvider implements AdminAuthProvider {
       return { ok: false, status: 401, error: "Unauthorized." };
     }
     // Role must come from app_metadata: it is only writable with
-    // service-role access, so a user cannot grant themselves admin.
-    if (user.app_metadata?.role !== "admin") {
+    // service-role access, so a user cannot grant themselves a role.
+    // user_metadata is deliberately not consulted, because a signed-in
+    // user can write their own through the public API.
+    const role = user.app_metadata?.role;
+    if (!isAdminRole(role)) {
       return { ok: false, status: 403, error: "Forbidden." };
     }
 
@@ -179,7 +196,7 @@ export class SupabaseAdminAuthProvider implements AdminAuthProvider {
         id: user.id,
         label: email ?? user.id,
         email,
-        role: "ADMIN",
+        role,
         provider: "supabase",
       },
     };
@@ -218,6 +235,46 @@ export function resolveAdminAuthProvider(): AdminAuthProvider {
   return new DevTokenAdminAuthProvider();
 }
 
+/**
+ * Authenticate, then check the verified role against what this route
+ * accepts.
+ *
+ * Two steps in one call ON PURPOSE. Authentication without
+ * authorization is the mistake this replaces: every admin route used to
+ * ask only "is this an admin?", so any new role would have been handed
+ * the whole admin the moment it could sign in. Asking for the roles you
+ * accept makes widening access a deliberate edit at the call site.
+ *
+ * The distinction in the answer matters too. A caller with no valid
+ * token gets 401 (who are you?); a caller with a real identity and the
+ * wrong role gets 403 (I know who you are, and no). Collapsing them
+ * would tell a signed-in reviewer that their session had expired and
+ * send them round a login loop that could never fix it.
+ */
+export async function requireRole(
+  request: Request,
+  allowed: readonly AdminRole[],
+): Promise<AdminAuthResult> {
+  const result = await resolveAdminAuthProvider().authenticate(request);
+  if (!result.ok) return result;
+  if (!allowed.includes(result.identity.role)) {
+    return { ok: false, status: 403, error: "Forbidden." };
+  }
+  return result;
+}
+
+/**
+ * The operational admin: owner or admin, never reviewer.
+ *
+ * Kept under its old name so that the routes written before roles
+ * existed keep exactly the access they had. A reviewer reaching one of
+ * them gets 403, which is the point.
+ */
 export function requireAdmin(request: Request): Promise<AdminAuthResult> {
-  return resolveAdminAuthProvider().authenticate(request);
+  return requireRole(request, OPERATIONAL_ROLES);
+}
+
+/** Any signed-in admin role. Used by the session route the nav reads. */
+export function requireAnyAdminRole(request: Request): Promise<AdminAuthResult> {
+  return requireRole(request, ANY_ADMIN_ROLE);
 }

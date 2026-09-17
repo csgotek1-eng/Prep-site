@@ -176,11 +176,20 @@ describe("I. admin role still comes from app_metadata", () => {
   const auth = read("src/lib/admin-auth.ts");
 
   it("requires app_metadata.role === admin", () => {
-    assert.ok(auth.includes('user.app_metadata?.role !== "admin"'));
+    // The role vocabulary replaced the single hardcoded "admin", but the
+    // contract is the same one: the role is read from app_metadata,
+    // which only service-role access can write.
+    assert.ok(auth.includes("user.app_metadata?.role"));
+    assert.ok(auth.includes("isAdminRole(role)"));
   });
 
   it("never consults user_metadata", () => {
-    assert.equal(auth.includes("user_metadata"), false);
+    // Comments stripped. The module names user_metadata in a comment to
+    // record WHY it is never read; the rule is about the code.
+    const code = auth
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.equal(code.includes("user_metadata"), false);
   });
 });
 

@@ -206,10 +206,15 @@ export default function AdminLeadsManager({
       });
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !data.ok) {
-        if (
-          supabaseConfig &&
-          (response.status === 401 || response.status === 403)
-        ) {
+        // 401 ONLY. A 403 is not an authentication failure.
+        //
+        // Before roles existed the two were interchangeable: anyone who
+        // was not the admin had no business here. With owner, admin and
+        // reviewer that stopped being true. A reviewer who opens this
+        // screen is correctly refused with 403, and clearing their
+        // perfectly valid session would send them to sign in, succeed,
+        // bounce back here, and be refused again, forever.
+        if (supabaseConfig && response.status === 401) {
           storeSession(null);
           router.replace("/admin/login");
           return;

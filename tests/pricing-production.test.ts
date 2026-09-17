@@ -132,7 +132,9 @@ describe("admin auth — dev token provider", () => {
       adminRequest({ "x-admin-token": "correct-token" }),
     );
     assert.equal(result.ok, true);
-    assert.equal(result.ok && result.identity.role, "ADMIN");
+    // One role became three. What matters here is that the caller got
+    // an operational role, not which of them.
+    assert.ok(result.ok && ["owner", "admin"].includes(result.identity.role));
     assert.equal(result.ok && result.identity.provider, "dev-token");
   });
 
@@ -168,7 +170,9 @@ describe("admin auth — supabase provider", () => {
     );
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.identity.label, "admin@example.com");
-    assert.equal(result.ok && result.identity.role, "ADMIN");
+    // One role became three. What matters here is that the caller got
+    // an operational role, not which of them.
+    assert.ok(result.ok && ["owner", "admin"].includes(result.identity.role));
   });
 
   it("rejects an authenticated non-admin user (no client-side role claims)", async () => {

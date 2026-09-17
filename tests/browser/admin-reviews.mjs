@@ -131,6 +131,42 @@ console.log("  … unauthenticated access");
 }
 
 // ---------------------------------------------------------------------
+// 1b. Role enforcement is on the ROUTE, not on the navigation
+// ---------------------------------------------------------------------
+console.log("  … role enforcement by direct URL");
+{
+  const refused = (status) => status === 401 || status === 403 || status === 503;
+  // Typing the URL must meet the same check as clicking a link. Every
+  // admin API, unauthenticated, on the verb it actually uses.
+  for (const [path, init] of [
+    ["/api/admin/session", {}],
+    ["/api/admin/reviews", {}],
+    ["/api/admin/leads", {}],
+    ["/api/admin/promotions", {}],
+    ["/api/admin/services", {}],
+    ["/api/admin/reviews/any-id", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "APPROVED" }) }],
+  ]) {
+    const response = await fetch(BASE + path, init);
+    ok(refused(response.status), `${path} answered ${response.status}, not a refusal`);
+    const body = await response.text();
+    ok(
+      !/displayName|moderationNote|price_cents|"email"/.test(body),
+      `${path} returned data to an unauthenticated caller`,
+    );
+  }
+
+  // And the page shells themselves must never carry the data either.
+  for (const path of ["/admin/reviews", "/admin/pricing", "/admin/leads", "/admin/promotions"]) {
+    const response = await fetch(BASE + path);
+    const html = await response.text();
+    ok(
+      !/PENDING|APPROVED|REJECTED|price_cents/.test(html),
+      `${path} renders admin data before anyone has signed in`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
 // 2. The page shell, and the phone
 // ---------------------------------------------------------------------
 const browser = await chromium.launch();

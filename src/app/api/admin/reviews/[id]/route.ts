@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireRole } from "@/lib/admin-auth";
+import { ANY_ADMIN_ROLE } from "@/lib/admin-roles";
 import { getReviewRepository, ReviewStoreUnavailableError } from "@/lib/reviews/repository";
 import { REVIEW_STATUSES, isReviewStatus } from "@/lib/reviews/types";
 
@@ -33,7 +34,7 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireAdmin(request);
+  const auth = await requireRole(request, ANY_ADMIN_ROLE);
   if (!auth.ok) return denied(auth);
   const { id } = await context.params;
 
