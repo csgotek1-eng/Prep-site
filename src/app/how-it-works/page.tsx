@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "How It Works",
+  title: "How Our Fulfilment Process Works",
   description:
     "How fulfilment with Dockentra works, from telling us about your business to your orders being picked, packed and prepared for dispatch in Ireland.",
   alternates: {
@@ -41,6 +42,7 @@ const steps = [
 export default function HowItWorksPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "How It Works", path: "/how-it-works" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -49,6 +51,19 @@ export default function HowItWorksPage() {
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Three steps from first conversation to daily fulfilment.
+            </p>
+            {/* The two questions a reader of this page asks next: what
+                does receiving actually record, and what will it cost. */}
+            <p className="mt-3 text-base leading-7 text-slate-300">
+              Step one ends with{" "}
+              <Link href="/batch-photos" className="font-semibold text-brand-mint underline-offset-2 hover:underline">
+                a photograph of your delivery
+              </Link>
+              , and you can put your own numbers through{" "}
+              <Link href="/pricing-calculator" className="font-semibold text-brand-mint underline-offset-2 hover:underline">
+                the cost calculator
+              </Link>{" "}
+              before you talk to anyone.
             </p>
           </div>
         </Container>

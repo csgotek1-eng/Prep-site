@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import PricingCalculator from "@/components/PricingCalculator";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "Fulfilment Cost Calculator",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 export default function PricingCalculatorPage() {
   return (
     <div className="py-12 sm:py-16">
+      <BreadcrumbJsonLd trail={[{ name: "Fulfilment Cost Calculator", path: "/pricing-calculator" }]} />
       <Container>
         <div className="max-w-3xl">
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">

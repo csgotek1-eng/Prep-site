@@ -5,6 +5,7 @@ import PartnershipForm from "@/components/PartnershipForm";
 import PromotionCard from "@/components/PromotionCard";
 import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "Partner With Us: Fulfilment Ireland",
@@ -16,6 +17,11 @@ export const metadata: Metadata = {
     description:
       "Agencies, coaches, creators, couriers, technology and referral partners: how to work with a fulfilment and prep operation in Limerick.",
     url: "/partnerships",
+    // Named explicitly because this page overrides openGraph, and an
+    // override replaces the parent object rather than merging into
+    // it: the file-convention image from opengraph-image.tsx was
+    // being dropped, so the page shared with no preview at all.
+    images: ["/opengraph-image"],
   },
 };
 
@@ -27,6 +33,7 @@ export default async function PartnershipsPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Partnerships", path: "/partnerships" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

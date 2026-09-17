@@ -14,9 +14,10 @@ import {
 } from "@/components/SocialIcons";
 import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
 import { siteConfig } from "@/lib/site";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "Contact Us",
+  title: "Contact Our Limerick Fulfilment Centre",
   description:
     "Contact Dockentra about fulfilment and prep in Ireland. Send an enquiry with your products, sales channels and order volumes and we'll propose a setup.",
   alternates: {
@@ -60,6 +61,7 @@ export default async function ContactPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Contact", path: "/contact" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

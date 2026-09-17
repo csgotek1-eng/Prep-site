@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "Dispatch commitment",
+  title: "Same-Day Dispatch Commitment",
   description:
     "Orders with Dockentra before 2pm on a working day are dispatched that day. If we miss it on our side, that order's pick and pack is free.",
   alternates: {
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 export default function DispatchCommitmentPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Dispatch Commitment", path: "/dispatch-commitment" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import ShipBySellerContent from "@/components/sections/ShipBySellerContent";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "Why Ireland",
+  title: "Why Hold Stock in Ireland",
   description:
-    "Ship by Seller is the only shipping type available on TikTok Shop in Ireland, and since July 2026 an Irish buyer pays a customs charge at the door. Stock held in Ireland removes both.",
+    "Ship by Seller is the only TikTok Shop option in Ireland, and Irish buyers now pay customs at the door. Stock held here removes both problems.",
   alternates: {
     canonical: "/why-ireland",
   },
@@ -42,6 +43,7 @@ export const metadata: Metadata = {
 export default function WhyIrelandPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Why Ireland", path: "/why-ireland" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

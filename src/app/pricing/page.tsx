@@ -3,9 +3,10 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Fulfilment Pricing in Ireland",
   description:
     "Fulfilment pricing based on your operation: SKUs, storage, incoming stock, monthly orders, prep work and returns. Get a tailored quote.",
   alternates: {
@@ -77,6 +78,7 @@ export default async function PricingPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Pricing", path: "/pricing" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -91,6 +93,20 @@ export default async function PricingPage() {
               We don&apos;t publish rates: every operation is priced
               individually, and your price is sent privately to you by
               email.
+            </p>
+            {/* Contextual, not decorative: a UK seller landing on a
+                pricing page is asking what the whole move costs, and
+                the carrier and customs arithmetic is the other half of
+                that answer. */}
+            <p className="mt-4 text-base leading-7 text-slate-300">
+              Shipping into Ireland from Britain?{" "}
+              <Link
+                href="/uk-brands"
+                className="font-semibold text-brand-mint underline-offset-2 hover:underline"
+              >
+                The UK cost comparison
+              </Link>{" "}
+              sets out the carrier and customs side of the same question.
             </p>
 
             {/* The offer belongs BEFORE the button, not after it. It

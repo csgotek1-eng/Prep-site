@@ -1,5 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+
+/**
+ * A 404 used to answer with the homepage title, so a missing page was
+ * indistinguishable from the front door in a browser tab, in history
+ * and in any log that records titles. noindex because a 404 that gets
+ * indexed is a 404 someone can find in search.
+ */
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

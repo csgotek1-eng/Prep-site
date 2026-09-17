@@ -10,6 +10,7 @@ import {
   getPrimaryPublicPromotion,
 } from "@/lib/promotions/service";
 import { toPublicPromotion } from "@/lib/promotions/public";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "Start Fulfilment in Ireland",
@@ -21,6 +22,11 @@ export const metadata: Metadata = {
     description:
       "Tell us what you sell and how you sell it, and we'll set you up with fulfilment, prep and storage from our Limerick warehouse.",
     url: "/become-a-client",
+    // Named explicitly because this page overrides openGraph, and an
+    // override replaces the parent object rather than merging into
+    // it: the file-convention image from opengraph-image.tsx was
+    // being dropped, so the page shared with no preview at all.
+    images: ["/opengraph-image"],
   },
 };
 
@@ -56,6 +62,7 @@ export default async function BecomeAClientPage({
 
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Become a Client", path: "/become-a-client" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

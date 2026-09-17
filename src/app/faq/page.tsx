@@ -4,9 +4,10 @@ import Container from "@/components/Container";
 import FaqAccordion from "@/components/FaqAccordion";
 import { faqCategories, faqItems } from "@/lib/faq";
 import { serializeJsonLd } from "@/lib/json-ld";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "FAQ",
+  title: "Fulfilment Questions Answered",
   description:
     "Frequently asked questions about Dockentra's fulfilment, prep, storage, returns and pricing for e-commerce sellers in Ireland.",
   alternates: {
@@ -33,6 +34,7 @@ const faqJsonLd = {
 export default function FaqPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "FAQ", path: "/faq" }]} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
@@ -98,6 +100,28 @@ export default function FaqPage() {
                 className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
               >
                 Get your price
+              </Link>
+              .
+            </p>
+
+            {/* The two questions this FAQ gets asked around, each with a
+                page that answers it properly. Placed with the existing
+                help links rather than scattered through the answers,
+                where they would read as advertising. */}
+            <p className="text-sm text-slate-600">
+              Shipping from Britain?{" "}
+              <Link
+                href="/uk-brands"
+                className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+              >
+                See the UK cost comparison
+              </Link>
+              . Wondering what we record when stock arrives?{" "}
+              <Link
+                href="/batch-photos"
+                className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+              >
+                See what we photograph
               </Link>
               .
             </p>

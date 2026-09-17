@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import BatchPhotosContent from "@/components/sections/BatchPhotosContent";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "Batch photos",
+  title: "Batch Photos of Every Delivery",
   description:
     "Every incoming shipment is photographed on arrival: what came, how much and what condition it is in, sent to you the same day, before any of it goes on a shelf.",
   alternates: {
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
 export default function BatchPhotosPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Batch Photos", path: "/batch-photos" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

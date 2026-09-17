@@ -9,6 +9,7 @@ import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { serializeJsonLd } from "@/lib/json-ld";
+import { buildLocalBusinessJsonLd } from "@/lib/structured-data";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import "./globals.css";
 
@@ -92,42 +93,19 @@ export const metadata: Metadata = {
   },
 };
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: siteConfig.name,
-  url: siteUrl,
-  logo: `${siteUrl}/brand/dockentra-logo-transparent.png`,
-  description: siteConfig.description,
-  telephone: "+353851584185",
-  // Public profile pages only — WhatsApp/Telegram chat links are not
-  // profiles, so they are deliberately not listed in sameAs.
-  sameAs: [
-    siteConfig.social.instagram,
-    siteConfig.social.facebook,
-    siteConfig.social.tiktok,
-  ],
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: "+353851584185",
-    contactType: "customer service",
-    areaServed: "IE",
-  },
-  address: {
-    "@type": "PostalAddress",
-    streetAddress:
-      "Unit 10, StorageWise Self Storage Limerick, Docklands Business Park, Dock Rd",
-    addressLocality: "Limerick",
-    postalCode: "V94 PX6A",
-    addressCountry: "IE",
-  },
-  hasMap: siteConfig.location.googleMapsUrl,
-  areaServed: {
-    "@type": "Country",
-    name: "Ireland",
-  },
-};
-
+/**
+ * LocalBusiness, built from siteConfig rather than written out here.
+ *
+ * This used to be a hand-written Organization literal with the address
+ * and phone number retyped into it. Two copies of an address is how a
+ * site ends up publishing one thing on /contact and another to Google.
+ * It is now derived, and the opening hours the owner supplied are
+ * expressed as openingHoursSpecification for the first time.
+ *
+ * See lib/structured-data.ts for what is deliberately NOT here:
+ * coordinates, ratings and a price range, none of which are verified.
+ */
+const localBusinessJsonLd = buildLocalBusinessJsonLd();
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -142,7 +120,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: serializeJsonLd(organizationJsonLd),
+            __html: serializeJsonLd(localBusinessJsonLd),
           }}
         />
         {/* Renders nothing at all unless a Measurement ID is set. */}

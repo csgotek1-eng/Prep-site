@@ -4,9 +4,10 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import LocationSection from "@/components/sections/LocationSection";
 import TeamSection from "@/components/sections/TeamSection";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About Our Limerick Fulfilment Centre",
   description:
     "Dockentra is an Irish e-commerce fulfilment and prep business giving small and growing online sellers access to local fulfilment in Ireland.",
   alternates: {
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "About", path: "/about" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

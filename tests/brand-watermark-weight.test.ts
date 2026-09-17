@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, it } from "node:test";
+import { buildLocalBusinessJsonLd } from "../src/lib/structured-data.ts";
 
 /**
  * The decorative hero watermark must not cost a quarter of a megabyte.
@@ -65,8 +66,14 @@ describe("hero watermark weight", () => {
       lockup.includes("dockentra-logo-mark-transparent.png"),
       "the header/footer lockup must keep using the approved master",
     );
-    const layout = read("src/app/layout.tsx");
-    assert.ok(layout.includes("/brand/"), "the Organization logo must stay a brand asset");
+    // The business schema moved out of the layout into
+    // lib/structured-data.ts. What matters is the logo it emits, not
+    // which file the string happens to be typed in.
+    assert.match(
+      String(buildLocalBusinessJsonLd().logo),
+      /\/brand\//,
+      "the business logo must stay a brand asset",
+    );
   });
 
   it("the derivation is reproducible, not a mystery binary", () => {

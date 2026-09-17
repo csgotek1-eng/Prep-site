@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewsList from "@/components/ReviewsList";
 import { getPublishedReviews } from "@/lib/reviews/service";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "Customer Stories",
@@ -40,6 +41,7 @@ export default async function CasesPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Customer Stories", path: "/cases" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

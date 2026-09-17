@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import { siteConfig } from "@/lib/site";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Privacy Policy", path: "/privacy" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">

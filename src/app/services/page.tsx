@@ -12,13 +12,14 @@ import {
   Warehouse,
 } from "lucide-react";
 import Container from "@/components/Container";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 /** The page's primary action, used by both CTA bands. */
 const PRIMARY_CTA =
   "inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md";
 
 export const metadata: Metadata = {
-  title: "Fulfilment & Prep Services",
+  title: "Fulfilment & Prep Services in Ireland",
   description:
     "Receiving, inspection, labelling, prep, storage, pick & pack, kitting and returns in Ireland for TikTok Shop, Amazon FBA, Shopify, eBay and WooCommerce sellers.",
   alternates: {
@@ -176,6 +177,7 @@ const marketplaceServices = [
 export default function ServicesPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "Services", path: "/services" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -287,6 +289,24 @@ export default function ServicesPage() {
               Dockentra works with sellers across the main e-commerce
               platforms. We are an independent fulfilment centre and not
               affiliated with or endorsed by any marketplace.
+            </p>
+            {/* Two contextual links, both to pages a reader of THIS
+                section plausibly wants next: what receiving actually
+                produces, and the case for holding stock here if they
+                are shipping from Britain. Neither is a nav item, and
+                both were nearly orphaned before this. */}
+            <p className="mt-3 text-base leading-7 text-slate-600">
+              Every inbound delivery is photographed as it is booked in, so you
+              see the condition it arrived in:{" "}
+              <Link href="/batch-photos" className="font-semibold text-brand-green-dark underline-offset-2 hover:underline">
+                see what we photograph
+              </Link>
+              . Selling into Ireland from Britain has its own arithmetic, which
+              we set out in{" "}
+              <Link href="/uk-brands" className="font-semibold text-brand-green-dark underline-offset-2 hover:underline">
+                the UK cost comparison
+              </Link>
+              .
             </p>
           </div>
 

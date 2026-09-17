@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import { navLinks, siteConfig } from "../src/lib/site.ts";
 import { isOurFailure } from "../src/lib/submit-failure.ts";
+import { buildLocalBusinessJsonLd } from "../src/lib/structured-data.ts";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
@@ -107,12 +108,18 @@ describe("SEO audit fixes", () => {
     }
   });
 
-  it("F-6: the Organization JSON-LD carries an absolute logo URL", () => {
-    const layout = read("src/app/layout.tsx");
-    assert.ok(layout.includes("logo: `${siteUrl}/brand/"));
-    const match = /logo: `\$\{siteUrl\}(\/brand\/[^`]+)`/.exec(layout);
-    assert.ok(match);
-    readFileSync(`public${match[1]}`); // throws if the asset is missing
+  it("F-6: the business JSON-LD carries an absolute logo URL", () => {
+    // Reads the EMITTED schema rather than the layout source. The graph
+    // moved into lib/structured-data.ts when Organization became
+    // LocalBusiness, and a test that grepped the layout was pinning
+    // where the code lived rather than what it produces. This version
+    // survives the next move and checks more: that the URL is absolute
+    // AND that the file behind it exists.
+    const logo = String(buildLocalBusinessJsonLd().logo);
+    assert.ok(logo.startsWith("http"), `logo is not absolute: ${logo}`);
+    const path = logo.replace(/^https?:\/\/[^/]+/, "");
+    assert.ok(path.startsWith("/brand/"), `logo is not a brand asset: ${path}`);
+    readFileSync(`public${path}`); // throws if the asset is missing
   });
 
   it("F-4: /media is cached instead of re-validated on every visit", () => {

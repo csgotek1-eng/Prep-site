@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "For UK brands shipping to Ireland",
@@ -129,6 +130,7 @@ const frictions = [
 export default function UkBrandsPage() {
   return (
     <>
+      <BreadcrumbJsonLd trail={[{ name: "For UK Brands", path: "/uk-brands" }]} />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
@@ -384,7 +386,20 @@ export default function UkBrandsPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border-2 border-brand-green/40 bg-white p-6">
+            {/* SAME BORDER WEIGHT AS THE CARD BESIDE IT, highlighted by
+                colour instead of thickness.
+                This was `border-2 border-brand-green/40` against the
+                left card's 1px `border`, which caused three separate
+                problems at once: the frame read as heavier, a 2px
+                border on a 16px radius renders unevenly along the
+                right and bottom edges wherever the grid column lands
+                on a fractional pixel, and the thicker border pushed
+                this card's content box 1px in on each side so the two
+                cards' text no longer lined up.
+                One clean 1px border, full-strength green rather than
+                40% so the highlight survives the thinner line. No ring,
+                no shadow, no second border. */}
+            <div className="rounded-2xl border border-brand-green bg-white p-6">
               <h3 className="text-lg font-semibold text-brand-navy">
                 Picked and packed in Limerick
               </h3>
