@@ -40,7 +40,7 @@ describe("the €3 customs rule is stated one way on /uk-brands", () => {
   it("uses the tariff-classification wording in the lead copy", () => {
     assert.match(
       copy,
-      /€3 customs duty applies to each distinct item type in a low-value parcel, based on its tariff classification/,
+      /applies to each distinct product type in a qualifying low-value parcel, based on its tariff classification/,
       "the approved wording is not on the page",
     );
   });
@@ -48,7 +48,7 @@ describe("the €3 customs rule is stated one way on /uk-brands", () => {
   it("spells out the identical-goods case rather than leaving it to inference", () => {
     assert.match(
       copy,
-      /Multiple identical products under the same tariff classification generally attract one €3 charge, while different product types can each attract a separate €3 charge/,
+      /Multiple identical products under the same classification generally attract one charge, while different product types may each attract a separate charge/,
       "the clarification sentence is missing",
     );
   });
@@ -75,8 +75,12 @@ describe("the €3 customs rule is stated one way on /uk-brands", () => {
   it("gives the worked example in both directions", () => {
     // Five of one thing and three different things, because a reader
     // checking their own basket needs the boundary, not just the rule.
-    assert.match(copy, /five of the same shirt is €3/i);
-    assert.match(copy, /a shirt, a candle and a mug is €9/i);
+    // The example counts PRODUCT TYPES rather than restating the
+    // amount: the approved copy carries the figure once, in the
+    // heading, and an example that repeated it was what made the
+    // section read as a per-unit charge.
+    assert.match(copy, /five identical shirts count as one product type/i);
+    assert.match(copy, /a shirt, a candle and a mug count as three/i);
   });
 
   it("says which case the comparison table's customs line assumes", () => {
@@ -175,18 +179,24 @@ describe("the €3 rule means the same thing on every surface", () => {
 
   it("the FAQ answer uses the approved short form, since Google quotes it", () => {
     const text = copyOf("src/lib/faq.ts");
-    assert.match(text, /€3 per distinct item type/);
-    assert.match(text, /by tariff classification rather than per unit/);
+    assert.match(
+      text,
+      /applies to each distinct product type in a qualifying low-value parcel from outside the EU, based on its tariff classification rather than the number of physical units/,
+    );
+    // The amount is deliberately absent here. It is stated on the two
+    // pages this answer exists to send the reader to, and the part a
+    // seller gets wrong is the classification rule, not the figure.
+    assert.equal(text.includes("€3"), false, "the FAQ answer repeats the amount");
   });
 
   it("/why-ireland spells out the identical-goods case", () => {
     const text = copyOf("src/app/why-ireland/page.tsx");
     assert.match(
       text,
-      /Multiple identical products under the same tariff classification generally attract one €3 charge, while different product types can each attract a separate €3 charge/,
+      /Multiple identical products under the same classification generally attract one charge, while different product types may each attract a separate charge/,
     );
     // And the worked example that used to be wrong for identical goods.
-    assert.match(text, /Five of the same shirt is €3/i);
+    assert.match(text, /five identical shirts count as one product type/i);
   });
 
   it("no surface claims a plain three-item order costs €9", () => {
@@ -209,5 +219,66 @@ describe("the €3 rule means the same thing on every surface", () => {
     const faq = copyOf("src/lib/faq.ts");
     assert.match(faq, /about €10/);
     assert.match(faq, /€4\.55/);
+  });
+});
+
+/**
+ * THE AMOUNT IS STATED, NOT REPEATED.
+ *
+ * The wording was correct and still read badly: /uk-brands said "€3"
+ * twelve times in visible prose and /why-ireland five, most of them
+ * inside worked examples ("five of the same shirt is €3; a shirt, a
+ * candle and a mug is €9"). Repeating a figure in an example is how a
+ * per-classification charge starts to look like a per-unit one, which
+ * is the exact misreading the previous round of work removed.
+ *
+ * The approved rule: the figure appears once per content section, in
+ * the heading, and the prose that follows says "the charge", "this
+ * duty" or "a separate charge".
+ *
+ * Numeric cells are not prose and are not counted — the comparison
+ * table needs €3.00 to add up, and €3.90 is a handling figure that has
+ * nothing to do with customs.
+ */
+describe("the amount appears once per section, not throughout the prose", () => {
+  const prosePerPage: [string, string, number][] = [
+    // One each for the hero, the friction card heading and the
+    // comparison list — three separate content sections.
+    ["/uk-brands", "src/app/uk-brands/page.tsx", 3],
+    ["/why-ireland", "src/app/why-ireland/page.tsx", 1],
+    // The homepage keeps its single link label by owner decision.
+    ["homepage block", "src/components/sections/WhyIrelandSection.tsx", 1],
+    // The FAQ defers to the pages it links to.
+    ["FAQ + FAQPage schema", "src/lib/faq.ts", 0],
+  ];
+
+  const visibleCopy = (path: string) =>
+    readFileSync(path, "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "")
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+
+  for (const [label, path, expected] of prosePerPage) {
+    it(`${label} states the amount ${expected} time(s) in visible copy`, () => {
+      const mentions = (visibleCopy(path).match(/€3(?!\.\d)/g) ?? []).length;
+      assert.equal(
+        mentions,
+        expected,
+        `${label} names €3 ${mentions} times in visible copy, expected ${expected}`,
+      );
+    });
+  }
+
+  it("the numeric cells the table needs are still numeric", () => {
+    const page = visibleCopy("src/app/uk-brands/page.tsx");
+    assert.ok(page.includes("€3.00"), "the comparison table's customs cell has gone");
+    assert.ok(page.includes("€3.90"), "the handling figure has gone");
+  });
+
+  it("the prose uses the agreed substitutes rather than the figure", () => {
+    const page = visibleCopy("src/app/uk-brands/page.tsx").replace(/\s+/g, " ");
+    for (const phrase of ["the charge", "this duty", "a separate charge"]) {
+      assert.ok(page.includes(phrase), `the copy never says "${phrase}"`);
+    }
   });
 });

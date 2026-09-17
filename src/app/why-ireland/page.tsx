@@ -39,6 +39,15 @@ export const metadata: Metadata = {
  * case spelled out instead of inferred. The wording appears here, on
  * /uk-brands and in the FAQ (which also feeds the FAQPage structured
  * data). All four move together, and a test holds them together.
+ *
+ * THE AMOUNT IS NAMED ONCE, IN THE HEADING.
+ *
+ * Being correct was not enough: this section said "€3" five times and
+ * /uk-brands twelve, most of them inside the worked example. Repeating
+ * a figure next to a basket is how a per-classification charge starts
+ * to look like a per-unit one again. The approved copy names it in the
+ * heading and then says "the charge" or "this duty"; the example now
+ * counts product types rather than restating money.
  */
 export default function WhyIrelandPage() {
   return (
@@ -82,22 +91,21 @@ export default function WhyIrelandPage() {
               id="customs-charge-heading"
               className="text-xl font-semibold tracking-tight text-brand-navy sm:text-2xl"
             >
-              The €3 charge your customer sees at the door
+              €3 customs duty per distinct item type
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-700">
-              Since 1 July 2026, a €3 customs duty applies to each distinct
-              item type in a low-value parcel, based on its tariff
-              classification, on anything under €150 arriving into Ireland from
-              outside the EU. It&apos;s collected on delivery, not at checkout,
-              so the first time your customer hears about it is when the
-              courier asks for it.
+              Since 1 July 2026, this charge applies to each distinct product
+              type in a qualifying low-value parcel arriving into Ireland from
+              outside the EU, based on its tariff classification. Multiple
+              identical products under the same classification generally
+              attract one charge, while different product types may each
+              attract a separate charge.
             </p>
             <p className="mt-4 text-base leading-7 text-slate-700">
-              Multiple identical products under the same tariff classification
-              generally attract one €3 charge, while different product types
-              can each attract a separate €3 charge. Five of the same shirt is
-              €3; a shirt, a candle and a mug is €9 they didn&apos;t agree to.
-              That&apos;s where refused parcels and returns come from.
+              For example, five identical shirts count as one product type,
+              while a shirt, a candle and a mug count as three. Because the
+              charge is collected on delivery rather than at checkout,
+              unexpected costs can contribute to refused parcels and returns.
             </p>
             <Link
               href="/uk-brands"

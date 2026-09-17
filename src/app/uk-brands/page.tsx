@@ -60,10 +60,21 @@ export const metadata: Metadata = {
  * which is exactly why the shorthand misleads: in ordinary English an
  * item is a thing in a box.
  *
- * So every visible reference on this page now says "each distinct item
- * type ... based on its tariff classification", and the identical-goods
- * case is stated explicitly rather than left to inference. Tests pin
- * the phrasing so the short form cannot drift back in.
+ * So every visible reference on this page ties the charge to a
+ * distinct PRODUCT TYPE and its tariff classification, and the
+ * identical-goods case is stated explicitly rather than left to
+ * inference. Tests pin the phrasing so the short form cannot drift
+ * back in.
+ *
+ * AND THE AMOUNT IS NAMED ONCE PER SECTION. The page used to say "€3"
+ * twelve times in visible copy, mostly inside the worked example
+ * ("five of the same shirt is €3; a shirt, a candle and a mug is €9").
+ * A figure repeated beside a basket reads as a per-unit price however
+ * carefully the surrounding sentence is worded. The approved copy
+ * names it in the heading and then says "the charge" or "this duty",
+ * and the example counts product types instead of money. The €3.00 and
+ * €3.90 cells in the comparison table are numbers, not prose, and are
+ * untouched.
  */
 
 const frictions = [
@@ -73,13 +84,13 @@ const frictions = [
     source: "European Commission, customs formalities for low-value consignments",
   },
   {
-    title: "€3 of customs duty per item type, since 1 July 2026",
-    body: "The relief that used to apply below €150 was abolished. A €3 customs duty applies to each distinct item type in a low-value parcel, based on its tariff classification. Multiple identical products under the same tariff classification generally attract one €3 charge, while different product types can each attract a separate €3 charge. It applies whichever VAT scheme you use, IOSS included, and runs until 1 July 2028, when normal tariffs take over.",
+    title: "€3 customs duty per distinct item type",
+    body: "The relief that used to apply below €150 was abolished on 1 July 2026. This charge applies to each distinct product type in a qualifying low-value parcel, based on its tariff classification. Multiple identical products under the same classification generally attract one charge, while different product types may each attract a separate charge. For example, five identical shirts count as one product type, while a shirt, a candle and a mug count as three. Because the charge is collected on delivery rather than at checkout, unexpected costs can contribute to refused parcels and returns. It applies whichever VAT scheme you use, IOSS included, and runs until 1 July 2028, when normal tariffs take over.",
     source: "Council Regulation (EU) 2026/382",
   },
   {
-    title: "Irish VAT on everything, and the €3 is inside the VAT base",
-    body: "There has been no VAT-free threshold since the €22 relief ended in July 2021. Irish VAT is due on the goods at 23% standard rate, and Revenue calculates it on a total that includes the €3 duty.",
+    title: "Irish VAT also includes the customs duty",
+    body: "There has been no VAT-free threshold since the €22 relief ended in July 2021. Irish VAT is due on the goods at the applicable rate, and the customs duty forms part of the amount used to calculate VAT.",
     source: "Irish Revenue",
   },
   {
@@ -99,7 +110,7 @@ const frictions = [
   },
   {
     title: "Returns where the duty and VAT do not come back",
-    body: "Revenue is explicit that a customer returning something bought from outside the EU may not get the customs duty and VAT back, and the €3 is not refunded on a change of mind. A returns process is where that lands.",
+    body: "Revenue is explicit that a customer returning something bought from outside the EU may not get the customs duty and VAT back, and this duty is not refunded on a change of mind. A returns process is where that lands.",
     source: "Irish Revenue, claiming a refund",
   },
 ];
@@ -149,18 +160,19 @@ export default function UkBrandsPage() {
               <p>
                 Then there&apos;s the charge your customer didn&apos;t agree
                 to. Since 1 July 2026, a €3 customs duty applies to each
-                distinct item type in a low-value parcel, based on its tariff
-                classification, on anything under €150 arriving into Ireland
-                from outside the EU. It&apos;s collected at the door, not at
-                checkout.
+                distinct product type in a qualifying low-value parcel, based
+                on its tariff classification, on anything under €150 arriving
+                into Ireland from outside the EU. It&apos;s collected at the
+                door, not at checkout.
               </p>
               <p>
-                Multiple identical products under the same tariff
-                classification generally attract one €3 charge, while different
-                product types can each attract a separate €3 charge. So five of
-                the same shirt is €3; a shirt, a candle and a mug is €9, and
-                the buyer first hears about it from the courier. That is where
-                refused parcels and returns come from.
+                Multiple identical products under the same classification
+                generally attract one charge, while different product types may
+                each attract a separate charge. For example, five identical
+                shirts count as one product type, while a shirt, a candle and a
+                mug count as three. Because the charge is collected on delivery
+                rather than at checkout, unexpected costs can contribute to
+                refused parcels and returns.
               </p>
             </div>
           </div>
