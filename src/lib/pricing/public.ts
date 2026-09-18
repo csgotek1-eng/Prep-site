@@ -5,6 +5,7 @@ import type {
   VolumeTier,
 } from "./types";
 import { appliesToEveryOrder } from "./every-order.ts";
+import { isSelectableInCalculator } from "./calculator-availability.ts";
 
 /**
  * PUBLIC projections of the pricing domain.
@@ -56,6 +57,22 @@ export interface PublicCatalogueService {
    * monthly cost.
    */
   quantityFollowsVolume: boolean;
+  /**
+   * True when the visitor has to tell us the quantity, because nothing
+   * on the form can honestly infer it.
+   *
+   * A service charged per return, per SKU or per carton has no
+   * defensible default. The calculator used to give every one of them a
+   * quantity of ONE: a 125-order month asked for the price of a single
+   * return, and the figure that came back was arithmetically correct
+   * and commercially meaningless. Neither a guess nor a silent 1 is an
+   * answer — the only honest options are to ask, or to leave the line
+   * as usage-based, and this flag is what lets the UI do the former.
+   *
+   * Non-monetary, like everything else here: it says how a quantity is
+   * arrived at, never what anything costs.
+   */
+  requiresQuantity: boolean;
   isFeatured: boolean;
   sortOrder: number;
 }
@@ -72,7 +89,11 @@ export function toPublicCatalogue(
 ): PublicCatalogue {
   const tieredServiceIds = new Set(volumeTiers.map((tier) => tier.serviceId));
   const publicServices = services
-    .filter((service) => service.isActive)
+    // Active AND offerable today. The second is not the first: see
+    // ./calculator-availability.ts — standalone pallet storage is a
+    // real record that must not appear as a public tick box until
+    // there is a warehouse behind it.
+    .filter((service) => service.isActive && isSelectableInCalculator(service.slug))
     .map((service) => ({
       id: service.id,
       name: service.name,
@@ -95,6 +116,12 @@ export function toPublicCatalogue(
       // such column: a row-level flag was silently undefined there and
       // correct only in development. See ./every-order.ts.
       quantityFollowsVolume: appliesToEveryOrder(service.slug),
+      // Everything the volume cannot answer for, and that is priced at
+      // all, has to be asked. Custom-quote lines are excluded because
+      // there is no rate for a quantity to multiply.
+      requiresQuantity:
+        !appliesToEveryOrder(service.slug) &&
+        service.pricingType !== "CUSTOM_QUOTE",
       isFeatured: service.isFeatured,
       sortOrder: service.sortOrder,
     }));

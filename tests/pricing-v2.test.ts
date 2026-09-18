@@ -153,10 +153,13 @@ describe("the customer email states the same total the estimate computed", () =>
     // The floor did the work, so both numbers appear and the total is
     // the one that will be invoiced.
     assert.match(text, /Minimum monthly invoice: €275\.00/);
-    assert.match(text, /Estimated monthly total: €275\.00/);
+    // Renamed when carrier delivery was separated out: a line labelled
+    // "Estimated total" beside a figure that excludes delivery is
+    // exactly the misreading that change exists to remove.
+    assert.match(text, /Estimated Dockentra fulfilment: €275\.00/);
     assert.match(text, /Services as selected: €26\.00/);
     // And it must never present the raw subtotal AS the total.
-    assert.equal(/Estimated total: €26\.00/.test(text), false);
+    assert.equal(/Estimated Dockentra fulfilment: €26\.00/.test(text), false);
   });
 
   it("quotes one plain total when the minimum is not involved", () => {
@@ -164,7 +167,7 @@ describe("the customer email states the same total the estimate computed", () =>
       { serviceId: "svc-pick-pack-order", quantity: 399 },
     ]);
     const text = buildPricingEmailText(estimate, "DK-TEST-2");
-    assert.match(text, /Estimated total: €1,037\.40/);
+    assert.match(text, /Estimated Dockentra fulfilment: €1,037\.40/);
     assert.equal(/Minimum monthly invoice/.test(text), false);
   });
 

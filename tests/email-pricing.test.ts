@@ -168,7 +168,10 @@ describe("B. the priced email exists ONLY server-side", () => {
   it("carries the reference, the services and the calculated total", () => {
     const text = buildPricingEmailText(PRICED, "DCK-7K2M9Q");
     assert.ok(text.includes("DCK-7K2M9Q"));
-    assert.ok(text.includes("Estimated total:"));
+    // Renamed when carrier delivery was separated out: a line
+    // labelled "Estimated total" beside a figure that excludes
+    // delivery is the misreading this change exists to remove.
+    assert.ok(text.includes("Estimated Dockentra fulfilment:"));
     assert.ok(/€/.test(text));
     assert.ok(buildPricingEmailSubject("DCK-7K2M9Q").includes("DCK-7K2M9Q"));
   });
@@ -179,7 +182,7 @@ describe("B. the priced email exists ONLY server-side", () => {
       buildPricingEmailHtml(CUSTOM_ONLY, "DCK-AAAAAA"),
     ]) {
       assert.equal(/€\s*0[.,]00/.test(body), false);
-      assert.equal(body.includes("Estimated total"), false);
+      assert.equal(body.includes("Estimated Dockentra fulfilment"), false);
       assert.ok(body.includes("priced individually"));
     }
   });
@@ -323,6 +326,10 @@ describe("D. processEmailPricingRequest matrix", () => {
     address: "You@company.ie",
     selections: [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
     estimate: PRICED,
+    // Every pricing request now carries who is asking; the brand name
+    // is required at the edge and these fixtures exercise the pipeline
+    // behind it.
+    requester: { brandName: "Test Brand Ltd", storeUrl: "" },
   };
 
   it("save OK + provider ACCEPTED → ok, delivery 'sent', ACCEPTED recorded", async () => {

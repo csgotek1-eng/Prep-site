@@ -4,7 +4,7 @@ import {
   recordDeliveryResultWithRetry,
 } from "../pricing-delivery/request.ts";
 import type { PricingDeliverer } from "../pricing-delivery/request.ts";
-import type { PricingDeliveryResult } from "../pricing-delivery/types";
+import type { PricingDeliveryResult, PricingRequester } from "../pricing-delivery/types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
 import { getWhatsAppProvider } from "./provider.ts";
 import type {
@@ -30,6 +30,8 @@ export type WhatsAppPricingDeliveryOutcome =
 export type WhatsAppPricingResult = PricingDeliveryResult;
 
 export interface WhatsAppPricingRequestArgs {
+  /** Who is asking: brand name (required) and store URL (optional). */
+  requester: PricingRequester;
   /** The number exactly as the customer typed it (for the record). */
   rawNumber: string;
   /** Server-normalized E.164 destination. */
@@ -117,6 +119,7 @@ export async function processWhatsAppPricingRequest(
     },
     selections: args.selections,
     estimate: args.estimate,
+    requester: args.requester,
     page: args.page ?? null,
     deliver: whatsAppDeliverer(args.provider ?? getWhatsAppProvider()),
     store: args.store,

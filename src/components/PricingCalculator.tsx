@@ -13,6 +13,15 @@ import type {
   PublicEstimate,
 } from "@/lib/pricing/public";
 import { isValidEmailAddressInput } from "@/lib/email/address";
+// Non-monetary wording only: what the estimate does NOT cover. The
+// module carries no rate and no total, so importing it into a client
+// component publishes nothing.
+import {
+  CARRIER_DELIVERY_LABEL,
+  CARRIER_DELIVERY_NOTE,
+  CARRIER_DELIVERY_STATUS,
+  VAT_BASIS_NOTE,
+} from "@/lib/pricing/estimate-disclosure";
 import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
 import {
@@ -47,7 +56,16 @@ const WIZARD_STEPS: ReadonlyArray<{
 ];
 
 interface SelectionState {
-  [serviceId: string]: number; // quantity
+  /**
+   * The quantity, or NULL for "ticked, not answered yet".
+   *
+   * A service charged per return or per SKU has no honest default. It
+   * used to get 1, so a 125-order month asked for the price of a single
+   * return and received a figure that was arithmetically right and
+   * commercially meaningless. Null means the visitor still has to tell
+   * us, and nothing is priced until they do.
+   */
+  [serviceId: string]: number | null;
 }
 
 /**
@@ -128,6 +146,14 @@ export default function PricingCalculator({
   const [channel, setChannel] = useState<PricingChannel>(DEFAULT_PRICING_CHANNEL);
   // The customer's OWN destination for the chosen channel, and the
   // send lifecycle for the single "Send my price…" action.
+  // WHO IS ASKING. A price request used to carry a destination and a
+  // basket, so a real lead reached the team as an email address with no
+  // idea who sent it or what they sell. The brand name is required; the
+  // store URL is not, because an early-stage seller may genuinely not
+  // have one and losing them over a field they cannot fill is a bad
+  // trade.
+  const [brandName, setBrandName] = useState("");
+  const [storeUrl, setStoreUrl] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [sendPhase, setSendPhase] = useState<"idle" | "sending" | "done">(
@@ -184,7 +210,11 @@ export default function PricingCalculator({
   // and the render DERIVES emptiness from `selections` (see
   // hasEstimateLines) rather than any handler resetting state.
   useEffect(() => {
-    const entries = Object.entries(selections);
+    // Only ANSWERED lines are priced. A ticked service still waiting
+    // for its quantity is deliberately absent from the request rather
+    // than sent as a 1: the server would price it, and the visitor
+    // would see a confirmed line they never actually specified.
+    const entries = answeredSelections(selections);
     if (entries.length === 0) {
       return;
     }
@@ -279,7 +309,10 @@ export default function PricingCalculator({
       } else {
         next[service.id] = service.quantityFollowsVolume
           ? volumeAsQuantity(monthlyOrders)
-          : 1;
+          : service.requiresQuantity
+            ? // Ask, do not assume. See SelectionState above.
+              null
+            : 1;
       }
       return next;
     });
@@ -292,6 +325,29 @@ export default function PricingCalculator({
       next.delete(service.id);
       return next;
     });
+  }
+
+  /**
+   * The lines the visitor has actually answered.
+   *
+   * Everything downstream — the estimate request, the send payload and
+   * the validation that blocks the send — reads the same list, so a
+   * half-filled line cannot be priced by one of them and ignored by
+   * another.
+   */
+  function answeredSelections(
+    state: SelectionState,
+  ): [string, number][] {
+    return Object.entries(state).filter(
+      (entry): entry is [string, number] => typeof entry[1] === "number",
+    );
+  }
+
+  /** Ticked services still waiting for a quantity, by id. */
+  function unansweredSelections(state: SelectionState): string[] {
+    return Object.entries(state)
+      .filter(([, quantity]) => quantity === null)
+      .map(([serviceId]) => serviceId);
   }
 
   /**
@@ -329,10 +385,13 @@ export default function PricingCalculator({
   function setQuantity(serviceId: string, value: string) {
     clearSendResult();
     const parsed = Number(value);
+    // An empty or invalid box is NOT one. Silently substituting 1 is
+    // the defect this whole change removes; the line stays unanswered
+    // and the send is blocked until it is answered.
     const quantity =
       Number.isInteger(parsed) && parsed > 0
         ? Math.min(parsed, MAX_QUANTITY)
-        : 1;
+        : null;
     setSelections((current) => ({ ...current, [serviceId]: quantity }));
     setManualQuantities((current) => {
       if (current.has(serviceId)) return current;
@@ -383,6 +442,26 @@ export default function PricingCalculator({
           ?.scrollIntoView({ block: "nearest" });
       });
     };
+    // Everything that must be true before a request is worth sending,
+    // in the order the visitor filled the form in.
+    const unanswered = unansweredSelections(selections);
+    if (unanswered.length > 0) {
+      const names = unanswered
+        .map((id) => services?.find((service) => service.id === id)?.name)
+        .filter((name): name is string => Boolean(name));
+      setSendError(
+        names.length > 0
+          ? `Please enter a quantity for ${names.join(", ")}.`
+          : "Please enter a quantity for every service you selected.",
+      );
+      revealDestination();
+      return;
+    }
+    if (brandName.trim().length < 2) {
+      setSendError("Please tell us your brand or business name.");
+      revealDestination();
+      return;
+    }
     if (channel === "whatsapp" && !isValidWhatsAppNumberInput(whatsappNumber)) {
       setSendError(
         "Please enter your WhatsApp number with the country code, e.g. +353 85 123 4567.",
@@ -407,10 +486,12 @@ export default function PricingCalculator({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          selections: Object.entries(selections).map(
+          selections: answeredSelections(selections).map(
             ([serviceId, quantity]) => ({ serviceId, quantity }),
           ),
           monthlyOrders,
+          brandName: brandName.trim(),
+          storeUrl: storeUrl.trim(),
           ...(channel === "whatsapp"
             ? { whatsappNumber }
             : { email: emailAddress }),
@@ -522,6 +603,18 @@ export default function PricingCalculator({
   const hasEstimateLines = Boolean(
     selectedCount > 0 && estimate && estimate.lines.length > 0,
   );
+  /**
+   * Ticked, but still waiting for a quantity.
+   *
+   * These lines are deliberately NOT sent for pricing, so a basket
+   * made up only of them produces no estimate at all. The action area
+   * has to stay on screen anyway: a form that vanishes the moment you
+   * tick "returns" tells the visitor nothing about what it wants from
+   * them, and the missing quantity is exactly what it wants.
+   */
+  const awaitingQuantities = unansweredSelections(selections).length > 0;
+  /** Something is selected, whether or not it can be priced yet. */
+  const hasSelection = selectedCount > 0;
 
   // MOBILE WIZARD visibility. Below lg exactly one step is displayed;
   // at lg and up every step is displayed, which is the desktop layout
@@ -599,9 +692,11 @@ export default function PricingCalculator({
       </ul>
     ) : (
       <p className="text-base leading-7 text-slate-600">
-        {selectedCount > 0 && estimating
-          ? "Preparing your price request…"
-          : "Select services to build your price request."}
+        {awaitingQuantities
+          ? "Add a quantity to each selected service and your request is ready."
+          : selectedCount > 0 && estimating
+            ? "Preparing your price request…"
+            : "Select services to build your price request."}
         {selectedCount === 0 && " Nothing is selected yet."}
         {selectedCount > 0 && estimateError && (
           <span className="mt-2 block text-amber-800">
@@ -611,6 +706,36 @@ export default function PricingCalculator({
         )}
       </p>
     );
+
+  /**
+   * WHAT THE PRICE WILL NOT INCLUDE, said before it is asked for.
+   *
+   * This page shows no money at all — the price is sent privately — so
+   * the risk here is not a wrong figure on screen but a customer who
+   * receives one and reads it as their monthly bill. A lead did exactly
+   * that: a fulfilment figure with no carrier delivery anywhere in it
+   * and nothing anywhere saying so.
+   *
+   * The wording is imported, not retyped, so this card, both customer
+   * messages and the team notification cannot describe the same
+   * omission four different ways.
+   */
+  const scopeNotice = (
+    <div className="mt-5 rounded-lg border border-brand-border bg-brand-surface-soft p-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-brand-navy">
+          {CARRIER_DELIVERY_LABEL}
+        </span>
+        <span className="shrink-0 text-sm font-semibold text-brand-green-dark">
+          {CARRIER_DELIVERY_STATUS}
+        </span>
+      </div>
+      <p className="mt-1.5 text-xs leading-5 text-slate-600">
+        {CARRIER_DELIVERY_NOTE}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-slate-600">{VAT_BASIS_NOTE}</p>
+    </div>
+  );
 
   const disclaimer = (
     <p className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
@@ -629,6 +754,7 @@ export default function PricingCalculator({
         Selected services
       </h3>
       <div className="mt-2">{linesList}</div>
+      {scopeNotice}
       {disclaimer}
     </div>
   );
@@ -657,17 +783,26 @@ export default function PricingCalculator({
     layout: "flow" | "panel",
   ) => {
     const panel = layout === "panel";
-    return estimate && hasEstimateLines ? (
+    return hasSelection ? (
       <div className={panel ? "flex min-h-0 flex-1 flex-col" : undefined}>
       <div className={panel ? "shrink-0 px-5 pt-4 sm:px-6" : undefined}>
         <div className="flex items-baseline justify-between gap-3">
           {/* The heading itself comes from the surrounding container
               (sr-only h2 on mobile, the panel h2 on desktop) — repeating
               it here would print it twice next to the desktop header. */}
+          {/* Counts what is READY, which is not always what is ticked:
+              a line still waiting for its quantity is selected but not
+              priced, and saying "2 services ready" while one of them
+              has an empty box would be the same quiet fiction the
+              default quantity of 1 was. */}
           <span className="block text-base font-semibold leading-7 text-brand-navy">
-            {estimate.lines.length}{" "}
-            {estimate.lines.length === 1 ? "service" : "services"} ready
-            to price
+            {hasEstimateLines && estimate
+              ? `${estimate.lines.length} ${
+                  estimate.lines.length === 1 ? "service" : "services"
+                } ready to price`
+              : awaitingQuantities
+                ? "Add a quantity to continue"
+                : "Select services to price"}
           </span>
           {/* Always-reserved slot: the label toggles visibility, so the
               panel never changes height (no layout shift) while the
@@ -789,6 +924,62 @@ export default function PricingCalculator({
                 tabIndex={-1}
                 autoComplete="off"
               />
+            </div>
+            {/* WHO IS ASKING — required brand, optional store.
+                Above the channel choice because it is the first thing
+                the team needs and the last thing a visitor wants to be
+                asked after they have already pressed Send. */}
+            <div className="mb-4">
+              <label
+                htmlFor={`brand-name-${idSuffix}`}
+                className="block text-sm font-medium text-brand-navy"
+              >
+                Brand or business name
+              </label>
+              <input
+                id={`brand-name-${idSuffix}`}
+                name="brandName"
+                type="text"
+                required
+                maxLength={120}
+                autoComplete="organization"
+                placeholder="Your brand"
+                value={brandName}
+                aria-describedby={
+                  sendError ? `pricing-error-${idSuffix}` : undefined
+                }
+                onChange={(event) => {
+                  setBrandName(event.target.value);
+                  setSendError("");
+                }}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+              />
+              <label
+                htmlFor={`store-url-${idSuffix}`}
+                className="mt-3 block text-sm font-medium text-brand-navy"
+              >
+                Website or store link{" "}
+                <span className="font-normal text-slate-500">(optional)</span>
+              </label>
+              <input
+                id={`store-url-${idSuffix}`}
+                name="storeUrl"
+                type="text"
+                inputMode="url"
+                maxLength={300}
+                autoComplete="url"
+                placeholder="yourshop.ie"
+                value={storeUrl}
+                onChange={(event) => {
+                  setStoreUrl(event.target.value);
+                  setSendError("");
+                }}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base text-brand-navy placeholder:text-slate-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/25"
+              />
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Not required — tell us anyway if you have one, it saves a
+                question later.
+              </p>
             </div>
             {/* STEP 3 — a real radio group, so a screen reader
                 announces the choice and arrow keys move between the
@@ -1163,7 +1354,10 @@ export default function PricingCalculator({
                                 ? "Approx. quantity"
                                 : service.quantityFollowsVolume
                                   ? "Orders per month"
-                                  : "Quantity"}
+                                  : `How many ${service.unitLabel.replace(
+                                      /^per /,
+                                      "",
+                                    )}s per month?`}
                             </label>
                             <input
                               id={`qty-${service.id}`}
@@ -1172,7 +1366,7 @@ export default function PricingCalculator({
                               min={1}
                               max={MAX_QUANTITY}
                               step={1}
-                              value={selections[service.id]}
+                              value={selections[service.id] ?? ""}
                               onChange={(event) =>
                                 setQuantity(service.id, event.target.value)
                               }
@@ -1189,6 +1383,19 @@ export default function PricingCalculator({
                                   {manualQuantities.has(service.id)
                                     ? "Your own figure: it no longer follows the volume above."
                                     : "Taken from your monthly volume. Change it if this service handles a different number."}
+                                </span>
+                              )}
+                            {/* THE CHARGING BASIS, SAID OUT LOUD.
+                                A line charged per return cannot be
+                                filled in from an order count without
+                                inventing a returns rate, so it asks —
+                                and until it is answered the line is
+                                not priced at all. */}
+                            {service.requiresQuantity &&
+                              selections[service.id] === null && (
+                                <span className="text-xs font-medium text-amber-800">
+                                  Charged {service.unitLabel} — tell us your
+                                  monthly figure so we can price it.
                                 </span>
                               )}
                           </div>
@@ -1208,7 +1415,7 @@ export default function PricingCalculator({
           <div className={mobileStep === 3 ? "relative block lg:hidden" : "hidden"}>
             {stepHeading(3)}
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              {estimate && hasEstimateLines ? (
+              {hasSelection ? (
                 renderActionsPanel("mobile", "flow")
               ) : (
                 <p role="status" className="text-sm leading-6 text-slate-600">
@@ -1249,7 +1456,7 @@ export default function PricingCalculator({
               Your price request
             </h2>
           </div>
-          {estimate && hasEstimateLines ? (
+          {hasSelection ? (
             renderActionsPanel("desktop", "panel")
           ) : (
             // Nothing selected yet: no action exists, so the card is

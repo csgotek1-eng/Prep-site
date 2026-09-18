@@ -352,6 +352,9 @@ describe("one engine, server-authoritative", () => {
     // through the provider, never through a public API response.
     const message = buildPricingWhatsAppText(estimate, "DCK-TEST22");
     assert.ok(message.includes("Monthly orders: 1000"));
-    assert.ok(message.includes("Estimated total: €1,125.00"), message); // 500 × €2.25
+    assert.ok(
+      message.includes("Estimated Dockentra fulfilment: €1,125.00"),
+      message,
+    ); // 500 × €2.25
   });
 });

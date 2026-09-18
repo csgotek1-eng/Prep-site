@@ -4,7 +4,7 @@ import {
   recordDeliveryResultWithRetry,
 } from "../pricing-delivery/request.ts";
 import type { PricingDeliverer } from "../pricing-delivery/request.ts";
-import type { PricingDeliveryResult } from "../pricing-delivery/types";
+import type { PricingDeliveryResult, PricingRequester } from "../pricing-delivery/types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
 import { getPricingEmailProvider } from "./provider.ts";
 import type {
@@ -25,6 +25,8 @@ import type {
  */
 
 export interface EmailPricingRequestArgs {
+  /** Who is asking: brand name (required) and store URL (optional). */
+  requester: PricingRequester;
   /** The address exactly as the customer typed it (for the record). */
   rawAddress: string;
   /** Server-normalized destination address. */
@@ -108,6 +110,7 @@ export async function processEmailPricingRequest(
     },
     selections: args.selections,
     estimate: args.estimate,
+    requester: args.requester,
     page: args.page ?? null,
     deliver: emailDeliverer(args.provider ?? getPricingEmailProvider()),
     store: args.store,

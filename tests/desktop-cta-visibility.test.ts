@@ -75,7 +75,11 @@ describe("the desktop Step 3 panel is three separate bands", () => {
     const consent = panel.indexOf("Send my requested Dockentra pricing to this");
     assert.ok(field > 0 && err > field && consent > err);
     assert.ok(code.includes("const revealDestination = () =>"));
-    assert.equal((code.match(/revealDestination\(\);/g) ?? []).length, 2);
+    // Four now: the two destination checks, plus the two added with
+    // the identity and quantity rules. An unanswered quantity and a
+    // missing brand name both fail in this same band, and must bring
+    // the visitor back to it the same way.
+    assert.equal((code.match(/revealDestination\(\);/g) ?? []).length, 4);
     assert.ok(code.includes('field?.scrollIntoView({ block: "nearest" });'));
     // ...and the message itself is scrolled fully into view once it
     // has rendered, so a very short card cannot cut off its last line.
@@ -102,7 +106,12 @@ describe("the desktop Step 3 panel is three separate bands", () => {
     assert.ok(aside.includes("shrink-0 border-b border-slate-100 px-5 pb-4 pt-5"));
     assert.ok(aside.includes("Your price request"));
     // With nothing selected there is no action, so no footer is needed.
-    assert.ok(aside.includes('estimate && hasEstimateLines ? ('));
+    //
+    // The gate is SELECTION now, not a priced estimate. A line ticked
+    // and still waiting for its quantity produces no estimate at all,
+    // and the form vanishing at that moment told the visitor nothing
+    // about the quantity it was waiting for.
+    assert.ok(aside.includes("hasSelection ? ("));
   });
 });
 

@@ -3,6 +3,7 @@ import { calculateEstimate, parseSelections } from "@/lib/pricing/calculate";
 import { PricingUnavailableError } from "@/lib/pricing/errors";
 import { toPublicEstimate } from "@/lib/pricing/public";
 import { getPricingRepository } from "@/lib/pricing/repository";
+import { isSelectableInCalculator } from "@/lib/pricing/calculator-availability";
 import { createMemoryRateLimiter, requestClientKey } from "@/lib/rate-limit";
 
 const MAX_BODY_BYTES = 20_000;
@@ -82,7 +83,16 @@ export async function POST(request: Request) {
     ]);
     // Tier bands come from the server catalogue; the browser supplies
     // only the monthly order count, which is validated in calculate().
-    const estimate = calculateEstimate(services, selections, {
+    //
+    // The catalogue is narrowed to what the PUBLIC calculator may offer
+    // before anything is priced. Hiding a service in the UI is a
+    // presentation decision; refusing to price it here is the rule. A
+    // crafted request naming a service the business is not selling
+    // through this form gets the same answer as a made-up id: nothing.
+    const offerable = services.filter((service) =>
+      isSelectableInCalculator(service.slug),
+    );
+    const estimate = calculateEstimate(offerable, selections, {
       monthlyOrders: body?.monthlyOrders,
       volumeTiers,
     });

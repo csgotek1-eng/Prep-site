@@ -1,4 +1,11 @@
 import { formatEuro } from "../pricing/money.ts";
+import {
+  CARRIER_DELIVERY_LABEL,
+  CARRIER_DELIVERY_NOTE,
+  CARRIER_DELIVERY_STATUS,
+  FULFILMENT_TOTAL_LABEL,
+  VAT_BASIS_NOTE,
+} from "../pricing/estimate-disclosure.ts";
 import type { Estimate } from "../pricing/types";
 
 /**
@@ -70,12 +77,12 @@ export function buildPricingEmailText(
         "",
         `Services as selected: ${formatEuro(estimate.subtotal)}`,
         `Minimum monthly invoice: ${formatEuro(estimate.monthlyMinimum)}`,
-        `Estimated monthly total: ${formatEuro(estimate.payable)}`,
+        `${FULFILMENT_TOTAL_LABEL}: ${formatEuro(estimate.payable)}`,
         "",
         "Your selection comes to less than the minimum monthly invoice, so the minimum applies. It is the same figure for every volume band.",
       );
     } else {
-      lines.push("", `Estimated total: ${formatEuro(estimate.payable)}`);
+      lines.push("", `${FULFILMENT_TOTAL_LABEL}: ${formatEuro(estimate.payable)}`);
     }
     if (custom.length > 0) {
       lines.push(
@@ -94,6 +101,21 @@ export function buildPricingEmailText(
       "Our team will come back to you with your individual pricing.",
     );
   }
+
+  // WHAT THE FIGURE ABOVE IS NOT.
+  //
+  // It is fulfilment work at the quantities the customer gave us, and
+  // it contains no carrier delivery — there is no approved carrier rate
+  // for it to contain. A lead was quoted a fulfilment figure that read
+  // like a monthly bill, which is the thing this paragraph exists to
+  // stop happening again. It sits directly under the total on purpose.
+  lines.push(
+    "",
+    `${CARRIER_DELIVERY_LABEL}: ${CARRIER_DELIVERY_STATUS.toLowerCase()}`,
+    CARRIER_DELIVERY_NOTE,
+    "",
+    VAT_BASIS_NOTE,
+  );
 
   lines.push(
     "",
@@ -157,14 +179,18 @@ export function buildPricingEmailHtml(
           `<td style="text-align:right;white-space:nowrap">${escapeHtml(formatEuro(estimate.subtotal))}</td></tr>`,
         '<tr><td style="text-align:left">Minimum monthly invoice</td>' +
           `<td style="text-align:right;white-space:nowrap">${escapeHtml(formatEuro(estimate.monthlyMinimum))}</td></tr>`,
-        '<tr><td style="text-align:left;font-weight:bold">Estimated monthly total</td>' +
+        '<tr><td style="text-align:left;font-weight:bold">' +
+          escapeHtml(FULFILMENT_TOTAL_LABEL) +
+          "</td>" +
           `<td style="text-align:right;font-weight:bold;white-space:nowrap">${escapeHtml(formatEuro(estimate.payable))}</td></tr>`,
         "</table>",
         '<p style="margin:12px 0 0;color:#475569;font-size:14px">Your selection comes to less than the minimum monthly invoice, so the minimum applies. It is the same figure for every volume band.</p>',
       );
     } else {
       parts.push(
-        '<tr><td style="text-align:left;font-weight:bold">Estimated total</td>' +
+        '<tr><td style="text-align:left;font-weight:bold">' +
+          escapeHtml(FULFILMENT_TOTAL_LABEL) +
+          "</td>" +
           `<td style="text-align:right;font-weight:bold;white-space:nowrap">${escapeHtml(formatEuro(estimate.payable))}</td></tr>`,
         "</table>",
       );
@@ -191,6 +217,25 @@ export function buildPricingEmailHtml(
       '<p style="margin:0 0 12px">Our team will come back to you with your individual pricing.</p>',
     );
   }
+
+  // The same two facts as the plain-text part, in the same order. The
+  // HTML and the text are two renderings of one estimate; a disclosure
+  // in one and not the other is how a customer ends up quoting the
+  // version that suited them.
+  parts.push(
+    '<table role="presentation" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:520px;margin:8px 0 0">' +
+      '<tr><td style="text-align:left">' +
+      escapeHtml(CARRIER_DELIVERY_LABEL) +
+      '</td><td style="text-align:right;white-space:nowrap">' +
+      escapeHtml(CARRIER_DELIVERY_STATUS) +
+      "</td></tr></table>",
+    '<p style="margin:8px 0 0;color:#475569;font-size:14px">' +
+      escapeHtml(CARRIER_DELIVERY_NOTE) +
+      "</p>",
+    '<p style="margin:8px 0 0;color:#475569;font-size:14px">' +
+      escapeHtml(VAT_BASIS_NOTE) +
+      "</p>",
+  );
 
   parts.push(
     '<p style="margin:20px 0 0;color:#64748b;font-size:13px">Estimated pricing only — final pricing depends on your products, handling requirements, storage profile, packaging and agreed service terms.</p>',

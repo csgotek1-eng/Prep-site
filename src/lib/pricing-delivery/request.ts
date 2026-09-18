@@ -4,6 +4,7 @@ import { sendOwnerPricingNotification } from "../email/owner-notification.ts";
 import { getLeadStore } from "../leads/store.ts";
 import type { LeadStore } from "../leads/store.ts";
 import type { LeadInput, PricingDeliveryChannel } from "../leads/types";
+import type { PricingRequester } from "./types";
 import type { Estimate, EstimateSelection } from "../pricing/types";
 import { makePricingReference } from "../whatsapp/message.ts";
 import type { PricingDeliveryResult } from "./types";
@@ -142,6 +143,8 @@ export interface PricingDeliveryRequestArgs {
   selections: EstimateSelection[];
   /** INTERNAL authoritative estimate — never sent to the browser. */
   estimate: Estimate;
+  /** Who is asking: brand name (required) and store URL (optional). */
+  requester: PricingRequester;
   /** The channel's provider step. */
   deliver: PricingDeliverer;
   store?: LeadStore;
@@ -155,16 +158,20 @@ function leadInputFor(
   requestedAt: string,
   selections: EstimateSelection[],
   estimate: Estimate,
+  requester: PricingRequester,
 ): LeadInput {
   const base: LeadInput = {
     source: "pricing-calculator",
     type:
       destination.channel === "whatsapp" ? "whatsapp-pricing" : "email-pricing",
     name: "",
-    business: "",
+    // The two columns already existed on every lead — these requests
+    // simply never filled them in. Nothing about the schema changes,
+    // and a historical row keeps its empty strings.
+    business: requester.brandName,
     email: "",
     phone: "",
-    website: "",
+    website: requester.storeUrl,
     salesChannels: [],
     servicesNeeded: [],
     skuCount: "",
@@ -230,6 +237,7 @@ export async function processPricingDeliveryRequest(
     requestedAt,
     args.selections,
     args.estimate,
+    args.requester,
   );
 
   // The durable row + admin inbox is the record for these requests. The
@@ -252,6 +260,7 @@ export async function processPricingDeliveryRequest(
         page: args.page ?? null,
         customerName: input.name,
         customerCompany: input.business,
+        customerWebsite: input.website,
         customerEmail: input.email,
         customerPhone: input.phone,
         deliveryChannel: channel,

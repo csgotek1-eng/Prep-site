@@ -8,6 +8,23 @@ import type { PricingDeliveryChannel } from "../leads/types";
  *   unavailable → saved, but no provider is active
  *   failed      → saved, but the provider rejected the send
  */
+/**
+ * Who is asking.
+ *
+ * A pricing request used to carry a destination and nothing else, so a
+ * real lead arrived in the inbox as an email address, a basket and no
+ * idea who sent it or what they sell. The brand name is required for
+ * that reason; the store URL is not, because an early-stage seller
+ * genuinely may not have one yet and refusing them the form over it
+ * would cost a lead to gain a field.
+ */
+export interface PricingRequester {
+  /** Trimmed brand or business name. Never empty on a new request. */
+  brandName: string;
+  /** Trimmed store or website URL, or "" when not supplied. */
+  storeUrl: string;
+}
+
 export type PricingDeliveryOutcome = "sent" | "unavailable" | "failed";
 
 /** The provider's raw verdict, recorded on the stored request. */

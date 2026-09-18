@@ -5,6 +5,11 @@ import "server-only";
 // this into a client component would have shipped the secret and
 // failed silently. With this import it fails the build instead.
 import { formatEuro } from "../pricing/money.ts";
+import {
+  CARRIER_DELIVERY_LABEL,
+  CARRIER_DELIVERY_STATUS,
+  VAT_BASIS_NOTE,
+} from "../pricing/estimate-disclosure.ts";
 import type { Estimate } from "../pricing/types";
 import { normalizeEmailAddress } from "./address.ts";
 import {
@@ -61,6 +66,8 @@ export interface OwnerNotificationInput {
   page: string | null;
   customerName: string;
   customerCompany: string;
+  /** Store or website URL, when the visitor gave one. */
+  customerWebsite?: string;
   customerEmail: string;
   customerPhone: string;
   /** How the customer asked to receive their price. */
@@ -97,6 +104,7 @@ export function buildOwnerNotificationText(input: OwnerNotificationInput): strin
   lines.push(
     line("Name", input.customerName) +
       line("Business", input.customerCompany) +
+      line("Store", input.customerWebsite ?? "") +
       line("Email", input.customerEmail) +
       line("Phone", input.customerPhone) +
       line("Wants the price by", `${input.deliveryChannel} (${input.deliveryDestination})`),
@@ -127,6 +135,18 @@ export function buildOwnerNotificationText(input: OwnerNotificationInput): strin
   if (estimate.hasCustomQuoteItems) {
     lines.push("Some lines need an individual quote — the total above excludes them.");
   }
+  // WHAT THIS FIGURE IS NOT.
+  //
+  // The internal total above is fulfilment work at the quantities the
+  // visitor gave. It contains no carrier delivery, because there is no
+  // approved carrier rate to contain. Stated here as well as to the
+  // customer so that whoever replies quotes the same scope the customer
+  // was shown, rather than a number that looks like a monthly bill.
+  lines.push("");
+  lines.push(
+    `${CARRIER_DELIVERY_LABEL}: ${CARRIER_DELIVERY_STATUS.toLowerCase()} — not included above.`,
+  );
+  lines.push(VAT_BASIS_NOTE);
   lines.push("");
   lines.push("The full record is in the admin inbox at /admin/leads.");
 

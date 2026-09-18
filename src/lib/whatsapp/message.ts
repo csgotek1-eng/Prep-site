@@ -1,5 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { formatEuro } from "../pricing/money.ts";
+import {
+  CARRIER_DELIVERY_LABEL,
+  CARRIER_DELIVERY_NOTE,
+  CARRIER_DELIVERY_STATUS,
+  FULFILMENT_TOTAL_LABEL,
+  VAT_BASIS_NOTE,
+} from "../pricing/estimate-disclosure.ts";
 import type { Estimate } from "../pricing/types";
 
 /**
@@ -80,10 +87,10 @@ export function buildPricingWhatsAppText(
       lines.push(
         `Services as selected: ${formatEuro(estimate.subtotal)}`,
         `Minimum monthly invoice: ${formatEuro(estimate.monthlyMinimum)}`,
-        `Estimated monthly total: ${formatEuro(estimate.payable)}`,
+        `${FULFILMENT_TOTAL_LABEL}: ${formatEuro(estimate.payable)}`,
       );
     } else {
-      lines.push(`Estimated total: ${formatEuro(estimate.payable)}`);
+      lines.push(`${FULFILMENT_TOTAL_LABEL}: ${formatEuro(estimate.payable)}`);
     }
     if (custom.length > 0) {
       lines.push(
@@ -101,6 +108,15 @@ export function buildPricingWhatsAppText(
       "Our team will come back to you with your individual pricing.",
     );
   }
+
+  // Carrier delivery is not in the figure above and is not guessed
+  // here either; see ../pricing/estimate-disclosure.ts.
+  lines.push(
+    "",
+    `${CARRIER_DELIVERY_LABEL}: ${CARRIER_DELIVERY_STATUS.toLowerCase()}`,
+    CARRIER_DELIVERY_NOTE,
+    VAT_BASIS_NOTE,
+  );
 
   lines.push(
     "",
@@ -134,7 +150,7 @@ export function buildPricingTemplateParameters(
 
   let pricingLine: string;
   if (priced.length > 0) {
-    pricingLine = `Estimated total ${formatEuro(estimate.payable)}`;
+    pricingLine = `${FULFILMENT_TOTAL_LABEL} ${formatEuro(estimate.payable)}`;
     if (estimate.monthlyMinimumApplied) {
       pricingLine += " (minimum monthly invoice applied)";
     }
@@ -143,6 +159,10 @@ export function buildPricingTemplateParameters(
         .map((line) => line.name)
         .join(", ")})`;
     }
+    // One flattened sentence, because a template parameter may not
+    // contain a newline. It carries the same two facts as the free-form
+    // message: no carrier delivery in the figure, and no VAT.
+    pricingLine += ` — ${CARRIER_DELIVERY_LABEL.toLowerCase()} ${CARRIER_DELIVERY_STATUS.toLowerCase()}; ${VAT_BASIS_NOTE.toLowerCase()}`;
   } else {
     pricingLine =
       "Individual pricing required — our team will come back to you with your custom pricing";

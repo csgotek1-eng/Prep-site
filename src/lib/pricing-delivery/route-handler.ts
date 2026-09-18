@@ -1,6 +1,8 @@
 import { calculateEstimate, parseSelections } from "../pricing/calculate.ts";
 import { PricingUnavailableError } from "../pricing/errors.ts";
 import { getPricingRepository } from "../pricing/repository.ts";
+import { isSelectableInCalculator } from "../pricing/calculator-availability.ts";
+import { validateRequester } from "./requester.ts";
 import { createDurableRateLimiter, requestClientKey } from "../rate-limit.ts";
 import { enforceTurnstile, turnstileRemoteIp } from "../security/turnstile.ts";
 import { normalizeEmailAddress } from "../email/address.ts";
@@ -100,6 +102,12 @@ export async function handlePricingDeliveryRequest(
     monthlyOrders?: unknown;
     whatsappNumber?: unknown;
     email?: unknown;
+    brandName?: unknown;
+    storeUrl?: unknown;
+    // The HONEYPOT, and it keeps this name. The visible store field a
+    // real visitor fills in is `storeUrl`, deliberately NOT `website`:
+    // naming it `website` would have meant every genuine lead that
+    // supplied a shop URL was silently dropped as a bot.
     website?: unknown;
   };
 
@@ -144,6 +152,19 @@ export async function handlePricingDeliveryRequest(
     destination = { raw: String(body.email), normalized: address.address };
   }
 
+  // WHO IS ASKING, before anything is priced or sent.
+  //
+  // A request used to carry a destination and a basket, so a real lead
+  // arrived as an email address and no idea who sent it or what they
+  // sell. Validated here rather than only in the form, because the
+  // endpoint is public and every accepted request may cost a real
+  // outbound message.
+  const identity = validateRequester(body);
+  if (!identity.ok) {
+    return error(400, identity.error);
+  }
+  const requester = identity.requester;
+
   const selections = parseSelections(body.selections);
   if (selections.length === 0) {
     return error(400, "Please select at least one service.");
@@ -158,7 +179,13 @@ export async function handlePricingDeliveryRequest(
     // Prices come exclusively from the server catalogue; any monetary
     // value in the request body was already discarded by
     // parseSelections().
-    const estimate = calculateEstimate(services, selections, {
+    // Narrowed to what the public calculator may sell, exactly as the
+    // estimate endpoint does: a service withheld from the form must not
+    // be reachable by posting its id straight to this one.
+    const offerable = services.filter((service) =>
+      isSelectableInCalculator(service.slug),
+    );
+    const estimate = calculateEstimate(offerable, selections, {
       monthlyOrders: body.monthlyOrders,
       volumeTiers,
     });
@@ -173,6 +200,7 @@ export async function handlePricingDeliveryRequest(
             e164: destination.normalized,
             selections,
             estimate,
+            requester,
             page: requestPage(request),
           })
         : await processEmailPricingRequest({
@@ -180,6 +208,7 @@ export async function handlePricingDeliveryRequest(
             address: destination.normalized,
             selections,
             estimate,
+            requester,
             page: requestPage(request),
           });
 

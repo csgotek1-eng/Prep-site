@@ -189,7 +189,10 @@ describe("B. private pricing message", () => {
     assert.ok(text.includes("Reference: DCK-TEST22"));
     assert.ok(text.includes("Monthly orders: 1000"));
     assert.ok(text.includes("Pick & pack"));
-    assert.ok(text.includes("Estimated total: €450.00"), text); // 200 × €2.25
+    assert.ok(
+      text.includes("Estimated Dockentra fulfilment: €450.00"),
+      text,
+    ); // 200 × €2.25
     assert.ok(text.includes("not a binding") === false); // wording lives on site
   });
 
@@ -202,7 +205,7 @@ describe("B. private pricing message", () => {
 
   it("mixed: priced portion + custom services identified separately", () => {
     const text = buildPricingWhatsAppText(MIXED, "DCK-TEST22");
-    assert.ok(text.includes("Estimated total: €"));
+    assert.ok(text.includes("Estimated Dockentra fulfilment: €"));
     assert.ok(text.includes("Custom priced separately: Courier handling"));
     // The custom line itself never gets a euro amount.
     assert.equal(/Detailed quality check[^\n]*€/.test(text), false);
@@ -219,7 +222,7 @@ describe("B. private pricing message", () => {
     }
     assert.equal(reference, "DCK-TEST22");
     assert.ok(services.includes("Pick & pack ×200"));
-    assert.ok(pricing.includes("Estimated total €"));
+    assert.ok(pricing.includes("Estimated Dockentra fulfilment €"));
     const [, , customPricing] = buildPricingTemplateParameters(
       CUSTOM_ONLY,
       "DCK-TEST22",
@@ -304,6 +307,10 @@ describe("D. processWhatsAppPricingRequest matrix", () => {
     e164: "+353851234567",
     selections: [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
     estimate: PRICED,
+    // Every pricing request now carries who is asking. The brand name
+    // is required at the edge; these fixtures exercise the pipeline
+    // behind it, so they simply supply one.
+    requester: { brandName: "Test Brand Ltd", storeUrl: "" },
   };
 
   it("save OK + provider ACCEPTED → ok, delivery 'sent', ACCEPTED recorded", async () => {
@@ -425,6 +432,10 @@ describe("D2. recording the provider outcome is retried, never faked", () => {
     e164: "+353851234567",
     selections: [{ serviceId: "svc-pick-pack-order", quantity: 100 }],
     estimate: PRICED,
+    // Every pricing request now carries who is asking. The brand name
+    // is required at the edge; these fixtures exercise the pipeline
+    // behind it, so they simply supply one.
+    requester: { brandName: "Test Brand Ltd", storeUrl: "" },
   };
 
   it("ACCEPTED + first write fails + retry succeeds → sent AND persisted", async () => {
