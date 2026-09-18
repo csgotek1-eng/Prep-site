@@ -457,6 +457,28 @@ export default function UkBrandsPage() {
                 Send an enquiry
               </Link>
             </div>
+            {/* The sibling audiences, below the buttons rather than in
+                the argument. This page is written for one reader and
+                should stay that way, but search sends people to the
+                wrong one of the three often enough that a way across
+                is worth four lines. */}
+            <p className="mt-6 text-sm leading-6 text-slate-400">
+              Shipping from somewhere else? We also fulfil for{" "}
+              <Link
+                href="/china-asia-brands"
+                className="font-semibold text-white underline-offset-2 hover:underline"
+              >
+                China &amp; Asia brands
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/european-brands"
+                className="font-semibold text-white underline-offset-2 hover:underline"
+              >
+                European brands
+              </Link>
+              .
+            </p>
           </div>
         </Container>
       </section>

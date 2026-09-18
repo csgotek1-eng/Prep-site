@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check } from "lucide-react";
 import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import ShipBySellerContent from "@/components/sections/ShipBySellerContent";
@@ -53,50 +52,43 @@ export const metadata: Metadata = {
  */
 
 /**
- * The two starting points, answered with the same operation.
+ * THREE AUDIENCES, ONE CARD SHAPE.
  *
- * Data rather than JSX because the blocks are structurally identical
- * and a copy-pasted second card is how one of them quietly drifts:
- * a points list gains an item on one side only, or a heading level
- * changes in one place. Owner-approved copy, verbatim.
+ * They are one array rather than three hand-written cards because
+ * "equal" is the entire requirement here, and equality maintained by
+ * hand is equality that lasts until the next edit: one card gains a
+ * sentence, another keeps a heavier border, and the page quietly starts
+ * recommending an audience. Rendered from data, the only thing that can
+ * differ between them is the copy itself.
+ *
+ * Order is Britain, Asia, Europe — the order the intro names them in,
+ * which is also the order of how much of the site already speaks to
+ * each. It is not a ranking, and nothing in the markup treats the first
+ * card differently from the third.
  */
-const INTERNATIONAL_BRANDS = [
+const BRAND_PATHS = [
   {
-    title: "For Asian & Chinese brands",
-    body: [
-      "Send your stock to Ireland in bulk and let Dockentra handle the day-to-day fulfilment locally.",
-      "We receive your inventory, inspect it, store it, prepare orders, pick and pack, hand parcels to the carrier and process returns.",
-      "This gives your team a local operation in Ireland without the cost and complexity of running your own warehouse.",
-    ],
-    points: [
-      "Local stock held in Ireland",
-      "Receiving and product inspection",
-      "Prep, labelling and repacking",
-      "Pick & pack for customer orders",
-      "Local courier handover",
-      "Returns handled in Ireland",
-      "Photo evidence when required",
-    ],
-    closing:
-      "You continue managing your brand and sales. We manage the physical fulfilment operation in Ireland.",
+    heading: "For UK brands",
+    body: "Move stock into Ireland in bulk and fulfil customer orders locally. Reduce the friction of sending individual parcels across the border and give your customers a local delivery and returns experience.",
+    supporting: null,
+    cta: "Explore UK fulfilment",
+    href: "/uk-brands",
   },
   {
-    title: "For UK & European brands",
-    body: [
-      "Already selling from the UK or elsewhere in Europe? Dockentra can give your business a local fulfilment base for customers in Ireland.",
-      "Send stock to us in bulk. We receive and store it locally, then dispatch individual customer orders from Ireland.",
-      "You can keep your existing European operation while using Dockentra for the Irish side of your fulfilment.",
-    ],
-    points: [
-      "A local fulfilment base in Ireland",
-      "Domestic dispatch to Irish customers",
-      "Local returns address",
-      "Stock inspection and receiving",
-      "Pick, pack and courier handover",
-      "No need to operate your own Irish warehouse",
-    ],
-    closing:
-      "Use Dockentra where local fulfilment in Ireland makes operational sense for your business.",
+    heading: "For China & Asia brands",
+    body: "Send stock to Ireland in bulk and let Dockentra handle the physical operation locally — receiving, inspection, storage, prep, pick & pack, courier handover and returns.",
+    supporting:
+      "Keep control of your brand and sales channels while Dockentra manages the day-to-day fulfilment operation in Ireland.",
+    cta: "Explore China & Asia fulfilment",
+    href: "/china-asia-brands",
+  },
+  {
+    heading: "For European brands",
+    body: "Add a local Irish fulfilment base without opening and operating your own warehouse. Send stock to Dockentra, hold inventory locally and dispatch individual orders to customers across Ireland.",
+    supporting:
+      "Keep your existing European operation and use Dockentra for the Irish side of your fulfilment.",
+    cta: "Explore European fulfilment",
+    href: "/european-brands",
   },
 ] as const;
 
@@ -168,20 +160,17 @@ export default function WhyIrelandPage() {
         </Container>
       </section>
 
-      {/* FOR INTERNATIONAL BRANDS — the audience this page did not
-          previously address.
-          /why-ireland argued one case: an Irish seller needs stock
-          inside Ireland. The two sections above it are about the
-          platform and the charge at the door, both written from the
-          seller's side. A brand in Shenzhen or Manchester reading this
-          page learned why Ireland is hard and nothing about what we
-          would actually do for them.
+      {/* FOR INTERNATIONAL BRANDS — three doors, deliberately the same
+          size.
+          This started as two blocks, UK handled elsewhere and everyone
+          else folded into one card. That is a hierarchy whether or not
+          it was meant as one: the audience with its own page looked
+          like the business we want and the others like an afterthought.
+          Three cards, one array, no highlight on any of them.
           DELIBERATELY UNDERSOLD. No "perfect hub", no growth claim, no
-          flags and no country imagery: the offer is an operation, not
-          a market thesis, and a brand comparing 3PLs is reading for
-          what physically happens to their pallet. The two blocks are
-          the same shape because the answer is nearly the same for both
-          audiences — only the starting point differs. */}
+          flags and no country imagery: the offer is an operation, not a
+          market thesis, and a brand comparing 3PLs is reading for what
+          physically happens to their pallet. */}
       <section aria-labelledby="international-brands-heading" className="bg-white">
         <Container className="py-16 sm:py-20">
           <div className="max-w-3xl">
@@ -192,57 +181,54 @@ export default function WhyIrelandPage() {
               id="international-brands-heading"
               className="mt-3 text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
-              Bring your brand closer to Irish customers
+              A local fulfilment base for the Irish market
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-700">
-              If Ireland is an important market for your brand, you do not need
-              to build your own local warehouse to operate here.
-            </p>
-            <p className="mt-4 text-base leading-7 text-slate-700">
-              Dockentra gives international e-commerce brands a local
-              fulfilment operation in Ireland. You keep control of your
-              products, brand and sales channels. We handle the physical work
-              on the ground.
+              Whether your stock is coming from Britain, Asia or elsewhere in
+              Europe, Dockentra can give your business a local fulfilment
+              operation in Ireland without the cost and complexity of running
+              your own warehouse.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-2">
-            {INTERNATIONAL_BRANDS.map((block) => (
-              <div
-                key={block.title}
-                className="rounded-2xl border border-brand-border bg-white p-6"
-              >
-                <h3 className="text-lg font-semibold text-brand-navy">
-                  {block.title}
-                </h3>
-                {block.body.map((paragraph) => (
-                  <p
-                    key={paragraph}
-                    className="mt-4 text-base leading-7 text-slate-700"
-                  >
-                    {paragraph}
+          {/* items-stretch + h-full + a growing spacer: the three cards
+              are the same height whatever the copy does, and the three
+              buttons sit on the same line. Without it the shortest card
+              ends early and its button floats up, which reads as the
+              weaker option even though nothing said so.
+              min-h-[3.25rem] rather than min-h-12 on the buttons for
+              the same reason, one level down: at 1024px the longest
+              label wraps to two lines and the shortest does not, so
+              equal-height cards still produced buttons whose tops were
+              2px apart. A floor above the two-line height makes all
+              three identical at every width. */}
+          <ul className="mt-10 grid items-stretch gap-5 lg:grid-cols-3">
+            {BRAND_PATHS.map((path) => (
+              <li key={path.href} className="flex">
+                <div className="flex h-full w-full flex-col rounded-2xl border border-brand-border bg-white p-6">
+                  <h3 className="text-lg font-semibold text-brand-navy">
+                    {path.heading}
+                  </h3>
+                  <p className="mt-4 text-base leading-7 text-slate-700">
+                    {path.body}
                   </p>
-                ))}
-                <ul className="mt-5 space-y-2.5">
-                  {block.points.map((point) => (
-                    <li
-                      key={point}
-                      className="flex gap-3 text-base leading-7 text-slate-700"
+                  {path.supporting && (
+                    <p className="mt-4 text-base leading-7 text-slate-700">
+                      {path.supporting}
+                    </p>
+                  )}
+                  <div className="mt-6 flex grow flex-col justify-end">
+                    <Link
+                      href={path.href}
+                      className="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-md border border-brand-navy/25 bg-white px-5 text-center text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
                     >
-                      <Check
-                        aria-hidden="true"
-                        className="mt-1.5 h-4 w-4 shrink-0 text-brand-green-dark"
-                      />
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-5 text-base leading-7 text-brand-navy">
-                  {block.closing}
-                </p>
-              </div>
+                      {path.cta}
+                    </Link>
+                  </div>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </Container>
       </section>
 

@@ -25,6 +25,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       // Irish visitor should never be offered a link that bounces them
       // back to the homepage.
       "/uk-brands",
+      // The other two audience entry points, added with /uk-brands
+      // rather than instead of it. None of the three is in the top
+      // navigation — /why-ireland is their gateway — so the sitemap is
+      // how a crawler reaches them at all, and leaving one out would
+      // make that audience invisible to search while the other two are
+      // not.
+      "/china-asia-brands",
+      "/european-brands",
     ]),
   ];
   return pages.map((href) => ({
