@@ -354,8 +354,11 @@ describe("the first screen says who it is for and what happens next", () => {
   it("leads with the seller's situation, not the service category", () => {
     assert.ok(home.includes("Stop packing orders yourself"));
     assert.equal(home.includes("Fulfilment &amp; Prep Services in Ireland"), false);
-    // The eyebrow no longer repeats the H1 almost word for word.
-    assert.ok(home.includes("Limerick, Ireland · Opening 2026"));
+    // The eyebrow no longer repeats the H1 almost word for word. The
+    // opening year came out of it at the owner's request: a date in an
+    // eyebrow ages on its own, and nothing else on the page needs it.
+    assert.ok(home.includes("Limerick, Ireland"));
+    assert.equal(/Opening 2026/i.test(home), false, "the opening year is back in the hero");
   });
 
   it("keeps the search meaning where search engines read it", () => {
@@ -366,7 +369,19 @@ describe("the first screen says who it is for and what happens next", () => {
   });
 
   it("states the private-pricing mechanic BEFORE the click", () => {
-    assert.ok(home.includes("privately by WhatsApp or email"));
+    // It is stated once now, in PricingSection, which the homepage
+    // renders. The hero's copy of it was a second statement of the
+    // same promise attached to an instruction to use the header
+    // button — the instruction went, and the promise stayed where it
+    // sits next to the action it describes.
+    const pricing = read("src/components/sections/PricingSection.tsx");
+    assert.ok(pricing.includes("privately by WhatsApp or email"));
+    assert.ok(home.includes("<PricingSection"), "the homepage no longer renders it");
+    assert.equal(
+      /Ask for a price from the button at the top/i.test(home),
+      false,
+      "the hero is telling the reader to use the header button again",
+    );
     // "No call needed", capitalised: ТЗ 15.09.2026 (A13) replaced the
     // em dash before it with a full stop, which starts a sentence. The
     // promise is unchanged; only the punctuation is.

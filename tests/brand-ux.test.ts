@@ -123,23 +123,40 @@ describe("hero decorative D", () => {
   // an unfound anchor used to make indexOf return -1, and the window
   // then sliced from the END of the file, so these tests failed for a
   // reason that had nothing to do with what they check.
-  const anchor = home.indexOf("dockentra-logo-mark-watermark");
-  assert.ok(anchor > -1, "the hero watermark image is not in page.tsx at all");
-  const heroImage = home.slice(anchor, anchor + 600);
-
-  it("uses no negative right offset and no positive translate-x", () => {
-    assert.equal(heroImage.includes("-right-"), false);
-    assert.equal(/translate-x-\d/.test(heroImage), false);
-    assert.ok(heroImage.includes("right-6"));
+  /**
+   * IT IS GONE, by owner decision, and these tests now hold it gone.
+   *
+   * The decoration went through two rounds of correction here — a
+   * negative right offset that pushed it off-canvas, then a 223 KB
+   * master downloaded to draw at 6% opacity — before the simpler
+   * answer: the hero's one prioritised visual is the video clip, and a
+   * 460px ghost of the logo sat directly behind it while the real logo
+   * was in the header a couple of centimetres above.
+   *
+   * What replaces the old assertions is the removal itself, plus the
+   * two things the removal must not have broken — the header lockup,
+   * and the wrapper that still carries the gradient shapes.
+   */
+  it("is no longer rendered in the hero", () => {
+    assert.equal(home.includes("dockentra-logo-mark-watermark"), false);
+    assert.equal(home.includes("dockentra-logo-mark-transparent"), false);
+    // No empty decorative element left behind: the wrapper stays
+    // because the gradient shapes and the hairline live in it.
+    assert.match(home, /aria-hidden="true" className="pointer-events-none absolute inset-0"/);
+    assert.match(home, /from-brand-mint\/40/);
+    assert.match(home, /h-px bg-gradient-to-r from-transparent/);
   });
 
-  it("is responsively sized within the suggested scale", () => {
-    assert.ok(heroImage.includes("w-[340px]"));
-    assert.ok(heroImage.includes("xl:w-[460px]"));
+  it("did not take the header logo with it", () => {
+    const lockup = read("src/components/BrandLockup.tsx");
+    assert.ok(lockup.includes("dockentra-logo-mark-transparent.png"));
+    // The accessible name on the lockup is a separate fix and stays.
+    assert.ok(/alt=|aria-label=|sr-only/.test(lockup));
   });
 
-  it("stays decorative for screen readers", () => {
-    assert.ok(heroImage.includes('alt=""'));
+  it("leaves the video as the one visual in the hero", () => {
+    assert.match(home, /<ProcessVideo/);
+    assert.ok(home.includes("aspect-[9/16]"));
   });
 });
 

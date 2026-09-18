@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import ProcessMedia from "@/components/sections/ProcessMedia";
 import ProcessVideo from "@/components/ProcessVideo";
@@ -39,45 +38,34 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero — light branded surface, soft brand shapes and a quiet
-          watermark of the official mark for stronger brand presence */}
+      {/* Hero — light branded surface with two soft brand shapes.
+          THE DECORATIVE "D" IS GONE (owner decision). A 460px mark at
+          6% opacity sat directly behind the clip on lg+, so the one
+          prioritised visual on the page was competing with a ghost of
+          the logo that is already in the header two centimetres above
+          it. Its wrapper stays because the gradient shapes and the
+          hairline still use it; the mark, its Image import and the
+          note explaining its encoding went with it. The file itself,
+          the script that derives it and the approved master are all
+          untouched. */}
       <section className="relative overflow-hidden bg-brand-surface-soft">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-brand-mint/40 to-brand-teal/15 blur-2xl" />
           <div className="absolute -bottom-32 right-1/4 hidden h-72 w-72 rounded-full bg-gradient-to-tr from-brand-green/10 to-brand-mint/25 blur-2xl lg:block" />
-          {/* unoptimized, for the reason it always was: next/image
-              builds a 2x srcset, so this 460px slot would ask for 920px
-              from a 512px master and upscale — pointless, and the path
-              where an intermittent hang was seen. What changed is the
-              file. Serving the 223 KB master to draw it at SIX PERCENT
-              opacity was the single heaviest thing on the desktop
-              homepage after the hero clip; the watermark encoding is
-              the same 512x512 mark in WebP at 21.8 KB
-              (scripts/derive-brand-watermark.mjs, regenerable from the
-              approved master, which is untouched and still feeds the
-              header lockup, the OG image and the icons). Decorative,
-              lg+ only. */}
-          <Image
-            src="/brand/dockentra-logo-mark-watermark.webp"
-            alt=""
-            width={460}
-            height={460}
-            unoptimized
-            className="absolute right-6 top-1/2 hidden h-auto w-[340px] -translate-y-1/2 select-none opacity-[0.06] lg:block xl:right-12 xl:w-[460px]"
-          />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-mint/70 to-transparent" />
         </div>
         <Container className="relative py-16 sm:py-24 lg:py-28">
-          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center lg:gap-14 xl:grid-cols-[minmax(0,1fr)_23rem]">
+          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-center lg:gap-14 xl:grid-cols-[minmax(0,1fr)_26rem]">
           <div className="max-w-3xl">
             {/* The eyebrow used to repeat the H1 almost word for word
                 ("Fulfilment & Prep Centre" above "Fulfilment & Prep
-                Services"). It states the two things a seller cannot
-                infer from the headline instead: where we are, and that
-                we are opening — which is what makes the Founding
-                Partner offer below make sense. */}
+                Services"). It states what a seller cannot infer from
+                the headline instead: where we are. The opening year
+                came out at the owner's request — a date in an eyebrow
+                ages on its own, and nothing else on the page depends
+                on it. */}
             <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
-              Limerick, Ireland · Opening 2026
+              Limerick, Ireland
             </p>
             <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-brand-navy sm:text-5xl lg:text-6xl">
               Stop packing orders yourself
@@ -125,18 +113,20 @@ export default async function HomePage() {
                 the visitor who wants to understand the service before
                 being priced. The header carries the ask.
 
-                The margin drops from mt-9 to mt-8 and the supporting
-                line moves up with it: a gap sized for a button pair
-                reads as something missing once there is one link in it. */}
+                The margin drops from mt-9 to mt-8: a gap sized for a
+                button pair reads as something missing once there is
+                one link in it.
+
+                The line that used to sit beneath this link — telling
+                the reader to use the button at the top of the page —
+                is gone too. It was instructions for a control already
+                visible on the same screen, and pointing at your own
+                header is not copy. */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/how-it-works" className={SECONDARY_HERO}>
                 See how it works
               </Link>
             </div>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-brand-text-muted">
-              Ask for a price from the button at the top of any page. You&apos;ll
-              receive it privately by WhatsApp or email, with no call.
-            </p>
           </div>
 
           {/* THE one prioritised visual on the page.

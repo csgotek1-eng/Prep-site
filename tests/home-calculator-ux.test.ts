@@ -102,10 +102,18 @@ describe("homepage hero", () => {
   });
 
   it("says what happens after the click, before the click", () => {
+    // It said so twice: once in PricingSection beside the action it
+    // describes, and once in the hero, attached to an instruction to
+    // use the button at the top of the page. The instruction went at
+    // the owner's request and the duplicate promise went with it, so
+    // the expectation is now set where the click actually happens.
     assert.ok(
-      home.includes("privately by WhatsApp or email"),
-      "the hero must set the expectation that no price appears on screen",
+      read("src/components/sections/PricingSection.tsx").includes(
+        "privately by WhatsApp or email",
+      ),
+      "nothing sets the expectation that no price appears on screen",
     );
+    assert.ok(home.includes("<PricingSection"), "the homepage no longer renders it");
   });
 
   it("the hero variant is visibly wider and taller than the ordinary button", () => {

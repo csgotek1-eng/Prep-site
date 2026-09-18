@@ -42,19 +42,25 @@ describe("hero watermark weight", () => {
     assert.equal(header.subarray(8, 12).toString("ascii"), "WEBP");
   });
 
-  it("the homepage watermark points at it", () => {
+  it("the homepage no longer draws it, and draws nothing heavier instead", () => {
+    // The decoration was removed from the hero by owner decision: a
+    // 460px mark at 6% opacity sat directly behind the video clip, so
+    // the page's one prioritised visual competed with a ghost of the
+    // logo already in the header. The derived file, the script and the
+    // documentation stay — this test still guards the weight of what
+    // would ship if it is ever used again.
     const page = read("src/app/page.tsx");
-    assert.ok(page.includes('src="/brand/dockentra-logo-mark-watermark.webp"'));
-    // The master must not be re-introduced as a raw <Image src> anywhere
-    // that ships it unoptimized.
-    const unoptimizedBlocks = page.split("unoptimized");
-    for (const block of unoptimizedBlocks.slice(1)) {
-      assert.equal(
-        block.slice(-400).includes("dockentra-logo-mark-transparent.png"),
-        false,
-        "the 223 KB master is being served unoptimized again",
-      );
-    }
+    assert.equal(
+      page.includes("dockentra-logo-mark-watermark"),
+      false,
+      "the hero decoration is back without a decision to bring it back",
+    );
+    // And the 223 KB master must not appear in its place.
+    assert.equal(
+      page.includes("dockentra-logo-mark-transparent.png"),
+      false,
+      "the 223 KB master is being served from the homepage",
+    );
   });
 
   it("the approved master is untouched and still feeds the brand surfaces", () => {
