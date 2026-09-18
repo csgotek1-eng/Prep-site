@@ -2,7 +2,9 @@ import {
   Boxes,
   ClipboardCheck,
   MessageSquare,
+  Plane,
   Ship,
+  Truck,
   Warehouse,
 } from "lucide-react";
 import Container from "@/components/Container";
@@ -62,6 +64,30 @@ export const SELLER_FIT = [
     Icon: Ship,
     title: "UK brands selling into Ireland",
     body: "Your parcels cross a customs border every time, and your customer pays for it at the door.",
+  },
+  /* SIXTH AND SEVENTH SEGMENTS — the two audiences the site gained
+     dedicated pages for, and which this list had not caught up with.
+
+     They are NOT linked, for the same reason nothing else here is:
+     this section is self-qualification, not navigation. A visitor is
+     looking for the line that describes them, and a link under one
+     item makes the others look like the ones we care less about. The
+     three regional doors live in the Why Ireland block below, which is
+     where somebody who has recognised themselves goes next.
+
+     The icons follow the transport sense already set by Ship for the
+     UK: air freight and a lorry are how stock from Asia and from the
+     continent actually arrives. They are modes of transport, not
+     places — no flags, and nothing that stands for a country. */
+  {
+    Icon: Plane,
+    title: "China & Asia brands selling into Ireland",
+    body: "You want stock held and fulfilled locally in Ireland while keeping control of your brand and sales channels.",
+  },
+  {
+    Icon: Truck,
+    title: "European brands selling into Ireland",
+    body: "You already sell across Europe and want a local fulfilment base for Irish customers without running your own warehouse here.",
   },
 ] as const;
 

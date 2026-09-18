@@ -292,6 +292,51 @@ describe("the homepage tells the approved story", () => {
     assert.ok(read("src/app/become-a-client/page.tsx").includes("SELLER_FIT"));
   });
 
+  it("names all seven audiences, including the two with their own pages", () => {
+    const fit = read("src/components/sections/SellerFit.tsx");
+    for (const title of [
+      "Growing online sellers",
+      "Brands that need space in Ireland",
+      "Sellers with prep requirements",
+      "People who want a person",
+      "UK brands selling into Ireland",
+      "China & Asia brands selling into Ireland",
+      "European brands selling into Ireland",
+    ]) {
+      assert.ok(fit.includes(`title: "${title}"`), `the list no longer names: ${title}`);
+    }
+    assert.ok(
+      fit.includes(
+        "You want stock held and fulfilled locally in Ireland while keeping control of your brand and sales channels.",
+      ),
+    );
+    assert.ok(
+      fit.includes(
+        "You already sell across Europe and want a local fulfilment base for Irish customers without running your own warehouse here.",
+      ),
+    );
+  });
+
+  it("keeps the whole section informational, with nothing in it clickable", () => {
+    // Self-qualification, not navigation: a visitor is looking for the
+    // line that describes them, and a link under one item makes the
+    // others read as the ones we care less about. The three regional
+    // doors are in the Why Ireland block below.
+    const fit = read("src/components/sections/SellerFit.tsx")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    for (const clickable of ["<Link", "href=", "<button", "<a ", "onClick"]) {
+      assert.equal(
+        fit.includes(clickable),
+        false,
+        `the audience list has become clickable: ${clickable}`,
+      );
+    }
+    // And every item renders through the one template, so no single
+    // row can be given a weight the others do not have.
+    assert.equal((fit.match(/SELLER_FIT\.map/g) ?? []).length, 1);
+  });
+
   it("carries the offer high and the questions low", () => {
     const offer = home.indexOf("Current offer");
     const faq = home.indexOf("<HomeFaq />");
