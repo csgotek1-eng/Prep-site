@@ -33,7 +33,7 @@ describe("page titles carry search intent, and stay unique", () => {
   const TITLES: Record<string, string> = {
     services: "Fulfilment & Prep Services in Ireland",
     "how-it-works": "How Our Fulfilment Process Works",
-    pricing: "Fulfilment Pricing in Ireland",
+    pricing: "How Fulfilment Pricing Works in Ireland",
     "why-ireland": "Why Hold Stock in Ireland",
     "batch-photos": "Batch Photos of Every Delivery",
     "dispatch-commitment": "Same-Day Dispatch Commitment",
@@ -276,9 +276,15 @@ describe("the small metadata fixes", () => {
       match[1].length <= 160,
       `the description is ${match[1].length} characters and will truncate`,
     );
-    // Still says the two things it exists to say.
-    assert.match(match[1], /Ship by Seller/i);
-    assert.match(match[1], /customs/i);
+    // The page was rewritten for three audiences in September 2026,
+    // so the description now names them rather than the TikTok policy
+    // that only ever applied to one of them.
+    assert.match(match[1], /UK, China & Asia and European brands/);
+    assert.match(match[1], /Limerick/);
+    // Deliberately NOT "customs": one of the three audiences moves
+    // stock within the EU, and a snippet promising a customs story to
+    // a German brand would be the wrong promise.
+    assert.equal(/customs/i.test(match[1]), false);
   });
 
   for (const slug of ["partnerships", "become-a-client"]) {

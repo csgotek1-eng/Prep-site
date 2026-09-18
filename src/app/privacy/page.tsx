@@ -202,7 +202,7 @@ export default function PrivacyPage() {
                 Hosting and technical processing
               </h2>
               <p className="mt-3">
-                This website is hosted on Vercel&apos;s infrastructure,
+                This website is hosted on Cloudflare&apos;s infrastructure (Cloudflare Workers),
                 which processes standard web request data (such as IP
                 address) as part of serving the site and is used
                 internally to apply a short-lived rate limit against

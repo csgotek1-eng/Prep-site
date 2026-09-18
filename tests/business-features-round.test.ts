@@ -685,10 +685,14 @@ describe("the Cases page", () => {
     // /uk-brands is in the sitemap too: search is how a British seller
     // finds it, and a page linked from nowhere is a page nobody reads.
     assert.ok(read("src/app/sitemap.ts").includes('"/uk-brands"'));
-    // But NOT in the site navigation — an Irish visitor must never be
-    // offered a link that bounces them back to the homepage.
+    // Not in the HEADER navigation, which is full at seven items. It
+    // IS in the footer now: the rule that kept it out belonged to the
+    // geo-redirect, which bounced Irish visitors off the page and was
+    // removed in September 2026. With explicit navigation always
+    // honoured, a footer link is a link, not a trap — and the audience
+    // pages were the least-linked commercial pages on the site.
     assert.equal(read("src/lib/site.ts").includes("/uk-brands"), false);
-    assert.equal(read("src/components/Footer.tsx").includes("/uk-brands"), false);
+    assert.ok(read("src/components/Footer.tsx").includes('href: "/uk-brands"'));
     assert.ok(read("src/components/Footer.tsx").includes('href: "/cases"'));
     // Seven header items is already the limit; an eighth is a redesign.
     assert.equal(read("src/lib/site.ts").includes('"/cases"'), false);

@@ -8,8 +8,12 @@ import BrandPathCards from "@/components/sections/BrandPathCards";
 
 export const metadata: Metadata = {
   title: "Why Hold Stock in Ireland",
+  // The page was rewritten for three audiences and the description
+  // still described the single-audience version: TikTok policy and
+  // the charge at the door. A searcher from Britain, Asia or the
+  // continent read a snippet about a rule that may not apply to them.
   description:
-    "Ship by Seller is the only TikTok Shop option in Ireland, and Irish buyers now pay customs at the door. Stock held here removes both problems.",
+    "Why brands selling in Ireland hold stock here: local dispatch and returns from Limerick for UK, China & Asia and European brands, with no border per parcel.",
   alternates: {
     canonical: "/why-ireland",
   },
@@ -59,8 +63,12 @@ export default function WhyIrelandPage() {
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
+            {/* The page carries three audiences now and the H1 still
+                named one of them. The wording matches the heading the
+                owner approved for the homepage block, so the two say
+                the same thing. */}
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Why an Irish seller needs stock inside Ireland
+              Why brands selling in Ireland hold stock in Ireland
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Two things make selling into Ireland from outside it harder than

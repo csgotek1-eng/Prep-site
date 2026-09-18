@@ -47,8 +47,13 @@ export const faqItems: FaqItem[] = [
   {
     category: "Fulfilment",
     question: "What fulfilment services does Dockentra offer?",
+    // Says "3PL" and the US spelling once, on purpose. The site never
+    // named itself a third-party logistics provider in visible text,
+    // and about half the Irish results in the September 2026 SERP
+    // research used "fulfillment". Once, here, in a sentence that is
+    // true — not sprinkled through the site.
     answer:
-      "Receiving, inspection and quality checks, labelling, prep, storage, pick & pack and returns handling, covering your stock from the moment it arrives to the moment an order is dispatched, and back again for returns.",
+      "Receiving, inspection and quality checks, labelling, prep, storage, pick & pack and returns handling, covering your stock from the moment it arrives to the moment an order is dispatched, and back again for returns. In industry terms Dockentra is a third-party logistics (3PL) provider — e-commerce fulfilment, or fulfillment in the US spelling — operating from Limerick for sellers across Ireland.",
   },
   {
     category: "Fulfilment",

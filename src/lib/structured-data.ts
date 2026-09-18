@@ -154,6 +154,62 @@ export function buildLocalBusinessJsonLd() {
   };
 }
 
+/**
+ * WebSite: the site as a thing, distinct from the business that runs it.
+ *
+ * LocalBusiness describes the company; nothing described the website,
+ * which is the node a search engine uses to attach a site name to the
+ * results it shows. Linked to the business through `publisher` and the
+ * same stable `@id` the LocalBusiness node carries, so the two are
+ * read as one entity rather than two coincidentally similar ones.
+ *
+ * NO SearchAction. The site has no search box, and declaring one
+ * invites a sitelinks search box that leads to a 404.
+ */
+export function buildWebSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    name: siteConfig.name,
+    url: siteUrl,
+    inLanguage: "en-IE",
+    publisher: { "@id": `${siteUrl}/#business` },
+  };
+}
+
+/**
+ * Service nodes for /services, built from the page's own cards.
+ *
+ * The site describes twelve services in prose and, until now, none in
+ * structured data — so a search engine could read that the business is
+ * a LocalBusiness in Limerick and nothing about what it does. Each node
+ * names one service, points at the business as provider and at Ireland
+ * as the area served, and stops there.
+ *
+ * NO OFFERS, NO PRICES. Pricing on this site is private by decision and
+ * delivered to the customer directly; a schema Offer would publish what
+ * the pages deliberately do not. No aggregateRating either, for the
+ * same reason it is absent from LocalBusiness: nothing verified exists.
+ */
+export function buildServicesJsonLd(
+  services: readonly { id: string; name: string; description: string }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": services.map((service) => ({
+      "@type": "Service",
+      "@id": `${siteUrl}/services#${service.id}`,
+      name: service.name,
+      description: service.description,
+      serviceType: service.name,
+      provider: { "@id": `${siteUrl}/#business` },
+      areaServed: { "@type": "Country", name: "Ireland" },
+      url: `${siteUrl}/services#${service.id}`,
+    })),
+  };
+}
+
 export interface Crumb {
   name: string;
   path: string;

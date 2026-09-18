@@ -9,10 +9,14 @@ export const siteUrl = resolveSiteUrl();
 
 export const siteConfig = {
   name: "Dockentra",
-  title: "Dockentra | Fulfilment & Prep Centre Ireland",
+  // What the business is and where it is, before the brand. The old
+  // default led with the name, which a searcher typing "fulfilment
+  // Limerick" does not know yet. Pages that set their own title still
+  // do; this is the homepage and the fallback.
+  title: "E-commerce Fulfilment & Prep, Limerick, Ireland | Dockentra",
   tagline: "Local fulfilment for growing e-commerce businesses.",
   description:
-    "Irish fulfilment and prep centre for e-commerce sellers: receiving, inspection, labelling, prep, storage, pick & pack and returns, handled locally in Ireland.",
+    "E-commerce fulfilment and prep centre (3PL) in Limerick, serving online sellers across Ireland: receiving, inspection, prep, storage, pick & pack and returns.",
   url: siteUrl,
   // Contact details live in ONE place — ./site-contact.ts. These are
   // re-exports so existing `siteConfig.contact.*` call sites keep

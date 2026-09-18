@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import Container from "@/components/Container";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import { buildServicesJsonLd } from "@/lib/structured-data";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 /** The page's primary action, used by both CTA bands. */
 const PRIMARY_CTA =
@@ -174,15 +176,43 @@ const marketplaceServices = [
   },
 ];
 
+/**
+ * One Service node per card, in card order, from the same arrays the
+ * page renders: a service added to the page is added to the schema, and
+ * one removed leaves with it. The marketplace cards summarise in
+ * `description` and the core cards in `intro`; both are the sentence a
+ * reader sees first.
+ */
+const servicesJsonLd = buildServicesJsonLd([
+  ...coreServices.map((service) => ({
+    id: service.id,
+    name: service.title,
+    description: service.intro,
+  })),
+  ...marketplaceServices.map((service) => ({
+    id: service.id,
+    name: service.title,
+    description: service.description.replace(/:$/, "."),
+  })),
+]);
+
 export default function ServicesPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Services", path: "/services" }]} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(servicesJsonLd) }}
+      />
       <section className="bg-brand-navy">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
+            {/* "Services" was the menu label doing duty as the H1: it
+                named the page's place in the navigation and nothing
+                about what the page is. The heading now says what is on
+                offer and where, which is what the page is for. */}
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Services
+              Fulfilment &amp; prep services in Ireland
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Everything your stock needs between your supplier and your

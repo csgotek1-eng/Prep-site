@@ -149,6 +149,10 @@ export default function ProcessVideo({
         fill
         sizes={sizes}
         priority={priority}
+        // `priority` preloads the still but, measured on the live site,
+        // does not mark the request high priority in this Next version;
+        // the desktop LCP element was fetched at Low. Explicit.
+        fetchPriority={priority ? "high" : undefined}
         className={className}
       />
     );

@@ -9,7 +9,10 @@ import UtilityBar from "@/components/UtilityBar";
 import Footer from "@/components/Footer";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { serializeJsonLd } from "@/lib/json-ld";
-import { buildLocalBusinessJsonLd } from "@/lib/structured-data";
+import {
+  buildLocalBusinessJsonLd,
+  buildWebSiteJsonLd,
+} from "@/lib/structured-data";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import "./globals.css";
 
@@ -106,6 +109,7 @@ export const metadata: Metadata = {
  * coordinates, ratings and a price range, none of which are verified.
  */
 const localBusinessJsonLd = buildLocalBusinessJsonLd();
+const webSiteJsonLd = buildWebSiteJsonLd();
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -121,6 +125,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: serializeJsonLd(localBusinessJsonLd),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(webSiteJsonLd),
           }}
         />
         {/* Renders nothing at all unless a Measurement ID is set. */}

@@ -14,7 +14,7 @@ export default function WarehouseLocation({
   headingId?: string;
   headingLevel?: "h2" | "h3";
 }) {
-  const { address, addressLines, googleMapsUrl, directionsUrl } =
+  const { address, addressLines, googleMapsUrl, directionsUrl, openingHours } =
     siteConfig.location;
   if (!address || !googleMapsUrl) {
     return null;
@@ -36,6 +36,20 @@ export default function WarehouseLocation({
           </span>
         ))}
       </address>
+      {/* The hours a search engine already reads from the LocalBusiness
+          markup, now visible on the page it links people to. Rendered
+          from the same array as the footer and /about, so the three
+          cannot disagree. */}
+      {openingHours && (
+        <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm leading-6 text-slate-700">
+          {openingHours.map((line) => (
+            <div key={line.days} className="contents">
+              <dt className="font-medium text-brand-navy">{line.days}</dt>
+              <dd>{line.hours}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <p className="mt-3 text-sm leading-6 text-slate-600">
         This is a fulfilment warehouse, not a shop. Deliveries and visits are
         arranged in advance.

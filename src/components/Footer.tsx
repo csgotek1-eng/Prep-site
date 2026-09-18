@@ -45,6 +45,23 @@ const socialLinks = [
  */
 const extraPageLinks = [{ href: "/cases", label: "Customer Stories" }];
 
+/**
+ * The audience pages, and the calculator, from every page.
+ *
+ * The September 2026 audit counted inbound links per route: the
+ * navigation pages had 17 each, /uk-brands 7, /china-asia-brands 4,
+ * /european-brands 4 and /pricing-calculator 3. The three audience
+ * pages are the most commercially specific pages on the site and they
+ * were the least linked. One column in the footer is a link from every
+ * page without adding an eighth item to a header that is full.
+ */
+const audienceLinks = [
+  { href: "/uk-brands", label: "UK brands" },
+  { href: "/china-asia-brands", label: "China & Asia brands" },
+  { href: "/european-brands", label: "European brands" },
+  { href: "/pricing-calculator", label: "Fulfilment cost calculator" },
+];
+
 const serviceLinks = [
   { href: "/services#receiving", label: "Receiving" },
   { href: "/services#prep", label: "Prep" },
@@ -98,6 +115,21 @@ export default function Footer() {
             </p>
             <ul className="mt-4 space-y-1">
               {serviceLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-white">
+              Who we work with
+            </p>
+            <ul className="mt-4 space-y-1">
+              {audienceLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

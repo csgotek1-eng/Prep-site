@@ -153,7 +153,12 @@ describe("Privacy page", () => {
 
   it("documents actual technical behaviour instead of invented claims", () => {
     assert.ok(page.includes("session storage"));
-    assert.ok(page.includes("Vercel"));
+    // The site moved to Cloudflare Workers; the policy named the old
+    // host until the September 2026 audit caught it. A privacy policy
+    // that names the wrong processor is the one claim on the page a
+    // reader can check in a second.
+    assert.ok(page.includes("Cloudflare"));
+    assert.equal(page.includes("Vercel"), false, "the policy names a host the site left");
     assert.ok(page.includes("rate limit"));
   });
 

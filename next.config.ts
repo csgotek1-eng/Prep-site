@@ -92,9 +92,45 @@ const securityHeaders = [
   },
 ];
 
+// ONE HOSTNAME, ONE SCHEME.
+// 
+// Verified during the September 2026 SEO audit: https://www.dockentra.ie,
+// http://dockentra.ie and http://www.dockentra.ie all answered 200 with
+// the full page. Four hosts serving identical content, held apart by
+// nothing but the canonical tag — which is a hint to a crawler, not a
+// rule. A 301 is the rule. www folds into the apex because the apex is
+// what the canonical, the sitemap and the structured data already name;
+// plain http folds into https because HSTS only protects the second
+// visit and the redirect is what protects the first.
+// 
+// The http rule keys on x-forwarded-proto, which the Cloudflare edge sets
+// for the Worker. Where the header is absent — local `next start` —
+// the rule simply never matches, and nothing loops: a request that is
+// already https on the apex matches neither rule.
+const CANONICAL_ORIGIN = "https://dockentra.ie";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.dockentra.ie" }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [
+          { type: "host", value: "dockentra.ie" },
+          { type: "header", key: "x-forwarded-proto", value: "http" },
+        ],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -107,6 +143,17 @@ const nextConfig: NextConfig = {
         // max-age=0, so every visit re-validates ~700 KB of media. An
         // hour of browser caching plus a day of stale-while-revalidate
         // removes that without making a replacement invisible for long.
+        source: "/brand/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        // (see the /brand rule above: the logo mark is requested by
+        // every page and was re-fetched on every navigation)
         source: "/media/:path*",
         headers: [
           {
