@@ -317,18 +317,24 @@ describe("the small metadata fixes", () => {
 describe("the /uk-brands comparison cards are framed identically", () => {
   const source = page("uk-brands");
 
-  it("both cards use a single 1px border with the same radius", () => {
-    assert.ok(
-      source.includes('className="rounded-2xl border border-brand-border bg-white p-6"'),
-      "the left card's framing changed",
-    );
-    assert.ok(
-      source.includes('className="rounded-2xl border border-brand-green bg-white p-6"'),
-      "the highlighted card is not a single 1px green border",
+  it("both cards use the identical neutral frame", () => {
+    // The right card carried a green outline through two iterations of
+    // this fix and the owner has since removed it: the two frames are
+    // now the same class list, so the comparison is made by the text
+    // rather than by an outline around one side of it. Counted, not
+    // spot-checked, because "identical" is the whole requirement.
+    const frames =
+      source.match(/className="rounded-2xl border[^"]*bg-white p-6"/g) ?? [];
+    assert.equal(frames.length, 2, "the comparison cards moved or multiplied");
+    assert.equal(frames[0], frames[1], `the two cards are framed differently: ${frames.join(" vs ")}`);
+    assert.equal(
+      frames[0],
+      'className="rounded-2xl border border-brand-border bg-white p-6"',
+      "the shared frame is no longer the neutral 1px card",
     );
   });
 
-  it("the highlighted card carries no second border, ring or shadow", () => {
+  it("neither card carries a second border, ring or shadow", () => {
     // Everything that would read as a doubled edge.
     const cards = source.match(/className="rounded-2xl border[^"]*"/g) ?? [];
     assert.ok(cards.length >= 2, "the comparison cards moved");
@@ -337,9 +343,10 @@ describe("the /uk-brands comparison cards are framed identically", () => {
     }
   });
 
-  it("the highlight is colour, not weight", () => {
-    // border-brand-green at full strength rather than /40, because a
-    // 40% green on a 1px line is nearly invisible.
+  it("no green outline survives anywhere on the comparison", () => {
+    // Both the faded original and the full-strength green that
+    // replaced it. The owner removed the highlight entirely, so either
+    // one reappearing is the regression.
     //
     // Comments stripped first: the fix records the old class by name so
     // the next reader knows what changed and why, and a raw-text check
@@ -348,10 +355,12 @@ describe("the /uk-brands comparison cards are framed identically", () => {
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
-    assert.equal(
-      code.includes("border-brand-green/40"),
-      false,
-      "the highlight went back to a faded green, which does not read at 1px",
-    );
+    for (const outline of ["border-brand-green/40", "border border-brand-green "]) {
+      assert.equal(
+        code.includes(outline),
+        false,
+        `a green outline is back on the comparison cards: ${outline}`,
+      );
+    }
   });
 });

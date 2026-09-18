@@ -398,20 +398,16 @@ export default function UkBrandsPage() {
               </ul>
             </div>
 
-            {/* SAME BORDER WEIGHT AS THE CARD BESIDE IT, highlighted by
-                colour instead of thickness.
-                This was `border-2 border-brand-green/40` against the
-                left card's 1px `border`, which caused three separate
-                problems at once: the frame read as heavier, a 2px
-                border on a 16px radius renders unevenly along the
-                right and bottom edges wherever the grid column lands
-                on a fractional pixel, and the thicker border pushed
-                this card's content box 1px in on each side so the two
-                cards' text no longer lined up.
-                One clean 1px border, full-strength green rather than
-                40% so the highlight survives the thinner line. No ring,
-                no shadow, no second border. */}
-            <div className="rounded-2xl border border-brand-green bg-white p-6">
+            {/* THE SAME FRAME AS THE CARD BESIDE IT, exactly.
+                This card has been through three styles: a 2px
+                `border-brand-green/40` that rendered unevenly on a
+                16px radius and pushed its own content box 1px in, then
+                a clean 1px full-strength green, and now no highlight at
+                all (owner decision). The class list is copied from the
+                left card rather than re-derived, so the two frames
+                cannot drift apart again; the argument is made by the
+                text in it, not by an outline around it. */}
+            <div className="rounded-2xl border border-brand-border bg-white p-6">
               <h3 className="text-lg font-semibold text-brand-navy">
                 Picked and packed in Limerick
               </h3>
