@@ -893,7 +893,13 @@ export default function PricingCalculator({
               Request pricing again
             </button>
           </div>
-          {panel && selectedServicesReview}
+          {/* THE SCOPE NOTICE IS NOT DESKTOP-ONLY.
+              On lg+ it arrives inside the selected-services review;
+              below lg that review is not rendered here at all, so the
+              carrier-delivery and VAT facts would have reached desktop
+              visitors and nobody else. They are the whole point of this
+              round, and most of these requests come from a phone. */}
+          {panel ? selectedServicesReview : scopeNotice}
           </div>
         ) : (
           <form
@@ -1134,7 +1140,7 @@ export default function PricingCalculator({
               </a>
               .
             </p>
-            {panel && selectedServicesReview}
+            {panel ? selectedServicesReview : scopeNotice}
             </div>
             {/* ACTION FOOTER — stable band. On lg+ it is a sibling of
                 the scrolling middle, so it is always on screen inside

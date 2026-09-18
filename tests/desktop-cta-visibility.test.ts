@@ -122,7 +122,14 @@ describe("the desktop Step 3 panel is three separate bands", () => {
 describe("the selection stays readable inside the card", () => {
   it("is reviewed inside the panel's scrolling band", () => {
     assert.ok(code.includes("const selectedServicesReview"));
-    assert.equal((code.match(/\{panel && selectedServicesReview\}/g) ?? []).length, 2);
+    // Both renderings decide the same way, and below lg the branch
+    // shows the scope notice instead: the review is not rendered in the
+    // flow layout, so without it the carrier-delivery and VAT facts
+    // would have reached desktop visitors and nobody else.
+    assert.equal(
+      (code.match(/\{panel \? selectedServicesReview : scopeNotice\}/g) ?? []).length,
+      2,
+    );
     const review = code.slice(
       code.indexOf("const selectedServicesReview"),
       code.indexOf("const renderActionsPanel"),

@@ -485,3 +485,39 @@ describe("the public surface still carries no money", () => {
     assert.ok(internal.includes("€361.00"), internal);
   });
 });
+
+// ---------------------------------------------------------------------
+// 8. The disclosure reaches every visitor, not only the desktop ones
+// ---------------------------------------------------------------------
+
+describe("the scope notice is not desktop-only", () => {
+  /**
+   * Caught in live verification, not in a unit test: the notice was
+   * rendered inside the selected-services review, and that review only
+   * exists in the lg+ panel layout. Below lg — which is where most of
+   * these requests come from — the carrier-delivery and VAT facts
+   * appeared nowhere at all, which is the exact defect this round was
+   * opened to fix, surviving on the half of the traffic that matters
+   * most.
+   */
+  const source = read("src/components/PricingCalculator.tsx");
+
+  it("renders in both layouts", () => {
+    assert.equal(
+      (source.match(/\{panel \? selectedServicesReview : scopeNotice\}/g) ?? []).length,
+      2,
+      "the scope notice is gated on the desktop panel again",
+    );
+  });
+
+  it("the notice itself carries all three facts", () => {
+    const notice = source.slice(
+      source.indexOf("const scopeNotice"),
+      source.indexOf("const disclaimer"),
+    );
+    assert.match(notice, /CARRIER_DELIVERY_LABEL/);
+    assert.match(notice, /CARRIER_DELIVERY_STATUS/);
+    assert.match(notice, /CARRIER_DELIVERY_NOTE/);
+    assert.match(notice, /VAT_BASIS_NOTE/);
+  });
+});
