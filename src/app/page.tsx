@@ -155,6 +155,13 @@ export default async function HomePage() {
             <div className="relative mx-auto aspect-[9/16] w-full max-w-[16rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft shadow-sm sm:max-w-[19rem] lg:max-w-none">
               <ProcessVideo
                 priority
+                /* Follows the grid column above, which widened when the
+                   watermark stopped sharing the space. The default hint
+                   still says 23rem, and a hint narrower than the slot
+                   makes the image pipeline pick a candidate too small
+                   for the poster a reduced-motion or save-data visitor
+                   actually gets. */
+                sizes="(min-width: 1280px) 26rem, (min-width: 1024px) 23rem, (min-width: 640px) 19rem, 16rem"
                 src="/media/hero/dockentra-process-packing.mp4"
                 poster="/media/hero/dockentra-process-packing.jpg"
                 alt="Gloved hands wrapping a boxed item, packing it into a carton and placing labelled cartons onto warehouse shelving."
