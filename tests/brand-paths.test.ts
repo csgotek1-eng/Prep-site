@@ -67,10 +67,12 @@ describe("the three brand entry points are equal", () => {
     ]) {
       assert.ok(copy.includes(heading), `missing card heading: ${heading}`);
     }
+    // Short labels of comparable length, so no button wraps where the
+    // others do not and none of the three reads as the long one.
     for (const cta of [
       "Explore UK fulfilment",
-      "Explore China & Asia fulfilment",
-      "Explore European fulfilment",
+      "Explore Asia fulfilment",
+      "Explore Europe fulfilment",
     ]) {
       assert.ok(copy.includes(cta), `missing button: ${cta}`);
     }
@@ -81,14 +83,36 @@ describe("the three brand entry points are equal", () => {
     );
     assert.ok(
       copy.includes(
-        "Send stock to Ireland in bulk and let Dockentra handle the physical operation locally",
+        "Send stock to Ireland in bulk and let Dockentra handle receiving, inspection, storage, prep, pick & pack, courier handover and returns.",
       ),
     );
     assert.ok(
       copy.includes(
-        "Add a local Irish fulfilment base without opening and operating your own warehouse.",
+        "Add a local Irish fulfilment base without operating your own warehouse here.",
       ),
     );
+  });
+
+  it("gives every card two paragraphs, so none of them sits half empty", () => {
+    // The UK card carried one paragraph and the other two carried two,
+    // which left it visibly lighter with a band of space above its
+    // button. Balanced by copy that says something, not by a spacer.
+    for (const supporting of [
+      "Keep stock closer to the Irish market while Dockentra handles receiving, storage, pick & pack and local returns.",
+      "Keep control of your brand and sales channels while we manage the physical fulfilment operation in Ireland.",
+      "Keep your wider European operation while Dockentra handles the Irish side of fulfilment and returns.",
+    ]) {
+      assert.ok(copy.includes(supporting), `missing supporting line: ${supporting}`);
+    }
+    // Every card renders both paragraphs unconditionally: a conditional
+    // second paragraph is how one card ends up shorter again.
+    assert.equal(
+      /\{path\.supporting && \(/.test(source),
+      false,
+      "the second paragraph is optional again",
+    );
+    assert.equal((source.match(/supporting:/g) ?? []).length, 3);
+    assert.equal((source.match(/supporting: null/g) ?? []).length, 0);
   });
 
   it("renders all three from one template, so none can drift", () => {

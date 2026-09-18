@@ -26,24 +26,25 @@ export const BRAND_PATHS = [
   {
     heading: "For UK brands",
     body: "Move stock into Ireland in bulk and fulfil customer orders locally. Reduce the friction of sending individual parcels across the border and give your customers a local delivery and returns experience.",
-    supporting: null,
+    supporting:
+      "Keep stock closer to the Irish market while Dockentra handles receiving, storage, pick & pack and local returns.",
     cta: "Explore UK fulfilment",
     href: "/uk-brands",
   },
   {
     heading: "For China & Asia brands",
-    body: "Send stock to Ireland in bulk and let Dockentra handle the physical operation locally — receiving, inspection, storage, prep, pick & pack, courier handover and returns.",
+    body: "Send stock to Ireland in bulk and let Dockentra handle receiving, inspection, storage, prep, pick & pack, courier handover and returns.",
     supporting:
-      "Keep control of your brand and sales channels while Dockentra manages the day-to-day fulfilment operation in Ireland.",
-    cta: "Explore China & Asia fulfilment",
+      "Keep control of your brand and sales channels while we manage the physical fulfilment operation in Ireland.",
+    cta: "Explore Asia fulfilment",
     href: "/china-asia-brands",
   },
   {
     heading: "For European brands",
-    body: "Add a local Irish fulfilment base without opening and operating your own warehouse. Send stock to Dockentra, hold inventory locally and dispatch individual orders to customers across Ireland.",
+    body: "Add a local Irish fulfilment base without operating your own warehouse here. Hold inventory locally and dispatch individual orders to customers across Ireland.",
     supporting:
-      "Keep your existing European operation and use Dockentra for the Irish side of your fulfilment.",
-    cta: "Explore European fulfilment",
+      "Keep your wider European operation while Dockentra handles the Irish side of fulfilment and returns.",
+    cta: "Explore Europe fulfilment",
     href: "/european-brands",
   },
 ] as const;
@@ -70,14 +71,20 @@ export default function BrandPathCards({ className = "mt-10" }: { className?: st
             <h3 className="text-lg font-semibold text-brand-navy">
               {path.heading}
             </h3>
+            {/* TWO PARAGRAPHS ON EVERY CARD, not two on some.
+                The UK card used to carry one, which left it visibly
+                lighter than the other two and opened a band of empty
+                space above its button. The fix is the same shape on
+                all three rather than a spacer: every card states what
+                moves, then what we hold on to. The conditional that
+                allowed a missing second paragraph is gone with it —
+                the type no longer permits one. */}
             <p className="mt-4 text-base leading-7 text-slate-700">
               {path.body}
             </p>
-            {path.supporting && (
-              <p className="mt-4 text-base leading-7 text-slate-700">
-                {path.supporting}
-              </p>
-            )}
+            <p className="mt-4 text-base leading-7 text-slate-700">
+              {path.supporting}
+            </p>
             <div className="mt-6 flex grow flex-col justify-end">
               <Link
                 href={path.href}
