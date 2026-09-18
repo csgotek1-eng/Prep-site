@@ -1,16 +1,43 @@
-import Link from "next/link";
 import Container from "@/components/Container";
-import ShipBySellerContent from "@/components/sections/ShipBySellerContent";
+import BrandPathCards from "@/components/sections/BrandPathCards";
 
 /**
- * WHY AN IRISH SELLER NEEDS STOCK INSIDE IRELAND — homepage block.
- * ТЗ 15.09.2026, A6. Sits between "Who Dockentra is for" and
- * "Everything between your supplier and your customer".
+ * WHY STOCK IN IRELAND — homepage block. ТЗ 15.09.2026, A6. Sits
+ * between "Who Dockentra is for" and "Everything between your supplier
+ * and your customer".
  *
- * The body is shared with /why-ireland, which carries the same text
- * under an H1 plus a second section about the €3 charge. The €3
- * paragraph is deliberately NOT here: on the homepage this block makes
- * the platform argument, and the money argument has its own page.
+ * IT USED TO BE WRITTEN FOR ONE READER, AND SAID SO THREE TIMES.
+ *
+ * The heading named an "Irish seller", the body was the shared Ship by
+ * Seller argument about one platform's rules, the only link out was
+ * "Read how the €3 charge works", and the single card beneath it was
+ * for UK brands. Every one of those is true and useful; none of them
+ * is general. A brand in Shenzhen or Rotterdam landing on the homepage
+ * read a block about TikTok's Irish policy and a British customs
+ * charge, and reasonably concluded this was not a service for them.
+ *
+ * So the general block is now general: what holding stock here does,
+ * what we physically do with it, and the honest admission that the
+ * REASON differs by where the stock starts even though the outcome
+ * does not. The specifics did not go anywhere — they moved to where
+ * the reader who needs them already is:
+ *
+ *  - Ship by Seller / TikTok: still on /why-ireland, where it sits
+ *    under its own H1 and is not the first thing a stranger reads.
+ *  - The €3 charge: /uk-brands and /china-asia-brands, which are the
+ *    non-EU contexts where it applies. Putting a customs link in a
+ *    shared section aimed partly at European brands would have implied
+ *    an equivalence that does not exist — stock moving from Germany
+ *    into Ireland is not an import.
+ *
+ * THE UK ASIDE IS GONE, replaced by the three cards every other
+ * audience surface uses. It was one door beneath copy that names three
+ * audiences, which is the same inequality those cards were built to
+ * remove, relocated to the homepage.
+ *
+ * NOTHING HERE PROMISES A DELIVERY TIME, a cost saving or growth.
+ * "Local carriers from Limerick" is what we can stand over; how fast
+ * they are is theirs to promise, not ours.
  */
 export default function WhyIrelandSection() {
   return (
@@ -24,50 +51,39 @@ export default function WhyIrelandSection() {
             id="why-ireland-heading"
             className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
           >
-            Why an Irish seller needs stock inside Ireland
+            Why brands selling in Ireland benefit from stock held in Ireland
           </h2>
-          <div className="mt-6">
-            <ShipBySellerContent />
+          <div className="mt-6 space-y-4 text-base leading-7 text-slate-700">
+            <p>
+              Sending every customer order from another country adds distance,
+              more handovers and a more complicated returns process. Holding
+              stock in Ireland allows customer orders to be fulfilled locally
+              once the inventory is here.
+            </p>
+            <p>
+              Dockentra receives stock in bulk, checks and stores it, prepares
+              orders, picks and packs, hands parcels to national carriers and
+              handles returns locally.
+            </p>
+            <p>
+              The reason for holding stock in Ireland can be different for a UK
+              brand, a China or Asia brand, or a European brand. The goal is
+              the same: a simpler local fulfilment operation for Irish
+              customers without having to run your own warehouse here.
+            </p>
+            <p>
+              From our Limerick base, Dockentra can support fulfilment to
+              customers across Ireland through national carrier networks.
+            </p>
           </div>
-          <Link
-            href="/uk-brands"
-            className="mt-6 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-          >
-            Read how the €3 charge works
-          </Link>
-
-          {/* THE SAME PAGE, ADDRESSED TO THE OTHER READER.
-              Everything above is written for a seller already in
-              Ireland. /uk-brands answers a different person entirely, a
-              British brand deciding whether to hold stock here, and
-              nothing on the homepage said so: the only route in was a
-              link about a customs charge, which is not what that
-              visitor is looking for. Hence a second door, labelled
-              with who it is for, rather than a second section
-              repeating the argument. */}
-          <aside
-            aria-labelledby="uk-brands-entry-heading"
-            className="mt-10 rounded-xl border border-brand-border bg-white p-5 sm:p-6"
-          >
-            <p
-              id="uk-brands-entry-heading"
-              className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark"
-            >
-              For UK brands selling into Ireland
-            </p>
-            <p className="mt-2 text-base leading-7 text-slate-700">
-              Sending every order across the Irish Sea has a cost, and so does
-              holding stock on this side. We put both on one page with the
-              numbers behind them.
-            </p>
-            <Link
-              href="/uk-brands"
-              className="mt-4 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-            >
-              See the UK cost comparison
-            </Link>
-          </aside>
         </div>
+
+        {/* The three regional doors, the same component /why-ireland
+            renders, so the homepage cannot end up offering a different
+            set or a different shape. Each card says who it is for and
+            goes to that audience's own page, where the argument gets
+            specific again. */}
+        <BrandPathCards />
       </Container>
     </section>
   );

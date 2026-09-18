@@ -246,8 +246,12 @@ describe("the amount appears once per section, not throughout the prose", () => 
     // comparison list — three separate content sections.
     ["/uk-brands", "src/app/uk-brands/page.tsx", 3],
     ["/why-ireland", "src/app/why-ireland/page.tsx", 1],
-    // The homepage keeps its single link label by owner decision.
-    ["homepage block", "src/components/sections/WhyIrelandSection.tsx", 1],
+    // The homepage block names no amount at all now. Its "Read how the
+    // €3 charge works" link was removed when the section was rewritten
+    // for all three audiences: a customs link in a section aimed
+    // partly at European brands implies an equivalence that does not
+    // exist, since stock moving from within the EU is not an import.
+    ["homepage block", "src/components/sections/WhyIrelandSection.tsx", 0],
     // The FAQ defers to the pages it links to.
     ["FAQ + FAQPage schema", "src/lib/faq.ts", 0],
   ];

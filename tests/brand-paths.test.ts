@@ -38,14 +38,18 @@ const copyOf = (slug: string) => stripComments(page(slug)).replace(/\s+/g, " ");
 // ---------------------------------------------------------------------
 
 describe("the three brand entry points are equal", () => {
-  const source = page("why-ireland");
-  const copy = copyOf("why-ireland");
+  // The cards moved into a shared component when the homepage needed
+  // the same three doors. Two copies of the markup would have drifted;
+  // one component cannot, and these tests follow it rather than the
+  // page that happens to render it.
+  const CARDS = "src/components/sections/BrandPathCards.tsx";
+  const source = read(CARDS);
+  const copy = stripComments(source).replace(/\s+/g, " ");
+  const whyIreland = copyOf("why-ireland");
 
-  it("carries the approved section heading and intro", () => {
-    assert.match(copy, /For international brands/);
-    assert.match(copy, /A local fulfilment base for the Irish market/);
+  it("carries the approved intro on /why-ireland", () => {
     assert.match(
-      copy,
+      whyIreland,
       /Whether your stock is coming from Britain, Asia or elsewhere in Europe, Dockentra can give your business a local fulfilment operation in Ireland without the cost and complexity of running your own warehouse\./,
     );
   });
@@ -141,7 +145,7 @@ describe("the three brand entry points are equal", () => {
   });
 
   it("uses one button class for all three", () => {
-    const buttons = [...page("why-ireland").matchAll(/className="inline-flex min-h-12[^"]*"/g)]
+    const buttons = [...read(CARDS).matchAll(/className="inline-flex[^"]*"/g)]
       .map((m) => m[0]);
     // The card buttons render from a single JSX node, so there is one
     // literal. If someone hand-writes a second, this catches it.
@@ -168,24 +172,41 @@ describe("the three brand entry points are equal", () => {
     }
   });
 
+  it("is rendered on both surfaces that offer the three audiences", () => {
+    // /why-ireland introduces them and the homepage block names all
+    // three in its copy. Either one rendering its own version is how
+    // the two sets start to differ.
+    for (const surface of [
+      "src/app/why-ireland/page.tsx",
+      "src/components/sections/WhyIrelandSection.tsx",
+    ]) {
+      assert.match(read(surface), /<BrandPathCards/, `${surface} does not render the cards`);
+    }
+  });
+
+  it("carries the approved /why-ireland section heading and intro", () => {
+    assert.match(whyIreland, /For international brands/);
+    assert.match(whyIreland, /A local fulfilment base for the Irish market/);
+  });
+
   it("keeps the section's closing CTA and wires it to the real actions", () => {
     // This survived the rebuild from two blocks into three cards, and
     // it is the only place on /why-ireland that opens the calculator.
-    assert.match(copy, /Need a local fulfilment partner in Ireland\?/);
+    assert.match(whyIreland, /Need a local fulfilment partner in Ireland\?/);
     assert.match(
-      copy,
+      whyIreland,
       /Tell us where your stock is coming from, what you sell and how many orders you expect\./,
     );
     // Get Price flips the ONE shared dialog rather than navigating.
-    assert.match(copy, /<CalculatorModal label="Get Price"/);
-    assert.match(copy, /href="\/contact#enquiry"/);
-    assert.match(copy, /Contact Us/);
+    assert.match(whyIreland, /<CalculatorModal label="Get Price"/);
+    assert.match(whyIreland, /href="\/contact#enquiry"/);
+    assert.match(whyIreland, /Contact Us/);
   });
 
   it("leaves the approved customs copy and its single mention alone", () => {
-    assert.match(copy, /€3 customs duty per distinct item type/);
+    assert.match(whyIreland, /€3 customs duty per distinct item type/);
     assert.equal(
-      (stripComments(source).match(/€3(?!\.\d)/g) ?? []).length,
+      (stripComments(page("why-ireland")).match(/€3(?!\.\d)/g) ?? []).length,
       1,
       "the customs amount is named more than once again",
     );
@@ -396,5 +417,98 @@ describe("the two new audience pages", () => {
       3,
       "the customs amount count on /uk-brands has changed",
     );
+  });
+});
+
+// ---------------------------------------------------------------------
+// 3. The homepage block, rewritten for all three audiences
+// ---------------------------------------------------------------------
+
+describe("the homepage Why Ireland block speaks to every audience", () => {
+  const BLOCK = "src/components/sections/WhyIrelandSection.tsx";
+  const source = read(BLOCK);
+  const copy = stripComments(source).replace(/\s+/g, " ");
+
+  it("carries the approved heading", () => {
+    assert.match(
+      copy,
+      /Why brands selling in Ireland benefit from stock held in Ireland/,
+    );
+  });
+
+  it("carries all four approved paragraphs", () => {
+    for (const paragraph of [
+      "Sending every customer order from another country adds distance, more handovers and a more complicated returns process.",
+      "Holding stock in Ireland allows customer orders to be fulfilled locally once the inventory is here.",
+      "Dockentra receives stock in bulk, checks and stores it, prepares orders, picks and packs, hands parcels to national carriers and handles returns locally.",
+      "The reason for holding stock in Ireland can be different for a UK brand, a China or Asia brand, or a European brand.",
+      "a simpler local fulfilment operation for Irish customers without having to run your own warehouse here.",
+      "From our Limerick base, Dockentra can support fulfilment to customers across Ireland through national carrier networks.",
+    ]) {
+      assert.ok(copy.includes(paragraph), `missing approved copy: ${paragraph}`);
+    }
+  });
+
+  it("no longer reads as a page about one platform or one country", () => {
+    // Ship by Seller is a TikTok policy and the block used to lead with
+    // it. It still lives on /why-ireland under its own heading, which
+    // is where a reader looking for it will be.
+    assert.equal(
+      /ShipBySellerContent/.test(source),
+      false,
+      "the homepage block still renders the Ship by Seller argument",
+    );
+    assert.equal(/TikTok|Ship by Seller/i.test(copy), false);
+    assert.equal(
+      /Why an Irish seller needs stock inside Ireland/.test(copy),
+      false,
+      "the old single-audience heading is still here",
+    );
+    // And the UK-only aside it used to carry.
+    assert.equal(/For UK brands selling into Ireland/.test(copy), false);
+    assert.equal(/See the UK cost comparison/.test(copy), false);
+  });
+
+  it("carries no customs call to action in a shared section", () => {
+    // The link named a charge that does not apply to an intra-EU
+    // movement, in a block now addressed partly to European brands.
+    assert.equal(/Read how the €3 charge works/.test(copy), false);
+    assert.equal(copy.includes("€3"), false, "the homepage block names the amount again");
+    assert.equal(/customs|duty|VAT/i.test(copy), false, "a customs claim is back in the shared block");
+  });
+
+  it("still offers all three regional doors", () => {
+    assert.match(source, /<BrandPathCards/);
+    // And through the shared component, so the homepage cannot end up
+    // with a different set from /why-ireland.
+    assert.equal(
+      /href="\/uk-brands"/.test(copy),
+      false,
+      "the homepage block hand-rolls its own audience links again",
+    );
+  });
+
+  it("keeps the existing section styling rather than inventing one", () => {
+    assert.match(copy, /bg-brand-surface-soft/);
+    assert.match(copy, /text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl/);
+    assert.match(copy, /py-16 sm:py-20/);
+    assert.match(copy, /max-w-3xl/);
+  });
+
+  it("promises no speed, saving or growth", () => {
+    for (const pattern of [
+      /faster|fastest|next.day/i,
+      /cheaper|lower cost|save money/i,
+      /grow your (sales|revenue|business)/i,
+      /guarantee/i,
+    ]) {
+      assert.equal(pattern.test(copy), false, `the homepage block overclaims: ${pattern}`);
+    }
+  });
+
+  it("leaves the TikTok argument where it is still used", () => {
+    // Removed from the homepage, NOT from the site.
+    assert.match(read("src/app/why-ireland/page.tsx"), /<ShipBySellerContent/);
+    assert.ok(read("src/components/sections/ShipBySellerContent.tsx").length > 0);
   });
 });
