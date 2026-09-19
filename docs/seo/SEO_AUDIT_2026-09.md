@@ -27,7 +27,7 @@ The pages that matter most commercially (**/uk-brands**, **/china-asia-brands**,
 |---|---|---|---|---|---|
 | 1 | Create/verify Google Search Console for `dockentra.ie`, submit `sitemap.xml`, request indexing of the homepage and the three audience pages, read the coverage report | EXTERNAL | very high | high | S |
 | 2 | Deploy this round: one canonical origin, homepage title with Limerick, H1s, WebSite + Service schema, footer links, 3PL wording, contact hours | IMPLEMENTED | high | high | done |
-| 3 | Turn on **Always Use HTTPS** in Cloudflare (the app-level redirect covers www→apex and forwarded-http; the edge should also enforce it) | EXTERNAL | medium | high | S |
+| 3 | Turn on **Always Use HTTPS** in Cloudflare — this is now the **only** http → https mechanism; the app redirects www → apex and deliberately nothing else (see F1) | EXTERNAL | medium | high | S |
 | 4 | Claim and complete the **Google Business Profile** with the exact NAP the site publishes (§8) | EXTERNAL | high (local) | medium | M |
 | 5 | Decide the **opening status**: the FAQ says "Not yet… opening in 2026" while the LocalBusiness markup publishes weekly hours. Google reads both. (Verifiers: facts confirmed; the /dispatch-commitment sentence is forward-looking and was not a third contradiction — severity MEDIUM, not HIGH.) | EXTERNAL (owner decision) | medium | high | S |
 
@@ -46,7 +46,7 @@ The pages that matter most commercially (**/uk-brands**, **/china-asia-brands**,
 | Trailing slash | `/services/` → 308 → `/services` | VERIFIED — correct |
 | Query parameters | `?utm_source=x` → 200 with canonical to the clean URL | VERIFIED — acceptable |
 | JavaScript rendering | all page copy present in the served HTML; hero `<video>` mounts client-side by design (poster is in the HTML) | VERIFIED |
-| **Hostnames** | `https://www.dockentra.ie`, `http://dockentra.ie`, `http://www.dockentra.ie` **all served the full site with 200** and no redirect; only the canonical tag distinguished them | VERIFIED — **fixed this round** (§16, F1) |
+| **Hostnames** | `https://www.dockentra.ie`, `http://dockentra.ie`, `http://www.dockentra.ie` **all served the full site with 200** and no redirect; only the canonical tag distinguished them | VERIFIED — www → apex **fixed this round** (§16, F1); http → https is an edge setting (§17) |
 | Google Search Console | not connected to this session | **UNKNOWN** — see §17 |
 | Indexed pages | brand search returns the GitHub repository, not the site; site-restricted search returns nothing | INFERENCE: not indexed |
 
@@ -68,7 +68,7 @@ The pages that matter most commercially (**/uk-brands**, **/china-asia-brands**,
 | `/_next/image` | passthrough on the Worker: no resizing, no AVIF/WebP | VERIFIED — RECOMMENDED (image loader or pre-derived assets); refuters rated MEDIUM |
 | TTFB | 140–370 ms typical; two outliers (3.1 s, 1.1 s) not reproducible | VERIFIED then **refuted as a defect** by both verifiers → OPPORTUNITY (edge caching of HTML) |
 | Calculator open cost | 230–370 ms frame delay under 4× CPU throttle | VERIFIED — MEDIUM, conversion not search; RECOMMENDED |
-| HTTPS / HSTS | present on https; `http://` served 200 rather than redirecting | VERIFIED — app redirect **fixed** (F1); edge setting EXTERNAL (§17) |
+| HTTPS / HSTS | present on https; `http://` served 200 rather than redirecting | VERIFIED — **EXTERNAL** (§17 item 2): must be enforced at the edge, not in the app (F1) |
 
 **Crawlability:** every public route is reachable from a link, not only from the sitemap. The three audience pages and the calculator were the least linked (7, 4, 4 and 3 inbound links against 17 for navigation pages) — **fixed** (F7).
 
@@ -320,7 +320,7 @@ Commit: see git log — `feat(seo): strengthen Dockentra organic search visibili
 
 | # | Fix | File(s) | Severity addressed |
 |---|---|---|---|
-| F1 | **One canonical origin**: `www.dockentra.ie` → `https://dockentra.ie` (permanent), and forwarded `http` → `https` (permanent), via Next `redirects()`. Verified locally with Host / x-forwarded-proto headers: 308, query string preserved, no loop on the apex. | `next.config.ts` | MEDIUM (verifiers: LOW for search, HIGH for hygiene) |
+| F1 | **One canonical hostname**: `www.dockentra.ie` → `https://dockentra.ie` (permanent) via Next `redirects()`, root and paths as separate rules. **Incident, recorded honestly:** the first deployment also redirected `x-forwarded-proto: http` to https and used one `/:path*` rule; on the Worker the scheme header matched HTTPS traffic too and the root was answered with a literal `/:path*`, so every apex request redirected to itself. Detected in post-deploy verification, rolled back within three minutes, fixed, proven in a local Worker preview, redeployed. Plain http → https is now an edge setting (§17 item 2), not an app rule. | `next.config.ts` | MEDIUM (verifiers: LOW for search, HIGH for hygiene) |
 | F2 | Homepage/default title `E-commerce Fulfilment & Prep, Limerick, Ireland \| Dockentra`; description names Limerick, 3PL and the services (≤160) | `src/lib/site.ts` | MEDIUM |
 | F3 | H1s: /services "Fulfilment & prep services in Ireland", /pricing "Fulfilment pricing in Ireland", /how-it-works "How fulfilment with Dockentra works" | three `page.tsx` | MEDIUM |
 | F4 | /why-ireland description rewritten for the three-audience page (156 chars, no "customs" — one audience is intra-EU) | `why-ireland/page.tsx` | MEDIUM |
@@ -346,7 +346,7 @@ Tests: 1226/1226. Typecheck 0. Lint 0 (one pre-existing `<img>` warning). Clean 
 In priority order. None can be done from the repository.
 
 1. **Google Search Console** — add and verify `dockentra.ie` (DNS TXT record via the domain registrar, or the HTML-tag method through `NEXT_PUBLIC` metadata verification if preferred). Submit `https://dockentra.ie/sitemap.xml`. Use URL Inspection → Request indexing on `/`, `/services`, `/uk-brands`, `/china-asia-brands`, `/european-brands`. Then read Pages → "Why pages aren't indexed". Until this is done, nothing else in this document can be measured.
-2. **Cloudflare → SSL/TLS → Edge Certificates → Always Use HTTPS: On.** The app now redirects forwarded-http requests, but the edge should refuse plain http before the Worker runs. (Not changed here: Cloudflare configuration was out of scope.)
+2. **Cloudflare → SSL/TLS → Edge Certificates → Always Use HTTPS: On.** This is the only safe place for http → https: an app-level rule keyed on the forwarded scheme matched HTTPS traffic on the Worker and looped the whole site (rolled back within three minutes; see F1). Not changed here: Cloudflare configuration was out of scope.
 3. **Opening status** — decide, then make the FAQ answer, the published hours, the dispatch promise and the Business Profile say the same thing. If not yet open: remove the weekly hours from `siteConfig.location.openingHours` (the schema and the contact page follow it) and state the opening date once.
 4. **Google Business Profile** — §8.
 5. **Legal identity** — trading entity name, registration or business-name number, and the data controller for the privacy policy. Supplied by the owner; never inferred.

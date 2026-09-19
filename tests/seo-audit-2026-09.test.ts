@@ -39,29 +39,35 @@ const stripComments = (source: string) =>
 // 1. One hostname, one scheme
 // ---------------------------------------------------------------------
 
-describe("the site answers on one canonical origin", () => {
+describe("the site answers on one canonical hostname", () => {
   const config = stripComments(read("next.config.ts"));
+  const rules = config.slice(config.indexOf("async redirects()"), config.indexOf("async headers()"));
 
-  it("folds www into the apex with a permanent redirect", () => {
-    assert.match(config, /has: \[\{ type: "host", value: "www\.dockentra\.ie" \}\]/);
-    assert.match(config, /destination: `\$\{CANONICAL_ORIGIN\}\/:path\*`/);
-    assert.match(config, /permanent: true/);
+  it("folds www into the apex with a permanent redirect, root and paths separately", () => {
+    // Two rules on purpose: the Worker answered the root with a literal
+    // "/:path*" when one wildcard rule covered everything.
+    assert.ok(config.includes('const WWW_HOST = { type: "host", value: "www.dockentra.ie" }'));
+    assert.match(rules, /source: "\/",\s*has: \[WWW_HOST\],\s*destination: CANONICAL_ORIGIN,\s*permanent: true/);
+    assert.match(rules, /source: "\/:path\+",\s*has: \[WWW_HOST\],\s*destination: `\$\{CANONICAL_ORIGIN\}\/:path\+`,\s*permanent: true/);
     assert.ok(config.includes('const CANONICAL_ORIGIN = "https://dockentra.ie"'));
   });
 
-  it("folds plain http into https, keyed on the edge's forwarded scheme", () => {
-    assert.match(config, /\{ type: "header", key: "x-forwarded-proto", value: "http" \}/);
+  it("never keys a redirect on the request scheme", () => {
+    // The first release redirected x-forwarded-proto: http to https and
+    // the Worker matched HTTPS traffic with it: every apex request
+    // redirected to itself and the site was down until rollback.
+    // http -> https is the edge's job (Cloudflare "Always Use HTTPS").
+    assert.equal(/x-forwarded-proto/.test(rules), false, "a scheme-keyed redirect is back");
+    assert.equal(/type: "header"/.test(rules), false);
   });
 
-  it("cannot loop: neither rule matches an https request on the apex", () => {
-    // Both rules require something the canonical origin does not have —
-    // the www host, or a forwarded scheme of http.
-    const rules = config.slice(config.indexOf("async redirects()"), config.indexOf("async headers()"));
-    assert.equal((rules.match(/permanent: true/g) ?? []).length, 2);
-    assert.equal(rules.includes('value: "https"'), false);
+  it("cannot loop: every rule requires the www host", () => {
+    const ruleCount = (rules.match(/permanent: true/g) ?? []).length;
+    const hostCount = (rules.match(/has: \[WWW_HOST\]/g) ?? []).length;
+    assert.equal(ruleCount, 2);
+    assert.equal(hostCount, ruleCount, "a redirect rule without the www host condition");
   });
 });
-
 // ---------------------------------------------------------------------
 // 2. What the site is and where it is, in the title
 // ---------------------------------------------------------------------

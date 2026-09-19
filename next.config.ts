@@ -92,22 +92,31 @@ const securityHeaders = [
   },
 ];
 
-// ONE HOSTNAME, ONE SCHEME.
-// 
-// Verified during the September 2026 SEO audit: https://www.dockentra.ie,
-// http://dockentra.ie and http://www.dockentra.ie all answered 200 with
-// the full page. Four hosts serving identical content, held apart by
-// nothing but the canonical tag — which is a hint to a crawler, not a
-// rule. A 301 is the rule. www folds into the apex because the apex is
-// what the canonical, the sitemap and the structured data already name;
-// plain http folds into https because HSTS only protects the second
-// visit and the redirect is what protects the first.
-// 
-// The http rule keys on x-forwarded-proto, which the Cloudflare edge sets
-// for the Worker. Where the header is absent — local `next start` —
-// the rule simply never matches, and nothing loops: a request that is
-// already https on the apex matches neither rule.
+// ONE HOSTNAME.
+//
+// Verified during the September 2026 SEO audit: https://www.dockentra.ie
+// answered 200 with the full page, held apart from the apex by nothing
+// but the canonical tag - a hint to a crawler, not a rule. A permanent
+// redirect is the rule. www folds into the apex because the apex is
+// what the canonical, the sitemap and the structured data already name.
+//
+// TWO RULES, NOT ONE WITH A WILDCARD. The first deployment used
+// `source: "/:path*"` for everything; on the Cloudflare Worker the root
+// request was answered with a literal `Location: https://dockentra.ie/:path*`.
+// `next start` substituted it correctly, the Worker did not, and the
+// difference is not visible from a local Node test. So the root has its
+// own rule and the wildcard requires at least one segment.
+//
+// NO SCHEME RULE HERE. The same deployment also redirected
+// `x-forwarded-proto: http` to https, and on the Worker that header
+// matched HTTPS traffic as well - every request to the apex redirected
+// to itself, the site was unreachable for three minutes, and the
+// release was rolled back. Plain http -> https belongs to the edge:
+// Cloudflare's "Always Use HTTPS" setting, recorded as an owner action
+// in docs/seo/SEO_AUDIT_2026-09.md. Nothing in this file may key a
+// redirect on the request scheme.
 const CANONICAL_ORIGIN = "https://dockentra.ie";
+const WWW_HOST = { type: "host", value: "www.dockentra.ie" } as const;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -115,18 +124,15 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.dockentra.ie" }],
-        destination: `${CANONICAL_ORIGIN}/:path*`,
+        source: "/",
+        has: [WWW_HOST],
+        destination: CANONICAL_ORIGIN,
         permanent: true,
       },
       {
-        source: "/:path*",
-        has: [
-          { type: "host", value: "dockentra.ie" },
-          { type: "header", key: "x-forwarded-proto", value: "http" },
-        ],
-        destination: `${CANONICAL_ORIGIN}/:path*`,
+        source: "/:path+",
+        has: [WWW_HOST],
+        destination: `${CANONICAL_ORIGIN}/:path+`,
         permanent: true,
       },
     ];
