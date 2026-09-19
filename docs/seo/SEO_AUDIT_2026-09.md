@@ -329,7 +329,7 @@ Commit: see git log — `feat(seo): strengthen Dockentra organic search visibili
 | F7 | Footer "Who we work with": UK brands, China & Asia brands, European brands, Fulfilment cost calculator — a site-wide inbound link for the four least-linked commercial pages | `Footer.tsx` | MEDIUM |
 | F8 | FAQ: one truthful sentence naming Dockentra a third-party logistics (3PL) provider and giving the US spelling once | `src/lib/faq.ts` | OPPORTUNITY |
 | F9 | `fetchPriority="high"` on the hero still (the desktop LCP element was fetched at Low) | `ProcessVideo.tsx` | MEDIUM → LOW |
-| F10 | `Cache-Control` for `/brand/*` (the header mark was re-fetched on every page) | `next.config.ts` | HIGH → MEDIUM (partial: caching, not resizing) |
+| F10 | `Cache-Control` for `/brand/*` (the header mark was re-fetched on every page). On this runtime static files are served by Workers Assets before Next runs, so the rule lives in `public/_headers` (mirrored in `next.config.ts`, as that file requires) — the first deploy carried only the Next rule and the live header did not change; verified after the second. | `public/_headers`, `next.config.ts` | HIGH → MEDIUM (partial: caching, not resizing) |
 | F11 | Opening hours rendered on /contact from the same array the footer, /about and the schema use | `WarehouseLocation.tsx` | LOW (local) |
 | F12 | **WebSite** JSON-LD in the root layout, linked to the business, no SearchAction | `structured-data.ts`, `layout.tsx` | MEDIUM |
 | F13 | **Service** JSON-LD on /services from the page's own 12 cards; no Offer, price, rating or review | `structured-data.ts`, `services/page.tsx` | OPPORTUNITY |

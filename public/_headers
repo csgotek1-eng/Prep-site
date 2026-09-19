@@ -43,6 +43,16 @@
 /media/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+# Brand assets: the header mark is requested by EVERY page and, until
+# the September 2026 SEO audit, was re-fetched on every navigation with
+# max-age=0. The next.config.ts rule for /brand alone did nothing here
+# for the reason at the top of this file — the Worker never sees the
+# request — so this is the rule that actually applies. Mirrors the
+# /brand rule in next.config.ts. A day in the browser cache is enough:
+# the files change only when the owner replaces them.
+/brand/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 # Content-hashed build output. A new build means a new filename, so
 # these can be cached hard and forever.
 /_next/static/*

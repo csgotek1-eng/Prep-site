@@ -81,6 +81,21 @@ describe("static files keep the security headers the Worker gives pages", () => 
     assert.ok(headersFile.includes("/media/*"), "_headers does not scope it to /media");
   });
 
+  it("the /brand cache rule is in BOTH places too", () => {
+    // Added by the September 2026 SEO audit: the header mark is on
+    // every page and was re-fetched on every navigation. The first
+    // attempt put the rule only in next.config.ts, which the Worker
+    // never consults for a static file — the live header did not
+    // change. Same lesson as /media, learned twice.
+    const rule = "Cache-Control: public, max-age=86400, stale-while-revalidate=604800";
+    assert.ok(headersFile.includes(rule), "_headers lost the /brand cache rule");
+    assert.ok(headersFile.includes("/brand/*"), "_headers does not scope it to /brand");
+    assert.ok(
+      nextConfig.includes("public, max-age=86400, stale-while-revalidate=604800"),
+      "next.config.ts lost the /brand cache rule",
+    );
+  });
+
   it("carries a STATIC csp, and not a copy of the real one", () => {
     // Rules only: the comments in _headers discuss the CSP at length
     // and must not be mistaken for setting one.
