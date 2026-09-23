@@ -40,7 +40,7 @@ export default function PricingSection() {
       aria-labelledby="pricing-heading"
       className="scroll-mt-28 bg-white"
     >
-      <Container className="py-14 sm:py-16">
+      <Container className="py-16 sm:py-20">
         <div className="rounded-2xl border border-brand-border bg-brand-mint-soft/60 px-6 py-10 sm:px-10">
           <div className="max-w-2xl">
             <h2
@@ -49,7 +49,7 @@ export default function PricingSection() {
             >
               Your price, privately
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-700">
+            <p className="mt-3 text-base leading-7 text-slate-600">
               Every seller is priced on how they actually run, so a published
               rate would be wrong for most of you. Tell us your volume and the
               services you need. It takes a minute.

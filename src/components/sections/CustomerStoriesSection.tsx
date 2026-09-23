@@ -32,7 +32,7 @@ export default async function CustomerStoriesSection() {
   const hasStories = reviews.length > 0;
 
   return (
-    <section aria-labelledby="customer-stories-heading" className="bg-white">
+    <section aria-labelledby="customer-stories-heading" className="bg-brand-surface-soft">
       <Container className="py-16 sm:py-20">
         <div className="max-w-3xl">
           <h2
@@ -41,7 +41,7 @@ export default async function CustomerStoriesSection() {
           >
             Customer stories
           </h2>
-          <p className="mt-4 text-base leading-7 text-slate-700">
+          <p className="mt-3 text-base leading-7 text-slate-600">
             {hasStories
               ? "What clients say about working with us, published only with their permission."
               : "We are opening in 2026, so there is not much to show here yet. When clients have worked with us and are happy for us to publish what they think, their words go on one page, and only theirs."}

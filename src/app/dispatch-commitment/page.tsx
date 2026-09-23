@@ -64,11 +64,11 @@ export default function DispatchCommitmentPage() {
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-brand-navy/80 sm:bg-transparent sm:bg-gradient-to-r sm:from-brand-navy/95 sm:via-brand-navy/80 sm:to-brand-navy/45"
+            className="absolute inset-0 bg-gradient-to-b from-brand-navy/85 to-brand-navy/70 lg:bg-gradient-to-r lg:from-brand-navy/85 lg:via-brand-navy/70 lg:via-70% lg:to-brand-navy/40"
           />
           <figcaption className="absolute bottom-3 left-0 right-0">
             <Container>
-              <span className="text-xs leading-5 text-white/70">
+              <span className="text-xs leading-5 text-white/80">
                 Illustrative footage of fulfilment work: parcels changing hands.
               </span>
             </Container>
@@ -88,7 +88,7 @@ export default function DispatchCommitmentPage() {
       </section>
 
       <section aria-label="Dispatch commitment" className="bg-white">
-        <Container className="py-14 sm:py-20">
+        <Container className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl">
             <div className="space-y-6 text-base leading-7 text-slate-700">
               <p>
@@ -117,7 +117,7 @@ export default function DispatchCommitmentPage() {
               </p>
             </div>
 
-            <div className="mt-12 rounded-xl bg-brand-mint-soft p-6 sm:p-8">
+            <div className="mt-12 rounded-2xl bg-brand-mint-soft p-6 sm:p-8">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-lg font-semibold text-brand-navy">
                   Ready to put your orders behind that?
@@ -125,7 +125,7 @@ export default function DispatchCommitmentPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
                   <Link
                     href="/become-a-client"
-                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
                   >
                     Become a Client
                   </Link>

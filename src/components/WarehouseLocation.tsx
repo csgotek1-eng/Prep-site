@@ -21,7 +21,7 @@ export default function WarehouseLocation({
   }
 
   return (
-    <div className="rounded-xl border border-brand-border bg-brand-surface-soft p-6 sm:p-8">
+    <div className="rounded-lg border border-brand-border bg-brand-surface-soft p-6 sm:p-8">
       <Heading
         id={headingId}
         className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
@@ -60,7 +60,7 @@ export default function WarehouseLocation({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Open the Dockentra warehouse location in Google Maps"
-          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
         >
           Open in Google Maps
         </a>
@@ -69,7 +69,7 @@ export default function WarehouseLocation({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Get directions to the Dockentra warehouse in Google Maps"
-          className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-6 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
+          className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
         >
           Get Directions
         </a>

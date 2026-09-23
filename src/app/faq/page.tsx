@@ -55,7 +55,7 @@ export default function FaqPage() {
       </section>
 
       <section aria-label="FAQ" className="bg-white">
-        <Container className="py-14 sm:py-20">
+        <Container className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl space-y-10">
             {faqCategories.map((category) => (
               <div key={category}>
@@ -70,7 +70,7 @@ export default function FaqPage() {
               </div>
             ))}
 
-            <div className="rounded-xl border border-brand-border bg-brand-mint-soft p-6 sm:p-8">
+            <div className="rounded-2xl border border-brand-border bg-brand-mint-soft p-6 sm:p-8">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-lg font-semibold text-brand-navy">
@@ -86,7 +86,7 @@ export default function FaqPage() {
                     support system. Visible wording is unchanged. */}
                 <a
                   href="/contact#enquiry"
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-6 text-base font-semibold text-white transition-colors hover:bg-brand-green-dark"
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
                 >
                   Send an enquiry
                 </a>

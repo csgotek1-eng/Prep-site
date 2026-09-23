@@ -90,7 +90,7 @@ export default function ServicesSection() {
               >
                 <span
                   aria-hidden="true"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#2E7D5A]"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-mint-soft text-brand-green"
                 >
                   <service.Icon className="h-6 w-6" strokeWidth={1.75} />
                 </span>

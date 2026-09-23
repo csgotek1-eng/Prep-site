@@ -79,16 +79,11 @@ const JOBS = [
     vf: "crop=ih*9/16:ih,scale=720:1280",
     crf: "31",
   },
-  {
-    // "From stock to shipment": hands taping a carton shut — the
-    // "Packed" step, literally. Square, because the slot is square;
-    // the tape gun and both hands sit inside the centred crop.
-    source: "6169088-uhd_3840_2160_25fps.mp4",
-    out: "public/media/process/dockentra-process-taping.mp4",
-    args: [],
-    vf: "crop=ih:ih,scale=720:720",
-    crf: "30",
-  },
+  // The carton-taping clip (6169088-uhd_3840_2160_25fps.mp4) was tried
+  // in "From stock to shipment" and withdrawn on 2026-09-23: the owner
+  // kept the earlier dispatch clip there. To bring it back:
+  //   vf "crop=ih:ih,scale=720:720", crf 30, out
+  //   public/media/process/dockentra-process-taping.mp4.
   {
     // /dispatch-commitment header: labelled parcels changing hands.
     // A background band behind the heading, so 1280 wide is plenty.
@@ -100,13 +95,18 @@ const JOBS = [
   },
 ];
 
+/**
+ * Posters. The two hero posters are cut from the 4K SOURCE, not from
+ * the encoded clip: on a phone the poster is the whole hero (clips do
+ * not autoplay on handheld devices, owner decision 2026-09-23), so it
+ * is the sharpest frame the site serves, and the image pipeline on the
+ * Worker does not resize, so the file is delivered as-is to every
+ * screen. 1080x1920 for portrait screens, 1920x1080 for the rest.
+ */
 const POSTERS = [
-  // The hero poster is the largest-contentful-paint element on the
-  // homepage and sits under the same dark overlay as the clip, so it
-  // takes a lower quality than the two small posters.
-  { from: "public/media/hero/dockentra-process-aisle.mp4", out: "public/media/hero/dockentra-process-aisle.webp", quality: "55" },
-  { from: "public/media/process/dockentra-process-taping.mp4", out: "public/media/process/dockentra-process-taping.webp", quality: "72" },
-  { from: "public/media/process/dockentra-process-handover.mp4", out: "public/media/process/dockentra-process-handover.webp", quality: "72" },
+  { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "scale=1920:-2", out: "public/media/hero/dockentra-process-aisle.webp", quality: "55" },
+  { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "crop=ih*9/16:ih,scale=1080:1920", out: "public/media/hero/dockentra-process-aisle-portrait.webp", quality: "55" },
+  { from: "public/media/process/dockentra-process-handover.mp4", vf: null, out: "public/media/process/dockentra-process-handover.webp", quality: "72" },
 ];
 
 const kb = (file) => `${Math.round(statSync(file).size / 1024)} KB`;
@@ -124,8 +124,14 @@ for (const job of JOBS) {
 }
 
 for (const poster of POSTERS) {
-  const input = path.join(repoRoot, poster.from);
+  const input = poster.from.startsWith("SOURCE:")
+    ? path.join(SOURCE_DIR, poster.from.slice("SOURCE:".length))
+    : path.join(repoRoot, poster.from);
   const output = path.join(repoRoot, poster.out);
-  execFileSync(FFMPEG, ["-y", "-v", "error", "-i", input, "-frames:v", "1", "-c:v", "libwebp", "-quality", poster.quality, output]);
+  execFileSync(FFMPEG, [
+    "-y", "-v", "error", "-i", input, "-frames:v", "1",
+    ...(poster.vf ? ["-vf", poster.vf] : []),
+    "-c:v", "libwebp", "-quality", poster.quality, output,
+  ]);
   console.log(`${poster.out.padEnd(58)} ${kb(output)}`);
 }

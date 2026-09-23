@@ -119,7 +119,7 @@ export default function Header() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-700 hover:bg-brand-mint-soft lg:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-700 transition-colors hover:bg-brand-mint-soft lg:hidden"
             >
               {menuOpen ? (
                 <svg
@@ -164,7 +164,7 @@ export default function Header() {
                     href={link.href}
                     onClick={closeMenu}
                     aria-current={pathname === link.href ? "page" : undefined}
-                    className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium hover:bg-brand-mint-soft ${
+                    className={`flex min-h-12 items-center rounded-md px-3 text-base font-medium transition-colors hover:bg-brand-mint-soft ${
                       pathname === link.href
                         ? "text-brand-green-dark"
                         : "text-slate-700"
@@ -181,7 +181,7 @@ export default function Header() {
                     closeMenu();
                     openHelp();
                   }}
-                  className="flex min-h-12 w-full items-center rounded-md px-3 text-base font-medium text-slate-700 hover:bg-brand-mint-soft"
+                  className="flex min-h-12 w-full items-center rounded-md px-3 text-base font-medium text-slate-700 transition-colors hover:bg-brand-mint-soft"
                 >
                   Help
                 </button>

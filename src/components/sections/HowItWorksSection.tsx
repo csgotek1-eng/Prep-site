@@ -81,7 +81,7 @@ export default function HowItWorksSection() {
         </ol>
         <Link
           href="/how-it-works"
-          className="mt-8 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+          className="mt-8 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
         >
           See the full process
           <span aria-hidden="true" className="ml-1">

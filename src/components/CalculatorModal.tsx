@@ -65,7 +65,7 @@ export function useCataloguePrefetch(): () => void {
 const VARIANTS = {
   /** Top-right site CTA. Text only — no icon (owner request). */
   header:
-    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
+    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark",
   /**
    * The homepage hero's PRIMARY action — solid, not outlined.
    *
@@ -76,12 +76,12 @@ const VARIANTS = {
    * and the pair beside it ("See how it works") carries the outline.
    */
   hero:
-    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-brand-green px-10 text-lg font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto sm:min-w-[16rem]",
+    "inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-brand-green px-10 text-lg font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto sm:min-w-[16rem]",
   /** The hero's calm second door, same height as the primary. */
   heroSecondary:
     "inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-lg border border-brand-navy/25 bg-white px-8 text-lg font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 sm:w-auto",
   primary:
-    "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md",
+    "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark",
   onDark:
     "inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint",
   secondary:

@@ -100,7 +100,7 @@ export default function WhyIrelandPage() {
           <div className="max-w-3xl">
             <h2
               id="customs-charge-heading"
-              className="text-xl font-semibold tracking-tight text-brand-navy sm:text-2xl"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
             >
               €3 customs duty per distinct item type
             </h2>
@@ -186,7 +186,7 @@ export default function WhyIrelandPage() {
               <CalculatorModal label="Get Price" icon={false} />
               <Link
                 href="/contact#enquiry"
-                className="inline-flex min-h-12 items-center justify-center rounded-md border-2 border-white/30 px-6 text-base font-semibold text-white transition hover:border-white"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
               >
                 Contact Us
               </Link>

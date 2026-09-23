@@ -6,7 +6,7 @@ here is served to a visitor; `public/media/**` holds the web versions.
 | source | web version | what changed |
 |---|---|---|
 | `dockentra-process-packing.source.mp4` | — (retired) | was the 9:16 hero clip. **RETIRED 2026-09-23** in the video trial round; web copy deleted, source kept. |
-| `dockentra-process-dispatch.source.mp4` | — (retired) | was the "From stock to shipment" clip. **RETIRED 2026-09-23**, same as above. |
+| `dockentra-process-dispatch.source.mp4` | `public/media/process/dockentra-process-dispatch.mp4` | audio track removed, H.264 High, CRF 28, faststart. 1.22 MB → 335 KB. Still the "From stock to shipment" clip: a taping clip replaced it for a few hours on 2026-09-23 and the owner asked for this one back. |
 | `viktor.source.png` | `public/media/team/viktor.webp` | downscale 1122×1402 → 880×1100 (same 4:5, no crop), WebP q85. 1.79 MB → 60 KB |
 | `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
 | `denis.source.png` | `public/media/team/denis.webp` | same treatment. 1.92 MB → 82 KB |
@@ -50,20 +50,29 @@ comes back.
 
 ## Video trial round, 2026-09-23
 
-Three owner-supplied clips replaced the two above. The originals are
-NOT in this folder: the largest is a 72 MB 4K camera file, too heavy
+Three owner-supplied clips were added; two of them ship (the hero and
+/dispatch-commitment) and the dispatch clip above stays on the homepage.
+The originals are NOT in this folder: the largest is a 72 MB 4K camera file, too heavy
 for the repository. The owner holds them under these names, and
 `scripts/derive-site-videos.mjs` rebuilds every web file from them
 (crop, length and rate factor are written down there):
 
 | owner original | web version | treatment |
 |---|---|---|
-| `19896989-uhd_3840_2160_25fps.mp4` (4K, 30 s, with audio) | `public/media/hero/dockentra-process-aisle.mp4` + `-aisle-portrait.mp4` + `.webp` poster | first 15 s; 1920 wide for landscape, a 720x1280 centre crop for portrait screens; audio removed |
-| `6169088-uhd_3840_2160_25fps.mp4` (4K, 10 s) | `public/media/process/dockentra-process-taping.mp4` + `.webp` | centre square crop, 720x720 |
+| `19896989-uhd_3840_2160_25fps.mp4` (4K, 30 s, with audio) | `public/media/hero/dockentra-process-aisle.mp4` + `-aisle-portrait.mp4`; posters `-aisle.webp` (1920x1080) and `-aisle-portrait.webp` (1080x1920), both cut from the 4K source | first 15 s; 1920 wide for landscape, a 720x1280 centre crop for portrait screens; audio removed |
+| `6169088-uhd_3840_2160_25fps.mp4` (4K, 10 s) | — (not used) | tried in "From stock to shipment" and withdrawn on 2026-09-23; the derive script documents how to bring it back |
 | `4440958-hd_1920_1080_25fps.mp4` (1080p, 4 s, with audio) | `public/media/process/dockentra-process-handover.mp4` + `.webp` | 1280 wide, audio removed |
 
 They are stock-style footage, so the rule below applies to them
-unchanged: every caption says *illustrative footage of fulfilment work*.
+unchanged: every caption says *illustrative footage of fulfilment work*
+— except the "From stock to shipment" figure, which carries NO caption
+at all since 2026-09-23 (owner decision). Its alt text still describes
+only what is shown.
+
+**Clips never autoplay on a phone or tablet** (owner decision,
+2026-09-23): handheld devices get the poster still and never fetch the
+clip. That is why the hero posters are cut from the 4K source rather
+than from the encoded clip — on a phone the poster IS the hero.
 
 ## What this footage is, and is not
 

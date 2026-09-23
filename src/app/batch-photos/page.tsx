@@ -82,7 +82,7 @@ export default function BatchPhotosPage() {
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/become-a-client"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
               >
                 Become a Client
               </Link>

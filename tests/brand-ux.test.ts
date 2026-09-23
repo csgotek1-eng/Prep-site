@@ -167,6 +167,22 @@ describe("hero decorative D", () => {
     assert.ok(home.includes("min-h-[calc(100svh-6.125rem)]"));
     assert.equal(home.includes("aspect-[9/16]"), false);
   });
+
+  it("keeps the veil as light as the footage allows", () => {
+    // Polish round, 2026-09-23: the owner asked for less darkening. These
+    // stops were measured on the rendered page (headline and paragraph
+    // >= 5.6:1 against the brightest 5% of pixels under their line
+    // boxes); a heavier veil is a regression of that decision, a lighter
+    // one needs measuring again.
+    const heroStart = home.indexOf('aria-labelledby="hero-heading"');
+    const hero = home.slice(heroStart, home.indexOf("</section>", heroStart));
+    assert.match(
+      hero,
+      /bg-gradient-to-b from-brand-navy\/80 via-brand-navy\/60 via-60% to-brand-navy\/30 lg:bg-gradient-to-r lg:from-brand-navy\/75 lg:via-brand-navy\/55 lg:via-70% lg:to-brand-navy\/20/,
+    );
+    assert.equal(hero.includes("bg-brand-navy/75"), false);
+    assert.equal(hero.includes("from-brand-navy/90"), false);
+  });
 });
 
 describe("brand icons", () => {
@@ -220,6 +236,23 @@ describe("brand icons", () => {
   it("hero marketplace chips carry the brand glyphs", () => {
     const home = read("src/app/page.tsx");
     assert.ok(home.includes("BrandIcon"));
+  });
+
+  it("hero marketplace chips are glass, with monochrome glyphs", () => {
+    // Polish round, 2026-09-23: translucent chips on the veiled footage.
+    // The fill stays low because white text on a white fill costs
+    // contrast (a 25% fill measured 3.7:1 on the clip's highlights);
+    // the glyphs are currentColor because the brand colours fall to
+    // 1.1–3.2:1 on dark glass.
+    const home = read("src/app/page.tsx");
+    const listStart = home.indexOf('aria-label="Sales channels we support"');
+    const row = home.slice(listStart, home.indexOf("</ul>", listStart));
+    assert.ok(listStart > 0);
+    assert.match(row, /rounded-full border border-white\/30 bg-white\/10 [^"]*text-white backdrop-blur-md/);
+    assert.match(row, /hover:bg-white\/20/);
+    assert.equal(/\bcolored\b/.test(row), false, "coloured glyphs are back on the dark glass");
+    assert.equal(/bg-white px-|text-brand-navy/.test(row), false, "the opaque chip is back");
+    assert.ok(home.includes('role="list"'));
   });
 
   it("icon-only social links keep accessible names", () => {

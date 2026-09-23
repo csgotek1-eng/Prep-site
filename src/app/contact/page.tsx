@@ -112,7 +112,7 @@ export default async function ContactPage() {
             ].map((route) => (
               <li
                 key={route.cta}
-                className="flex flex-col rounded-xl border border-brand-border bg-brand-surface-soft/60 p-6"
+                className="flex flex-col rounded-lg border border-brand-border bg-brand-surface-soft/60 p-6"
               >
                 <h3 className="text-base font-semibold text-brand-navy">
                   {route.title}

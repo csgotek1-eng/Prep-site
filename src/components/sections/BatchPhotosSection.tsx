@@ -12,7 +12,7 @@ import BatchPhotosContent from "@/components/sections/BatchPhotosContent";
  */
 export default function BatchPhotosSection() {
   return (
-    <section aria-labelledby="batch-photos-heading" className="bg-white">
+    <section aria-labelledby="batch-photos-heading" className="bg-brand-surface-soft">
       <Container className="py-16 sm:py-20">
         <div className="max-w-3xl">
           <h2

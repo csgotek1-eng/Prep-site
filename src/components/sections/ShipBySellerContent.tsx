@@ -29,7 +29,7 @@ export default function ShipBySellerContent({
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <>
-      <Heading className="text-xl font-semibold tracking-tight text-brand-navy sm:text-2xl">
+      <Heading className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
         Ship by Seller is the only option here
       </Heading>
       <div className="mt-4 space-y-4 text-base leading-7 text-slate-700">

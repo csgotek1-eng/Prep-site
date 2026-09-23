@@ -194,7 +194,7 @@ export default function EnquiryForm() {
       <button
         type="submit"
         disabled={phase === "sending"}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark disabled:opacity-70 sm:w-auto"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {phase === "sending" ? "Sending…" : "Send an enquiry"}
       </button>

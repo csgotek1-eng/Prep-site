@@ -96,9 +96,9 @@ export default function SellerFit() {
     <section
       id="who-its-for"
       aria-labelledby="seller-fit-heading"
-      className="scroll-mt-28 bg-brand-surface-soft"
+      className="scroll-mt-28 bg-white"
     >
-      <Container className="py-14 sm:py-16">
+      <Container className="py-16 sm:py-20">
         <h2
           id="seller-fit-heading"
           className="max-w-2xl text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
@@ -112,7 +112,7 @@ export default function SellerFit() {
             <li key={title} className="flex gap-4">
               <span
                 aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E7D5A] shadow-sm"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-mint-soft text-brand-green"
               >
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
               </span>

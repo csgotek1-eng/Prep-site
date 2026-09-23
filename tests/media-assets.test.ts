@@ -15,12 +15,15 @@ const strip = (s: string) =>
 const HERO_VIDEO = "public/media/hero/dockentra-process-aisle.mp4";
 const HERO_PORTRAIT_VIDEO = "public/media/hero/dockentra-process-aisle-portrait.mp4";
 const HERO_POSTER = "public/media/hero/dockentra-process-aisle.webp";
-const PROCESS_VIDEO = "public/media/process/dockentra-process-taping.mp4";
-const PROCESS_POSTER = "public/media/process/dockentra-process-taping.webp";
+const HERO_PORTRAIT_POSTER = "public/media/hero/dockentra-process-aisle-portrait.webp";
+// The owner's original staging-and-dispatch clip: a taping clip stood
+// here for a few hours on 2026-09-23 and was withdrawn.
+const PROCESS_VIDEO = "public/media/process/dockentra-process-dispatch.mp4";
+const PROCESS_POSTER = "public/media/process/dockentra-process-dispatch.jpg";
 const DISPATCH_VIDEO = "public/media/process/dockentra-process-handover.mp4";
 const DISPATCH_POSTER = "public/media/process/dockentra-process-handover.webp";
 const CLIPS = [HERO_VIDEO, HERO_PORTRAIT_VIDEO, PROCESS_VIDEO, DISPATCH_VIDEO];
-const POSTERS = [HERO_POSTER, PROCESS_POSTER, DISPATCH_POSTER];
+const POSTERS = [HERO_POSTER, HERO_PORTRAIT_POSTER, PROCESS_POSTER, DISPATCH_POSTER];
 const DISPATCH_PAGE = "src/app/dispatch-commitment/page.tsx";
 const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 
@@ -97,8 +100,11 @@ describe("the process clips are silent by construction", () => {
     assert.ok(kb(HERO_PORTRAIT_VIDEO) < 900, `portrait hero clip is ${Math.round(kb(HERO_PORTRAIT_VIDEO))} KB`);
     assert.ok(kb(PROCESS_VIDEO) < 600, `process clip is ${Math.round(kb(PROCESS_VIDEO))} KB`);
     assert.ok(kb(DISPATCH_VIDEO) < 600, `dispatch clip is ${Math.round(kb(DISPATCH_VIDEO))} KB`);
-    // The hero poster is a full-screen frame; the other two are small.
-    assert.ok(kb(HERO_POSTER) < 150, `${HERO_POSTER} is ${Math.round(kb(HERO_POSTER))} KB`);
+    // The hero posters are full-screen frames cut from the 4K source
+    // (on a phone the poster IS the hero); the other two are small.
+    for (const path of [HERO_POSTER, HERO_PORTRAIT_POSTER]) {
+      assert.ok(kb(path) < 150, `${path} is ${Math.round(kb(path))} KB`);
+    }
     for (const path of [PROCESS_POSTER, DISPATCH_POSTER]) {
       assert.ok(kb(path) < 120, `${path} is ${Math.round(kb(path))} KB`);
     }
@@ -122,8 +128,8 @@ describe("the process clips are silent by construction", () => {
     ].join("\n");
     // Only the src/poster attributes — "WhatsApp" appears in the copy
     // as a delivery channel, which is a different thing entirely.
-    const paths = [...markup.matchAll(/(?:src|portraitSrc|poster)="(\/media\/[^"]+)"/g)].map((m) => m[1]);
-    assert.ok(paths.length >= 8, `only ${paths.length} media paths found`);
+    const paths = [...markup.matchAll(/(?:src|portraitSrc|poster|portraitPoster)="(\/media\/[^"]+)"/g)].map((m) => m[1]);
+    assert.ok(paths.length >= 9, `only ${paths.length} media paths found`);
     for (const path of paths) {
       assert.equal(
         /WhatsApp|IMG-|VID-|\d{8}|\s/.test(path),
@@ -162,12 +168,17 @@ describe("the clips are decorative and honest", () => {
     // reducedMotion gates the SAME early return that renders the still,
     // so nothing is fetched. The condition also carries the data-saving
     // check now; what matters here is that reducedMotion is in it.
-    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<Image/.exec(
+    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(
       player,
     );
     assert.ok(guard, "the still is no longer behind a reducedMotion guard");
     assert.ok(guard[1].includes("reducedMotion !== false"));
     assert.ok(guard[1].includes("!nearViewport"));
+    // The still itself: a <picture> built by next/image's getImageProps,
+    // so it keeps the responsive candidate list and gains art direction.
+    assert.ok(player.includes("getImageProps"));
+    assert.ok(player.includes('<picture className="contents">'));
+    assert.ok(player.includes("<img ref={stillRef} {...landscapeStill}"));
   });
 
   it("loads exactly one clip eagerly and defers the rest", () => {
@@ -204,8 +215,31 @@ describe("the clips are decorative and honest", () => {
     const shown = surfaces
       .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
       .map((m) => m[1]);
-    assert.equal(shown.length, 4, `${shown.length} figures, expected 4`);
-    // The three CLIPS are stand-ins and say so. The /about
+    // Four figures, three captions: the "From stock to shipment" figure
+    // carries no caption at all (owner decision, 2026-09-23).
+    assert.equal(shown.length, 3, `${shown.length} captions, expected 3`);
+    const stockToShipment = read("src/components/sections/ProcessMedia.tsx");
+    assert.equal(
+      /<figcaption/.test(stockToShipment),
+      false,
+      "the stock-to-shipment figure grew a caption back",
+    );
+    // ...and it shows the owner's original dispatch clip, not the taping
+    // clip that stood there for a few hours and was withdrawn.
+    assert.match(stockToShipment, /src="\/media\/process\/dockentra-process-dispatch\.mp4"/);
+    assert.match(stockToShipment, /poster="\/media\/process\/dockentra-process-dispatch\.jpg"/);
+    assert.equal(stockToShipment.includes("dockentra-process-taping"), false);
+    assert.equal(existsSync("public/media/process/dockentra-process-taping.mp4"), false);
+    // The frame: a 4:5 portrait with square corners and no hairline, in a
+    // column a little wider than before (owner brief, 2026-09-23).
+    const frame = (stockToShipment.match(/className="relative mx-auto aspect-[^"]*"/) ?? [""])[0];
+    assert.ok(frame.includes("aspect-4/5"), `frame is ${frame}`);
+    assert.ok(frame.includes("overflow-hidden"));
+    assert.ok(frame.includes("max-w-[24rem]"));
+    assert.equal(/rounded-|\bborder\b/.test(frame), false, "corners or a hairline are back on the frame");
+    assert.match(stockToShipment, /lg:grid-cols-\[minmax\(0,24rem\)_minmax\(0,1fr\)\]/);
+    assert.match(stockToShipment, /xl:grid-cols-\[minmax\(0,26rem\)_minmax\(0,1fr\)\]/);
+    // The captioned CLIPS are stand-ins and say so. The /about
     // photograph stopped being one on 2026-09-11 — it is Viktor and
     // Anna — so it names them instead, and must not be called
     // illustrative. Every caption still has to say what is actually in
@@ -213,7 +247,7 @@ describe("the clips are decorative and honest", () => {
     // not show.
     const illustrative = shown.filter((c) => /Illustrative footage of fulfilment work/.test(c));
     const named = shown.filter((c) => /Viktor and Anna/.test(c));
-    assert.equal(illustrative.length, 3, "every stand-in clip must stay labelled illustrative");
+    assert.equal(illustrative.length, 2, "every captioned stand-in clip must stay labelled illustrative");
     assert.equal(named.length, 1, "the /about photograph must name the people it shows");
   });
 
@@ -378,6 +412,59 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     assert.equal(/object-position/.test(figure), false, "an off-centre focus point");
     assert.equal(/scale-\[?[1-9]/.test(figure), false, "the frame is zoomed in");
     assert.equal(/\bfill\b/.test(figure), false, "fill makes the image take the box's shape");
+  });
+});
+
+describe("handheld devices never autoplay", () => {
+  // Owner decision, 2026-09-23: on a phone or tablet the clip is not
+  // played automatically. Same mechanism as reduced motion: the
+  // <video> is never mounted, the poster still stands in, and no clip
+  // bytes are fetched on a phone at all.
+  const source = strip(read("src/components/ProcessVideo.tsx"));
+
+  it("defines handheld as narrow OR touch-first, in one media query list", () => {
+    assert.ok(
+      source.includes('"(width < 48rem), ((hover: none) and (pointer: coarse))"'),
+    );
+    assert.ok(source.includes("window.matchMedia(HANDHELD_QUERY)"));
+  });
+
+  it("folds the handheld check into the SAME branch that renders the still", () => {
+    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(source);
+    assert.ok(guard);
+    assert.ok(guard[1].includes("handheld !== false"));
+    // ...and the autoplay effect never fires on a handheld either.
+    assert.match(
+      source,
+      /if \(\s*reducedMotion !== false \|\|\s*dataSaving !== false \|\|\s*!nearViewport \|\|\s*handheld !== false\s*\) \{\s*return;/,
+    );
+  });
+
+  it("gives portrait screens a portrait still, chosen before first paint", () => {
+    assert.match(source, /<source\s+media=\{PORTRAIT_QUERY\}\s+srcSet=\{portraitStill\.srcSet\}/);
+    // The preload is media-scoped, so a phone fetches one poster, not
+    // two — and it goes through react-dom's preload(), which omits href
+    // when imageSrcSet is given, so a browser without imagesrcset
+    // support preloads nothing rather than the wrong candidate.
+    assert.ok(source.includes('import { preload } from "react-dom"'));
+    const preloads = [...source.matchAll(/preload\((\w+)\.src, \{([\s\S]*?)\}\);/g)];
+    assert.equal(preloads.length, 2);
+    assert.equal(preloads[0][1], "landscapeStill");
+    assert.ok(preloads[0][2].includes('media: portraitStill ? "(orientation: landscape)" : undefined'));
+    assert.equal(preloads[1][1], "portraitStill");
+    assert.ok(preloads[1][2].includes("media: PORTRAIT_QUERY"));
+    for (const [, still, options] of preloads) {
+      assert.ok(options.includes('fetchPriority: "high"'));
+      assert.ok(options.includes(`imageSrcSet: ${still}.srcSet`));
+    }
+    assert.equal(/<link\b/.test(source), false, "a raw preload <link> is back");
+    // The homepage hero passes the portrait still, and it is a real
+    // 9:16 frame, not the landscape poster renamed.
+    const home = read("src/app/page.tsx");
+    assert.match(home, /portraitPoster="\/media\/hero\/dockentra-process-aisle-portrait\.webp"/);
+    assert.ok(existsSync(HERO_PORTRAIT_POSTER));
+    const header = readFileSync(HERO_PORTRAIT_POSTER).subarray(0, 40);
+    assert.equal(header.toString("latin1", 8, 12), "WEBP");
   });
 });
 

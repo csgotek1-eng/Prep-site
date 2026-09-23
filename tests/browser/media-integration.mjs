@@ -197,8 +197,11 @@ for (const width of WIDTHS) {
 
 // ================= 4. reduced motion gets a still, not a loop ==========
 {
+  // Desktop width on purpose: on a phone the handheld rule already keeps
+  // the clip out, so a phone-sized check would pass even if the
+  // reduced-motion guard were deleted.
   const context = await browser.newContext({
-    ...view(390, 844),
+    ...view(1440, 900),
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
@@ -217,12 +220,28 @@ for (const width of WIDTHS) {
 }
 
 // ========== 5. the dock must not make anything unusable ================
-for (const width of [320, 390, 430]) {
-  const context = await browser.newContext(view(width, 844));
+// 664 is what an iPhone 12/13/14 shows with Safari's toolbars up; the
+// hero copy stack reaches the dock's row there, so the hero's action
+// must be kept out of the dock's column rather than merely above it.
+for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) {
+  const context = await browser.newContext(view(width, height));
   const page = await context.newPage();
-  step(`dock vs content @${width}`);
+  step(`dock vs content @${width}x${height}`);
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForTimeout(900);
+
+  // The hero's one action never shares a pixel with the dock.
+  const ctaOverlap = await page.evaluate(() => {
+    const dock = document.querySelector('[data-testid="floating-dock"]');
+    const cta = [...document.querySelectorAll("main section a")].find((a) =>
+      /See how it works/.test(a.textContent ?? ""),
+    );
+    if (!dock || !cta) return "missing";
+    const d = dock.getBoundingClientRect();
+    const c = cta.getBoundingClientRect();
+    return !(d.right < c.left || d.left > c.right || d.bottom < c.top || d.top > c.bottom);
+  });
+  ok(ctaOverlap === false, `@${width}x${height}: the dock overlaps the hero action (${ctaOverlap})`);
 
   // Every hero control must still be hit-testable at its own centre.
   const blocked = await page.evaluate(() => {
@@ -326,6 +345,68 @@ for (const width of [320, 390, 430]) {
   await context.close();
 }
 
+// ============ handheld devices: no autoplay, no clip bytes ============
+// Owner decision, 2026-09-23. A phone (either orientation) and a
+// tablet get the poster still; the <video> is never mounted and no
+// video response arrives, even after scrolling every clip into view.
+// A desktop at 768 and 1440 still mounts the clip.
+{
+  step("handheld: no autoplay");
+  const cases = [
+    { label: "phone portrait 390", width: 390, height: 844, touch: true, expectVideo: false },
+    { label: "phone portrait 430", width: 430, height: 932, touch: true, expectVideo: false },
+    { label: "phone landscape 844x390", width: 844, height: 390, touch: true, expectVideo: false },
+    { label: "tablet portrait 1024x1366", width: 1024, height: 1366, touch: true, expectVideo: false },
+    // The width clause on its own: a desktop window narrower than 768px
+    // gets the phone layout and, deliberately, the phone rule.
+    { label: "narrow desktop window 700", width: 700, height: 900, touch: false, expectVideo: false },
+    { label: "desktop 768", width: 768, height: 1024, touch: false, expectVideo: true },
+    { label: "desktop 1440", width: 1440, height: 900, touch: false, expectVideo: true },
+  ];
+  for (const c of cases) {
+    const context = await browser.newContext({
+      viewport: { width: c.width, height: c.height },
+      isMobile: c.touch,
+      hasTouch: c.touch,
+    });
+    const page = await context.newPage();
+    let videoResponses = 0;
+    page.on("response", (response) => {
+      if ((response.headers()["content-type"] ?? "").startsWith("video/")) videoResponses += 1;
+    });
+    await page.goto(BASE, { waitUntil: "networkidle" });
+    // Walk the page so every lazy clip is given its chance to mount.
+    await page.evaluate(async () => {
+      for (let y = 0; y <= document.body.scrollHeight; y += 600) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 80));
+      }
+      window.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(1200);
+    const state = await page.evaluate(() => ({
+      videos: document.querySelectorAll("video").length,
+      heroStill: document.querySelector('main section picture img[src*="dockentra-process-aisle"]'),
+      heroStillCurrent: document.querySelector('main section picture img')?.currentSrc ?? "",
+    }));
+    if (c.expectVideo) {
+      ok(state.videos >= 1, `${c.label}: the clip no longer mounts on a desktop`);
+    } else {
+      ok(state.videos === 0, `${c.label}: a <video> was mounted on a handheld (${state.videos})`);
+      ok(videoResponses === 0, `${c.label}: ${videoResponses} video response(s) on a handheld`);
+      ok(state.heroStill !== null, `${c.label}: no poster still stood in for the hero clip`);
+      // Art direction: an upright phone gets the portrait frame.
+      if (c.height > c.width) {
+        ok(
+          state.heroStillCurrent.includes("aisle-portrait"),
+          `${c.label}: the still is not the portrait frame (${state.heroStillCurrent})`,
+        );
+      }
+    }
+    await context.close();
+  }
+}
+
 // ============ data saving: the hero clip is never fetched ============
 {
   step("Save-Data");
@@ -333,7 +414,9 @@ for (const width of [320, 390, 430]) {
     ["normal connection", false],
     ["Save-Data on", true],
   ]) {
-    const context = await browser.newContext(view(390, 844));
+    // Desktop width on purpose: on a phone the handheld rule already
+    // keeps the clip out, so it would not show what Save-Data does.
+    const context = await browser.newContext(view(1440, 900));
     if (saveData) {
       await context.addInitScript(() => {
         Object.defineProperty(navigator, "connection", {

@@ -110,7 +110,7 @@ export default function AboutPage() {
 
           <LocationSection />
 
-          <div className="mx-auto mt-12 max-w-3xl rounded-lg bg-brand-navy p-6 sm:p-8">
+          <div className="mx-auto mt-12 max-w-3xl rounded-2xl bg-brand-navy p-6 sm:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-semibold text-white">
                 Want to know if we&apos;re a fit? Just ask.
@@ -118,7 +118,7 @@ export default function AboutPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
                 <Link
                   href="/become-a-client"
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
                 >
                   Become a Client
                 </Link>

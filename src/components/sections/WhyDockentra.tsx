@@ -90,7 +90,7 @@ export default function WhyDockentra() {
             (A10) a three-column grid leaves one card orphaned on its
             own row on desktop; 2x2 also gives the longest description
             room to breathe. */}
-        <dl className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {reasons.map((item) => (
             <div
               key={item.title}
@@ -103,7 +103,7 @@ export default function WhyDockentra() {
               <dt className="flex items-center gap-3 text-lg font-semibold tracking-tight text-brand-navy">
                 <span
                   aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E7D5A] shadow-sm"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-green shadow-sm"
                 >
                   <item.Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>

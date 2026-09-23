@@ -40,7 +40,7 @@ export default function HomeFaq() {
       aria-labelledby="home-faq-heading"
       className="scroll-mt-28 bg-brand-surface-soft"
     >
-      <Container className="py-14 sm:py-16">
+      <Container className="py-16 sm:py-20">
         <h2
           id="home-faq-heading"
           className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"

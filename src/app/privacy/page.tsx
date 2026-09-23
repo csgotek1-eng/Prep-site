@@ -32,7 +32,7 @@ export default function PrivacyPage() {
       </section>
 
       <section aria-label="Privacy policy" className="bg-white">
-        <Container className="py-14 sm:py-20">
+        <Container className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl space-y-10 text-base leading-7 text-slate-700">
             <div>
               <h2 className="text-xl font-bold tracking-tight text-brand-navy">

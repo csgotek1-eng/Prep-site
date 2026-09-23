@@ -231,7 +231,7 @@ export default function ReviewForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep disabled:opacity-70"
+          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-navy px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-navy-deep disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "sending" ? "Sending…" : "Send review"}
         </button>

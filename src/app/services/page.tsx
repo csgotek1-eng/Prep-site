@@ -18,7 +18,7 @@ import { serializeJsonLd } from "@/lib/json-ld";
 
 /** The page's primary action, used by both CTA bands. */
 const PRIMARY_CTA =
-  "inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md";
+  "inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark";
 
 export const metadata: Metadata = {
   title: "Fulfilment & Prep Services in Ireland",
@@ -249,7 +249,7 @@ export default function ServicesPage() {
                 <div className="flex items-center gap-4">
                   <span
                     aria-hidden="true"
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#2E7D5A]"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-mint-soft text-brand-green"
                   >
                     <service.Icon className="h-7 w-7" strokeWidth={1.75} />
                   </span>
@@ -305,7 +305,7 @@ export default function ServicesPage() {
 
       <section
         aria-labelledby="marketplace-services-heading"
-        className="bg-slate-50"
+        className="bg-brand-surface-soft"
       >
         <Container className="py-16 sm:py-20">
           <div className="max-w-3xl">

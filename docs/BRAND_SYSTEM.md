@@ -85,6 +85,9 @@ stays for errors only.
   (min-height 44px+, rounded-md).
 - **Secondary button**: white surface, `text-brand-navy`,
   `border-brand-navy/25`, hover shifts border/text to green.
+  Exception (2026-09-23): the homepage hero button sits on the video
+  veil, where a 25% navy hairline is invisible; it drops the border for
+  a soft navy shadow and a mint-soft hover fill instead.
 - **Cards**: white surface, `border-brand-border`, small radius,
   shadow-sm at most, navy heading, muted body, small gradient
   icon/dot accent.
@@ -117,14 +120,19 @@ stays for errors only.
     construction — the audio track is stripped, not just muted — they
     are decorative (`aria-hidden`, no controls, not focusable), and a
     visitor who asks for reduced motion gets the poster frame instead
-    of a loop. Exactly ONE clip on a page may load eagerly;
+    of a loop. Exactly ONE clip on a page may load eagerly. Clips never
+    autoplay on a phone or tablet (owner decision, 2026-09-23): a
+    handheld device gets the poster still and never fetches the clip;
   - **captions on unconfirmed footage say what it is.** Until the
     owner confirms footage shows Dockentra's own operation it is
     captioned *illustrative footage of fulfilment work*, and no
     surface beside it says "our warehouse", "our team", "our staff" or
-    "our facility". The media on the site today is TEMPORARY
+    "our facility". One exception, by owner decision on 2026-09-23:
+    the "From stock to shipment" figure on the homepage carries no
+    caption at all; its alt text still says only what is shown, and
+    the no-"our warehouse" rule holds there too. The media on the site today is TEMPORARY
     ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04) —
-    two process clips and one photograph of people — awaiting real
+    three process clips (the homepage hero, "From stock to shipment" and the /dispatch-commitment band) and one photograph of people — awaiting real
     Dockentra photography and video; see `media-source/README.md` for
     how to swap it in;
   - **imagery of PEOPLE is never cropped.** A crop tightens on torsos,

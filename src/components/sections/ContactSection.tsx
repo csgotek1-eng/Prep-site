@@ -94,7 +94,7 @@ export default function ContactSection() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <a
                 href={contactEmailHref}
-                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-navy-deep hover:shadow-md"
+                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-navy px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-navy-deep"
               >
                 <Mail aria-hidden="true" className="h-5 w-5" />
                 {contactEmailLabel}
@@ -103,7 +103,7 @@ export default function ContactSection() {
                 href={siteConfig.social.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-green px-6 text-base font-semibold text-white shadow-sm transition hover:bg-brand-green-dark hover:shadow-md"
+                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
               >
                 <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
                 WhatsApp Us
