@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ProcessVideo from "@/components/ProcessVideo";
 
 export const metadata: Metadata = {
   title: "Same-Day Dispatch Commitment",
@@ -43,8 +44,37 @@ export default function DispatchCommitmentPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Dispatch Commitment", path: "/dispatch-commitment" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
+      {/* The header band carries the page's one visual: labelled
+          parcels changing hands, the moment the commitment is about.
+          Background footage under a navy veil, in the section that was
+          already here, so the page gains a picture and no new block.
+          Lazy (not priority): the homepage hero is the only clip on the
+          site that competes for first paint.
+
+          ILLUSTRATIVE FOOTAGE, and the caption says so. It is not
+          presented as Dockentra's own team, courier or operation. */}
+      <section className="relative isolate overflow-hidden bg-brand-navy">
+        <figure className="absolute inset-0 -z-10 m-0">
+          <ProcessVideo
+            sizes="100vw"
+            src="/media/process/dockentra-process-handover.mp4"
+            poster="/media/process/dockentra-process-handover.webp"
+            alt="Two people holding cardboard parcels, one of them carrying a printed shipping label."
+            className="h-full w-full object-cover"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-brand-navy/80 sm:bg-transparent sm:bg-gradient-to-r sm:from-brand-navy/95 sm:via-brand-navy/80 sm:to-brand-navy/45"
+          />
+          <figcaption className="absolute bottom-3 left-0 right-0">
+            <Container>
+              <span className="text-xs leading-5 text-white/70">
+                Illustrative footage of fulfilment work: parcels changing hands.
+              </span>
+            </Container>
+          </figcaption>
+        </figure>
+        <Container className="relative py-16 sm:py-24">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               In by 14:00, out the same day. And what happens if we miss it.

@@ -46,16 +46,19 @@ export default function ProcessMedia() {
           <figure className="order-2 lg:order-1">
             <div className="relative mx-auto aspect-square w-full max-w-[20rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft lg:max-w-none">
               {/* Lazy, and NOT prioritised: the hero clip is the one
-                  asset allowed to compete for the first paint. */}
+                  asset allowed to compete for the first paint. The
+                  clip is a carton being taped shut, the "Packed" step
+                  in close-up; it replaced an older stock-style montage
+                  of staging and loading in the video trial round. */}
               <ProcessVideo
-                src="/media/process/dockentra-process-dispatch.mp4"
-                poster="/media/process/dockentra-process-dispatch.jpg"
-                alt="A gloved hand placing a taped carton onto a pallet, and a parcel being loaded into a van."
+                src="/media/process/dockentra-process-taping.mp4"
+                poster="/media/process/dockentra-process-taping.webp"
+                alt="Two hands sealing a cardboard carton shut with a red tape gun."
                 className="h-full w-full object-cover"
               />
             </div>
             <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted lg:text-left">
-              Illustrative footage of fulfilment work: staging and dispatch.
+              Illustrative footage of fulfilment work: sealing a carton.
             </figcaption>
           </figure>
 

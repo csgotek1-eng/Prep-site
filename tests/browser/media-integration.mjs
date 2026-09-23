@@ -81,7 +81,7 @@ for (const width of WIDTHS) {
   const context = await browser.newContext(view(width, 900));
   const page = await context.newPage();
   step(`media @${width}`);
-  for (const path of ["/", "/about"]) {
+  for (const path of ["/", "/about", "/dispatch-commitment"]) {
     await page.goto(BASE + path, { waitUntil: "networkidle" });
     await page.waitForTimeout(400);
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -209,9 +209,9 @@ for (const width of WIDTHS) {
     (await page.locator("video").count()) === 0,
     "a looping clip was mounted for a visitor who asked for reduced motion",
   );
-  const stills = await page.locator('img[alt*="Gloved hands"]').count();
+  const stills = await page.locator('img[alt*="warehouse aisle"]').count();
   ok(stills >= 1, "reduced motion got no still image in place of the clip");
-  const alt = await page.locator('img[alt*="Gloved hands"]').first().getAttribute("alt");
+  const alt = await page.locator('img[alt*="warehouse aisle"]').first().getAttribute("alt");
   ok((alt ?? "").length > 30, `the still's alt text is too thin: "${alt}"`);
   await context.close();
 }
@@ -240,12 +240,20 @@ for (const width of [320, 390, 430]) {
   });
   ok(blocked.length === 0, `@${width}: the dock blocks ${blocked.join(" / ")}`);
 
-  // ...and it must not sit on top of the media.
+  // ...and it must not sit on top of the media. The full-screen hero
+  // backdrop is exempt by construction: it fills the whole first
+  // screen, so anything floating on that screen is "over" it, the same
+  // way the headline is. What must stay clear is framed media, and the
+  // backdrop's caption, which is text a visitor reads.
   const overMedia = await page.evaluate(() => {
     const dock = document.querySelector('[data-testid="floating-dock"]');
     if (!dock) return false;
     const d = dock.getBoundingClientRect();
-    return [...document.querySelectorAll("video, main img")].some((el) => {
+    const framed = [...document.querySelectorAll("video, main img")].filter(
+      (el) => !el.closest("[data-hero-backdrop]"),
+    );
+    const caption = document.querySelector("[data-hero-backdrop] figcaption span");
+    return [...framed, ...(caption ? [caption] : [])].some((el) => {
       const m = el.getBoundingClientRect();
       if (m.height === 0) return false;
       return !(d.right < m.left || d.left > m.right || d.bottom < m.top || d.top > m.bottom);
@@ -318,7 +326,7 @@ for (const width of [320, 390, 430]) {
   await context.close();
 }
 
-// ============ data saving: the 553 KB hero clip is never fetched ============
+// ============ data saving: the hero clip is never fetched ============
 {
   step("Save-Data");
   for (const [label, saveData] of [
@@ -350,7 +358,7 @@ for (const width of [320, 390, 430]) {
     await page.waitForTimeout(2500);
     const mounted = await page.evaluate(() => ({
       videos: document.querySelectorAll("video").length,
-      poster: !!document.querySelector('img[src*="dockentra-process-packing"]'),
+      poster: !!document.querySelector('img[src*="dockentra-process-aisle"]'),
     }));
     if (saveData) {
       // Not fetched-and-hidden: never fetched at all.

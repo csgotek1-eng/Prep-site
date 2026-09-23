@@ -38,39 +38,83 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero — light branded surface with two soft brand shapes.
-          THE DECORATIVE "D" IS GONE (owner decision). A 460px mark at
-          6% opacity sat directly behind the clip on lg+, so the one
-          prioritised visual on the page was competing with a ghost of
-          the logo that is already in the header two centimetres above
-          it. Its wrapper stays because the gradient shapes and the
-          hairline still use it; the mark, its Image import and the
-          note explaining its encoding went with it. The file itself,
-          the script that derives it and the approved master are all
-          untouched. */}
-      <section className="relative overflow-hidden bg-brand-surface-soft">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-brand-mint/40 to-brand-teal/15 blur-2xl" />
-          <div className="absolute -bottom-32 right-1/4 hidden h-72 w-72 rounded-full bg-gradient-to-tr from-brand-green/10 to-brand-mint/25 blur-2xl lg:block" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-mint/70 to-transparent" />
-        </div>
-        <Container className="relative py-16 sm:py-24 lg:py-28">
-          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-center lg:gap-14 xl:grid-cols-[minmax(0,1fr)_26rem]">
+      {/* HERO — the first screen is the footage.
+          A warehouse aisle fills the whole first screen behind the
+          headline (owner decision, video trial round, September 2026).
+          It replaces the 9:16 clip that sat in a column beside the
+          text: the old layout spent half the first screen on a small
+          vertical frame, and the new footage is a slow walk down racked
+          stock that reads best at full width.
+
+          PHONES: the copy is top-aligned rather than centred. Centred,
+          the button's bottom corner met the floating dock at 390px;
+          top-aligned, everything clears it with the aisle below.
+
+          HEIGHT: the first screen, not a fixed pixel count. 100svh is
+          the SMALL viewport height, so a mobile browser's collapsing
+          toolbar cannot push the bottom of the hero off screen; the
+          utility bar (2rem + border) and header (4rem + border) above it
+          are subtracted so the hero ends where the first screen ends.
+          min-h, not h: on a short landscape phone the copy is taller
+          than the screen, and it must grow rather than clip.
+
+          LEGIBILITY: the text sits on a navy veil, not on the raw
+          footage. Uniform on a phone, where the copy spans the frame;
+          a left-to-right gradient from sm up, where the copy is on the
+          left and the aisle can breathe on the right. The veil is in
+          the markup rather than baked into the file, so the same asset
+          serves any future layout.
+
+          ILLUSTRATIVE FOOTAGE, and the caption still says so. The clip
+          shows fulfilment work in a warehouse; it is not presented as
+          Dockentra's own unit, staff or current operation. */}
+      <section
+        aria-labelledby="hero-heading"
+        className="relative isolate flex min-h-[calc(100svh-6.125rem)] items-start overflow-hidden bg-brand-navy sm:items-center"
+      >
+        <figure data-hero-backdrop className="absolute inset-0 -z-10 m-0">
+          <ProcessVideo
+            priority
+            sizes="100vw"
+            src="/media/hero/dockentra-process-aisle.mp4"
+            portraitSrc="/media/hero/dockentra-process-aisle-portrait.mp4"
+            poster="/media/hero/dockentra-process-aisle.webp"
+            alt="A long warehouse aisle lined with red pallet racking stacked with cartons and pallets."
+            className="h-full w-full object-cover"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-brand-navy/75 sm:bg-transparent sm:bg-gradient-to-r sm:from-brand-navy/90 sm:via-brand-navy/70 sm:to-brand-navy/30"
+          />
+          {/* Bottom-left, inside the hero's own bottom padding: clear of
+              the copy above it, and clear of the floating dock, which
+              is pinned to the bottom-RIGHT of the viewport. On a phone
+              the dock is 62px wide and the caption would run under it,
+              so the line stops 4.5rem short of the right edge there. */}
+          <figcaption className="absolute bottom-3 left-0 right-0">
+            <Container>
+              <span className="inline-block max-w-[calc(100%-4.5rem)] text-xs leading-5 text-white/70 sm:max-w-none">
+                Illustrative footage of fulfilment work: a warehouse aisle.
+              </span>
+            </Container>
+          </figcaption>
+        </figure>
+
+        <Container className="relative w-full pb-20 pt-12 sm:py-24 lg:py-28">
           <div className="max-w-3xl">
-            {/* The eyebrow used to repeat the H1 almost word for word
-                ("Fulfilment & Prep Centre" above "Fulfilment & Prep
-                Services"). It states what a seller cannot infer from
-                the headline instead: where we are. The opening year
-                came out at the owner's request — a date in an eyebrow
-                ages on its own, and nothing else on the page depends
-                on it. */}
-            <p className="text-sm font-semibold uppercase tracking-wider text-brand-green">
+            {/* The eyebrow states what a seller cannot infer from the
+                headline: where we are. Mint rather than brand green,
+                because green on navy does not reach AA at this size. */}
+            <p className="text-sm font-semibold uppercase tracking-wider text-brand-mint">
               Limerick, Ireland
             </p>
-            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-brand-navy sm:text-5xl lg:text-6xl">
+            <h1
+              id="hero-heading"
+              className="mt-4 text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+            >
               Stop packing orders yourself
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-brand-text-muted sm:text-lg sm:leading-8">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
               Dockentra receives, stores, preps and ships stock for TikTok
               Shop, Amazon, Shopify and eBay sellers in Ireland, from a few
               orders a day up. You send the stock; we handle the rest, and you
@@ -85,7 +129,7 @@ export default async function HomePage() {
                 {marketplaces.map(({ name, brand }) => (
                   <li
                     key={name}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white px-3.5 py-1.5 text-sm font-medium text-brand-navy"
                   >
                     <BrandIcon
                       brand={brand}
@@ -99,80 +143,19 @@ export default async function HomePage() {
               {/* The supported list is complete in the row itself. The
                   "not affiliated / not endorsed" statement these marks
                   require is carried once, in the footer. */}
-              <p className="text-sm text-brand-text-muted">
-                and your own store
-              </p>
+              <p className="text-sm text-slate-200">and your own store</p>
             </div>
 
-            {/* ONE action in the hero, not two.
-                Get Price was here as the solid primary, directly beneath
-                the identical Get Price in the header — the same button,
-                the same dialog, twice on one screen. The owner asked for
-                the in-page copy to go and the header one to stay
-                untouched, so this is now a single secondary route for
-                the visitor who wants to understand the service before
-                being priced. The header carries the ask.
-
-                The margin drops from mt-9 to mt-8: a gap sized for a
-                button pair reads as something missing once there is
-                one link in it.
-
-                The line that used to sit beneath this link — telling
-                the reader to use the button at the top of the page —
-                is gone too. It was instructions for a control already
-                visible on the same screen, and pointing at your own
-                header is not copy. */}
+            {/* ONE action in the hero, not two: Get Price lives in the
+                header (owner decision), and this is the route for the
+                visitor who wants to understand the service before being
+                priced. White on the navy veil, so it reads as the
+                page's action rather than a ghost button. */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/how-it-works" className={SECONDARY_HERO}>
                 See how it works
               </Link>
             </div>
-          </div>
-
-          {/* THE one prioritised visual on the page.
-              The right half of the hero was empty space on lg+ with a
-              6%-opacity watermark in it, and the site carried no
-              photography at all — the strategic audit's single biggest
-              visual finding. A 9:16 clip suits the audience arriving
-              from vertical video, and it stacks BELOW the text and the
-              CTA on a phone so nothing is pushed off the first screen.
-
-              ILLUSTRATIVE PROCESS FOOTAGE, and the caption says so.
-              It is not presented as Dockentra's own warehouse, staff
-              or current operation, because that has not been
-              confirmed. */}
-          <figure className="mt-10 lg:mt-0">
-            {/* 16rem at phone width, not 17rem. The clip is centred and
-                the floating dock is pinned 62px in from the right, so a
-                centred box wider than (viewport - 124px) runs under it:
-                at 390 the old 17rem put the clip's right edge 2px
-                inside the dock. That went unnoticed while the hero
-                carried a button below the text — the extra 48px pushed
-                the clip past the dock's bottom edge — and surfaced the
-                moment the button was removed. Sizing the clip to clear
-                the dock fixes it at every phone width instead of only
-                the one the suite measures. */}
-            <div className="relative mx-auto aspect-[9/16] w-full max-w-[16rem] overflow-hidden rounded-2xl border border-brand-border bg-brand-mint-soft shadow-sm sm:max-w-[19rem] lg:max-w-none">
-              <ProcessVideo
-                priority
-                /* Follows the grid column above, which widened when the
-                   watermark stopped sharing the space. The default hint
-                   still says 23rem, and a hint narrower than the slot
-                   makes the image pipeline pick a candidate too small
-                   for the poster a reduced-motion or save-data visitor
-                   actually gets. */
-                sizes="(min-width: 1280px) 26rem, (min-width: 1024px) 23rem, (min-width: 640px) 19rem, 16rem"
-                src="/media/hero/dockentra-process-packing.mp4"
-                poster="/media/hero/dockentra-process-packing.jpg"
-                alt="Gloved hands wrapping a boxed item, packing it into a carton and placing labelled cartons onto warehouse shelving."
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted lg:text-left">
-              Illustrative footage of fulfilment work: packing, labelling and
-              putaway.
-            </figcaption>
-          </figure>
           </div>
         </Container>
       </section>

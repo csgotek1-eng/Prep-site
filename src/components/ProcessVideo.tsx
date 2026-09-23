@@ -51,6 +51,18 @@ export default function ProcessVideo({
   priority = false,
   /** Widths the still is actually rendered at, for the image pipeline. */
   sizes = "(min-width: 1024px) 23rem, (min-width: 640px) 19rem, 17rem",
+  /**
+   * An alternative encode for portrait viewports.
+   *
+   * A full-screen clip on a phone shows the middle third of a 16:9
+   * frame, so shipping it the 1920-wide landscape file means paying for
+   * pixels nobody sees. When this is given, a portrait viewport gets a
+   * portrait-cropped encode instead. Chosen in JavaScript rather than
+   * with <source media>, because a browser that ignores the media
+   * attribute takes the FIRST source — and a desktop would then be
+   * handed the phone crop.
+   */
+  portraitSrc,
 }: {
   src: string;
   poster: string;
@@ -58,6 +70,7 @@ export default function ProcessVideo({
   className?: string;
   priority?: boolean;
   sizes?: string;
+  portraitSrc?: string;
 }) {
   // Null until the media query has been read on the client, so the
   // server and the first client render agree and nothing shifts.
@@ -72,6 +85,10 @@ export default function ProcessVideo({
   // Null until the connection has been read on the client, for the
   // same reason as reducedMotion: no hydration mismatch, no shift.
   const [dataSaving, setDataSaving] = useState<boolean | null>(null);
+  // Null until read on the client; only consulted when portraitSrc is
+  // given, and the video is never mounted before it is known, so the
+  // first file requested is already the right one.
+  const [portrait, setPortrait] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const stillRef = useRef<HTMLImageElement>(null);
 
@@ -82,6 +99,15 @@ export default function ProcessVideo({
     query.addEventListener("change", apply);
     return () => query.removeEventListener("change", apply);
   }, []);
+
+  useEffect(() => {
+    if (!portraitSrc) return;
+    const query = window.matchMedia("(orientation: portrait)");
+    const apply = () => setPortrait(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, [portraitSrc]);
 
   useEffect(() => {
     // Absent in Safari and Firefox; then every check below is false
@@ -129,7 +155,7 @@ export default function ProcessVideo({
       // on screen, which is a perfectly good outcome. Nothing here
       // depends on playback succeeding.
     });
-  }, [reducedMotion, dataSaving, nearViewport]);
+  }, [reducedMotion, dataSaving, nearViewport, portrait]);
 
   // The still stands in for the clip in four situations: before the
   // motion query and the connection have been read, for anyone who
@@ -140,7 +166,13 @@ export default function ProcessVideo({
   // watches. Through next/image, so the people who see ONLY the still
   // get AVIF/WebP rather than the JPEG the <video> needs for its
   // poster attribute.
-  if (reducedMotion !== false || dataSaving !== false || !nearViewport) {
+  const orientationKnown = !portraitSrc || portrait !== null;
+  if (
+    reducedMotion !== false ||
+    dataSaving !== false ||
+    !nearViewport ||
+    !orientationKnown
+  ) {
     return (
       <Image
         ref={stillRef}
@@ -161,7 +193,10 @@ export default function ProcessVideo({
   return (
     <video
       ref={videoRef}
-      src={src}
+      // key: an orientation change swaps the file, and a fresh element
+      // is the one reliable way to make every browser load it.
+      key={portrait && portraitSrc ? portraitSrc : src}
+      src={portrait && portraitSrc ? portraitSrc : src}
       poster={poster}
       aria-hidden="true"
       tabIndex={-1}

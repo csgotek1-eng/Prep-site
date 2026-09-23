@@ -5,8 +5,8 @@ here is served to a visitor; `public/media/**` holds the web versions.
 
 | source | web version | what changed |
 |---|---|---|
-| `dockentra-process-packing.source.mp4` | `public/media/hero/dockentra-process-packing.mp4` | audio track removed, H.264 High, CRF 28, faststart. 1.67 MB → 553 KB |
-| `dockentra-process-dispatch.source.mp4` | `public/media/process/dockentra-process-dispatch.mp4` | same treatment. 1.22 MB → 335 KB |
+| `dockentra-process-packing.source.mp4` | — (retired) | was the 9:16 hero clip. **RETIRED 2026-09-23** in the video trial round; web copy deleted, source kept. |
+| `dockentra-process-dispatch.source.mp4` | — (retired) | was the "From stock to shipment" clip. **RETIRED 2026-09-23**, same as above. |
 | `viktor.source.png` | `public/media/team/viktor.webp` | downscale 1122×1402 → 880×1100 (same 4:5, no crop), WebP q85. 1.79 MB → 60 KB |
 | `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
 | `denis.source.png` | `public/media/team/denis.webp` | same treatment. 1.92 MB → 82 KB |
@@ -47,6 +47,23 @@ ffmpeg -ss <seconds> -i media-source/<source>.mp4 -frames:v 1 -q:v 4 \
 the site autoplays these clips, so the safe state is a file that has
 nothing to play. `tests/media-assets.test.ts` fails if an audio track
 comes back.
+
+## Video trial round, 2026-09-23
+
+Three owner-supplied clips replaced the two above. The originals are
+NOT in this folder: the largest is a 72 MB 4K camera file, too heavy
+for the repository. The owner holds them under these names, and
+`scripts/derive-site-videos.mjs` rebuilds every web file from them
+(crop, length and rate factor are written down there):
+
+| owner original | web version | treatment |
+|---|---|---|
+| `19896989-uhd_3840_2160_25fps.mp4` (4K, 30 s, with audio) | `public/media/hero/dockentra-process-aisle.mp4` + `-aisle-portrait.mp4` + `.webp` poster | first 15 s; 1920 wide for landscape, a 720x1280 centre crop for portrait screens; audio removed |
+| `6169088-uhd_3840_2160_25fps.mp4` (4K, 10 s) | `public/media/process/dockentra-process-taping.mp4` + `.webp` | centre square crop, 720x720 |
+| `4440958-hd_1920_1080_25fps.mp4` (1080p, 4 s, with audio) | `public/media/process/dockentra-process-handover.mp4` + `.webp` | 1280 wide, audio removed |
+
+They are stock-style footage, so the rule below applies to them
+unchanged: every caption says *illustrative footage of fulfilment work*.
 
 ## What this footage is, and is not
 

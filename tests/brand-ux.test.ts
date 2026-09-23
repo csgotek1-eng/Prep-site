@@ -140,11 +140,16 @@ describe("hero decorative D", () => {
   it("is no longer rendered in the hero", () => {
     assert.equal(home.includes("dockentra-logo-mark-watermark"), false);
     assert.equal(home.includes("dockentra-logo-mark-transparent"), false);
-    // No empty decorative element left behind: the wrapper stays
-    // because the gradient shapes and the hairline live in it.
-    assert.match(home, /aria-hidden="true" className="pointer-events-none absolute inset-0"/);
-    assert.match(home, /from-brand-mint\/40/);
-    assert.match(home, /h-px bg-gradient-to-r from-transparent/);
+    // No decorative layer left behind either. The gradient shapes and
+    // hairline went in the video trial round (2026-09-23), when the
+    // footage became the full-screen hero backdrop: soft blobs over a
+    // live clip would only muddy it.
+    // Scoped to the hero: the closing CTA block keeps its own shapes.
+    const heroStart = home.indexOf('aria-labelledby="hero-heading"');
+    assert.ok(heroStart > 0, "hero section not found");
+    const hero = home.slice(heroStart, home.indexOf("</section>", heroStart));
+    assert.equal(/className="pointer-events-none absolute inset-0"/.test(hero), false);
+    assert.equal(hero.includes("from-brand-mint/40"), false);
   });
 
   it("did not take the header logo with it", () => {
@@ -155,8 +160,12 @@ describe("hero decorative D", () => {
   });
 
   it("leaves the video as the one visual in the hero", () => {
+    // Full-bleed since the video trial round: the clip fills the first
+    // screen behind the copy instead of a 9:16 column beside it.
     assert.match(home, /<ProcessVideo/);
-    assert.ok(home.includes("aspect-[9/16]"));
+    assert.match(home, /data-hero-backdrop className="absolute inset-0/);
+    assert.ok(home.includes("min-h-[calc(100svh-6.125rem)]"));
+    assert.equal(home.includes("aspect-[9/16]"), false);
   });
 });
 

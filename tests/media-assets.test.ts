@@ -9,10 +9,19 @@ const strip = (s: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 
-const HERO_VIDEO = "public/media/hero/dockentra-process-packing.mp4";
-const HERO_POSTER = "public/media/hero/dockentra-process-packing.jpg";
-const PROCESS_VIDEO = "public/media/process/dockentra-process-dispatch.mp4";
-const PROCESS_POSTER = "public/media/process/dockentra-process-dispatch.jpg";
+// Video trial round, 2026-09-23: a full-screen hero clip in two
+// encodes (landscape and a portrait crop), a square "From stock to
+// shipment" clip, and a background band on /dispatch-commitment.
+const HERO_VIDEO = "public/media/hero/dockentra-process-aisle.mp4";
+const HERO_PORTRAIT_VIDEO = "public/media/hero/dockentra-process-aisle-portrait.mp4";
+const HERO_POSTER = "public/media/hero/dockentra-process-aisle.webp";
+const PROCESS_VIDEO = "public/media/process/dockentra-process-taping.mp4";
+const PROCESS_POSTER = "public/media/process/dockentra-process-taping.webp";
+const DISPATCH_VIDEO = "public/media/process/dockentra-process-handover.mp4";
+const DISPATCH_POSTER = "public/media/process/dockentra-process-handover.webp";
+const CLIPS = [HERO_VIDEO, HERO_PORTRAIT_VIDEO, PROCESS_VIDEO, DISPATCH_VIDEO];
+const POSTERS = [HERO_POSTER, PROCESS_POSTER, DISPATCH_POSTER];
+const DISPATCH_PAGE = "src/app/dispatch-commitment/page.tsx";
 const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 
 /** Walk the MP4 box tree far enough to answer "what tracks are in here". */
@@ -57,12 +66,12 @@ const kb = (path: string) => statSync(path).size / 1024;
  */
 
 describe("the process clips are silent by construction", () => {
-  it("neither file contains an audio track at all", () => {
+  it("no clip contains an audio track at all", () => {
     // `muted` is an attribute a browser can be told to ignore, a user
     // can toggle, and a future edit can drop. No audio track is a
-    // property of the file. Both sources arrived from WhatsApp with
-    // AAC stereo; it was stripped during transcode.
-    for (const path of [HERO_VIDEO, PROCESS_VIDEO]) {
+    // property of the file. Two of the three trial sources arrived
+    // with AAC audio; it was stripped during transcode.
+    for (const path of CLIPS) {
       const handlers = trackHandlers(path);
       assert.ok(handlers.includes("vide"), `${path} has no video track`);
       assert.equal(
@@ -73,17 +82,24 @@ describe("the process clips are silent by construction", () => {
     }
   });
 
-  it("both start playing before they finish downloading", () => {
-    for (const path of [HERO_VIDEO, PROCESS_VIDEO]) {
+  it("every clip starts playing before it finishes downloading", () => {
+    for (const path of CLIPS) {
       assert.ok(isFastStart(path), `${path} is not faststart`);
     }
   });
 
-  it("neither is a raw phone file dropped into production", () => {
-    // The originals were 1.67 MB and 1.22 MB with audio.
-    assert.ok(kb(HERO_VIDEO) < 800, `hero clip is ${Math.round(kb(HERO_VIDEO))} KB`);
+  it("none is a raw camera file dropped into production", () => {
+    // The originals were 72 MB (4K), 16 MB (4K) and 2.7 MB. The hero
+    // budget is the largest because the clip now fills the whole first
+    // screen at 1920 wide; a phone gets the portrait crop instead,
+    // which has its own, smaller budget.
+    assert.ok(kb(HERO_VIDEO) < 2000, `hero clip is ${Math.round(kb(HERO_VIDEO))} KB`);
+    assert.ok(kb(HERO_PORTRAIT_VIDEO) < 900, `portrait hero clip is ${Math.round(kb(HERO_PORTRAIT_VIDEO))} KB`);
     assert.ok(kb(PROCESS_VIDEO) < 600, `process clip is ${Math.round(kb(PROCESS_VIDEO))} KB`);
-    for (const path of [HERO_POSTER, PROCESS_POSTER]) {
+    assert.ok(kb(DISPATCH_VIDEO) < 600, `dispatch clip is ${Math.round(kb(DISPATCH_VIDEO))} KB`);
+    // The hero poster is a full-screen frame; the other two are small.
+    assert.ok(kb(HERO_POSTER) < 150, `${HERO_POSTER} is ${Math.round(kb(HERO_POSTER))} KB`);
+    for (const path of [PROCESS_POSTER, DISPATCH_POSTER]) {
       assert.ok(kb(path) < 120, `${path} is ${Math.round(kb(path))} KB`);
     }
     // The /about photograph is a real 996x1600 frame, not a video
@@ -92,21 +108,22 @@ describe("the process clips are silent by construction", () => {
   });
 
   it("every clip has a poster, so the slot is never empty", () => {
-    for (const path of [HERO_POSTER, PROCESS_POSTER]) {
+    for (const path of POSTERS) {
       assert.ok(statSync(path).isFile(), `${path} is missing`);
     }
   });
 
-  it("the public paths carry no WhatsApp filenames", () => {
+  it("the public paths carry no camera or library filenames", () => {
     const markup = [
       read("src/app/page.tsx"),
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
+      read(DISPATCH_PAGE),
     ].join("\n");
     // Only the src/poster attributes — "WhatsApp" appears in the copy
     // as a delivery channel, which is a different thing entirely.
-    const paths = [...markup.matchAll(/(?:src|poster)="(\/media\/[^"]+)"/g)].map((m) => m[1]);
-    assert.ok(paths.length >= 4, `only ${paths.length} media paths found`);
+    const paths = [...markup.matchAll(/(?:src|portraitSrc|poster)="(\/media\/[^"]+)"/g)].map((m) => m[1]);
+    assert.ok(paths.length >= 8, `only ${paths.length} media paths found`);
     for (const path of paths) {
       assert.equal(
         /WhatsApp|IMG-|VID-|\d{8}|\s/.test(path),
@@ -156,10 +173,11 @@ describe("the clips are decorative and honest", () => {
   it("loads exactly one clip eagerly and defers the rest", () => {
     assert.ok(player.includes('preload={priority ? "auto" : "none"}'));
     assert.ok(player.includes("IntersectionObserver"));
-    // Exactly one call site asks for priority.
+    // Exactly one call site asks for priority: the homepage hero.
     const pages = [
       read("src/app/page.tsx"),
       read("src/components/sections/ProcessMedia.tsx"),
+      read(DISPATCH_PAGE),
     ].join("\n");
     assert.equal((pages.match(/priority\s*$/gm) ?? []).length, 1);
   });
@@ -169,6 +187,7 @@ describe("the clips are decorative and honest", () => {
       read("src/app/page.tsx"),
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
+      read(DISPATCH_PAGE),
     ];
     for (const source of surfaces) {
       const captions = [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)]
@@ -185,8 +204,8 @@ describe("the clips are decorative and honest", () => {
     const shown = surfaces
       .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
       .map((m) => m[1]);
-    assert.equal(shown.length, 3, `${shown.length} figures, expected 3`);
-    // The two CLIPS are still stand-ins and still say so. The /about
+    assert.equal(shown.length, 4, `${shown.length} figures, expected 4`);
+    // The three CLIPS are stand-ins and say so. The /about
     // photograph stopped being one on 2026-09-11 — it is Viktor and
     // Anna — so it names them instead, and must not be called
     // illustrative. Every caption still has to say what is actually in
@@ -194,7 +213,7 @@ describe("the clips are decorative and honest", () => {
     // not show.
     const illustrative = shown.filter((c) => /Illustrative footage of fulfilment work/.test(c));
     const named = shown.filter((c) => /Viktor and Anna/.test(c));
-    assert.equal(illustrative.length, 2, "both stand-in clips must stay labelled illustrative");
+    assert.equal(illustrative.length, 3, "every stand-in clip must stay labelled illustrative");
     assert.equal(named.length, 1, "the /about photograph must name the people it shows");
   });
 
@@ -203,6 +222,7 @@ describe("the clips are decorative and honest", () => {
       read("src/app/page.tsx"),
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
+      read(DISPATCH_PAGE),
     ].join("\n");
     for (const match of all.matchAll(/alt="([^"]*)"/g)) {
       const alt = match[1];
@@ -244,6 +264,7 @@ const MEDIA_SURFACES = [
   "src/app/about/page.tsx",
   "src/app/page.tsx",
   "src/components/sections/ProcessMedia.tsx",
+  DISPATCH_PAGE,
 ];
 
 describe("illustrative people imagery is never claimed as Dockentra's own", () => {
@@ -369,10 +390,9 @@ describe("data saving", () => {
     assert.ok(source.includes('effectiveType === "slow-2g"'));
     // ...and folded into the SAME branch that returns the still, so
     // the <video> is never mounted and the file is never fetched.
-    assert.ok(
-      source.includes(
-        "if (reducedMotion !== false || dataSaving !== false || !nearViewport) {",
-      ),
+    assert.match(
+      source,
+      /if \(\s*reducedMotion !== false \|\|\s*dataSaving !== false \|\|\s*!nearViewport/,
     );
     // Optional chaining throughout: Safari and Firefox have no
     // navigator.connection, and there the clip must still play.
