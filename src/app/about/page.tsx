@@ -56,9 +56,9 @@ export default function AboutPage() {
                 of two people in vests whose lettering read "Dockcentra",
                 published under an explicit rule that it must never be
                 presented as Dockentra's own team. The owner supplied a
-                photograph of Viktor and Hannah — the same two people as
+                photograph of Viktor and Hanna — the same two people as
                 the team block below — so this one frame is genuinely ours.
-                (Her public name changed from "Anna" to "Hannah",
+                (Her public name changed from "Anna" to "Hanna",
                 owner request 2026-09-24; see src/lib/team.ts.)
                 The illustrative rule still governs the hero and
                 process clips, which are still stand-ins.
@@ -80,7 +80,7 @@ export default function AboutPage() {
               <div className="mx-auto w-full max-w-[18rem] sm:max-w-[22rem] lg:max-w-none">
                 <Image
                   src="/media/about/dockentra-team-packing.webp"
-                  alt="Viktor and Hannah taping and labelling a carton at a packing bench"
+                  alt="Viktor and Hanna taping and labelling a carton at a packing bench"
                   width={1122}
                   height={1402}
                   sizes="(min-width: 1024px) 26rem, (min-width: 640px) 22rem, 18rem"

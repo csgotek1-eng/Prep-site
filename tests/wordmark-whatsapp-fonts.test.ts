@@ -66,7 +66,7 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
    */
   it("prints only owner-approved names, never an invented one", () => {
     const team = read("src/lib/team.ts");
-    for (const name of ['name: "Viktor"', 'name: "Hannah"', 'name: "Denis"']) {
+    for (const name of ['name: "Viktor"', 'name: "Hanna"', 'name: "Denis"']) {
       assert.ok(team.includes(name), `team.ts must carry ${name}`);
     }
     for (const invented of [
