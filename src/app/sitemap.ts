@@ -33,6 +33,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       // not.
       "/china-asia-brands",
       "/european-brands",
+      // Partner pages: reached from /partnerships, not from the top
+      // navigation, so the sitemap is how a crawler finds them.
+      "/partners/creatrhub",
     ]),
   ];
   return pages.map((href) => ({
