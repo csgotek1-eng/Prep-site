@@ -319,8 +319,15 @@ export default function CreatrHubPartnerPage() {
       </section>
 
       {/* 7. GET IN TOUCH — CreatrHub's own contact. Leads go to
-          CreatrHub directly; Dockentra is not a party to CreatrHub's
-          terms, and the page says so in readable type.
+          CreatrHub directly.
+          The small-print paragraph that used to sit under the buttons
+          (CreatrHub Limited, its registration number, "independent of
+          Dockentra", "Dockentra is not a party to them", "taken from
+          CreatrHub's own materials") was removed 2026-09-24 at the
+          owner's request, although an earlier brief had asked for that
+          wording to be kept. What is left of it on the page is the
+          hero's "Two independent companies: you agree terms with each
+          separately." Restoring it means re-adding that paragraph.
           The brochure block that used to sit beside this was removed
           2026-09-24 (owner request). The data still lives in
           content.ts (`brochure`) and the optimised PDF is still
@@ -390,15 +397,6 @@ export default function CreatrHubPartnerPage() {
                 </a>
                 <ExternalCreatrHubLink className={SECONDARY_ON_LIGHT} />
               </div>
-              <p className="mt-8 max-w-xl text-sm leading-6 text-slate-600">
-                {creatrhub.company} is registered in Ireland (Reg. No.{" "}
-                {creatrhub.registrationNumber}) and is independent of
-                Dockentra. CreatrHub&apos;s services, prices and terms are
-                agreed directly with CreatrHub; Dockentra is not a party to
-                them. Fulfilment is agreed separately with Dockentra.
-                CreatrHub details on this page are taken from CreatrHub&apos;s
-                own materials.
-              </p>
             </div>
           </div>
         </Container>
