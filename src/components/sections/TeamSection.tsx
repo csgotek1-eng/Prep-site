@@ -2,7 +2,9 @@ import Image from "next/image";
 import { teamMemberEmailHref, teamMembers } from "@/lib/team";
 
 /**
- * The team block on /about: three people, three names, nothing else.
+ * The team block on /about: three portraits, nothing else. (The names
+ * under them were removed 2026-09-24 at the owner's request; they live
+ * on in each portrait's alt text and in src/lib/team.ts.)
  *
  * NO JOB TITLES AND NO BIOGRAPHIES. None has been supplied, and a
  * caption with an invented title under a real face is a claim about how
@@ -67,9 +69,9 @@ export default function TeamSection() {
                   className="object-cover"
                 />
               </div>
-              <p className="mt-3 text-base font-semibold text-brand-navy">
-                {member.name}
-              </p>
+              {/* No visible name under the portrait (owner request,
+                  2026-09-24). The name is still carried by the alt text
+                  above, so a screen reader hears who each portrait is. */}
               {mailto && (
                 <a
                   href={mailto}
