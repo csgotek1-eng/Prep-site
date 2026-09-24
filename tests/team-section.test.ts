@@ -32,14 +32,14 @@ describe("the central team model", () => {
     );
     assert.deepEqual(
       teamMembers.map((m) => m.name),
-      ["Viktor", "Hannah", "Denis"],
+      ["Viktor", "Hanna", "Denis"],
     );
   });
 
   it("looks a member up by id, and refuses an unknown one", () => {
     // The id stays "anna" (an internal identifier); her display name
-    // changed to "Hannah" (owner request, 2026-09-24).
-    assert.equal(getTeamMember("anna").name, "Hannah");
+    // changed to "Hanna" (owner request, 2026-09-24).
+    assert.equal(getTeamMember("anna").name, "Hanna");
     assert.equal(getTeamMember("denis").image, "/media/team/denis.webp");
     // @ts-expect-error - the point of the guard is the runtime case
     assert.throws(() => getTeamMember("nobody"), /Unknown team member/);
@@ -60,7 +60,7 @@ describe("the central team model", () => {
   });
 
   it("names the whole team in one phrase, for copy that needs it", () => {
-    assert.equal(teamMemberNames(), "Viktor, Hannah and Denis");
+    assert.equal(teamMemberNames(), "Viktor, Hanna and Denis");
   });
 });
 
@@ -115,7 +115,7 @@ describe("the /about team block", () => {
     assert.ok(about.includes("<TeamSection />"));
     assert.ok(section.includes('from "@/lib/team"'));
     // No second copy of a person anywhere in the markup.
-    for (const name of ["Viktor", "Hannah", "Denis"]) {
+    for (const name of ["Viktor", "Hanna", "Denis"]) {
       assert.equal(
         section.includes(`>${name}<`),
         false,
