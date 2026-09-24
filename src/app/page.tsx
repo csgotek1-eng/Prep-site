@@ -227,17 +227,9 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* THE COMMITMENT, in the first fold (redesign round,
-                2026-09-23). Verbatim from /dispatch-commitment, the one
-                statement on the site with a stated consequence; no new
-                fact is introduced here. On a phone it keeps the same
-                4.5rem clearance as the button, so it never runs under
-                the floating dock's column. */}
-            <p className="mt-4 max-w-[calc(100%-4.5rem)] text-[13px] leading-5 text-slate-100/90 [text-shadow:0_1px_2px_rgba(13,23,48,0.35)] sm:max-w-md sm:text-sm sm:leading-6">
-              Orders that reach us before 2pm on a working day are dispatched
-              that day. If we miss it on our side, that order&apos;s pick and
-              pack is free.
-            </p>
+            {/* The dispatch-commitment sentence was removed from the hero at
+                the owner's request (2026-09-24). It stays on Why Dockentra
+                and /dispatch-commitment. */}
           </div>
         </Container>
       </section>
