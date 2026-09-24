@@ -42,6 +42,8 @@ const PAGES = [
   // table, which is the single most common source of a real
   // accessibility failure on this site.
   "/why-ireland", "/batch-photos",
+  // Partner page, audited the day it was added (2026-09-24).
+  "/partners/creatrhub",
 ];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 

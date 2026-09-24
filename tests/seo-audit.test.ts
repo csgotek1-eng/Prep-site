@@ -55,6 +55,7 @@ describe("SEO audit fixes", () => {
       "src/app/pricing/page.tsx",
       "src/app/services/page.tsx",
       "src/app/dispatch-commitment/page.tsx",
+      "src/app/partners/creatrhub/page.tsx",
     ];
     for (const path of pages) {
       const source = read(path);
@@ -89,6 +90,7 @@ describe("SEO audit fixes", () => {
           "src/app/pricing/page.tsx",
           "src/app/services/page.tsx",
           "src/app/dispatch-commitment/page.tsx",
+          "src/app/partners/creatrhub/page.tsx",
         ] as const
       ).map((path): [string, string] => {
         const source = read(path);

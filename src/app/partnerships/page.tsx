@@ -59,6 +59,40 @@ export default async function PartnershipsPage() {
         </p>
       </PageHeader>
 
+      {/* Partners we already work with. One row per partner, in the
+          same link-row shape as the list below; each opens that
+          partner's own page. */}
+      <section aria-labelledby="partners-heading" className="border-b border-brand-border bg-brand-surface-soft">
+        <Container className="py-12 sm:py-16">
+          <h2
+            id="partners-heading"
+            className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
+          >
+            Our partners
+          </h2>
+          <ul className="mt-6 border-t border-brand-border">
+            <li className="border-b border-brand-border">
+              <Link
+                href="/partners/creatrhub"
+                className="group grid gap-1 py-5 sm:grid-cols-[12rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+              >
+                <span className="text-lg font-semibold text-brand-navy transition-colors group-hover:text-brand-green-dark">
+                  CreatrHub
+                </span>
+                <span className="text-sm leading-6 text-slate-600">
+                  Creator content, UGC and TikTok Shop campaigns, with
+                  Dockentra handling the fulfilment behind them.
+                </span>
+                <span className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-brand-green-dark underline-offset-2 group-hover:underline sm:mt-0">
+                  About the partnership
+                  <span aria-hidden="true">&rarr;</span>
+                </span>
+              </Link>
+            </li>
+          </ul>
+        </Container>
+      </section>
+
       <section aria-labelledby="kinds-heading" className="bg-white">
         <Container className="py-16 sm:py-24">
           <h2

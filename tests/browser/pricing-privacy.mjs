@@ -39,6 +39,10 @@ const PAGES = [
   // These two are swept too, but under a different rule: see below.
   "/uk-brands",
   "/why-ireland",
+  // Partner page (2026-09-24). It carries a partner's own figures and
+  // sits one decision away from a partner price, so it is swept like
+  // every other public page: no amount at all.
+  "/partners/creatrhub",
 ];
 
 /**
