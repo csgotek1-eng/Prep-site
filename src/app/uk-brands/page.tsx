@@ -161,9 +161,8 @@ export default function UkBrandsPage() {
         variant="operational"
         eyebrow="UK brands"
         still={{
-          src: "/media/process/dockentra-process-bench-band.webp",
-          alt: "A red tape gun sealing a cardboard carton on a packing bench.",
-          caption: "sealing a carton.",
+          src: "/media/process/dockentra-process-dock-band.webp",
+          alt: "Two taped cardboard cartons with handling stickers on the concrete apron in front of loading-dock doors.",
         }}
       >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">

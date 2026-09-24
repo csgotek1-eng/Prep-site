@@ -64,7 +64,21 @@ export default async function ContactPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Contact", path: "/contact" }]} />
-      <PageHeader eyebrow="Contact">
+      {/* A licensed photograph (owner request, 2026-09-24): a small
+          industrial unit's doors, nobody about. It is a stand-in like
+          every other band on the site, not a photograph of the
+          Dockentra unit — the alt says what is in the frame and the
+          address below is the real one. A real photograph of the
+          actual door would be a file swap at the same path
+          (media-source/README.md). */}
+      <PageHeader
+        variant="operational"
+        eyebrow="Contact"
+        still={{
+          src: "/media/process/dockentra-process-unit-band.webp",
+          alt: "A small industrial unit with a white sectional door beside a white personnel door.",
+        }}
+      >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
           Contact Dockentra
         </h1>

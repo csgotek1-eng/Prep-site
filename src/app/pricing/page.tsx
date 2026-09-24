@@ -81,7 +81,18 @@ export default async function PricingPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Pricing", path: "/pricing" }]} />
-      <PageHeader eyebrow="Pricing">
+      {/* A licensed photograph (owner request, 2026-09-24): a stock
+          count on a clipboard beside labelled cartons — you pay for
+          what is counted. Hands and a jacket, no face. Provenance in
+          media-source/README.md. */}
+      <PageHeader
+        variant="operational"
+        eyebrow="Pricing"
+        still={{
+          src: "/media/process/dockentra-process-count-band.webp",
+          alt: "Hands holding a clipboard with a printed stock count sheet beside shelves of labelled cartons.",
+        }}
+      >
         {/* Was the bare menu label. See /services for the reason. */}
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
           Fulfilment pricing in Ireland

@@ -13,9 +13,10 @@ import BatchPhotosContent from "@/components/sections/BatchPhotosContent";
  *
  * ONE REAL STILL (redesign round, 2026-09-23): a section about
  * photographs now contains one. The frame is cut from the owner's
- * footage, square-cornered and captioned as illustrative, exactly as
- * every other footage figure on the site. The alt text says what is in
- * the frame and nothing about whose it is.
+ * footage and square-cornered, exactly as every other footage figure
+ * on the site. It carries no visible caption (owner decision,
+ * 2026-09-24, site-wide); the alt text says what is in the frame and
+ * nothing about whose it is.
  */
 export default function BatchPhotosSection() {
   return (
@@ -37,9 +38,6 @@ export default function BatchPhotosSection() {
               loading="lazy"
               className="h-auto w-full"
             />
-            <figcaption className="mt-3 text-xs leading-5 text-brand-text-muted">
-              Illustrative footage of fulfilment work: photographing an arrival.
-            </figcaption>
           </figure>
 
           <div className="order-1 max-w-3xl lg:order-2">

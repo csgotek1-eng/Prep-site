@@ -22,13 +22,20 @@ const PROCESS_VIDEO = "public/media/process/dockentra-process-dispatch.mp4";
 const PROCESS_POSTER = "public/media/process/dockentra-process-dispatch.jpg";
 const DISPATCH_VIDEO = "public/media/process/dockentra-process-handover.mp4";
 const DISPATCH_POSTER = "public/media/process/dockentra-process-handover.webp";
-const CLIPS = [HERO_VIDEO, HERO_PORTRAIT_VIDEO, PROCESS_VIDEO, DISPATCH_VIDEO];
-const POSTERS = [HERO_POSTER, HERO_PORTRAIT_POSTER, PROCESS_POSTER, DISPATCH_POSTER];
+// The /how-it-works frame's own clip (2026-09-24): the dispatch clip
+// used to play there as well as on the homepage.
+const PACKING_VIDEO = "public/media/process/dockentra-process-packing.mp4";
+const PACKING_POSTER = "public/media/process/dockentra-process-packing.webp";
+const HOW_IT_WORKS_PAGE = "src/app/how-it-works/page.tsx";
+const CLIPS = [HERO_VIDEO, HERO_PORTRAIT_VIDEO, PROCESS_VIDEO, DISPATCH_VIDEO, PACKING_VIDEO];
+const POSTERS = [HERO_POSTER, HERO_PORTRAIT_POSTER, PROCESS_POSTER, DISPATCH_POSTER, PACKING_POSTER];
 const DISPATCH_PAGE = "src/app/dispatch-commitment/page.tsx";
-// Redesign round, 2026-09-24: stills cut from the owner's footage now
-// sit beside the services list, beside the batch-photo prose, beside
-// the how-it-works rail and behind five inner-page headers (through
-// the shared PageHeader). Every one of those surfaces is policed here.
+// Redesign round, 2026-09-24: stills sit beside the services list,
+// beside the batch-photo prose, beside the how-it-works rail and
+// behind the inner-page headers (through the shared PageHeader) —
+// some cut from the owner's footage, most licensed photographs since
+// the owner asked for one distinct, face-free picture per surface.
+// Every one of those surfaces is policed here.
 const STILL_SURFACES = [
   "src/components/sections/ServicesSection.tsx",
   "src/components/sections/BatchPhotosSection.tsx",
@@ -43,17 +50,28 @@ const HEADER_PAGES = [
   "src/app/china-asia-brands/page.tsx",
   "src/app/european-brands/page.tsx",
   "src/app/become-a-client/page.tsx",
+  // Licensed photographs (owner request, 2026-09-24) on the pages that
+  // used to open on the flat navy band.
+  "src/app/partnerships/page.tsx",
+  "src/app/pricing/page.tsx",
+  "src/app/contact/page.tsx",
 ];
 const STILL_FILES = [
-  "public/media/process/dockentra-process-aisle-band.webp",
-  "public/media/process/dockentra-process-racking-band.webp",
+  // Frames cut from the owner's clips.
   "public/media/process/dockentra-process-taping-band.webp",
-  "public/media/process/dockentra-process-bench-band.webp",
-  "public/media/process/dockentra-process-handover-band.webp",
-  "public/media/process/dockentra-process-pallets-band.webp",
-  "public/media/process/dockentra-process-parcels-band.webp",
-  "public/media/process/dockentra-process-taping-hands.webp",
   "public/media/process/dockentra-process-batch-photo.webp",
+  // Licensed photographs (owner request, 2026-09-24): one distinct
+  // subject per surface, so no picture repeats across the site.
+  "public/media/process/dockentra-process-van-band.webp",
+  "public/media/process/dockentra-process-count-band.webp",
+  "public/media/process/dockentra-process-unit-band.webp",
+  "public/media/process/dockentra-process-shelf-band.webp",
+  "public/media/process/dockentra-process-export-band.webp",
+  "public/media/process/dockentra-process-doorstep-band.webp",
+  "public/media/process/dockentra-process-dock-band.webp",
+  "public/media/process/dockentra-process-mailer-hands.webp",
+  "public/media/process/dockentra-process-trolley-band.webp",
+  "public/media/process/dockentra-process-euro-pallets-band.webp",
 ];
 const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 
@@ -130,12 +148,17 @@ describe("the process clips are silent by construction", () => {
     assert.ok(kb(HERO_PORTRAIT_VIDEO) < 900, `portrait hero clip is ${Math.round(kb(HERO_PORTRAIT_VIDEO))} KB`);
     assert.ok(kb(PROCESS_VIDEO) < 600, `process clip is ${Math.round(kb(PROCESS_VIDEO))} KB`);
     assert.ok(kb(DISPATCH_VIDEO) < 600, `dispatch clip is ${Math.round(kb(DISPATCH_VIDEO))} KB`);
+    // Three times the length of the other process clips (13 s, a whole
+    // packing sequence) in a frame that is never veiled, so it gets a
+    // larger budget; it is lazy, never prioritised and never fetched
+    // on a handheld.
+    assert.ok(kb(PACKING_VIDEO) < 1100, `packing clip is ${Math.round(kb(PACKING_VIDEO))} KB`);
     // The hero posters are full-screen frames cut from the 4K source
     // (on a phone the poster IS the hero); the other two are small.
     for (const path of [HERO_POSTER, HERO_PORTRAIT_POSTER]) {
       assert.ok(kb(path) < 150, `${path} is ${Math.round(kb(path))} KB`);
     }
-    for (const path of [PROCESS_POSTER, DISPATCH_POSTER]) {
+    for (const path of [PROCESS_POSTER, DISPATCH_POSTER, PACKING_POSTER]) {
       assert.ok(kb(path) < 120, `${path} is ${Math.round(kb(path))} KB`);
     }
     // The /about photograph is a real 996x1600 frame, not a video
@@ -227,46 +250,63 @@ describe("the clips are decorative and honest", () => {
   });
 
   it("never claims the footage is Dockentra's own operation", () => {
+    // NO PICTURE ON THE SITE CARRIES A CAPTION (owner decision,
+    // 2026-09-24). Until then every stand-in frame wore a visible line
+    // reading "Illustrative footage of fulfilment work: …" and the
+    // /about photograph named the two people in it. The owner asked
+    // for all of them to go, everywhere.
+    //
+    // THE HONESTY RULE DID NOT GO WITH THEM. It moved into the two
+    // places that remain: the alt text, which says what is in the
+    // frame and never whose it is, and the page copy, which never
+    // calls a stand-in ours. Both are asserted below and in
+    // "illustrative people imagery is never claimed as Dockentra's
+    // own". If a caption ever comes back, this test fails first.
     const surfaces = [
       read("src/app/page.tsx"),
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
       read(DISPATCH_PAGE),
+      read("src/components/PageHeader.tsx"),
       ...STILL_SURFACES.map(read),
     ];
+    const shown = surfaces
+      .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
+      .map((m) => m[1].replace(/\s+/g, " ").trim());
+    assert.deepEqual(shown, [], `a picture grew a caption back: ${shown.join(" | ")}`);
+    // The alt text carries the whole burden now, so it may never
+    // answer "whose operation is this".
     for (const source of surfaces) {
-      const captions = [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)]
+      const alts = [...source.matchAll(/alt(?:=|:\s*)"([^"]*)"/g)]
         .map((m) => m[1])
         .join(" ")
         .toLowerCase();
       for (const claim of ["our warehouse", "our team", "our staff", "our facility"]) {
-        assert.equal(captions.includes(claim), false, `a caption claims "${claim}"`);
+        assert.equal(alts.includes(claim), false, `alt text claims "${claim}"`);
       }
     }
-    // ...and every figure says what the footage actually is. Counted
-    // in the CAPTIONS, not the file: the section also explains the
-    // rule in a comment, which must not satisfy its own assertion.
-    const shown = surfaces
-      .flatMap((source) => [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)])
-      .map((m) => m[1]);
-    // Four figures, three captions: the "From stock to shipment" figure
-    // carries no caption at all (owner decision, 2026-09-23).
-    // Hero, /about, /dispatch-commitment, the services frame, the
-    // batch-photo frame, the how-it-works frame and the one PageHeader
-    // template that captions every inner-page band (redesign round).
-    assert.equal(shown.length, 7, `${shown.length} captions, expected 7`);
     const stockToShipment = read("src/components/sections/ProcessMedia.tsx");
-    assert.equal(
-      /<figcaption/.test(stockToShipment),
-      false,
-      "the stock-to-shipment figure grew a caption back",
-    );
     // ...and it shows the owner's original dispatch clip, not the taping
     // clip that stood there for a few hours and was withdrawn.
     assert.match(stockToShipment, /src="\/media\/process\/dockentra-process-dispatch\.mp4"/);
     assert.match(stockToShipment, /poster="\/media\/process\/dockentra-process-dispatch\.jpg"/);
     assert.equal(stockToShipment.includes("dockentra-process-taping"), false);
     assert.equal(existsSync("public/media/process/dockentra-process-taping.mp4"), false);
+    // NO CLIP PLAYS TWICE (owner request, 2026-09-24). The dispatch clip
+    // used to play beside the /how-it-works steps as well; that frame
+    // now has its own clip, the packing sequence, and the homepage keeps
+    // the one the owner chose.
+    const howItWorks = read(HOW_IT_WORKS_PAGE);
+    assert.match(howItWorks, /src="\/media\/process\/dockentra-process-packing\.mp4"/);
+    assert.match(howItWorks, /poster="\/media\/process\/dockentra-process-packing\.webp"/);
+    assert.equal(howItWorks.includes("dockentra-process-dispatch"), false, "the dispatch clip is back on /how-it-works");
+    const clipSources = [
+      read("src/app/page.tsx"),
+      stockToShipment,
+      read(DISPATCH_PAGE),
+      howItWorks,
+    ].flatMap((source) => [...source.matchAll(/(?:^|[^a-zA-Z])src="(\/media\/[^"]+\.mp4)"/g)].map((m) => m[1]));
+    assert.equal(new Set(clipSources).size, clipSources.length, `a clip plays on two surfaces: ${clipSources.join(", ")}`);
     // The frame: a 4:5 portrait with square corners and no hairline, in a
     // column a little wider than before (owner brief, 2026-09-23).
     const frame = (stockToShipment.match(/className="relative mx-auto aspect-[^"]*"/) ?? [""])[0];
@@ -276,16 +316,12 @@ describe("the clips are decorative and honest", () => {
     assert.equal(/rounded-|\bborder\b/.test(frame), false, "corners or a hairline are back on the frame");
     assert.match(stockToShipment, /lg:grid-cols-\[minmax\(0,24rem\)_minmax\(0,1fr\)\]/);
     assert.match(stockToShipment, /xl:grid-cols-\[minmax\(0,26rem\)_minmax\(0,1fr\)\]/);
-    // The captioned CLIPS are stand-ins and say so. The /about
-    // photograph stopped being one on 2026-09-11 — it is Viktor and
-    // Anna — so it names them instead, and must not be called
-    // illustrative. Every caption still has to say what is actually in
-    // the frame; none of them may claim an operation the footage does
-    // not show.
-    const illustrative = shown.filter((c) => /Illustrative footage of fulfilment work/.test(c));
-    const named = shown.filter((c) => /Viktor and Anna/.test(c));
-    assert.equal(illustrative.length, 6, "every captioned stand-in frame must stay labelled illustrative");
-    assert.equal(named.length, 1, "the /about photograph must name the people it shows");
+    // The /about photograph is the one frame that is genuinely ours —
+    // Viktor and Anna, the same two people as src/lib/team.ts. With
+    // the caption gone, the alt text is where they are named, and it
+    // must keep naming them (asserted in "the /about figure names the
+    // real people it now shows"). Nothing else on the site may be
+    // described as a Dockentra operation at all.
   });
 
   it("describes the stills for people who cannot see them", () => {
@@ -390,6 +426,12 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
      * and Anna, who are the team (src/lib/team.ts). Calling that
      * "illustrative" would now be the inaccurate caption.
      *
+     * Since 2026-09-24 the figure carries no caption either — the
+     * owner removed every caption on the site — so the ALT TEXT is
+     * where the two people are named. It must keep naming them: an
+     * unnamed photograph of two people beside a page about who we are
+     * is exactly the ambiguity these assertions exist to prevent.
+     *
      * The illustrative rule is NOT relaxed anywhere else: the hero and
      * process clips are still stand-ins and the assertions below still
      * forbid "our team"/"our warehouse" language on every surface.
@@ -399,12 +441,14 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     assert.equal(figures.length, 1, `/about has ${figures.length} figures, expected 1`);
     const figure = figures[0][0];
     const teamNames = read("src/lib/team.ts");
+    const alt = (figure.match(/alt="([^"]*)"/) ?? ["", ""])[1];
     for (const name of ["Viktor", "Anna"]) {
       assert.ok(
-        figure.includes(name) && teamNames.includes(`name: "${name}"`),
-        `the caption names ${name}, who must also be in the team data`,
+        alt.includes(name) && teamNames.includes(`name: "${name}"`),
+        `the alt text names ${name}, who must also be in the team data`,
       );
     }
+    assert.equal(/<figcaption/.test(figure), false, "the /about photograph grew a caption back");
     assert.equal(
       /Illustrative/i.test(figure),
       false,
@@ -457,20 +501,25 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
 });
 
 describe("the inner-page header bands", () => {
-  it("every operational header passes a still with an alt and a caption", () => {
+  it("every operational header passes a still with a described alt", () => {
     for (const path of HEADER_PAGES) {
       const source = read(path);
       const usage = /<PageHeader[\s\S]*?variant="operational"[\s\S]*?>/.exec(source);
       assert.ok(usage, `${path} no longer opens on an operational PageHeader`);
       assert.match(usage[0], /src: "\/media\/process\/dockentra-process-[a-z-]+\.webp"/);
+      // The alt is the only description left once the caption is gone,
+      // so it has to carry a real sentence, not a label.
       assert.match(usage[0], /alt: "[^"]{30,}"/);
-      assert.match(usage[0], /caption: "[^"]{5,}"/);
     }
   });
 
-  it("the shared band captions every still as illustrative and loads it eagerly", () => {
+  it("the shared band carries no caption and loads the still eagerly", () => {
     const header = strip(read("src/components/PageHeader.tsx"));
-    assert.ok(header.includes("Illustrative footage of fulfilment work: {still.caption}"));
+    // Owner decision, 2026-09-24: no picture on the site carries a
+    // visible line. The band is a background frame with an alt, and
+    // nothing else.
+    assert.equal(header.includes("<figcaption"), false, "the band grew a caption back");
+    assert.equal(/Illustrative/i.test(header), false, "the honesty label is back in the markup");
     assert.ok(header.includes('loading="eager"'));
     assert.ok(header.includes('fetchPriority="high"'));
     assert.equal(header.includes("<video"), false, "a band is a still, never a clip");

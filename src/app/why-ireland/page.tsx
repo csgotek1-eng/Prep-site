@@ -87,9 +87,8 @@ export default function WhyIrelandPage() {
         variant="operational"
         eyebrow="Why Ireland"
         still={{
-          src: "/media/process/dockentra-process-handover-band.webp",
-          alt: "Two cardboard parcels with printed shipping labels being handed from one person to another.",
-          caption: "parcels changing hands.",
+          src: "/media/process/dockentra-process-doorstep-band.webp",
+          alt: "A taped cardboard carton with a fragile label standing on block paving in front of a house door.",
         }}
       >
         {/* The page carries three audiences now and the H1 still

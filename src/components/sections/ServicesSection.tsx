@@ -72,9 +72,10 @@ export default function ServicesSection() {
             specific label for assistive tech. The full descriptions
             live on /services, which is where every row points.
 
-            One 4:3 frame beside the list from lg, cut from the owner's
-            footage; on a phone it follows the list. It is illustrative
-            and the caption says so.
+            One 4:3 frame beside the list from lg; on a phone it
+            follows the list. It is illustrative — a stand-in, never
+            presented as Dockentra's own premises — and carries no
+            visible caption (owner decision, 2026-09-24, site-wide).
 
             The footnote ("Labelling and Kitting & Bundling are covered
             too") lives INSIDE the list column, directly under the rows:
@@ -135,8 +136,8 @@ export default function ServicesSection() {
                 the one asset allowed to compete for the first paint. */}
             <div className="relative aspect-4/3 w-full overflow-hidden bg-brand-surface-soft">
               <Image
-                src="/media/process/dockentra-process-taping-hands.webp"
-                alt="A hand smoothing packing tape across a cardboard carton on a bench."
+                src="/media/process/dockentra-process-mailer-hands.webp"
+                alt="Two hands settling a pair of banded folded socks into an open kraft mailer box."
                 width={1200}
                 height={900}
                 sizes="(min-width: 1024px) 26rem, calc(100vw - 2rem)"
@@ -144,9 +145,6 @@ export default function ServicesSection() {
                 className="h-full w-full object-cover"
               />
             </div>
-            <figcaption className="mt-3 text-xs leading-5 text-brand-text-muted">
-              Illustrative footage of fulfilment work: sealing a carton.
-            </figcaption>
           </figure>
         </div>
       </Container>

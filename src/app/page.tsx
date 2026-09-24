@@ -94,9 +94,12 @@ export default async function HomePage() {
           component shows the portrait poster there and never mounts
           the clip, so the first screen on a phone is a still.
 
-          ILLUSTRATIVE FOOTAGE, and the caption still says so. The clip
-          shows fulfilment work in a warehouse; it is not presented as
-          Dockentra's own unit, staff or current operation. */}
+          ILLUSTRATIVE FOOTAGE. The clip shows fulfilment work in a
+          warehouse; it is not presented as Dockentra's own unit, staff
+          or current operation. The visible caption that used to say so
+          was removed on 2026-09-24 (owner decision, site-wide); the
+          rule itself stands in the alt text and in the copy, which
+          never claims the footage is ours. */}
       <section
         aria-labelledby="hero-heading"
         className="relative isolate flex min-h-[calc(100svh-6.125rem)] items-start overflow-hidden bg-brand-navy sm:items-center"
@@ -116,21 +119,6 @@ export default async function HomePage() {
             aria-hidden="true"
             className="absolute inset-0 bg-gradient-to-b from-brand-navy/80 via-brand-navy/60 via-60% to-brand-navy/30 lg:bg-gradient-to-r lg:from-brand-navy/75 lg:via-brand-navy/55 lg:via-70% lg:to-brand-navy/20"
           />
-          {/* Bottom-left, inside the hero's own bottom padding: clear of
-              the copy above it, and clear of the floating dock, which
-              is pinned to the bottom-RIGHT of the viewport. On a phone
-              the dock is 62px wide and the caption would run under it,
-              so the line stops 4.5rem short of the right edge there.
-              Below lg the main veil is at its lightest down here, so
-              the caption brings its own short scrim; from lg it sits
-              under the darkest stop and needs none. */}
-          <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-navy/60 to-transparent pb-3 pt-10 lg:bg-none lg:pt-0">
-            <Container>
-              <span className="inline-block max-w-[calc(100%-4.5rem)] text-xs leading-5 text-white/75 sm:max-w-none">
-                Illustrative footage of fulfilment work: a warehouse aisle.
-              </span>
-            </Container>
-          </figcaption>
         </figure>
 
         {/* PHONE RHYTHM (polish round): the copy stack at 390px was

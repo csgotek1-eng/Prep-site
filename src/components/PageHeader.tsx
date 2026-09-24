@@ -11,28 +11,37 @@ import type { ReactNode } from "react";
  * describe physical work ("operational": services, how it works, why
  * Ireland, the audience pages, become a client) now open on a real
  * frame of fulfilment work under the same navy veil the homepage hero
- * and /dispatch-commitment use; the pages that are forms, lists or
- * policy ("utility": pricing, contact, FAQ, about, partnerships,
- * privacy) keep the flat navy, which is right for them.
+ * and /dispatch-commitment use. Pricing, contact and partnerships
+ * joined them on 2026-09-24 (owner request: a fitting picture for
+ * each); FAQ, about, privacy, cases and batch photos keep the flat
+ * navy ("utility"), which is right for a list, a policy or a page
+ * that already carries its own photograph.
+ *
+ * ONE PICTURE PER SUBJECT (owner rule, 2026-09-24): no still may show
+ * a subject another page already shows, and no face may be visible in
+ * any of them. The frames are cut from the owner's clips or from
+ * licensed photographs; scripts/derive-site-stills.mjs and
+ * media-source/README.md record which is which.
  *
  * THE H1 STAYS IN THE PAGE. This component renders the band and the
  * caption; the page renders its own <h1> and intro as children, so the
  * SEO tests that read each page's H1 from its own source keep working
  * and each page keeps owning its words.
  *
- * ILLUSTRATIVE FOOTAGE. Every operational band carries the caption
- * "Illustrative footage of fulfilment work: …" — the frames are cut
- * from the owner's stock-style footage (media-source/README.md) and
- * are not presented as Dockentra's own unit or staff. The alt text
- * says only what is in the frame.
+ * NO VISIBLE CAPTION (owner decision, 2026-09-24). The bands used to
+ * carry a line reading "Illustrative footage of fulfilment work: …";
+ * the owner asked for every caption under every picture on the site to
+ * go. The honesty rule itself did not go with it: the frames are
+ * stand-ins (provenance in media-source/README.md), the ALT text still
+ * says only what is in the frame, and no copy anywhere calls them
+ * Dockentra's own unit, staff or premises. tests/media-assets.test.ts
+ * holds both halves — no caption, no ownership claim.
  */
 export type PageHeaderStill = {
   /** A 3:1 WebP band under public/media/process, derived by scripts/derive-site-stills.mjs. */
   src: string;
   /** What is in the frame, never whose it is. */
   alt: string;
-  /** Completes "Illustrative footage of fulfilment work: …". */
-  caption: string;
 };
 
 export default function PageHeader({
@@ -69,13 +78,6 @@ export default function PageHeader({
             aria-hidden="true"
             className="absolute inset-0 bg-gradient-to-b from-brand-navy/85 to-brand-navy/70 lg:bg-gradient-to-r lg:from-brand-navy/85 lg:via-brand-navy/70 lg:via-70% lg:to-brand-navy/40"
           />
-          <figcaption className="absolute inset-x-0 bottom-0 pb-3">
-            <Container>
-              <span className="inline-block max-w-[calc(100%-4.5rem)] text-xs leading-5 text-white/80 sm:max-w-none">
-                Illustrative footage of fulfilment work: {still.caption}
-              </span>
-            </Container>
-          </figcaption>
         </figure>
       )}
       <Container className={operational ? "relative py-16 sm:py-24" : "relative py-14 sm:py-20"}>

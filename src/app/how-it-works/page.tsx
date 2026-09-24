@@ -52,7 +52,6 @@ export default function HowItWorksPage() {
         still={{
           src: "/media/process/dockentra-process-taping-band.webp",
           alt: "Hands taping a cardboard carton shut on a packing bench.",
-          caption: "sealing a carton.",
         }}
       >
         {/* Was the bare menu label. See /services for the reason. */}
@@ -125,24 +124,28 @@ export default function HowItWorksPage() {
                 one asset on the site allowed to compete for first paint.
                 A phone gets the poster still and never fetches the clip.
 
-                ILLUSTRATIVE FOOTAGE, and the caption says so. The alt
-                text describes what is in the frame; nothing beside it
-                claims whose operation it is. Square corners, no
+                ILLUSTRATIVE FOOTAGE. The alt text describes what is in
+                the frame; nothing beside it claims whose operation it
+                is. The visible caption was removed on 2026-09-24
+                (owner decision, site-wide). Square corners, no
                 hairline — the one frame language across the site. */}
             <figure className="lg:col-span-5 lg:col-start-8">
               <div className="lg:sticky lg:top-28">
                 <div className="relative mx-auto aspect-4/5 w-full max-w-[24rem] overflow-hidden bg-brand-mint-soft lg:max-w-none">
+                  {/* Its own clip since 2026-09-24 (owner request):
+                      the dispatch clip also plays on the homepage, and
+                      one clip must not play twice. This one shows the
+                      pack step in detail — wrap, box, lid, label —
+                      hands only. A licensed clip; provenance in
+                      media-source/README.md. */}
                   <ProcessVideo
                     sizes="(min-width: 1024px) 24rem, calc(100vw - 2rem)"
-                    src="/media/process/dockentra-process-dispatch.mp4"
-                    poster="/media/process/dockentra-process-dispatch.jpg"
-                    alt="A gloved hand placing a taped carton onto a pallet, and a parcel being loaded into a van."
+                    src="/media/process/dockentra-process-packing.mp4"
+                    poster="/media/process/dockentra-process-packing.webp"
+                    alt="Two hands wrapping a small item in bubble wrap, placing it in a kraft box and applying a barcode label to the lid."
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <figcaption className="mx-auto mt-3 max-w-[24rem] text-xs leading-5 text-slate-500 lg:max-w-none">
-                  Illustrative footage of fulfilment work: staging and dispatch.
-                </figcaption>
               </div>
             </figure>
           </div>

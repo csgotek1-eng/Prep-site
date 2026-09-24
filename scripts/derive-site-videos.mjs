@@ -93,6 +93,23 @@ const JOBS = [
     vf: "scale=1280:-2",
     crf: "30",
   },
+  {
+    // /how-it-works, beside the three steps (owner request, 2026-09-24:
+    // the dispatch clip played here AND on the homepage, and the
+    // replacement had to show the service in detail with no face).
+    // Pexels 7287770 (Kampus Production, Pexels licence): hands wrap
+    // an item in bubble wrap, box it, close the lid and apply a
+    // barcode label. Seconds 6-19 hold the whole sequence; a 4:5
+    // centre crop of the 16:9 frame keeps the box and both hands.
+    // Every frame of the source was checked on a contact sheet: no
+    // face anywhere. The slot is 24rem wide at most, so 720 wide is
+    // sharp at DPR 2.
+    source: "7287770-uhd_3840_2160_25fps.mp4",
+    out: "public/media/process/dockentra-process-packing.mp4",
+    args: ["-ss", "6", "-t", "13"],
+    vf: "crop=ih*4/5:ih,scale=720:900",
+    crf: "31",
+  },
 ];
 
 /**
@@ -107,11 +124,22 @@ const POSTERS = [
   { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "scale=1920:-2", out: "public/media/hero/dockentra-process-aisle.webp", quality: "55" },
   { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "crop=ih*9/16:ih,scale=1080:1920", out: "public/media/hero/dockentra-process-aisle-portrait.webp", quality: "55" },
   { from: "public/media/process/dockentra-process-handover.mp4", vf: null, out: "public/media/process/dockentra-process-handover.webp", quality: "72" },
+  // `at`: the second to take the poster from. On a handheld the poster
+  // IS the frame (clips never autoplay there), so it should be a
+  // sharp, representative moment — here the label going onto the
+  // closed box — not the motion-blurred first frame.
+  { from: "public/media/process/dockentra-process-packing.mp4", at: "10", vf: null, out: "public/media/process/dockentra-process-packing.webp", quality: "72" },
 ];
 
 const kb = (file) => `${Math.round(statSync(file).size / 1024)} KB`;
 
+// `node scripts/derive-site-videos.mjs packing` runs only the jobs and
+// posters whose output name contains the argument, so one new clip
+// does not re-encode the 4K hero from a folder that may not hold it.
+const only = process.argv[2];
+
 for (const job of JOBS) {
+  if (only && !job.out.includes(only)) continue;
   const input = path.join(SOURCE_DIR, job.source);
   if (!existsSync(input)) {
     console.error(`Missing source: ${input}`);
@@ -124,12 +152,13 @@ for (const job of JOBS) {
 }
 
 for (const poster of POSTERS) {
+  if (only && !poster.out.includes(only)) continue;
   const input = poster.from.startsWith("SOURCE:")
     ? path.join(SOURCE_DIR, poster.from.slice("SOURCE:".length))
     : path.join(repoRoot, poster.from);
   const output = path.join(repoRoot, poster.out);
   execFileSync(FFMPEG, [
-    "-y", "-v", "error", "-i", input, "-frames:v", "1",
+    "-y", "-v", "error", ...(poster.at ? ["-ss", poster.at] : []), "-i", input, "-frames:v", "1",
     ...(poster.vf ? ["-vf", poster.vf] : []),
     "-c:v", "libwebp", "-quality", poster.quality, output,
   ]);

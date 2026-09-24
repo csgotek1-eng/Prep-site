@@ -149,8 +149,18 @@ for (const width of WIDTHS) {
   // operation. Scoped to the figures on purpose: "Find our warehouse"
   // in the location block is a true statement about a real address
   // the business really has, and has nothing to do with this footage.
-  const captions = (
+  //
+  // Since 2026-09-24 the figures carry no caption at all (owner
+  // decision, site-wide), so this now checks two things in the
+  // rendered page: no figure prints a caption, and no figure — alt
+  // text included — claims the footage is ours.
+  const figureText = (
     await page.locator("figure").allInnerTexts()
+  ).join(" ").toLowerCase();
+  const figureAlts = (
+    await page.locator("figure img").evaluateAll((els) =>
+      els.map((el) => el.getAttribute("alt") ?? ""),
+    )
   ).join(" ").toLowerCase();
   for (const claim of [
     "our warehouse",
@@ -160,9 +170,13 @@ for (const width of WIDTHS) {
     "our current",
     "inside dockentra",
   ]) {
-    ok(!captions.includes(claim), `a media caption claims "${claim}"`);
+    ok(!`${figureText} ${figureAlts}`.includes(claim), `media claims "${claim}"`);
   }
-  ok(captions.includes("illustrative footage"), "the footage is not labelled as illustrative");
+  ok(
+    (await page.locator("figure figcaption").count()) === 0,
+    "a picture grew a caption back",
+  );
+  ok(!figureText.includes("illustrative"), "the honesty label is back under a picture");
   await context.close();
 }
 
@@ -262,8 +276,9 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
   // ...and it must not sit on top of the media. The full-screen hero
   // backdrop is exempt by construction: it fills the whole first
   // screen, so anything floating on that screen is "over" it, the same
-  // way the headline is. What must stay clear is framed media, and the
-  // backdrop's caption, which is text a visitor reads.
+  // way the headline is. What must stay clear is framed media. (The
+  // backdrop's caption used to be checked here too; captions were
+  // removed site-wide on 2026-09-24.)
   const overMedia = await page.evaluate(() => {
     const dock = document.querySelector('[data-testid="floating-dock"]');
     if (!dock) return false;
@@ -271,8 +286,7 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
     const framed = [...document.querySelectorAll("video, main img")].filter(
       (el) => !el.closest("[data-hero-backdrop]"),
     );
-    const caption = document.querySelector("[data-hero-backdrop] figcaption span");
-    return [...framed, ...(caption ? [caption] : [])].some((el) => {
+    return framed.some((el) => {
       const m = el.getBoundingClientRect();
       if (m.height === 0) return false;
       return !(d.right < m.left || d.left > m.right || d.bottom < m.top || d.top > m.bottom);

@@ -36,7 +36,18 @@ export default async function PartnershipsPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Partnerships", path: "/partnerships" }]} />
-      <PageHeader eyebrow="Partnerships">
+      {/* A licensed photograph, not a frame from the owner's clips
+          (owner request, 2026-09-24: a fitting picture for this page).
+          Parcels in a van with nobody in the frame — the courier and
+          partner side of the work. Provenance in media-source/README.md. */}
+      <PageHeader
+        variant="operational"
+        eyebrow="Partnerships"
+        still={{
+          src: "/media/process/dockentra-process-van-band.webp",
+          alt: "Taped cardboard cartons and parcels stacked inside a white van with its side door open.",
+        }}
+      >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
           Partner with Dockentra
         </h1>

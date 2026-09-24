@@ -68,9 +68,8 @@ export default async function BecomeAClientPage({
         variant="operational"
         eyebrow="Become a client"
         still={{
-          src: "/media/process/dockentra-process-racking-band.webp",
-          alt: "Racking bays stacked with wrapped pallets and cartons.",
-          caption: "racked stock.",
+          src: "/media/process/dockentra-process-trolley-band.webp",
+          alt: "Hands gripping the red handle of a hand trolley loaded with three small labelled cartons.",
         }}
       >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">

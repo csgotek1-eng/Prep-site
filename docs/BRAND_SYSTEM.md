@@ -114,12 +114,16 @@ stays for errors only.
   full-bleed navy band with a mint hairline at the top, copy left and
   the page's own actions right from lg, running straight into the
   footer. No gradient, no card, no centring.
-- **Inner-page headers**: one `PageHeader` component. The pages that
-  describe physical work (services, how it works, why Ireland, the
-  audience pages, become a client) open on a real 3:1 frame of
-  fulfilment work under the navy veil, captioned illustrative; the
-  utility pages (pricing, contact, FAQ, about, partnerships, privacy)
-  keep the flat navy band. The `<h1>` stays in the page file.
+- **Inner-page headers**: one `PageHeader` component. Services, how
+  it works, why Ireland, the audience pages, become a client, pricing,
+  contact and partnerships open on a real 3:1 frame under the navy
+  veil, uncaptioned; FAQ, about, privacy, cases and batch photos keep
+  the flat navy band. The `<h1>` stays in the page file. **One
+  subject per picture, site-wide** (owner rule, 2026-09-24): no two
+  surfaces show the same scene — not the same still, not a second
+  frame of the same clip — and no face is visible in any frame. The
+  frames are cut from the owner's clips or from licensed photographs
+  (Pexels licence; provenance in `media-source/README.md`).
 - **Media frames** are square-cornered, with no hairline, at every
   size (the "From stock to shipment" frame set the rule; the services,
   batch-photo, how-it-works and about frames follow it).
@@ -154,21 +158,28 @@ stays for errors only.
     of a loop. Exactly ONE clip on a page may load eagerly. Clips never
     autoplay on a phone or tablet (owner decision, 2026-09-23): a
     handheld device gets the poster still and never fetches the clip;
-  - **captions on unconfirmed footage say what it is.** Until the
-    owner confirms footage shows Dockentra's own operation it is
-    captioned *illustrative footage of fulfilment work*, and no
-    surface beside it says "our warehouse", "our team", "our staff" or
-    "our facility". One exception, by owner decision on 2026-09-23:
-    the "From stock to shipment" figure on the homepage carries no
-    caption at all; its alt text still says only what is shown, and
-    the no-"our warehouse" rule holds there too. The media on the site today is TEMPORARY
+  - **no picture on the site carries a caption** (owner decision,
+    2026-09-24). Until that date every stand-in frame wore a visible
+    line reading *illustrative footage of fulfilment work: …* and the
+    /about photograph named the two people in it; the owner asked for
+    all of them to go, everywhere. **The honesty rule did not go with
+    them** — it now lives entirely in the alt text and the copy: alt
+    text says what is IN the frame and never whose it is, and no
+    surface beside a picture says "our warehouse", "our team", "our
+    staff", "our facility" or "inside Dockentra". Both halves — no
+    caption, no ownership claim — are pinned by
+    `tests/media-assets.test.ts` and
+    `tests/browser/media-integration.mjs`. Re-adding a caption is a
+    deliberate decision, not a tidy-up. The media on the site today is TEMPORARY
     ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04) —
-    three process clips (the homepage hero, "From stock to shipment" and
-    the /dispatch-commitment band), seven stills cut from the same
-    footage (`scripts/derive-site-stills.mjs`: five inner-page header
-    bands, the services frame and the batch-photo frame) and one
-    photograph of people — awaiting real Dockentra photography and
-    video; see `media-source/README.md` for how to swap it in;
+    process clips (the homepage hero, "From stock to shipment", the
+    /dispatch-commitment band and the /how-it-works frame), stills cut
+    from that footage and licensed photographs behind the inner-page
+    headers and beside the services and batch-photo prose
+    (`scripts/derive-site-stills.mjs` lists every one), and one
+    photograph of the real team — the footage and photographs await
+    real Dockentra photography and video; see `media-source/README.md`
+    for how to swap it in;
   - **imagery of PEOPLE is never cropped.** A crop tightens on torsos,
     which is where uniform lettering sits. Such a photo carries its own
     intrinsic width/height and shows the whole frame; cap the WIDTH,

@@ -64,10 +64,9 @@ for the repository. The owner holds them under these names, and
 | `4440958-hd_1920_1080_25fps.mp4` (1080p, 4 s, with audio) | `public/media/process/dockentra-process-handover.mp4` + `.webp` | 1280 wide, audio removed |
 
 They are stock-style footage, so the rule below applies to them
-unchanged: every caption says *illustrative footage of fulfilment work*
-— except the "From stock to shipment" figure, which carries NO caption
-at all since 2026-09-23 (owner decision). Its alt text still describes
-only what is shown.
+unchanged. Since 2026-09-24 NO figure on the site carries a caption at
+all (owner decision, site-wide); the alt text describes only what is
+shown, which is now the only place that description lives.
 
 **Clips never autoplay on a phone or tablet** (owner decision,
 2026-09-23): handheld devices get the poster still and never fetch the
@@ -83,9 +82,56 @@ third-party logos): five 3:1 bands for the inner-page headers
 `-handover-band`), a 4:3 frame beside the services list
 (`-taping-hands`) and a 4:3 frame beside the batch-photo section
 (`-batch-photo`, from the 576px dispatch clip, shipped at source size).
-Every one is captioned *illustrative footage of fulfilment work* where
-it appears. The same rule as above applies: real Dockentra frames at
-the same paths replace them, and the captions change in that commit.
+None of them is captioned where it appears (owner decision,
+2026-09-24). The same rule as above applies: real Dockentra frames at
+the same paths replace them, and this file records the swap.
+
+## Licensed photographs (2026-09-24)
+
+Owner request on seeing the redesign preview: the pages that opened on
+a flat navy band should get a fitting picture, no picture may repeat
+across the site, and no face may be visible in any frame. The clips
+could not supply that many distinct subjects, so these surfaces use
+photographs from Pexels under the Pexels licence
+(https://www.pexels.com/license/ — free for commercial use, no
+attribution required, modification allowed). They were picked from
+deep result pages with few likes, but uniqueness on the internet
+cannot be guaranteed for any public-library photograph.
+
+`pexels-<id>.source.jpg` is a 2400px-wide JPEG working copy of the
+original (enough to re-derive every size the site serves); the full
+original stays at its Pexels URL. Every crop was checked at every edge
+for any part of a face before it shipped.
+
+| Pexels id | photographer | page | working copy | output | crop |
+|---|---|---|---|---|---|
+| 6407553 | Pavel Danilyuk | https://www.pexels.com/photo/delivery-van-with-boxes-inside-6407553/ (original 4702×3139) | `pexels-6407553.source.jpg` | `dockentra-process-van-band.webp` — /partnerships header | 3:1 middle band; blank door left, parcels right; no people |
+| 12234106 | Daniel Andraski | https://www.pexels.com/photo/close-up-shot-of-a-person-doing-a-checklist-12234106/ (original 6000×4000) | `pexels-12234106.source.jpg` | `dockentra-process-count-band.webp` — /pricing header | 3:1 band through the clipboard; dark jacket left, count sheet and labelled cartons right; torso and hands only, head outside the frame |
+| 19962152 | Jan van der Wolf | https://www.pexels.com/photo/two-white-doors-19962152/ (original 6000×4000) | `pexels-19962152.source.jpg` | `dockentra-process-unit-band.webp` — /contact header | 3:1 band through the doors; no people, no numbers, no signage. A stand-in, not the Dockentra unit |
+| 6169029 | Tima Miroshnichenko | https://www.pexels.com/photo/brown-cardboard-boxes-on-gray-steel-rack-6169029/ (original 5957×3971) | `pexels-6169029.source.jpg` | `dockentra-process-shelf-band.webp` — /services header | 3:1 upper-middle band; white brick left, labelled cartons, mailers and tape rolls right; no people |
+| 10834810 | Ihsan Adityawarman | https://www.pexels.com/photo/stacked-boxes-in-a-warehouse-10834810/ (original 8000×6000) | `pexels-10834810.source.jpg` | `dockentra-process-export-band.webp` — /china-asia-brands header | 3:1 band from x=525 of the working copy: further left a stack with a printed brand name enters the frame; no people |
+| 6170463 | Tima Miroshnichenko | https://www.pexels.com/photo/6170463/ (original 5794×3863) | `pexels-6170463.source.jpg` | `dockentra-process-doorstep-band.webp` — /why-ireland header | 3:1 middle band; carton at a house door, brick wall left; no people |
+| 12585837 | BOOM Photography | https://www.pexels.com/photo/12585837/ (original 5158×3434) | `pexels-12585837.source.jpg` | `dockentra-process-dock-band.webp` — /uk-brands header | 3:1 lower band (keeps the original's yellow wall out); two cartons on a dock apron; no people |
+| 9594431 | Ron Lach | https://www.pexels.com/photo/a-person-packaging-folded-socks-with-a-cardboard-box-9594431/ (original 7952×5304) | `pexels-9594431.source.jpg` | `dockentra-process-mailer-hands.webp` — homepage services frame (4:3) | hands and forearms only; both leave the frame at the right and bottom edges |
+| 7844001 | Kampus Production | https://www.pexels.com/photo/7844001/ (original 6016×4016) | `pexels-7844001.source.jpg` | `dockentra-process-trolley-band.webp` — /become-a-client header | 3:1 middle band; cartons centre, hands and a red sleeve right, the torso cut at the shoulder; no face |
+| 14674132 | Arti Kh | https://www.pexels.com/photo/14674132/ (original 4617×3068) | `pexels-14674132.source.jpg` | `dockentra-process-euro-pallets-band.webp` — /european-brands header | 3:1 middle band; no people; the EPAL stamp is a standards mark, not a brand |
+
+One licensed CLIP as well, for the /how-it-works frame, because the
+dispatch clip used to play there and on the homepage and the owner
+asked that no clip play twice (and that the replacement show the
+service in detail, with no face):
+
+| Pexels id | creator | page | source file (NOT in the repository — 4K, held like the three above) | output | treatment |
+|---|---|---|---|---|---|
+| 7287770 | Kampus Production | https://www.pexels.com/video/man-using-bubble-wrap-in-packaging-7287770/ | `7287770-uhd_3840_2160_25fps.mp4` from https://videos.pexels.com/video-files/7287770/7287770-uhd_3840_2160_25fps.mp4 | `public/media/process/dockentra-process-packing.mp4` + `.webp` poster | seconds 6–19; 4:5 centre crop scaled to 720×900; audio removed; CRF 31 (`scripts/derive-site-videos.mjs`). Every frame checked on a contact sheet: hands only, no face |
+
+Withdrawn the same day, replaced by the rows above: the aisle band
+(/services), racking band (/become-a-client), pallets band
+(/european-brands), bench band (/uk-brands), handover band
+(/why-ireland), parcels band (/china-asia-brands) and taping-hands
+frame (homepage services list). Their crops stay recorded in the
+derive script. Of the owner's clips, the taping band on /how-it-works
+and the batch-photo frame are the stills that remain.
 
 ## What this footage is, and is not
 
@@ -94,20 +140,25 @@ It is not Dockentra's warehouse and not Dockentra's team, and it is on
 the site on the understanding that real Dockentra photography and video
 will replace it.
 
-So every caption reads *illustrative footage of fulfilment work*, and
-no surface beside it says "our warehouse", "our team", "our staff",
-"our facility" or "inside Dockentra". That wording is not editorial
-taste — it is the condition on which this material may be published at
-all, and both `tests/media-assets.test.ts` and
-`tests/browser/media-integration.mjs` fail if a caption drifts.
+The site used to state that under every frame. On 2026-09-24 the owner
+removed every caption from every picture, so the condition is now
+carried by what remains: **the alt text says what is in the frame and
+never whose it is, and no surface beside a picture says "our
+warehouse", "our team", "our staff", "our facility" or "inside
+Dockentra".** That is not editorial taste — it is the condition on
+which this material may be published at all, and both
+`tests/media-assets.test.ts` and `tests/browser/media-integration.mjs`
+fail if a caption returns or if any alt text starts claiming
+ownership.
 
 ### Replacing it later
 
 Drop the real files at the SAME paths and rerun the transcode commands
 above. Nothing else changes: no component, no layout, no page. Then,
-and only then, the captions may say what the footage actually is —
-that edit is the one that turns "illustrative" into "ours", so it
-should happen in the same commit as the file swap, never before it.
+and only then, the alt text may say what the footage actually is —
+that edit is the one that turns a stand-in into "ours", so it should
+happen in the same commit as the file swap, never before it. Until
+then the alt text describes the frame and nothing more.
 
 ## The team photograph — integrated
 
@@ -134,13 +185,16 @@ be over 1200px tall and bury the page.
 
 ### Wording
 
-Caption: **Illustrative fulfilment team imagery**
-Alt: *Two people in high-visibility vests taping and labelling a carton
-at a packing bench* — what is shown, never whose it is.
+No caption (owner decision, 2026-09-24, site-wide; it read *Viktor and
+Anna packing an order in Limerick* until then).
+Alt: *Viktor and Anna taping and labelling a carton at a packing
+bench* — the alt is now the only place the two people are named, and
+`tests/media-assets.test.ts` requires both names to appear there and
+in `src/lib/team.ts`.
 
-Neither the caption nor the alt may say "our team", "our staff", "our
-people", "our warehouse", "our facility" or "our operation", and the
-alt may not contain "our", "we", "us" or "Dockentra's" at all. The
+The alt may not say "our team", "our staff", "our people", "our
+warehouse", "our facility" or "our operation", and may not contain
+"our", "we", "us" or "Dockentra's" at all. The
 owner accepted publishing the photo with the "Dockcentra" lettering on
 the vests as-is; the condition attached to that decision is precisely
 this wording, so it is enforced by test rather than by memory.
@@ -148,6 +202,6 @@ this wording, so it is enforced by test rather than by memory.
 ### Replacing it with real Dockentra photography
 
 Drop the new file at the same two paths and update the `width`/`height`
-in `src/app/about/page.tsx` to the new intrinsic size. The caption edit
-that turns "illustrative" into a statement about Dockentra's own team
-belongs in the same commit as the file swap, never before it.
+in `src/app/about/page.tsx` to the new intrinsic size. The alt-text
+edit that turns a description into a statement about Dockentra's own
+team belongs in the same commit as the file swap, never before it.

@@ -247,9 +247,8 @@ export default function ServicesPage() {
         variant="operational"
         eyebrow="Services"
         still={{
-          src: "/media/process/dockentra-process-aisle-band.webp",
-          alt: "A warehouse aisle lined with red pallet racking stacked with cartons.",
-          caption: "a warehouse aisle.",
+          src: "/media/process/dockentra-process-shelf-band.webp",
+          alt: "Labelled cardboard cartons, poly mailer bags and rolls of tape on a light steel shelving unit against a white brick wall.",
         }}
       >
         {/* "Services" was the menu label doing duty as the H1: it

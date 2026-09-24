@@ -105,9 +105,8 @@ export default function ChinaAsiaBrandsPage() {
         variant="operational"
         eyebrow="China & Asia brands"
         still={{
-          src: "/media/process/dockentra-process-parcels-band.webp",
-          alt: "Two cardboard parcels with printed shipping labels held ready to hand over.",
-          caption: "labelled parcels.",
+          src: "/media/process/dockentra-process-export-band.webp",
+          alt: "Tall stacks of strapped cardboard export cartons under a corrugated roof with steel trusses.",
         }}
       >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">

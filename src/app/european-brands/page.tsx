@@ -80,9 +80,8 @@ export default function EuropeanBrandsPage() {
         variant="operational"
         eyebrow="European brands"
         still={{
-          src: "/media/process/dockentra-process-pallets-band.webp",
-          alt: "Wrapped pallets and cartons on the floor at the end of a racked aisle.",
-          caption: "pallets at the end of an aisle.",
+          src: "/media/process/dockentra-process-euro-pallets-band.webp",
+          alt: "Wooden euro pallets leaning against a blue steel column on a loading platform.",
         }}
       >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">

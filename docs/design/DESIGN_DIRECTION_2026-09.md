@@ -64,7 +64,7 @@ Primary direction: image-led operational (Red Stag / Exotec / GXO for
 Preserve: full-screen aisle hero + measured veil; glass platform chips;
   poster-first video with no autoplay on handhelds; navy/green/mint/
   neutral palette; Manrope 700 display + Inter body + Plex Mono for
-  values; approved copy; illustrative captions on footage
+  values; approved copy; honest alt text on stand-in footage
 Borrow only: (1) the 3-cell fact strip under the hero (Fulfyld's strip,
   rebuilt from Dockentra's true values); (2) the commitment as the
   page's one large typographic statement on navy
@@ -72,13 +72,17 @@ Role rules: green = the one filled action + eyebrows on light; mint =
   eyebrows, rules and check glyphs on navy only; mint-soft = chip fills
   and the pricing band tint, never a full-width band; navy = hero,
   commitment band, inner-page headers, footer
-Media strategy: real frames cut from the owner's footage only (aisle,
-  taping, handover, dispatch clips); square-cornered frames; 3:1 bands
-  under inner-page headers; 4:3 frames beside text; every footage figure
-  captioned "Illustrative footage of fulfilment work: …"
+Media strategy: real frames — cut from the owner's footage (aisle,
+  taping, handover, dispatch clips) or, since 2026-09-24 at the owner's
+  request, licensed photographs of the same kind of work (Pexels; one
+  distinct subject per surface, no face anywhere); square-cornered
+  frames; 3:1 bands under inner-page headers; 4:3 frames beside text;
+  no figure carries a visible caption (owner decision, 2026-09-24) —
+  the alt text says what is in the frame and never whose it is
 Reject: icon-in-tinted-square cards, cards as default containers, blur
   blobs and decorative gradients, scroll-reveal on sections, fake data,
-  new stock photography, a serif, any second accent colour
+  staged "business" stock (faces to camera, hi-vis-with-tablet), a
+  serif, any second accent colour
 ```
 
 ## 3. Decision ledger
@@ -90,8 +94,8 @@ Reject: icon-in-tinted-square cards, cards as default containers, blur
 | 3-cell fact strip directly under the hero (cut-off 14:00 · receiving same day · minimum none) | Fulfyld (principle), site copy | Values in Plex Mono, labels in Inter; no € figures | Proof as checkable facts, not adjectives |
 | Services as numbered link rows with one 4:3 frame beside them | Research area 3, skeptic amendment | Rows stay single-Link tiles with focus rings | Retires the icon-card tell without a photo collage |
 | "Why Dockentra" becomes the commitment band on navy with the four approved claims as an unboxed list | Research area 5, audit | Section id, heading text and claim wording unchanged | The site's one big statement, built from approved words |
-| Batch-photo section gains one real still (phone on a tripod photographing a label) | Audit (three lenses agreed) | Captioned illustrative | A section about photographs now contains one |
-| Inner pages get one PageHeader with an operational variant (real band under the veil) | Audit (three lenses agreed) | H1 stays in each page file; captions counted by tests | Ten identical flat navy bands were the strongest template tell |
+| Batch-photo section gains one real still (phone on a tripod photographing a label) | Audit (three lenses agreed) | Honest alt text, no ownership claim | A section about photographs now contains one |
+| Inner pages get one PageHeader with an operational variant (real band under the veil) | Audit (three lenses agreed) | H1 stays in each page file; band is a background frame with an alt | Ten identical flat navy bands were the strongest template tell |
 | Square-cornered media frames everywhere | Owner (ProcessMedia decision), consistency | No rounded media, no hairline on media | One frame language across the site |
 | Two radius tiers: rounded-lg cards, rounded-2xl bands | Polish round, audit ruling | Test pins updated in the same commit | Three coexisting radii read unfinished |
 | Section rhythm: media sections (services, batch photo, the commitment band) py-20 sm:py-28, text-only sections py-16 sm:py-24; H2 at 30/36 px with the intro as a grey clause | Research area 8–9; review round (the uniform py-28 pushed the homepage to 10.9 k px) | H2 text unchanged | Premium references sit a step airier and larger, but not uniformly so |
@@ -102,6 +106,8 @@ Reject: icon-in-tinted-square cards, cards as default containers, blur
 | Get Price visible in the header at every width | Audit (medium), research area 2 | Exactly two CalculatorTrigger call sites | The pricing page tells phone visitors to use it |
 | Floating dock hides while the mobile menu is open; offer strip is one line on phones | Audit (high) | Dock ids, labels and storage key unchanged | Two phone defects visible on the first screen |
 | Nav items, utility bar and copy stay as approved | Owner decisions on record | — | Trimming the nav and dropping the bar are owner tickets, not design calls |
+| No picture on the site carries a caption (2026-09-24) | Owner, on seeing the preview | Honesty moves into the alt text and the copy; tests pin "no caption" and "no ownership claim" together | The owner asked for the line under every frame to go, everywhere — including the founders' names under the /about photograph, so one frame does not keep a caption the others lost |
+| One distinct picture per surface, no face in any frame; pricing, contact and partnerships open on a photograph (2026-09-24) | Owner, on seeing the preview | Stand-in rule unchanged (alt says what, never whose); Pexels licence; provenance per photo in media-source/README.md; crops checked at every edge | Three clips could not supply eleven distinct subjects — five bands and the services frame were second frames of the hero aisle, the taping clip or the handover clip. Uniqueness on the internet cannot be guaranteed for a public-library photo; deep result pages and few likes were the best available proxy |
 
 ## 4. What was deliberately not done (needs the owner)
 

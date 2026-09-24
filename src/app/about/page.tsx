@@ -43,9 +43,15 @@ export default function AboutPage() {
                 published under an explicit rule that it must never be
                 presented as Dockentra's own team. The owner supplied a
                 photograph of Viktor and Anna — the same two people as the
-                team block below — so the caption can now say who they
-                are. The illustrative rule still governs the hero and
+                team block below — so this one frame is genuinely ours.
+                The illustrative rule still governs the hero and
                 process clips, which are still stand-ins.
+
+                NO CAPTION since 2026-09-24 (owner decision, site-wide:
+                every picture on the site lost its caption). The line
+                under it read "Viktor and Anna packing an order in
+                Limerick"; the alt text still names them, and the team
+                block directly below does too.
 
                 THE WHOLE FRAME, uncropped, exactly as before: the
                 intrinsic 1122x1402 is given to next/image and the element
@@ -65,9 +71,6 @@ export default function AboutPage() {
                   className="h-auto w-full"
                 />
               </div>
-              <figcaption className="mt-3 text-center text-xs leading-5 text-brand-text-muted">
-                Viktor and Anna packing an order in Limerick
-              </figcaption>
             </figure>
             <div className="max-w-2xl space-y-6 text-base leading-7 text-slate-700">
               <p>

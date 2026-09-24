@@ -52,8 +52,10 @@ export default function DispatchCommitmentPage() {
           Lazy (not priority): the homepage hero is the only clip on the
           site that competes for first paint.
 
-          ILLUSTRATIVE FOOTAGE, and the caption says so. It is not
-          presented as Dockentra's own team, courier or operation. */}
+          ILLUSTRATIVE FOOTAGE: it is not presented as Dockentra's own
+          team, courier or operation. The visible caption that said so
+          was removed on 2026-09-24 (owner decision, site-wide); the alt
+          text still describes only what is in the frame. */}
       <section className="relative isolate overflow-hidden bg-brand-navy">
         <figure className="absolute inset-0 -z-10 m-0">
           <ProcessVideo
@@ -67,13 +69,6 @@ export default function DispatchCommitmentPage() {
             aria-hidden="true"
             className="absolute inset-0 bg-gradient-to-b from-brand-navy/85 to-brand-navy/70 lg:bg-gradient-to-r lg:from-brand-navy/85 lg:via-brand-navy/70 lg:via-70% lg:to-brand-navy/40"
           />
-          <figcaption className="absolute bottom-3 left-0 right-0">
-            <Container>
-              <span className="text-xs leading-5 text-white/80">
-                Illustrative footage of fulfilment work: parcels changing hands.
-              </span>
-            </Container>
-          </figcaption>
         </figure>
         <Container className="relative py-16 sm:py-24">
           <div className="max-w-3xl">
