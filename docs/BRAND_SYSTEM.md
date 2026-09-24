@@ -116,8 +116,8 @@ stays for errors only.
   footer. No gradient, no card, no centring.
 - **Inner-page headers**: one `PageHeader` component. Services, how
   it works, why Ireland, the audience pages, become a client, pricing,
-  contact and partnerships open on a real 3:1 frame under the navy
-  veil, uncaptioned; FAQ, about, privacy, cases and batch photos keep
+  contact, partnerships and about open on a real 3:1 frame under the
+  navy veil, uncaptioned; FAQ, privacy, cases and batch photos keep
   the flat navy band. The `<h1>` stays in the page file. **One
   subject per picture, site-wide** (owner rule, 2026-09-24): no two
   surfaces show the same scene — not the same still, not a second

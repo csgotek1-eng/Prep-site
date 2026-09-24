@@ -21,7 +21,21 @@ export default function AboutPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "About", path: "/about" }]} />
-      <PageHeader eyebrow="About">
+      {/* A licensed photograph (owner request, 2026-09-24): someone
+          holding two boxes of stock — hands and a shirt, nothing above
+          the chest, so the heading's "people" is carried by posture,
+          not a face. A stand-in like every band; the real team is in
+          the photograph below. Provenance in media-source/README.md.
+          The alt deliberately avoids the word "carton": the browser
+          suite finds the team photograph by that word. */}
+      <PageHeader
+        variant="operational"
+        eyebrow="About"
+        still={{
+          src: "/media/process/dockentra-process-holding-band.webp",
+          alt: "Hands holding two stacked kraft boxes with thank-you stickers in front of a plain wall.",
+        }}
+      >
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
           The people who will be holding your stock
         </h1>

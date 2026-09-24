@@ -55,6 +55,7 @@ const HEADER_PAGES = [
   "src/app/partnerships/page.tsx",
   "src/app/pricing/page.tsx",
   "src/app/contact/page.tsx",
+  "src/app/about/page.tsx",
 ];
 const STILL_FILES = [
   // Frames cut from the owner's clips.
@@ -72,6 +73,7 @@ const STILL_FILES = [
   "public/media/process/dockentra-process-mailer-hands.webp",
   "public/media/process/dockentra-process-trolley-band.webp",
   "public/media/process/dockentra-process-euro-pallets-band.webp",
+  "public/media/process/dockentra-process-holding-band.webp",
 ];
 const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 

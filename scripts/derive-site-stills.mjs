@@ -114,6 +114,11 @@ const STILLS = [
   // /european-brands: euro pallets (EPAL stamp) leaning on a column
   // at a loading platform — freight as it moves between countries.
   { src: photo("pexels-14674132"), crop: "2400:800:0:397", size: "1920:640", q: 66, out: "public/media/process/dockentra-process-euro-pallets-band.webp" },
+  // /about ("The people who will be holding your stock"): a torso in a
+  // plain shirt holding two stacked kraft boxes — the person is the
+  // hands and the posture, nothing above the chest; the left two
+  // thirds are bare wall for the heading.
+  { src: photo("pexels-9603485"), crop: "2400:800:0:513", size: "1920:640", q: 66, out: "public/media/process/dockentra-process-holding-band.webp" },
 ];
 
 function photo(name) {

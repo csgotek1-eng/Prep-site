@@ -11,11 +11,10 @@ import type { ReactNode } from "react";
  * describe physical work ("operational": services, how it works, why
  * Ireland, the audience pages, become a client) now open on a real
  * frame of fulfilment work under the same navy veil the homepage hero
- * and /dispatch-commitment use. Pricing, contact and partnerships
- * joined them on 2026-09-24 (owner request: a fitting picture for
- * each); FAQ, about, privacy, cases and batch photos keep the flat
- * navy ("utility"), which is right for a list, a policy or a page
- * that already carries its own photograph.
+ * and /dispatch-commitment use. Pricing, contact, partnerships and
+ * about joined them on 2026-09-24 (owner request: a fitting picture
+ * for each); FAQ, privacy, cases and batch photos keep the flat navy
+ * ("utility"), which is right for a list or a policy.
  *
  * ONE PICTURE PER SUBJECT (owner rule, 2026-09-24): no still may show
  * a subject another page already shows, and no face may be visible in

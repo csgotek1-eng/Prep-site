@@ -115,6 +115,7 @@ for any part of a face before it shipped.
 | 9594431 | Ron Lach | https://www.pexels.com/photo/a-person-packaging-folded-socks-with-a-cardboard-box-9594431/ (original 7952×5304) | `pexels-9594431.source.jpg` | `dockentra-process-mailer-hands.webp` — homepage services frame (4:3) | hands and forearms only; both leave the frame at the right and bottom edges |
 | 7844001 | Kampus Production | https://www.pexels.com/photo/7844001/ (original 6016×4016) | `pexels-7844001.source.jpg` | `dockentra-process-trolley-band.webp` — /become-a-client header | 3:1 middle band; cartons centre, hands and a red sleeve right, the torso cut at the shoulder; no face |
 | 14674132 | Arti Kh | https://www.pexels.com/photo/14674132/ (original 4617×3068) | `pexels-14674132.source.jpg` | `dockentra-process-euro-pallets-band.webp` — /european-brands header | 3:1 middle band; no people; the EPAL stamp is a standards mark, not a brand |
+| 9603485 | Ron Lach | https://www.pexels.com/photo/woman-in-white-blazer-holding-brown-cardboard-box-9603485/ (original 7300×5057) | `pexels-9603485.source.jpg` | `dockentra-process-holding-band.webp` — /about header | 3:1 band from mid-chest down; hands and shirt only, nothing above the chest; bare wall on the left two thirds; the "thank you" stickers are generic |
 
 One licensed CLIP as well, for the /how-it-works frame, because the
 dispatch clip used to play there and on the homepage and the owner
