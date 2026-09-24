@@ -107,6 +107,39 @@ h6 {
 }
 
 /*
+ * Anchor-arrival highlight (services anchor navigation, 2026-09-24).
+ *
+ * /services#returns and its five siblings are jumped to from the
+ * homepage list, the footer and direct links; the numbered rows carry
+ * no border or background at rest, so the destination could otherwise
+ * read as "just some row" after a page-to-page jump. AnchorHighlight.tsx
+ * adds `data-anchor-highlight` to the row the browser actually landed
+ * on and removes it ~1.4s later; this transition is what turns that
+ * into a fade in, a brief hold, and a fade out, entirely in CSS.
+ *
+ * The background/shadow pair reads as a light mint wash with a left
+ * accent bar, without an actual `border` that would change the row's
+ * box size inside the divided list (a real border there would misalign
+ * the shared hairlines above and below it).
+ */
+.anchor-row {
+  transition:
+    background-color 400ms ease-out,
+    box-shadow 400ms ease-out;
+}
+
+.anchor-row[data-anchor-highlight] {
+  background-color: var(--color-brand-mint-soft);
+  box-shadow: inset 3px 0 0 var(--color-brand-mint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anchor-row {
+    transition: none;
+  }
+}
+
+/*
  * Visible focus states for keyboard navigation.
  *
  * Deliberately UNLAYERED, so it outranks every Tailwind utility: the

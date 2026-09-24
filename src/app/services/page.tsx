@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AnchorHighlight from "@/components/AnchorHighlight";
 import CalculatorModal from "@/components/CalculatorModal";
 import BrandIcon, { type BrandName } from "@/components/BrandIcon";
 import ClosingBand from "@/components/sections/ClosingBand";
@@ -212,9 +213,27 @@ const servicesJsonLd = buildServicesJsonLd([
  * link or button, so nothing here reacts to the cursor: no hover, no
  * pointer, no shadow. That was the single biggest source of the "I
  * click and nothing happens" report on the old cards.
+ *
+ * ANCHOR POSITIONING (polish round, 2026-09-24). `scroll-mt-24`
+ * cleared the 65px sticky header but only just — the row's top edge
+ * landed 31px under it, close enough to read as "hugging the header"
+ * rather than "clearly in view". `scroll-mt-28` (112px) is the value
+ * every OTHER in-page anchor on the site already uses (ServicesSection,
+ * HowItWorksSection, ContactSection, …); it gives the same ~47px of
+ * breathing room here, lands the row's top edge in the upper third of
+ * every viewport this was tested at (390/768/1440), and needed no
+ * change anywhere else because every destination is the same `<article
+ * className={ROW}>` shape — fixing the one constant fixes all six.
+ * `anchor-row` is the fade target for AnchorHighlight (globals.css).
  */
 const ROW =
-  "scroll-mt-24 grid gap-4 py-8 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[12rem_minmax(0,1fr)]";
+  "anchor-row scroll-mt-28 grid gap-4 py-8 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[12rem_minmax(0,1fr)]";
+
+/** Every anchor target on this page — both lists feed one highlight watcher. */
+const ANCHOR_IDS = [
+  ...coreServices.map((service) => service.id),
+  ...marketplaceServices.map((service) => service.id),
+];
 
 /** A check mark in the surrounding text colour; decorative beside the item text. */
 function CheckGlyph() {
@@ -243,6 +262,7 @@ export default function ServicesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(servicesJsonLd) }}
       />
+      <AnchorHighlight ids={ANCHOR_IDS} />
       <PageHeader
         variant="operational"
         eyebrow="Services"
