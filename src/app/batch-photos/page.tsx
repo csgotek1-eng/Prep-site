@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/Container";
 import PageHeader from "@/components/PageHeader";
@@ -20,13 +21,25 @@ export const metadata: Metadata = {
  * The first block is the homepage body, imported rather than copied.
  * "What a batch photo actually is" is this page's own.
  *
- * NO PHOTOGRAPHY ON THIS PAGE YET, AND THAT IS THE POINT. The brief is
- * explicit: until the warehouse opens, illustrate with the process
- * itself, never with stock imagery, and replace it with real shots
- * from the receiving bench in the first week of operation. A stock
- * photo of someone else's warehouse on the page that promises you
- * photographs of YOUR stock would undo the argument it illustrates.
- * The page is deliberately text-only until those exist.
+ * ONE PHOTOGRAPH (owner request, 2026-09-24). This page used to be
+ * deliberately text-only: the original brief said not to put a picture
+ * of someone else's warehouse on the page that promises photographs of
+ * YOUR stock, and to use real shots from the receiving bench once the
+ * unit was running. The owner has now supplied one picture for the
+ * page: an incoming shipment being checked, with one damaged item in
+ * the set. It is here as the example of what an incoming-goods
+ * photograph shows, and that is all it claims.
+ *
+ * WHAT KEEPS IT HONEST. The rules every other frame on the site
+ * follows still apply and are tested (tests/media-assets.test.ts): no
+ * caption, and an alt text that says what is in the frame and never
+ * whose it is. Its provenance is unstated (media-source/README.md), so
+ * treat it as an owner-supplied illustration, not as Dockentra's own
+ * bench, and never describe it as one in copy. When real receiving
+ * photographs exist they replace this file at the same path.
+ *
+ * Placement: straight after the first text block, before "What a batch
+ * photo actually is". The whole 16:9 frame is shown, uncropped.
  */
 export default function BatchPhotosPage() {
   return (
@@ -47,6 +60,22 @@ export default function BatchPhotosPage() {
           <div className="max-w-3xl">
             <BatchPhotosContent />
           </div>
+
+          {/* The full 16:9 frame at its own proportions: no aspect box,
+              no object-fit, so nothing in it (the damaged item, the
+              count sheet) can be cropped out. Square corners, no
+              border and no caption, like every other frame here. */}
+          <figure className="mt-12 sm:mt-16">
+            <Image
+              src="/media/batch-photos/incoming-shipment-inspection.webp"
+              alt="Incoming shipment inspection with unpacked product containers, including one visibly damaged item."
+              width={1672}
+              height={941}
+              sizes="(min-width: 1152px) 68rem, (min-width: 640px) calc(100vw - 3rem), calc(100vw - 2rem)"
+              loading="lazy"
+              className="h-auto w-full"
+            />
+          </figure>
         </Container>
       </section>
 

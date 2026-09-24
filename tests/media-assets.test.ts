@@ -609,3 +609,56 @@ describe("data saving", () => {
     assert.equal(/\bconnection\.saveData/.test(source), false);
   });
 });
+
+// ---------------------------------------------------------------------
+// The /batch-photos photograph (owner request, 2026-09-24)
+// ---------------------------------------------------------------------
+
+describe("the /batch-photos photograph", () => {
+  const FILE = "public/media/batch-photos/incoming-shipment-inspection.webp";
+  const page = read("src/app/batch-photos/page.tsx");
+  const markup = strip(page);
+  const figure = (markup.match(/<figure[\s\S]*?<\/figure>/) ?? [""])[0];
+
+  it("is a WebP file within budget, with the untouched original archived", () => {
+    assert.ok(existsSync(FILE), "the web version is missing");
+    assert.equal(readFileSync(FILE).subarray(0, 40).toString("latin1", 8, 12), "WEBP");
+    assert.ok(kb(FILE) < 200, `${FILE} is ${Math.round(kb(FILE))} KB`);
+    assert.ok(
+      existsSync("media-source/incoming-shipment-inspection.source.webp"),
+      "the original is not archived",
+    );
+  });
+
+  it("goes through next/image at its own 16:9 proportions, never cropped", () => {
+    assert.ok(figure.length > 0, "the page has no <figure>");
+    assert.match(figure, /<Image\b/);
+    assert.equal(/<img\b/.test(figure), false);
+    assert.match(figure, /src="\/media\/batch-photos\/incoming-shipment-inspection\.webp"/);
+    assert.match(figure, /width=\{1672\}/);
+    assert.match(figure, /height=\{941\}/);
+    assert.match(figure, /sizes=/);
+    assert.match(figure, /className="h-auto w-full"/);
+    // No aspect box and no object-fit: nothing in the frame can be cut.
+    assert.equal(/aspect-|object-cover|object-contain|rounded-|\bborder\b/.test(figure), false);
+  });
+
+  it("carries no caption, and an alt that says what is shown, not whose it is", () => {
+    assert.equal(/<figcaption/.test(figure), false, "the photograph grew a caption");
+    const alt = (figure.match(/alt="([^"]*)"/) ?? ["", ""])[1];
+    assert.ok(alt.length > 30, `alt is too thin: "${alt}"`);
+    assert.equal(/\b(our|we|us|dockentra'?s)\b/i.test(alt), false, `alt claims ownership: "${alt}"`);
+    assert.equal(/fulfilment ireland|prep centre/i.test(alt), false, "alt is keyword-stuffed");
+  });
+
+  it("sits after the first text block and before \"What a batch photo actually is\"", () => {
+    const text = markup.indexOf("<BatchPhotosContent />");
+    const photo = markup.indexOf("<figure");
+    const next = markup.indexOf("What a batch photo actually is");
+    assert.ok(text > -1 && photo > text && next > photo, "the photograph is not between the two blocks");
+  });
+
+  it("no longer claims the page is text-only", () => {
+    assert.equal(/NO PHOTOGRAPHY ON THIS PAGE YET/.test(page), false, "the outdated comment is back");
+  });
+});
