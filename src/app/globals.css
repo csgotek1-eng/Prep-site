@@ -167,6 +167,86 @@ h6 {
   letter-spacing: -0.02em;
 }
 
+/*
+ * Header logo intro (src/lib/logo-intro.ts). The layer is absolutely
+ * positioned over the static lockup and exists only while <html> carries
+ * data-logo-intro (set before first paint by the guard script in the root
+ * layout: first page of a session, never with prefers-reduced-motion).
+ *   pending  static lockup held back, the box (first frame) is shown
+ *   running  the intro plays
+ *   done     static lockup fades in under the layer, then the layer fades off
+ * "pending" carries a failsafe: if the player never starts (script blocked,
+ * slow hydration) the static logo is revealed after 2.4s regardless.
+ */
+.brand-intro-layer {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  pointer-events: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+html[data-logo-intro] .brand-intro-layer {
+  display: inline-flex;
+}
+.brand-intro-mark {
+  display: block;
+  flex: none;
+  width: var(--brand-intro-size, 20px);
+  height: var(--brand-intro-size, 20px);
+  margin-right: -1px; /* same -mr-px as the static mark */
+}
+.brand-intro-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.brand-intro-word {
+  display: inline-block;
+}
+.brand-intro-ghost::before {
+  content: "ockentra";
+}
+html[data-logo-intro] [data-brand-static] {
+  opacity: 0;
+}
+html[data-logo-intro="pending"] [data-brand-static] {
+  animation: brand-intro-failsafe 0s linear 2.4s forwards;
+}
+html[data-logo-intro="pending"] .brand-intro-layer {
+  animation: brand-intro-layer-failsafe 0s linear 2.4s forwards;
+}
+html[data-logo-intro="done"] [data-brand-static] {
+  opacity: 1;
+  transition: opacity 0.16s ease-out;
+}
+html[data-logo-intro="done"] .brand-intro-layer {
+  /* Held until the static lockup underneath is fully in, then faded off:
+     the two are identical, so nothing dips in between. */
+  opacity: 0;
+  transition: opacity 0.14s ease-out 0.16s;
+}
+@keyframes brand-intro-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes brand-intro-layer-failsafe {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro-layer {
+    display: none !important;
+  }
+  html[data-logo-intro] [data-brand-static] {
+    opacity: 1;
+  }
+}
+
 .brand-wordmark-light {
   color: #ffffff;
   letter-spacing: -0.02em;

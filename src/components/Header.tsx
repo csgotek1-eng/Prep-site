@@ -93,7 +93,7 @@ export default function Header() {
             aria-label="Dockentra"
             className="flex min-h-11 items-center text-xl font-bold text-brand-navy"
           >
-            <BrandLockup markSize={20} priority />
+            <BrandLockup markSize={20} priority animate />
           </Link>
 
           {/* Desktop navigation */}

@@ -14,6 +14,7 @@ import {
   buildWebSiteJsonLd,
 } from "@/lib/structured-data";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { LOGO_INTRO_GUARD_SCRIPT } from "@/lib/logo-intro-markup";
 import "./globals.css";
 
 /**
@@ -119,8 +120,15 @@ export default function RootLayout({
     <html
       lang="en-IE"
       className={`${manrope.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+      // The logo-intro guard below sets data-logo-intro on <html> before
+      // hydration, on purpose.
+      suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col">
+        {/* Header logo intro: decides, before first paint, whether this
+            page load plays it (first page of the session, no reduced
+            motion). See src/lib/logo-intro-markup.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: LOGO_INTRO_GUARD_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

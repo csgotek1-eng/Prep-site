@@ -1,4 +1,5 @@
 import Image from "next/image";
+import LogoIntro from "@/components/LogoIntro";
 
 /**
  * Owner request: the visible "D" in the Dockentra wordmark is replaced
@@ -20,25 +21,34 @@ import Image from "next/image";
  * absolutely positioned box: it is out of flow, so the mark and the
  * wordmark do not move by a single pixel, and it is inside the
  * role="img" container, so assistive tech still hears one word.
+ *
+ * `animate` (header only): the first page of a session plays the box -> D
+ * intro. The static lockup below is rendered exactly as before; it is only
+ * marked (data-brand-static) so CSS can hold it back while the absolutely
+ * positioned intro layer plays over it, then cross-fade to it. Without the
+ * flag on <html> (repeat visit, reduced motion, no JS) nothing differs.
  */
 export default function BrandLockup({
   markSize = 20,
   textClassName = "brand-wordmark",
   className = "",
   priority = false,
+  animate = false,
 }: {
   markSize?: number;
   textClassName?: string;
   className?: string;
   priority?: boolean;
+  animate?: boolean;
 }) {
+  const staticMark = animate ? { "data-brand-static": "" } : undefined;
   return (
     <span
       role="img"
       aria-label="Dockentra"
-      className={`inline-flex items-center ${className}`}
+      className={`inline-flex items-center ${animate ? "relative " : ""}${className}`}
     >
-      <span aria-hidden="true" className="sr-only">
+      <span aria-hidden="true" className="sr-only" {...staticMark}>
         D
       </span>
       <Image
@@ -50,10 +60,16 @@ export default function BrandLockup({
         priority={priority}
         style={{ height: markSize, width: markSize }}
         className="shrink-0 -mr-px object-contain"
+        {...staticMark}
       />
-      <span aria-hidden="true" className={`${textClassName} leading-none`}>
+      <span
+        aria-hidden="true"
+        className={`${textClassName} leading-none`}
+        {...staticMark}
+      >
         ockentra
       </span>
+      {animate ? <LogoIntro markSize={markSize} /> : null}
     </span>
   );
 }
