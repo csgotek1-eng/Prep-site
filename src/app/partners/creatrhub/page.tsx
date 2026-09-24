@@ -116,10 +116,16 @@ export default function CreatrHubPartnerPage() {
                 <span aria-hidden="true" className="mx-2 text-white/40">/</span>
                 CreatrHub
               </p>
-              {/* One line at every width the hero actually renders at
-                  (owner request, 2026-09-24): sized down on phones
-                  rather than wrapped, so "×" never strands alone. */}
-              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              {/* ONE LINE at every width (owner request, 2026-09-24,
+                  asked twice). The lg text size is 5xl, not 6xl: the
+                  copy column is only 7/12 of the container from lg
+                  (about 615px at 1440 and wider, about 540px at 1024),
+                  and this title needs about 630px at 60px but about
+                  504px at 48px. nowrap makes it a guarantee, so the "×"
+                  can never strand on a second line. Line count must be
+                  measured from the element's HEIGHT: getClientRects()
+                  on a block heading is always 1 and proves nothing. */}
+              <h1 className="whitespace-nowrap text-2xl font-bold tracking-tight text-white sm:text-5xl">
                 Dockentra × CreatrHub
               </h1>
               <p className="mt-5 text-2xl font-semibold tracking-tight text-brand-mint sm:text-3xl">
