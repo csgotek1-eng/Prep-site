@@ -58,8 +58,19 @@ export const siteContact = {
   /** Business phone — footer / bottom-of-contact ONLY. */
   phone: "+353 85 158 4185",
   phoneHref: "tel:+353851584185",
-  /** Chat + the number the automated price delivery sends from. */
-  whatsapp: "https://wa.me/353851584185",
+  /**
+   * The customer-facing "Chat on WhatsApp" link. Denis's client
+   * WhatsApp number, supplied by the owner 2026-09-24 (replaces the
+   * earlier +353 number, which is now unrelated to WhatsApp — see
+   * `phone` above).
+   *
+   * This is the LINK only. The number the automated price-delivery
+   * message actually sends FROM is a separate, provider-side setting
+   * (`src/lib/whatsapp/meta-provider.ts` + Worker secrets) that this
+   * file does not configure and this change does not touch — if the
+   * two should match, that is a provider-account change for the owner.
+   */
+  whatsapp: "https://wa.me/380500251684",
 } as const;
 
 /** True when a real address exists and a mailto: link is safe to render. */

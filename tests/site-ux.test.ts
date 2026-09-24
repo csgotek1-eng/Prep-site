@@ -27,7 +27,7 @@ describe("contact configuration", () => {
   it("uses the approved phone and WhatsApp numbers", () => {
     assert.equal(siteConfig.contact.phone, "+353 85 158 4185");
     assert.equal(siteConfig.contact.phoneHref, "tel:+353851584185");
-    assert.equal(siteConfig.social.whatsapp, "https://wa.me/353851584185");
+    assert.equal(siteConfig.social.whatsapp, "https://wa.me/380500251684");
   });
 
   it("keeps the warehouse address in one place", () => {

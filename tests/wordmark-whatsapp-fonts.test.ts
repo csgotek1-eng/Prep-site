@@ -66,7 +66,7 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
    */
   it("prints only owner-approved names, never an invented one", () => {
     const team = read("src/lib/team.ts");
-    for (const name of ['name: "Viktor"', 'name: "Anna"', 'name: "Denis"']) {
+    for (const name of ['name: "Viktor"', 'name: "Hannah"', 'name: "Denis"']) {
       assert.ok(team.includes(name), `team.ts must carry ${name}`);
     }
     for (const invented of [
@@ -131,7 +131,7 @@ describe("calculator WhatsApp flow — outbound only", () => {
   it("general WhatsApp contact links still use the approved business number", () => {
     // ONE source of truth for every business contact value.
     const contact = read("src/lib/site-contact.ts");
-    assert.ok(contact.includes("https://wa.me/353851584185"));
+    assert.ok(contact.includes("https://wa.me/380500251684"));
     assert.ok(read("src/lib/site.ts").includes("siteContact.whatsapp"));
   });
 });

@@ -11,6 +11,7 @@ here is served to a visitor; `public/media/**` holds the web versions.
 | `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
 | `denis.source.png` | `public/media/team/denis.webp` | same treatment. 1.92 MB → 82 KB |
 | `dockentra-team-packing.source.jpeg` | `public/media/about/dockentra-team-packing.webp` | metadata stripped, WebP q85 at native 1122×1402. **No crop, no resize.** 353 KB → 105 KB |
+| `warehouse-package-photography.source.webp` | `public/media/process/dockentra-process-batch-photo.webp` | **REPLACES the previous batch-photo still, 2026-09-24** (owner brief). Provenance not stated by the owner — treat as owner-supplied, not licensed or Dockentra's own footage. The source is a two-panel composite (a warehouse photograph beside a second panel of someone reviewing photos on a laptop, with checkmark/thumbnail UI overlays); only the warehouse panel ships, cropped to exclude the second panel, its UI-overlay graphics, and the worker's face, none of which match anything else published on the site (see "What this footage is, and is not" below). Crop 0,300–854,941 of the 1672×941 source, re-encoded WebP q82. 257 KB → 69 KB. |
 
 Posters are single frames pulled from the same sources.
 
@@ -82,11 +83,14 @@ distinct picture per surface, and seven of them were withdrawn because
 each was a second showing of a clip already on the site: the `-aisle`,
 `-racking`, `-pallets`, `-bench`, `-handover` and `-parcels` bands and
 the `-taping-hands` frame (their crops stay recorded in the script).
-**Two remain from the clips:** the `-taping-band` behind the
-/how-it-works header and the 4:3 `-batch-photo` frame (from the 576px
-dispatch clip, shipped at source size). Every other still on the site
-is a licensed photograph, listed below. None is captioned where it
-appears (owner decision, 2026-09-24). The same rule as above applies:
+**One remains from the clips:** the `-taping-band` behind the
+/how-it-works header. The 4:3 `-batch-photo` frame was one of these
+two until 2026-09-24, when the owner replaced it with a supplied
+image (see the top table); it is not a licensed photograph either —
+its provenance is unstated, so it is filed separately from the
+licensed set below. Every other still on the site is a licensed
+photograph, listed below. None is captioned where it appears (owner
+decision, 2026-09-24). The same rule as above applies:
 real Dockentra frames at the same paths replace them, and this file
 records the swap.
 

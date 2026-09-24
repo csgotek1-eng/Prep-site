@@ -153,7 +153,7 @@ describe("email is primary, phone is a bottom-level detail", () => {
     assert.ok(existsSync("src/lib/site-contact.ts"));
     assert.equal(siteContact.phone, "+353 85 158 4185");
     assert.equal(siteContact.phoneHref, "tel:+353851584185");
-    assert.equal(siteContact.whatsapp, "https://wa.me/353851584185");
+    assert.equal(siteContact.whatsapp, "https://wa.me/380500251684");
     // site.ts re-exports rather than restating.
     const site = read("src/lib/site.ts");
     assert.ok(site.includes("siteContact.phone"));
