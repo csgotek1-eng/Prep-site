@@ -72,8 +72,11 @@ export const teamMembers: TeamMember[] = [
     email: null,
   },
   {
+    // id stays "anna": an internal identifier, not the display name
+    // (owner request, 2026-09-24 — the id and the portrait file path
+    // are unchanged; only what a visitor sees is "Hannah" now).
     id: "anna",
-    name: "Anna",
+    name: "Hannah",
     image: "/media/team/anna.webp",
     imagePosition: "50% 25%",
     email: null,
@@ -106,7 +109,7 @@ export function teamMemberEmailHref(member: TeamMember): string | null {
   return member.email ? `mailto:${member.email}` : null;
 }
 
-/** "Viktor, Anna and Denis" — for copy that names the whole team. */
+/** "Viktor, Hannah and Denis" — for copy that names the whole team. */
 export function teamMemberNames(): string {
   const names = teamMembers.map((member) => member.name);
   if (names.length <= 1) return names.join("");

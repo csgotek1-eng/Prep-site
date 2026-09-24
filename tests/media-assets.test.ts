@@ -319,7 +319,7 @@ describe("the clips are decorative and honest", () => {
     assert.match(stockToShipment, /lg:grid-cols-\[minmax\(0,24rem\)_minmax\(0,1fr\)\]/);
     assert.match(stockToShipment, /xl:grid-cols-\[minmax\(0,26rem\)_minmax\(0,1fr\)\]/);
     // The /about photograph is the one frame that is genuinely ours —
-    // Viktor and Anna, the same two people as src/lib/team.ts. With
+    // Viktor and Hannah, the same two people as src/lib/team.ts. With
     // the caption gone, the alt text is where they are named, and it
     // must keep naming them (asserted in "the /about figure names the
     // real people it now shows"). Nothing else on the site may be
@@ -425,7 +425,7 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
      * vests lettered "Dockcentra" and the owner published it on the
      * condition that it was never presented as Dockentra's own team.
      * On 2026-09-11 the owner replaced it with a photograph of Viktor
-     * and Anna, who are the team (src/lib/team.ts). Calling that
+     * and Hannah, who are the team (src/lib/team.ts). Calling that
      * "illustrative" would now be the inaccurate caption.
      *
      * Since 2026-09-24 the figure carries no caption either — the
@@ -444,7 +444,7 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     const figure = figures[0][0];
     const teamNames = read("src/lib/team.ts");
     const alt = (figure.match(/alt="([^"]*)"/) ?? ["", ""])[1];
-    for (const name of ["Viktor", "Anna"]) {
+    for (const name of ["Viktor", "Hannah"]) {
       assert.ok(
         alt.includes(name) && teamNames.includes(`name: "${name}"`),
         `the alt text names ${name}, who must also be in the team data`,
@@ -487,7 +487,7 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     // The rule outlived the reason it was written for. It existed
     // because the old stand-in showed vests lettered "Dockcentra" and
     // the site must not enlarge that detail. The frame is now Viktor
-    // and Anna, and the guarantee is worth keeping for its own sake:
+    // and Hannah, and the guarantee is worth keeping for its own sake:
     // there is NO crop. No aspect-ratio box for the image to fill, no
     // object-fit rule deciding which half of a face survives, no zoom,
     // no off-centre focus — the element carries the photo's own
