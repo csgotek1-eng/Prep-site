@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, FileText, Mail, Phone } from "lucide-react";
-import CalculatorModal from "@/components/CalculatorModal";
+import { ArrowUpRight, Mail, Phone } from "lucide-react";
 import Container from "@/components/Container";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import ClosingBand from "@/components/sections/ClosingBand";
-import FactsStrip from "@/components/sections/FactsStrip";
 import { CartonGlyph, CheckGlyph, HeroFlowArt } from "./_components/Illustrations";
-import { brochure, creatrhub, figures, whatCreatrHubDoes } from "./content";
+import { creatrhub, figures, whatCreatrHubDoes } from "./content";
 
 /**
  * /partners/creatrhub — Dockentra's page about its partner CreatrHub.
@@ -22,8 +20,10 @@ import { brochure, creatrhub, figures, whatCreatrHubDoes } from "./content";
  * SHORT ON PURPOSE (owner brief, 2026-09-24). The first build carried
  * CreatrHub's full operational detail; this one states only what a
  * brand owner needs to decide who to contact, and links to CreatrHub's
- * own site for the rest. Dockentra's own value now sits right after
- * the partnership split, not at the bottom of the page. See content.ts
+ * own site for the rest. It has also lost, at the owner's request,
+ * the CreatrHub brochure block and the standalone Dockentra section
+ * with its facts strip; Dockentra's side is carried by the hero, the
+ * partnership split, the journey and the closing band. See content.ts
  * for what was cut and why, and what must not be re-added.
  */
 
@@ -237,38 +237,17 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 4. DOCKENTRA'S SIDE — moved up from the bottom of the page
-          (owner brief, 2026-09-24) so the fulfilment side is stated
-          right after the split, not after a long CreatrHub read. The
-          facts strip repeats the site's own approved commitments
-          (cut-off, receiving, minimum) rather than stating new ones. */}
-      <section aria-labelledby="dockentra-heading" className="bg-brand-surface-soft">
-        <Container className="py-16 sm:py-24">
-          <p className={EYEBROW_LIGHT}>Dockentra</p>
-          <h2 id="dockentra-heading" className={`mt-3 ${H2}`}>
-            Stock in, orders out, from Limerick
-          </h2>
-          <p className={INTRO}>
-            While CreatrHub drives the content and the sales, Dockentra
-            handles the physical side: receiving, prep, storage, pick and
-            pack, dispatch and returns. Pricing is private and depends on
-            your volume.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <CalculatorModal label="Get Price" variant="secondary" icon={false} />
-            <Link href="/batch-photos" className={SECONDARY_ON_LIGHT}>
-              See what we photograph
-            </Link>
-          </div>
-        </Container>
-      </section>
-      <FactsStrip />
+      {/* (The standalone "Dockentra: stock in, orders out" section and
+          the Cut-off/Receiving/Minimum facts strip that used to sit
+          here were removed 2026-09-24, owner request. Dockentra's side
+          is still stated in the hero, in the split above, in the
+          journey below and in the closing band.) */}
 
-      {/* 5. WHAT CREATRHUB DOES — compressed to the essentials (owner
+      {/* 4. WHAT CREATRHUB DOES — compressed to the essentials (owner
           brief, 2026-09-24). Format-by-format detail, the platform
           features and the six-step process now live on CreatrHub's own
           site; this states only what a brand owner needs to decide. */}
-      <section aria-labelledby="services-heading" className="bg-white">
+      <section aria-labelledby="services-heading" className="bg-brand-surface-soft">
         <Container className="py-16 sm:py-24">
           <div className="max-w-2xl">
             <p className={EYEBROW_LIGHT}>What CreatrHub does</p>
@@ -300,7 +279,7 @@ export default function CreatrHubPartnerPage() {
       {/* 6. THE CONNECTED JOURNEY — the order-flow diagram, moved down
           (owner brief, 2026-09-24) to recap the split once both sides
           have been stated, rather than appear before either has. */}
-      <section aria-labelledby="journey-heading" className="bg-brand-surface-soft">
+      <section aria-labelledby="journey-heading" className="bg-white">
         <Container className="py-16 sm:py-24">
           <p className={EYEBROW_LIGHT}>Connected</p>
           <h2 id="journey-heading" className={`mt-3 ${H2}`}>
@@ -339,16 +318,21 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 7. GET IN TOUCH — CreatrHub's own contact, and its brochure.
-          Leads go to CreatrHub directly; Dockentra is not a party to
-          CreatrHub's terms, and the page says so in readable type. */}
+      {/* 7. GET IN TOUCH — CreatrHub's own contact. Leads go to
+          CreatrHub directly; Dockentra is not a party to CreatrHub's
+          terms, and the page says so in readable type.
+          The brochure block that used to sit beside this was removed
+          2026-09-24 (owner request). The data still lives in
+          content.ts (`brochure`) and the optimised PDF is still
+          committed at public/partners/creatrhub/, so bringing the
+          block back is a page.tsx edit, not a re-derivation. */}
       <section
         id="contact"
         aria-labelledby="contact-heading"
-        className="scroll-mt-24 bg-white"
+        className="scroll-mt-24 bg-brand-surface-soft"
       >
         <Container className="py-16 sm:py-24">
-          <div className="grid gap-14 lg:grid-cols-2 lg:gap-16">
+          <div className="mx-auto max-w-2xl">
             <div>
               <p className={EYEBROW_LIGHT}>Talk to CreatrHub</p>
               <h2 id="contact-heading" className={`mt-3 ${H2}`}>
@@ -415,84 +399,6 @@ export default function CreatrHubPartnerPage() {
                 CreatrHub details on this page are taken from CreatrHub&apos;s
                 own materials.
               </p>
-            </div>
-
-            <div>
-              {/* Compacted (design review, 2026-09-24): a row, not a
-                  second full column competing with CreatrHub's contact
-                  card. The placeholder note is deliberate (trust review,
-                  2026-09-24): the PDF still shows a bracketed price and
-                  bracketed contact details CreatrHub has not confirmed,
-                  so "read now or pass on to your team" would oversell
-                  a draft as finished. */}
-              <h3 className="text-lg font-semibold tracking-tight text-brand-navy">
-                The CreatrHub brochure
-              </h3>
-              <div className="mt-4 border-y border-brand-border py-5">
-                <div className="flex items-start gap-4">
-                  <span className="flex h-12 w-10 shrink-0 items-center justify-center rounded-sm border border-brand-navy/20 bg-white text-brand-navy">
-                    <FileText className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-base font-semibold text-brand-navy">{brochure.title}</p>
-                    {brochure.available ? (
-                      <>
-                        <p className="font-mono-data mt-1 text-xs text-slate-600">{brochure.meta}</p>
-                        <p className="mt-1 text-xs leading-5 text-slate-600">
-                          A CreatrHub draft: a few figures in it, including
-                          its price, are still placeholders CreatrHub is
-                          confirming.
-                        </p>
-                      </>
-                    ) : (
-                      <p id="brochure-status" className="mt-1 text-sm leading-6 text-slate-600">
-                        CreatrHub&apos;s overview of its TikTok Shop content
-                        services will be available to download here soon.
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {brochure.available ? (
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                    <a
-                      href={brochure.href}
-                      target="_blank"
-                      rel="noopener"
-                      className={SECONDARY_ON_LIGHT}
-                    >
-                      View CreatrHub brochure
-                      <span className="sr-only">(PDF, opens in a new tab)</span>
-                    </a>
-                    <a
-                      href={brochure.href}
-                      download={brochure.downloadName}
-                      className={SECONDARY_ON_LIGHT}
-                    >
-                      Download PDF
-                      <span className="sr-only">({brochure.meta})</span>
-                    </a>
-                  </div>
-                ) : (
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <button
-                      type="button"
-                      disabled
-                      aria-describedby="brochure-status"
-                      className={`${SECONDARY_ON_LIGHT} cursor-not-allowed opacity-50`}
-                    >
-                      View CreatrHub brochure
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      aria-describedby="brochure-status"
-                      className={`${SECONDARY_ON_LIGHT} cursor-not-allowed opacity-50`}
-                    >
-                      Download PDF
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </Container>

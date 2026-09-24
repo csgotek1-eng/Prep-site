@@ -66,11 +66,15 @@ export const whatCreatrHubDoes = [
 ] as const;
 
 /**
- * The brochure download. CreatrHub's supplied PDF still carries
- * bracketed placeholders (one of its two stated prices, and its email
- * and phone in brackets) — flagged to the owner, who asked for it to
- * be published on this preview regardless. `meta` is measured from the
- * optimised file actually committed at `href`.
+ * CURRENTLY UNUSED: the brochure block was removed from the page on
+ * 2026-09-24 (owner request), so nothing imports this. It is kept, with
+ * the optimised PDF still committed at `href`, so the block can come
+ * back with a page.tsx edit rather than a re-derivation. Note that the
+ * file stays reachable by its direct URL while it is committed, and it
+ * still carries bracketed placeholders (one of its two stated prices,
+ * and its email and phone in brackets) — remove the file too if it
+ * should not be reachable at all. `meta` is measured from the optimised
+ * file actually committed at `href`.
  */
 export const brochure = {
   available: true,
