@@ -175,9 +175,6 @@ export default function CreatrHubPartnerPage() {
               </div>
             ))}
           </dl>
-          <p className="mt-5 text-sm leading-6 text-slate-600">
-            Figures reported by CreatrHub.
-          </p>
         </Container>
       </section>
 
