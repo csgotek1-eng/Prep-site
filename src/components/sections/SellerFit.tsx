@@ -22,6 +22,12 @@ import Container from "@/components/Container";
  * Self-qualification also works the other way round, honestly: someone
  * who recognises none of these can leave early instead of becoming an
  * enquiry nobody can serve.
+ *
+ * The Icon on each entry is still rendered by /become-a-client. The
+ * homepage block stopped drawing them in the redesign round
+ * (2026-09-23): an icon in a tinted square beside every item is the
+ * template tell the direction rejects, and seven of them said nothing
+ * the titles do not.
  */
 export const SELLER_FIT = [
   {
@@ -98,31 +104,25 @@ export default function SellerFit() {
       aria-labelledby="seller-fit-heading"
       className="scroll-mt-28 bg-white"
     >
-      <Container className="py-16 sm:py-20">
+      <Container className="py-16 sm:py-24">
         <h2
           id="seller-fit-heading"
-          className="max-w-2xl text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+          className="max-w-2xl text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
         >
           Who Dockentra is for
         </h2>
-        <ul className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-          {SELLER_FIT.map(({ Icon, title, body }) => (
-            /* INFORMATION, not options: icon-led rows, no card box, no
-               border, no hover — nothing here is selectable. */
-            <li key={title} className="flex gap-4">
-              <span
-                aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-mint-soft text-brand-green"
-              >
-                <Icon className="h-5 w-5" strokeWidth={1.75} />
+        {/* INFORMATION, not options: hairline rows, no card box, no
+            icon tiles, no hover — nothing here is selectable.
+            Seven rows stack on a phone, so below sm each one is a
+            step tighter (py-4, 16/15px) and opens back up from sm. */}
+        <ul className="mt-10 grid gap-x-12 sm:grid-cols-2">
+          {SELLER_FIT.map(({ title, body }) => (
+            <li key={title} className="border-t border-brand-border py-4 sm:py-5">
+              <span className="block text-base font-semibold text-brand-navy sm:text-lg">
+                {title}
               </span>
-              <span className="min-w-0">
-                <span className="block text-base font-semibold tracking-tight text-brand-navy">
-                  {title}
-                </span>
-                <span className="mt-1 block text-sm leading-6 text-slate-600">
-                  {body}
-                </span>
+              <span className="mt-1 block text-[15px] leading-6 text-slate-600 sm:text-base sm:leading-7">
+                {body}
               </span>
             </li>
           ))}

@@ -6,8 +6,10 @@ import PromotionCard from "@/components/PromotionCard";
 import { getPrimaryPublicPromotion } from "@/lib/promotions/service";
 import Container from "@/components/Container";
 import BatchPhotosSection from "@/components/sections/BatchPhotosSection";
+import ClosingBand from "@/components/sections/ClosingBand";
 import ContactSection from "@/components/sections/ContactSection";
 import CustomerStoriesSection from "@/components/sections/CustomerStoriesSection";
+import FactsStrip from "@/components/sections/FactsStrip";
 import HomeFaq from "@/components/sections/HomeFaq";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
 import PricingSection from "@/components/sections/PricingSection";
@@ -136,19 +138,30 @@ export default async function HomePage() {
             above the floating dock on an 844px-tall screen. Tighter
             phone-only values — 32px top padding, a 12px eyebrow, a
             34px/1.1 headline, 15/24 body, 26px chips, a 48px button —
-            bring it to ~450px, so the aisle shows beneath the action.
-            On the SHORT viewport an iPhone shows with Safari's toolbars
-            up (390x664) the stack still reaches the dock's row, so the
-            button stops 4.5rem short of the right edge on phones, the
-            same clearance the caption uses: the dock (62px, right-0)
-            and the button can never share a pixel. Every sm: value is
-            the desktop setting, unchanged. */}
+            brought it to ~450px, so the aisle shows beneath the action.
+            The redesign round (2026-09-23) adds the commitment line
+            under the button (13/20, four lines at this width, plus its
+            16px margin) and makes "and your own store" a sixth chip in
+            place of the loose line after the row, so the stack is now
+            about 560px, ESTIMATED from the line metrics rather than
+            measured on a device: the commitment line's bottom lands
+            near the dock's top edge on an 844px screen and the aisle
+            still shows beneath it. On the SHORT viewport an iPhone
+            shows with Safari's toolbars up (390x664) the stack reaches
+            the dock's row, so the button AND the commitment line stop
+            4.5rem short of the right edge on phones, the same clearance
+            the caption uses: the dock (62px, right-0) and either of
+            them can never share a pixel. Every sm: value is the desktop
+            setting, unchanged. */}
         <Container className="relative w-full pb-16 pt-8 sm:py-24 lg:py-28">
-          <div className="max-w-3xl">
+          {/* .hero-enter (globals.css) is the site's one entrance: the
+              copy block settles once on load, CSS only, none under
+              reduced motion. Nothing else on the page animates. */}
+          <div className="hero-enter max-w-3xl">
             {/* The eyebrow states what a seller cannot infer from the
                 headline: where we are. Mint rather than brand green,
                 because green on navy does not reach AA at this size. */}
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-mint [text-shadow:0_1px_2px_rgba(13,23,48,0.35)] sm:text-sm">
+            <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-mint [text-shadow:0_1px_2px_rgba(13,23,48,0.35)] sm:text-sm">
               Limerick, Ireland
             </p>
             <h1
@@ -180,35 +193,40 @@ export default async function HomePage() {
                 WooCommerce purple worst), so `colored` is for the light
                 surfaces BrandIcon documents, not this one. The chips
                 are list items, not controls — the hover is a courtesy,
-                and there is nothing to focus. */}
-            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:mt-7 sm:gap-y-2">
-              {/* role="list" is not redundant: the preflight sets
-                  list-style: none, and WebKit then drops the implicit
-                  list role, so without it VoiceOver never reads the
-                  aria-label and the chips become loose text. */}
-              <ul
-                role="list"
-                className="flex flex-wrap gap-1.5 sm:gap-2"
-                aria-label="Sales channels we support"
-              >
-                {marketplaces.map(({ name, brand }) => (
-                  <li
-                    key={name}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
-                  >
-                    <BrandIcon
-                      brand={brand}
-                      className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5"
-                    />
-                    {name}
-                  </li>
-                ))}
-              </ul>
-              {/* The supported list is complete in the row itself. The
-                  "not affiliated / not endorsed" statement these marks
-                  require is carried once, in the footer. */}
-              <p className="text-xs text-slate-100 sm:text-sm">and your own store</p>
-            </div>
+                and there is nothing to focus.
+
+                "and your own store" is the SIXTH chip (redesign round,
+                2026-09-23), the same pill with no glyph, rather than a
+                loose line after the row: it belongs to the same list,
+                and as loose text it wrapped to its own line on a phone.
+                The supported list is complete in the row itself. The
+                "not affiliated / not endorsed" statement these marks
+                require is carried once, in the footer. */}
+            {/* role="list" is not redundant: the preflight sets
+                list-style: none, and WebKit then drops the implicit
+                list role, so without it VoiceOver never reads the
+                aria-label and the chips become loose text. */}
+            <ul
+              role="list"
+              className="mt-6 flex flex-wrap gap-1.5 sm:mt-7 sm:gap-2"
+              aria-label="Sales channels we support"
+            >
+              {marketplaces.map(({ name, brand }) => (
+                <li
+                  key={name}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
+                >
+                  <BrandIcon
+                    brand={brand}
+                    className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5"
+                  />
+                  {name}
+                </li>
+              ))}
+              <li className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20 sm:px-3.5 sm:py-1.5 sm:text-sm">
+                and your own store
+              </li>
+            </ul>
 
             {/* ONE action in the hero, not two: Get Price lives in the
                 header (owner decision), and this is the route for the
@@ -220,9 +238,26 @@ export default async function HomePage() {
                 See how it works
               </Link>
             </div>
+
+            {/* THE COMMITMENT, in the first fold (redesign round,
+                2026-09-23). Verbatim from /dispatch-commitment, the one
+                statement on the site with a stated consequence; no new
+                fact is introduced here. On a phone it keeps the same
+                4.5rem clearance as the button, so it never runs under
+                the floating dock's column. */}
+            <p className="mt-4 max-w-[calc(100%-4.5rem)] text-[13px] leading-5 text-slate-100/90 [text-shadow:0_1px_2px_rgba(13,23,48,0.35)] sm:max-w-md sm:text-sm sm:leading-6">
+              Orders that reach us before 2pm on a working day are dispatched
+              that day. If we miss it on our side, that order&apos;s pick and
+              pack is free.
+            </p>
           </div>
         </Container>
       </section>
+
+      {/* WORKING FACTS — three checkable values directly under the
+          hero (redesign round, 2026-09-23), before anything else asks
+          the visitor to read. */}
+      <FactsStrip />
 
       {/* CURRENT OFFER — present only when the owner has one running
           and has ticked the homepage placement. With no live offer the
@@ -230,7 +265,7 @@ export default async function HomePage() {
           available", nothing for a visitor to notice. */}
       {offer && (
         <section aria-label="Current offer" className="bg-white">
-          <Container className="py-12 sm:py-16">
+          <Container className="py-20 sm:py-28">
             <PromotionCard offer={offer} />
           </Container>
         </section>
@@ -267,66 +302,47 @@ export default async function HomePage() {
       <HomeFaq />
       <ContactSection />
 
-      {/* Final CTA */}
-      <section aria-labelledby="cta-heading" className="bg-white">
-        <Container className="pb-16 sm:pb-20">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-navy-deep via-brand-navy to-brand-navy-deep px-7 py-12 sm:px-12 sm:py-14">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
-            >
-              <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-brand-green/30 to-brand-mint/20 blur-2xl" />
-              <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-brand-green-dark via-brand-green to-brand-mint" />
-            </div>
-            {/* min-w-0 on the text, shrink-0 on the buttons.
-                Without this pair the row split its width by content
-                and the button group came off worse: from 1024px up it
-                was handed about 260px for 398px of buttons, the
-                buttons themselves are shrink-0 so they refused to
-                narrow, and the card's overflow-hidden (it clips the
-                decorative blur) sliced "Ask a question first" off at
-                the edge. A CTA that is invisible on every desktop is
-                the one thing this block cannot afford. */}
-            <div className="relative flex flex-col items-start gap-7 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <h2
-                  id="cta-heading"
-                  className="text-balance text-2xl font-bold tracking-tight text-white sm:text-3xl"
-                >
-                  Send us your numbers. You&apos;ll have a price within one
-                  working day.
-                </h2>
-                <p className="mt-3 max-w-xl text-base leading-7 text-slate-300">
-                  Tell us what you sell and roughly how much of it moves.
-                  We&apos;ll come back with a setup that fits, and the price
-                  with it.
-                </p>
-              </div>
-              {/* The page's stated goal is "hand over your fulfilment",
-                  and until now the homepage had NOT ONE link to
-                  /become-a-client — the site's main conversion — while
-                  offering four separate doors to pricing. Primary is
-                  the client application; the question stays available
-                  beside it, one step shorter than the old route
-                  through the three-door contact page. */}
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:shrink-0">
-                <Link
-                  href="/become-a-client"
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
-                >
-                  Become a Client
-                </Link>
-                <Link
-                  href="/contact#enquiry"
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
-                >
-                  Ask a question first
-                </Link>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
+      {/* Final CTA — the site's one closing band (redesign review,
+          2026-09-24). The navy card, its mint top rule and the padded
+          Container wrapper are now ClosingBand's; this file keeps the
+          words and the two actions. The cta id gives the band the
+          "cta-heading" id the section is labelled by.
+
+          The page's stated goal is "hand over your fulfilment", and
+          until now the homepage had NOT ONE link to /become-a-client —
+          the site's main conversion — while offering four separate
+          doors to pricing. Primary is the client application; the
+          question stays available beside it, one step shorter than the
+          old route through the three-door contact page. */}
+      <ClosingBand
+        id="cta"
+        heading={
+          <>
+            Send us your numbers. You&apos;ll have a price within one
+            working day.
+          </>
+        }
+        text={
+          <>
+            Tell us what you sell and roughly how much of it moves.
+            We&apos;ll come back with a setup that fits, and the price with
+            it.
+          </>
+        }
+      >
+        <Link
+          href="/become-a-client"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
+        >
+          Become a Client
+        </Link>
+        <Link
+          href="/contact#enquiry"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+        >
+          Ask a question first
+        </Link>
+      </ClosingBand>
     </>
   );
 }

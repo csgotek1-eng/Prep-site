@@ -323,29 +323,28 @@ describe("the small metadata fixes", () => {
 describe("the /uk-brands comparison cards are framed identically", () => {
   const source = page("uk-brands");
 
-  it("both cards use the identical neutral frame", () => {
-    // The right card carried a green outline through two iterations of
-    // this fix and the owner has since removed it: the two frames are
-    // now the same class list, so the comparison is made by the text
-    // rather than by an outline around one side of it. Counted, not
-    // spot-checked, because "identical" is the whole requirement.
-    const frames =
-      source.match(/className="rounded-2xl border[^"]*bg-white p-6"/g) ?? [];
-    assert.equal(frames.length, 2, "the comparison cards moved or multiplied");
-    assert.equal(frames[0], frames[1], `the two cards are framed differently: ${frames.join(" vs ")}`);
-    assert.equal(
-      frames[0],
-      'className="rounded-2xl border border-brand-border bg-white p-6"',
-      "the shared frame is no longer the neutral 1px card",
-    );
+  it("both sides share one unboxed two-column frame", () => {
+    // The right side carried a green outline through two iterations of
+    // this fix and the owner has since removed it. Since the redesign
+    // round (2026-09-24) neither side is a card at all: the comparison
+    // is two columns of the same grid split by one vertical hairline,
+    // so nothing can be framed more heavily than its neighbour. The
+    // comparison is made by the text, not by an edge around one side.
+    const start = source.indexOf("Posted from Britain");
+    const grid = source.lastIndexOf("lg:grid-cols-2 lg:divide-x lg:divide-brand-border", start);
+    assert.ok(grid > -1 && start > grid, "the comparison grid moved");
+    const block = source.slice(grid, source.indexOf("</div>\n        </div>", start) + 1 || undefined);
+    assert.equal(/rounded-|bg-white|border-brand-border bg/.test(block.slice(0, 400)), false, "a card frame is back on the comparison");
   });
 
-  it("neither card carries a second border, ring or shadow", () => {
-    // Everything that would read as a doubled edge.
-    const cards = source.match(/className="rounded-2xl border[^"]*"/g) ?? [];
-    assert.ok(cards.length >= 2, "the comparison cards moved");
-    for (const cls of cards) {
-      assert.equal(/border-2|border-\[|ring-|shadow-|outline-/.test(cls), false, `doubled edge: ${cls}`);
+  it("neither side carries a border, ring or shadow of its own", () => {
+    // Everything that would read as a doubled edge or a promoted side.
+    const start = source.indexOf("Posted from Britain");
+    const end = source.indexOf("Picked and packed in Limerick");
+    assert.ok(start > -1 && end > start, "the comparison moved");
+    const between = source.slice(start, end + 600);
+    for (const offence of ["border-2", "border-[", "ring-", "shadow-", "outline-", "border-brand-green"]) {
+      assert.equal(between.includes(offence), false, `doubled edge or promotion: ${offence}`);
     }
   });
 

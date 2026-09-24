@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import PartnershipForm from "@/components/PartnershipForm";
 import PromotionCard from "@/components/PromotionCard";
 import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
@@ -34,56 +36,51 @@ export default async function PartnershipsPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Partnerships", path: "/partnerships" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-mint">
-              Partnerships
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Partner with Dockentra
-            </h1>
-            <p className="mt-4 text-lg leading-8 text-white/80">
-              We run fulfilment, prep and storage from Limerick for sellers
-              across Ireland. If your work touches ecommerce, there is probably
-              a sensible way for us to work together. We would rather have
-              a proper conversation about it than run a scheme.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader eyebrow="Partnerships">
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Partner with Dockentra
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          We run fulfilment, prep and storage from Limerick for sellers
+          across Ireland. If your work touches ecommerce, there is probably
+          a sensible way for us to work together. We would rather have
+          a proper conversation about it than run a scheme.
+        </p>
+      </PageHeader>
 
       <section aria-labelledby="kinds-heading" className="bg-white">
-        <Container className="py-12 sm:py-16">
+        <Container className="py-16 sm:py-24">
           <h2
             id="kinds-heading"
             className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
           >
             Ways to work together
           </h2>
-          <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Link rows, not boxes: the whole row is ONE link that
+              preselects the type in the form below rather than asking
+              for the same choice twice. ONE affordance per row: the
+              visible "Discuss this" cue with its arrow gives a touch
+              user the same signal a mouse user gets from the hover; a
+              second, floating arrow in the corner said the same thing
+              twice. */}
+          <ul className="mt-8 grid gap-x-10 border-t border-brand-border lg:grid-cols-2">
             {PARTNERSHIP_KINDS.map((kind) => (
-              <li
-                key={kind.id}
-                className="flex flex-col rounded-lg border border-brand-border bg-brand-surface-soft/60 p-5"
-              >
-                <h3 className="text-base font-semibold text-brand-navy">
-                  {kind.label}
-                </h3>
-                <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">
-                  {kind.blurb}
-                </p>
-                {/* Preselects the type in the form below rather than
-                    asking for the same choice twice. */}
-                <a
+              <li key={kind.id} className="border-b border-brand-border">
+                <Link
                   href={`?type=${kind.id}#partnership-form`}
-                  className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+                  className="group block py-5 transition-colors hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
                 >
-                  Discuss this
-                  <span aria-hidden="true" className="ml-1">
-                    &rarr;
+                  <h3 className="text-base font-semibold text-brand-navy transition-colors group-hover:text-brand-green-dark">
+                    {kind.label}
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {kind.blurb}
+                  </p>
+                  <span className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-brand-green-dark underline-offset-2 group-hover:underline">
+                    Discuss this
+                    <span aria-hidden="true">&rarr;</span>
                   </span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -91,7 +88,7 @@ export default async function PartnershipsPage() {
       </section>
 
       {partnerOffer && (
-        <section aria-label="Partner offer" className="bg-brand-surface-soft/50">
+        <section aria-label="Partner offer" className="bg-brand-surface-soft">
           <Container className="py-10 sm:py-12">
             <div className="max-w-2xl">
               <PromotionCard
@@ -109,7 +106,7 @@ export default async function PartnershipsPage() {
         aria-labelledby="partnership-form-heading"
         className="scroll-mt-24 bg-white"
       >
-        <Container className="py-12 sm:py-16">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-2xl">
             <h2
               id="partnership-form-heading"

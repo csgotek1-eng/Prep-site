@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ClosingBand from "@/components/sections/ClosingBand";
 
 export const metadata: Metadata = {
   title: "For UK brands shipping to Ireland",
@@ -116,6 +118,19 @@ const frictions = [
 ];
 
 /**
+ * The comparison rows, written once and rendered twice: as the
+ * three-column table from sm up, and as a stacked two-column layout
+ * below it so a phone shows the Limerick column without scrolling
+ * sideways. One array, so the two layouts cannot show different
+ * figures.
+ */
+const COST_ROWS: [string, string, string][] = [
+  ["Handling and packaging", "€2.81", "€3.90"],
+  ["Delivery", "€10.14", "€4.55"],
+  ["Customs charge to your customer", "€3.00", "€0"],
+];
+
+/**
  * THIS PAGE NO LONGER REDIRECTS ANYONE, AND IT IS STATIC AGAIN.
  *
  * Its whole history was about who should be bounced off it. First a
@@ -142,21 +157,36 @@ export default function UkBrandsPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "For UK Brands", path: "/uk-brands" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
+      <PageHeader
+        variant="operational"
+        eyebrow="UK brands"
+        still={{
+          src: "/media/process/dockentra-process-bench-band.webp",
+          alt: "A red tape gun sealing a cardboard carton on a packing bench.",
+          caption: "sealing a carton.",
+        }}
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Your parcel costs €10 to cross the Irish Sea. Ours costs €4.55.
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          A 0.5 kg parcel from the UK to Ireland costs about €10 tracked.
+          The same parcel posted from Limerick costs €4.55, because it
+          never leaves the country.
+        </p>
+      </PageHeader>
+
+      {/* THE NUMBERS — our argument, before the market's.
+
+          The header carries the H1 and one paragraph (redesign review,
+          2026-09-24); the two customs paragraphs that used to sit under
+          it in the band open the body here instead, word for word, so
+          the reading order is unchanged and the band stops being a
+          four-paragraph wall over the footage. */}
+      <section aria-labelledby="cost-heading" className="bg-white">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-mint">
-              For UK brands
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Your parcel costs €10 to cross the Irish Sea. Ours costs €4.55.
-            </h1>
-            <div className="mt-4 space-y-4 text-base leading-7 text-slate-300 sm:text-lg">
-              <p>
-                A 0.5 kg parcel from the UK to Ireland costs about €10 tracked.
-                The same parcel posted from Limerick costs €4.55, because it
-                never leaves the country.
-              </p>
+            <div className="space-y-4 text-lg leading-8 text-slate-600">
               <p>
                 Then there&apos;s the charge your customer didn&apos;t agree
                 to. Since 1 July 2026, a €3 customs duty applies to each
@@ -175,30 +205,85 @@ export default function UkBrandsPage() {
                 refused parcels and returns.
               </p>
             </div>
-          </div>
-        </Container>
-      </section>
 
-      {/* THE NUMBERS — our argument, before the market's. */}
-      <section aria-labelledby="cost-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
-          <div className="max-w-3xl">
             <h2
               id="cost-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="mt-12 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               The same order, both ways
             </h2>
 
+            {/* BELOW sm: the same figures stacked, label above two
+                columns, so the Limerick column is on screen on a phone
+                without a sideways scroll. Each row is its own tbody
+                with the label as a rowgroup header, so a screen reader
+                still hears which figure belongs to which side. */}
+            <div className="mt-8 sm:hidden">
+              <table className="w-full border-collapse text-left text-[13px] leading-5">
+                <caption className="sr-only">
+                  Cost of fulfilling the same order from Britain compared with
+                  from Limerick
+                </caption>
+                <thead>
+                  <tr className="border-b border-brand-border">
+                    <th scope="col" className="w-1/2 py-2 pr-2 font-semibold text-brand-navy">
+                      Shipping from Britain
+                    </th>
+                    <th scope="col" className="w-1/2 py-2 pl-2 font-semibold text-brand-navy">
+                      Shipping from Limerick
+                    </th>
+                  </tr>
+                </thead>
+                {COST_ROWS.map(([label, britain, limerick]) => (
+                  <tbody key={label} className="border-b border-brand-border/60">
+                    <tr>
+                      <th
+                        scope="rowgroup"
+                        colSpan={2}
+                        className="pt-3 text-left font-normal text-slate-700"
+                      >
+                        {label}
+                      </th>
+                    </tr>
+                    {/* The Limerick figure is the one the page is
+                        arguing for, so on a phone it carries the
+                        weight the desktop table gives it by position. */}
+                    <tr className="font-mono-data text-slate-700">
+                      <td className="pb-3 pr-2 text-sm tabular-nums">{britain}</td>
+                      <td className="pb-3 pl-2 text-sm font-semibold tabular-nums text-brand-navy">
+                        {limerick}
+                      </td>
+                    </tr>
+                  </tbody>
+                ))}
+                <tbody className="border-b-2 border-brand-navy">
+                  <tr>
+                    <th
+                      scope="rowgroup"
+                      colSpan={2}
+                      className="pt-3 text-left text-sm font-semibold text-brand-navy"
+                    >
+                      Total
+                    </th>
+                  </tr>
+                  <tr className="font-mono-data text-sm font-semibold">
+                    <td className="pb-3 pr-2 tabular-nums text-brand-navy">€15.95</td>
+                    <td className="pb-3 pl-2 tabular-nums text-brand-green-dark">€8.45</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
             {/* overflow-x-auto: a four-column money table has a floor
                 width that a 320px screen cannot meet, and the
                 alternative to scrolling it is shrinking the figures
-                until nobody reads them. */}
+                until nobody reads them. From sm up the width is there,
+                and the stacked layout above covers the phone. */}
             {/* tabIndex + role=group: a scrollable region has to be
                 reachable by keyboard, or the columns past the fold are
                 unreachable without a mouse. */}
             <div
-              className="mt-8 overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+              className="mt-8 hidden overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green sm:block"
               tabIndex={0}
               role="group"
               aria-label="Cost comparison table, scrolls horizontally"
@@ -222,11 +307,7 @@ export default function UkBrandsPage() {
                   </tr>
                 </thead>
                 <tbody className="font-mono-data text-sm text-slate-700">
-                  {[
-                    ["Handling and packaging", "€2.81", "€3.90"],
-                    ["Delivery", "€10.14", "€4.55"],
-                    ["Customs charge to your customer", "€3.00", "€0"],
-                  ].map(([label, britain, limerick]) => (
+                  {COST_ROWS.map(([label, britain, limerick]) => (
                     <tr key={label} className="border-b border-brand-border/60">
                       <th
                         scope="row"
@@ -315,38 +396,49 @@ export default function UkBrandsPage() {
           wall. Above this line are our numbers; below it is what the
           rules say, sourced. */}
       <section aria-labelledby="friction-heading" className="bg-white">
-        <Container className="pb-16 sm:pb-20">
+        <Container className="pb-16 sm:pb-24">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+            <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark">
               The legal side of it
             </p>
             <h2
               id="friction-heading"
-              className="mt-3 text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               What crossing the border actually costs you
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Not an estimate: the published rules, as they stand today.
             </p>
           </div>
 
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
-            {frictions.map((item) => (
+          {/* A numbered list with hairlines, not seven boxes: each rule
+              is a point in an argument, read in order, and a grid of
+              equal cards made them read as a catalogue instead. */}
+          <ol className="mt-10 max-w-3xl divide-y divide-brand-border border-t border-brand-border">
+            {frictions.map((item, index) => (
               <li
                 key={item.title}
-                className="rounded-2xl border border-brand-border bg-white p-5 sm:p-6"
+                className="grid gap-x-6 gap-y-2 py-6 sm:grid-cols-[3rem_minmax(0,1fr)]"
               >
-                <h3 className="text-base font-semibold text-brand-navy">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-base leading-7 text-slate-700">{item.body}</p>
-                <p className="mt-3 text-xs leading-5 text-brand-text-muted">
-                  Source: {item.source}
-                </p>
+                <span
+                  aria-hidden="true"
+                  className="font-mono-data text-sm font-medium text-brand-green-dark"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="text-base font-semibold text-brand-navy">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-base leading-7 text-slate-700">{item.body}</p>
+                  <p className="mt-3 text-xs leading-5 text-brand-text-muted">
+                    Source: {item.source}
+                  </p>
+                </div>
               </li>
             ))}
-          </ul>
+          </ol>
 
           <p className="mt-8 max-w-3xl text-sm leading-6 text-brand-text-muted">
             Rules checked on 11 September 2026 against Irish Revenue, the
@@ -359,21 +451,29 @@ export default function UkBrandsPage() {
       </section>
 
       <section aria-labelledby="compare-heading" className="bg-brand-surface-soft">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="compare-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Shipping from Britain vs shipping from Limerick
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               The same order, to the same customer in Cork, either way.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-2">
-            <div className="rounded-2xl border border-brand-border bg-white p-6">
+          {/* TWO COLUMNS AND ONE HAIRLINE, no boxes (redesign review,
+              2026-09-24). The two lists were a pair of bordered white
+              cards, which this round retires for information: a
+              comparison is two columns of text, and the one vertical
+              rule between them from lg is the whole frame. Neither
+              side carries a border, a radius or a fill, so the
+              argument is still made by the words rather than by an
+              outline around one of them (owner decision, kept). */}
+          <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:divide-x lg:divide-brand-border">
+            <div>
               <h3 className="text-lg font-semibold text-brand-navy">
                 Posted from Britain
               </h3>
@@ -398,16 +498,11 @@ export default function UkBrandsPage() {
               </ul>
             </div>
 
-            {/* THE SAME FRAME AS THE CARD BESIDE IT, exactly.
-                This card has been through three styles: a 2px
-                `border-brand-green/40` that rendered unevenly on a
-                16px radius and pushed its own content box 1px in, then
-                a clean 1px full-strength green, and now no highlight at
-                all (owner decision). The class list is copied from the
-                left card rather than re-derived, so the two frames
-                cannot drift apart again; the argument is made by the
-                text in it, not by an outline around it. */}
-            <div className="rounded-2xl border border-brand-border bg-white p-6">
+            {/* lg:pl-10 is the gutter on the far side of the hairline,
+                matching the grid gap on the near side; it is the only
+                class that differs between the two columns, and it is
+                layout, not a highlight. */}
+            <div className="lg:pl-10">
               <h3 className="text-lg font-semibold text-brand-navy">
                 Picked and packed in Limerick
               </h3>
@@ -432,37 +527,21 @@ export default function UkBrandsPage() {
         </Container>
       </section>
 
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Send one pallet and find out
-            </h2>
-            <p className="mt-3 text-base leading-7 text-slate-300">
-              We have no minimum order volume, so testing Ireland does not mean
-              committing to it. Tell us what you ship and we will come back with
-              a price within one working day.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                href="/become-a-client"
-                className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
-              >
-                Become a client
-              </Link>
-              <Link
-                href="/contact#enquiry"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
-              >
-                Send an enquiry
-              </Link>
-            </div>
-            {/* The sibling audiences, below the buttons rather than in
-                the argument. This page is written for one reader and
-                should stay that way, but search sends people to the
-                wrong one of the three often enough that a way across
-                is worth four lines. */}
-            <p className="mt-6 text-sm leading-6 text-slate-400">
+      {/* The site's one closing band (redesign review, 2026-09-24).
+          The sibling audiences stay under the sentence rather than in
+          the argument: this page is written for one reader and should
+          stay that way, but search sends people to the wrong one of
+          the three often enough that a way across is worth four lines.
+          A block span, not a second <p>: the band renders its text
+          inside one paragraph. */}
+      <ClosingBand
+        heading="Send one pallet and find out"
+        text={
+          <>
+            We have no minimum order volume, so testing Ireland does not mean
+            committing to it. Tell us what you ship and we will come back with
+            a price within one working day.
+            <span className="mt-4 block text-sm leading-6 text-slate-400">
               Shipping from somewhere else? We also fulfil for{" "}
               <Link
                 href="/china-asia-brands"
@@ -478,10 +557,23 @@ export default function UkBrandsPage() {
                 European brands
               </Link>
               .
-            </p>
-          </div>
-        </Container>
-      </section>
+            </span>
+          </>
+        }
+      >
+        <Link
+          href="/become-a-client"
+          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
+        >
+          Become a Client
+        </Link>
+        <Link
+          href="/contact#enquiry"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+        >
+          Send an enquiry
+        </Link>
+      </ClosingBand>
     </>
   );
 }

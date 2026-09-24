@@ -56,10 +56,12 @@ export default function ProcessMedia() {
               same upscale. No border: with square corners a 1.22:1
               hairline reads as a thumbnail frame, and every edge of the
               footage is mid-tone, so it separates from white on its
-              own. Left-aligned from sm, because the centred caption
-              that justified centring is gone. */}
+              own. Centred until lg: below the two-column grid the
+              frame is a 24rem block under a full-width heading, and
+              a left-aligned block that narrow left a void on its right
+              at tablet widths. From lg it fills its own column. */}
           <figure className="order-2 lg:order-1">
-            <div className="relative mx-auto aspect-4/5 w-full max-w-[24rem] overflow-hidden bg-brand-mint-soft sm:mx-0 lg:max-w-none">
+            <div className="relative mx-auto aspect-4/5 w-full max-w-[24rem] overflow-hidden bg-brand-mint-soft lg:mx-0 lg:max-w-none">
               {/* Lazy, and NOT prioritised: the hero clip is the one
                   asset allowed to compete for the first paint. A
                   carton-taping clip was tried here in the video trial

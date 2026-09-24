@@ -88,13 +88,44 @@ stays for errors only.
   Exception (2026-09-23): the homepage hero button sits on the video
   veil, where a 25% navy hairline is invisible; it drops the border for
   a soft navy shadow and a mint-soft hover fill instead.
-- **Cards**: white surface, `border-brand-border`, small radius,
-  shadow-sm at most, navy heading, muted body, small gradient
-  icon/dot accent.
+- **Cards**: white surface, `border-brand-border`, `rounded-lg`,
+  shadow-sm at most, navy heading, muted body. Since the redesign
+  round (2026-09-24) a card is used ONLY for something the visitor
+  interacts with (a link tile, a form, an expandable). Information is
+  grouped with hairlines (`divide-y`, `border-t`) or a plain `<dl>`,
+  never boxed, and icon-in-tinted-square tiles are retired. Two
+  radius tiers: `rounded-lg` for cards and controls, `rounded-2xl`
+  for bands (pricing, closing CTAs).
 - **Focus**: global 2px `--color-brand-green` outline
   (`:focus-visible`), plus per-field `focus:ring-brand-green/25`.
-- **Process steps**: gradient number circles connected by a
-  teal→mint hairline.
+- **Process steps**: flat `bg-brand-green` number circles connected by
+  a `bg-brand-border` hairline (the gradient circles and teal→mint
+  line went in the redesign round: no decorative gradients).
+- **Eyebrows**: IBM Plex Mono 500, 12px, uppercase, `tracking-[0.12em]`
+  — `text-brand-green-dark` on light surfaces, `text-brand-mint` on
+  navy — on a handful of sections (hero, services, how it works, the
+  commitment band, inner-page headers), never above every heading.
+- **Section rhythm**: homepage media sections (services, batch photo,
+  the commitment band) `py-20 sm:py-28`, text-only sections and
+  inner-page body sections `py-16 sm:py-24`; H2 `text-3xl …
+  sm:text-4xl` with the intro paragraph directly beneath as a grey
+  clause.
+- **Closing band**: one component (`ClosingBand`) on every page: a
+  full-bleed navy band with a mint hairline at the top, copy left and
+  the page's own actions right from lg, running straight into the
+  footer. No gradient, no card, no centring.
+- **Inner-page headers**: one `PageHeader` component. The pages that
+  describe physical work (services, how it works, why Ireland, the
+  audience pages, become a client) open on a real 3:1 frame of
+  fulfilment work under the navy veil, captioned illustrative; the
+  utility pages (pricing, contact, FAQ, about, partnerships, privacy)
+  keep the flat navy band. The `<h1>` stays in the page file.
+- **Media frames** are square-cornered, with no hairline, at every
+  size (the "From stock to shipment" frame set the rule; the services,
+  batch-photo, how-it-works and about frames follow it).
+- **Header**: Get Price is visible in the bar at every width; the
+  floating dock stands down while the mobile menu is open, as it does
+  for dialogs.
 - **Typography** — OWNER-APPROVED, self-hosted via `next/font/google`,
   no runtime request to Google:
   - **Manrope** (700/800) — display and headings;
@@ -132,9 +163,12 @@ stays for errors only.
     caption at all; its alt text still says only what is shown, and
     the no-"our warehouse" rule holds there too. The media on the site today is TEMPORARY
     ILLUSTRATIVE MATERIAL by the owner's own decision (2026-09-04) —
-    three process clips (the homepage hero, "From stock to shipment" and the /dispatch-commitment band) and one photograph of people — awaiting real
-    Dockentra photography and video; see `media-source/README.md` for
-    how to swap it in;
+    three process clips (the homepage hero, "From stock to shipment" and
+    the /dispatch-commitment band), seven stills cut from the same
+    footage (`scripts/derive-site-stills.mjs`: five inner-page header
+    bands, the services frame and the batch-photo frame) and one
+    photograph of people — awaiting real Dockentra photography and
+    video; see `media-source/README.md` for how to swap it in;
   - **imagery of PEOPLE is never cropped.** A crop tightens on torsos,
     which is where uniform lettering sits. Such a photo carries its own
     intrinsic width/height and shows the whole frame; cap the WIDTH,

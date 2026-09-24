@@ -1,4 +1,3 @@
-import { Clock, MapPin } from "lucide-react";
 import { siteConfig } from "@/lib/site";
 import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
 
@@ -12,16 +11,19 @@ const { addressLines, directionsUrl, openingHours, visitPolicy } =
 /**
  * Where we are, and when anyone is there.
  *
- * Two cards rather than one: an address is a fact a visitor copies, and
- * an opening time is a promise they act on. Keeping them apart is what
- * lets the second one be honest while no hours have been supplied — see
+ * Two terms in one list rather than two cards (redesign round,
+ * 2026-09-24): an address is a fact a visitor copies, and an opening
+ * time is a promise they act on. Keeping them apart is what lets the
+ * second one be honest while no hours have been supplied — see
  * src/lib/site-location.ts. Nothing here invents a time, and the moment
  * real hours exist this component starts listing them without being
- * touched.
+ * touched. Information is grouped with a hairline, not boxed, and the
+ * icons that used to sit beside the two labels said nothing the labels
+ * do not.
  */
 export default function LocationSection() {
   return (
-    <div className="mx-auto mt-14 max-w-5xl">
+    <div className="mt-14">
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
         Where to find us
       </p>
@@ -29,62 +31,61 @@ export default function LocationSection() {
         Our unit in Limerick
       </h2>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">
-        <div className="rounded-2xl border border-brand-border bg-white p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-brand-navy">
-            <MapPin aria-hidden="true" className="h-5 w-5 shrink-0 text-brand-green-dark" />
-            Address
-          </h3>
-          <address className="mt-3 text-base not-italic leading-7 text-slate-700">
-            {addressLines.map((line) => (
-              <span key={line} className="block">
-                {line}
-              </span>
-            ))}
-          </address>
-          <a
-            href={directionsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-          >
-            Directions
-          </a>
-        </div>
-
-        <div className="rounded-2xl border border-brand-border bg-white p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-brand-navy">
-            <Clock aria-hidden="true" className="h-5 w-5 shrink-0 text-brand-green-dark" />
-            Warehouse opening hours
-          </h3>
-
-          {openingHours ? (
-            <dl className="mt-3 text-base leading-7 text-slate-700">
-              {openingHours.map((line) => (
-                <div
-                  key={line.days}
-                  className="flex flex-wrap justify-between gap-x-6 border-b border-brand-border/60 py-1.5 last:border-0"
-                >
-                  <dt className="font-medium text-brand-navy">{line.days}</dt>
-                  <dd className="tabular-nums">{line.hours}</dd>
-                </div>
+      <dl className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-brand-border">
+        <div className="lg:pr-10">
+          <dt className="text-base font-semibold text-brand-navy">Address</dt>
+          <dd className="mt-3">
+            <address className="text-base not-italic leading-7 text-slate-700">
+              {addressLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
               ))}
-            </dl>
-          ) : (
-            <p className="mt-3 text-base font-semibold leading-7 text-brand-navy">
-              By arrangement
-            </p>
-          )}
-
-          <p className="mt-2 text-sm leading-6 text-slate-600">{visitPolicy}</p>
-          <a
-            href={contactEmailHref}
-            className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-          >
-            {contactEmailLabel} to arrange a time
-          </a>
+            </address>
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            >
+              Directions
+            </a>
+          </dd>
         </div>
-      </div>
+
+        <div className="lg:pl-10">
+          <dt className="text-base font-semibold text-brand-navy">
+            Warehouse opening hours
+          </dt>
+          <dd className="mt-3">
+            {openingHours ? (
+              <dl className="text-base leading-7 text-slate-700">
+                {openingHours.map((line) => (
+                  <div
+                    key={line.days}
+                    className="flex flex-wrap justify-between gap-x-6 border-b border-brand-border/60 py-1.5 last:border-0"
+                  >
+                    <dt className="font-medium text-brand-navy">{line.days}</dt>
+                    <dd className="tabular-nums">{line.hours}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="text-base font-semibold leading-7 text-brand-navy">
+                By arrangement
+              </p>
+            )}
+
+            <p className="mt-2 text-sm leading-6 text-slate-600">{visitPolicy}</p>
+            <a
+              href={contactEmailHref}
+              className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+            >
+              {contactEmailLabel} to arrange a time
+            </a>
+          </dd>
+        </div>
+      </dl>
     </div>
   );
 }

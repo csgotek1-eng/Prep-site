@@ -74,6 +74,19 @@ only what is shown.
 clip. That is why the hero posters are cut from the 4K source rather
 than from the encoded clip — on a phone the poster IS the hero.
 
+## Stills, redesign round (2026-09-24)
+
+`scripts/derive-site-stills.mjs` cuts seven WebP stills from the same
+sources (crops chosen on contact sheets; no faces, no bays with large
+third-party logos): five 3:1 bands for the inner-page headers
+(`-aisle-band`, `-racking-band`, `-taping-band`, `-bench-band`,
+`-handover-band`), a 4:3 frame beside the services list
+(`-taping-hands`) and a 4:3 frame beside the batch-photo section
+(`-batch-photo`, from the 576px dispatch clip, shipped at source size).
+Every one is captioned *illustrative footage of fulfilment work* where
+it appears. The same rule as above applies: real Dockentra frames at
+the same paths replace them, and the captions change in that commit.
+
 ## What this footage is, and is not
 
 **Owner decision, 2026-09-04: this is TEMPORARY ILLUSTRATIVE MEDIA.**

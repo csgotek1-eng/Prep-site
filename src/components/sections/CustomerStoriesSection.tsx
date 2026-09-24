@@ -33,15 +33,15 @@ export default async function CustomerStoriesSection() {
 
   return (
     <section aria-labelledby="customer-stories-heading" className="bg-brand-surface-soft">
-      <Container className="py-16 sm:py-20">
+      <Container className="py-16 sm:py-24">
         <div className="max-w-3xl">
           <h2
             id="customer-stories-heading"
-            className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+            className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
           >
             Customer stories
           </h2>
-          <p className="mt-3 text-base leading-7 text-slate-600">
+          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
             {hasStories
               ? "What clients say about working with us, published only with their permission."
               : "We are opening in 2026, so there is not much to show here yet. When clients have worked with us and are happy for us to publish what they think, their words go on one page, and only theirs."}

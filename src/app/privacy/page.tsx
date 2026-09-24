@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import { siteConfig } from "@/lib/site";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
@@ -17,22 +18,18 @@ export default function PrivacyPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Privacy Policy", path: "/privacy" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Privacy Policy
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              What this website actually does with the information you
-              share with it.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader eyebrow="Privacy">
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Privacy Policy
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          What this website actually does with the information you
+          share with it.
+        </p>
+      </PageHeader>
 
       <section aria-label="Privacy policy" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="mx-auto max-w-3xl space-y-10 text-base leading-7 text-slate-700">
             <div>
               <h2 className="text-xl font-bold tracking-tight text-brand-navy">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewsList from "@/components/ReviewsList";
 import { getPublishedReviews } from "@/lib/reviews/service";
@@ -42,28 +43,24 @@ export default async function CasesPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Customer Stories", path: "/cases" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Customer stories
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              We are opening in 2026, so this page is mostly empty, and we
-              would rather show you that than somebody else&apos;s results.
-              Whatever appears here will be published with the client&apos;s
-              permission and never edited into something they did not write.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader eyebrow="Customer stories">
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Customer stories
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          We are opening in 2026, so this page is mostly empty, and we
+          would rather show you that than somebody else&apos;s results.
+          Whatever appears here will be published with the client&apos;s
+          permission and never edited into something they did not write.
+        </p>
+      </PageHeader>
 
       <section aria-labelledby="reviews-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="reviews-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Reviews
             </h2>
@@ -75,15 +72,15 @@ export default async function CasesPage() {
       </section>
 
       <section aria-labelledby="cases-heading" className="bg-brand-surface-soft">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="cases-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Case studies
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               None yet: a case study needs finished work, real numbers and the
               client&apos;s agreement, and we do not have the first of those.
               When we do, it will be here.
@@ -110,15 +107,15 @@ export default async function CasesPage() {
       </section>
 
       <section aria-labelledby="leave-review-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="mx-auto max-w-2xl">
             <h2
               id="leave-review-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Worked with us? Tell people what it was like.
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Good or bad. We read every one before anything goes on the site,
               and we publish it as you wrote it.
             </p>

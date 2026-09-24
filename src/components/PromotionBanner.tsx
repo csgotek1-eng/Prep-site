@@ -43,7 +43,13 @@ export default async function PromotionBanner() {
             <Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-brand-green-dark" />
             {offer.title}
           </span>
-          <span className="text-brand-text-muted">{offer.shortText}</span>
+          {/* Below sm the strip is ONE line — title and link. The short
+              text made it wrap to two or three lines on a phone, where
+              the strip, the utility bar and the header together took
+              the top third of the first screen. */}
+          <span className="hidden text-brand-text-muted sm:inline">
+            {offer.shortText}
+          </span>
           <Link
             href={`/offers/${offer.id}`}
             className="inline-flex min-h-8 items-center rounded font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"

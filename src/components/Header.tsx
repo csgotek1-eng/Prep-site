@@ -6,8 +6,21 @@ import { usePathname } from "next/navigation";
 import BrandLockup from "@/components/BrandLockup";
 import { CalculatorTrigger } from "@/components/CalculatorModal";
 import Container from "@/components/Container";
-import { useCalculator, useHelpPanel } from "@/components/FloatingChrome";
+import {
+  useCalculator,
+  useHelpPanel,
+  useMobileMenu,
+} from "@/components/FloatingChrome";
 import { navLinks } from "@/lib/site";
+
+/**
+ * The mobile menu reads as three groups, separated by hairlines, in
+ * the order the items already have: Home with the service pages,
+ * then the two "why us / with us" pages, then the company pages and
+ * Help. These are the hrefs that open the second and third group; the
+ * rows, labels and order are unchanged.
+ */
+const MENU_GROUP_STARTS = new Set<string>(["/why-ireland", "/about"]);
 
 /*
  * The nav used to swap every item for a homepage anchor while you were
@@ -35,6 +48,10 @@ export default function Header() {
   // the navigation now — a desktop button beside Get Price and a row
   // in the mobile menu.
   const { openHelp } = useHelpPanel();
+  // The menu state stays the header's own; it is mirrored into the
+  // shared chrome context so the floating dock can hide while the
+  // menu is open, the way it already does for an open dialog.
+  const { setMenuOpen: mirrorMenuOpen } = useMobileMenu();
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -45,14 +62,24 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    mirrorMenuOpen(menuOpen);
+    // If the header ever unmounts with the menu open, the dock must
+    // not stay hidden for good.
+    return () => mirrorMenuOpen(false);
+  }, [menuOpen, mirrorMenuOpen]);
+
   const closeMenu = () => setMenuOpen(false);
 
   return (
+    // A permanent 1px hairline: at rest it is softened to 70% so it
+    // reads as a rule, not a box edge, over the hero; once scrolled it
+    // is the full border colour over the opaque-ish white.
     <header
       className={`sticky top-0 z-50 border-b backdrop-blur-md transition-colors ${
         scrolled
           ? "border-brand-border bg-white/85"
-          : "border-transparent bg-white/60"
+          : "border-brand-border/70 bg-white/60"
       }`}
     >
       <Container>
@@ -90,11 +117,13 @@ export default function Header() {
             </ul>
           </nav>
 
-          {/* THE primary CTA of the site, top-right on every page. It
-              opens the ONE canonical calculator dialog — the same
-              component the hero button and the floating action open, so
-              there is still exactly one calculator implementation. The
-              nav itself stays free of a Calculator item. */}
+          {/* THE primary CTA of the site, top-right on every page and
+              at EVERY width — the pricing page tells phone visitors to
+              use it, so it cannot hide below sm. It opens the ONE
+              canonical calculator dialog — the same component the
+              floating action opens, so there is still exactly one
+              calculator implementation. The nav itself stays free of a
+              Calculator item. */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -103,7 +132,7 @@ export default function Header() {
             >
               Help
             </button>
-            <div className="hidden sm:block">
+            <div className="block">
               <CalculatorTrigger
                 variant="header"
                 label="Get Price"
@@ -159,7 +188,14 @@ export default function Header() {
           <Container className="py-3">
             <ul className="flex flex-col gap-1">
               {navLinks.map((link) => (
-                <li key={link.href}>
+                <li
+                  key={link.href}
+                  className={
+                    MENU_GROUP_STARTS.has(link.href)
+                      ? "border-t border-brand-border pt-2 mt-2"
+                      : undefined
+                  }
+                >
                   <Link
                     href={link.href}
                     onClick={closeMenu}
@@ -187,8 +223,12 @@ export default function Header() {
                 </button>
               </li>
               <li className="pt-2 sm:hidden">
-                {/* Mobile only: the desktop bar already shows Get Price
-                    from sm up, so the two never appear together. */}
+                {/* Below sm only. The bar's trigger is now visible at
+                    every width, so this row is the menu's own closing
+                    action on a phone: the visitor who opened the menu
+                    to look for pricing finds it at the end of the list
+                    without scrolling back up. From sm the bar alone
+                    carries it. */}
                 <CalculatorTrigger
                   variant="header"
                   label="Get Price"

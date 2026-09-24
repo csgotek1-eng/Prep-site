@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import CalculatorModal from "@/components/CalculatorModal";
+import PageHeader from "@/components/PageHeader";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ClosingBand from "@/components/sections/ClosingBand";
 import { OPERATIONS_ON_THE_GROUND } from "@/lib/brand-paths";
 
 export const metadata: Metadata = {
@@ -74,34 +76,35 @@ export default function EuropeanBrandsPage() {
         trail={[{ name: "European brands", path: "/european-brands" }]}
       />
 
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-mint">
-              For European brands
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Add an Irish fulfilment base to your European operation
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Already selling across Europe? Dockentra can handle the Irish
-              side of your fulfilment without requiring you to open and operate
-              your own warehouse here.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader
+        variant="operational"
+        eyebrow="European brands"
+        still={{
+          src: "/media/process/dockentra-process-pallets-band.webp",
+          alt: "Wrapped pallets and cartons on the floor at the end of a racked aisle.",
+          caption: "pallets at the end of an aisle.",
+        }}
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Add an Irish fulfilment base to your European operation
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          Already selling across Europe? Dockentra can handle the Irish
+          side of your fulfilment without requiring you to open and operate
+          your own warehouse here.
+        </p>
+      </PageHeader>
 
       <section aria-labelledby="keep-europe-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="keep-europe-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Keep your European operation. Add Ireland locally.
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Nothing here asks you to move your main warehouse. You send a
               portion of your stock to Dockentra, we hold it in Limerick, and
               we dispatch individual customer orders from here. Returns come
@@ -130,24 +133,21 @@ export default function EuropeanBrandsPage() {
         aria-labelledby="handled-heading"
         className="bg-brand-surface-soft"
       >
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="handled-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               What Dockentra handles
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               The physical work, for every order you sell in Ireland.
             </p>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-8 grid gap-x-8 border-t border-brand-border sm:grid-cols-2 lg:grid-cols-4">
             {OPERATIONS_ON_THE_GROUND.map((item) => (
-              <li
-                key={item.title}
-                className="rounded-2xl border border-brand-border bg-white p-5"
-              >
+              <li key={item.title} className="border-b border-brand-border py-5">
                 <h3 className="text-base font-semibold text-brand-navy">
                   {item.title}
                 </h3>
@@ -172,11 +172,11 @@ export default function EuropeanBrandsPage() {
       </section>
 
       <section aria-labelledby="useful-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="useful-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Why an Irish stock position can be useful
             </h2>
@@ -197,15 +197,15 @@ export default function EuropeanBrandsPage() {
         aria-labelledby="limerick-heading"
         className="bg-brand-surface-soft"
       >
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="limerick-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Limerick base. Nationwide Irish fulfilment.
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               From our Limerick base, Dockentra can support fulfilment to
               customers across Ireland through national carrier networks.
             </p>
@@ -220,15 +220,15 @@ export default function EuropeanBrandsPage() {
       </section>
 
       <section aria-labelledby="test-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="test-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               A practical way to test or grow the Irish market
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Opening your own Irish operation means a lease, staff, equipment
               and the management time to run all three. Holding a local stock
               position with outsourced fulfilment is a smaller first
@@ -261,30 +261,20 @@ export default function EuropeanBrandsPage() {
         </Container>
       </section>
 
-      <section aria-labelledby="europe-cta-heading" className="bg-brand-navy">
-        <Container className="py-14 sm:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2
-              id="europe-cta-heading"
-              className="text-2xl font-bold tracking-tight text-white sm:text-3xl"
-            >
-              Need a fulfilment base in Ireland?
-            </h2>
-            <p className="mt-3 text-base leading-7 text-slate-300">
-              Tell us where your stock is held today, what you sell and your
-              expected Irish order volume. We&apos;ll explain what a local setup
-              with Dockentra could look like.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <CalculatorModal label="Get Price" icon={false} />
-              <Link
-                href="/contact#enquiry"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
-              >
-                Contact Us
-              </Link>
-            </div>
-            <p className="mt-6 text-sm leading-6 text-slate-400">
+      {/* The site's one closing band (redesign review, 2026-09-24).
+          The two reading routes stay under the sentence, as a block
+          span rather than a second <p>: the band renders its text
+          inside one paragraph. id="europe-cta" keeps the heading id
+          the section is labelled by. */}
+      <ClosingBand
+        id="europe-cta"
+        heading="Need a fulfilment base in Ireland?"
+        text={
+          <>
+            Tell us where your stock is held today, what you sell and your
+            expected Irish order volume. We&apos;ll explain what a local setup
+            with Dockentra could look like.
+            <span className="mt-4 block text-sm leading-6 text-slate-400">
               Or read{" "}
               <Link
                 href="/pricing"
@@ -300,10 +290,18 @@ export default function EuropeanBrandsPage() {
                 what onboarding involves
               </Link>
               .
-            </p>
-          </div>
-        </Container>
-      </section>
+            </span>
+          </>
+        }
+      >
+        <CalculatorModal label="Get Price" icon={false} />
+        <Link
+          href="/contact#enquiry"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+        >
+          Contact Us
+        </Link>
+      </ClosingBand>
     </>
   );
 }

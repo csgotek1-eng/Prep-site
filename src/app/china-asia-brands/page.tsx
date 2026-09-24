@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import CalculatorModal from "@/components/CalculatorModal";
+import PageHeader from "@/components/PageHeader";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ClosingBand from "@/components/sections/ClosingBand";
 import { OPERATIONS_ON_THE_GROUND } from "@/lib/brand-paths";
 
 export const metadata: Metadata = {
@@ -99,34 +101,35 @@ export default function ChinaAsiaBrandsPage() {
         trail={[{ name: "China & Asia brands", path: "/china-asia-brands" }]}
       />
 
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-mint">
-              For China &amp; Asia brands
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Sell in Ireland without running your own Irish warehouse
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Your team can stay focused on products, marketplaces and sales
-              while Dockentra handles the physical fulfilment operation in
-              Ireland.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader
+        variant="operational"
+        eyebrow="China & Asia brands"
+        still={{
+          src: "/media/process/dockentra-process-parcels-band.webp",
+          alt: "Two cardboard parcels with printed shipping labels held ready to hand over.",
+          caption: "labelled parcels.",
+        }}
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Sell in Ireland without running your own Irish warehouse
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          Your team can stay focused on products, marketplaces and sales
+          while Dockentra handles the physical fulfilment operation in
+          Ireland.
+        </p>
+      </PageHeader>
 
       <section aria-labelledby="bulk-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="bulk-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Send stock in bulk. Fulfil locally.
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               The difference is where your inventory sits when an Irish
               customer places an order. Sent one parcel at a time from outside
               the EU, every order is an import in its own right, with the
@@ -150,21 +153,25 @@ export default function ChinaAsiaBrandsPage() {
             </p>
           </div>
 
-          <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Numbered rows with hairlines: the steps happen in this
+              order, and a grid of equal boxes hid that. */}
+          <ol className="mt-10 max-w-3xl divide-y divide-brand-border border-t border-brand-border">
             {HOW_IT_WORKS.map((step, index) => (
               <li
                 key={step.title}
-                className="rounded-2xl border border-brand-border bg-white p-6"
+                className="grid gap-x-6 gap-y-2 py-6 sm:grid-cols-[6rem_minmax(0,1fr)]"
               >
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
+                <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark">
                   Step {index + 1}
                 </p>
-                <h3 className="mt-2 text-lg font-semibold text-brand-navy">
-                  {step.title}
-                </h3>
-                <p className="mt-3 text-base leading-7 text-slate-700">
-                  {step.body}
-                </p>
+                <div>
+                  <h3 className="text-lg font-semibold text-brand-navy">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-base leading-7 text-slate-700">
+                    {step.body}
+                  </p>
+                </div>
               </li>
             ))}
           </ol>
@@ -175,26 +182,23 @@ export default function ChinaAsiaBrandsPage() {
         aria-labelledby="operation-heading"
         className="bg-brand-surface-soft"
       >
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="operation-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Your operation on the ground in Ireland
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               This is work that has to happen somewhere, by someone, for every
               order you sell here. You keep your products, your brand and your
               sales channels. We do this part.
             </p>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-8 grid gap-x-8 border-t border-brand-border sm:grid-cols-2 lg:grid-cols-4">
             {OPERATIONS_ON_THE_GROUND.map((item) => (
-              <li
-                key={item.title}
-                className="rounded-2xl border border-brand-border bg-white p-5"
-              >
+              <li key={item.title} className="border-b border-brand-border py-5">
                 <h3 className="text-base font-semibold text-brand-navy">
                   {item.title}
                 </h3>
@@ -220,11 +224,11 @@ export default function ChinaAsiaBrandsPage() {
       </section>
 
       <section aria-labelledby="local-stock-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="local-stock-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Why local stock can help
             </h2>
@@ -263,15 +267,15 @@ export default function ChinaAsiaBrandsPage() {
         aria-labelledby="limerick-heading"
         className="bg-brand-surface-soft"
       >
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="limerick-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Based in Limerick. Serving customers across Ireland.
             </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Dockentra is based in Limerick and positioned to support
               nationwide fulfilment across Ireland. Orders are handed to
               national carriers here and travel onward to customers throughout
@@ -288,19 +292,19 @@ export default function ChinaAsiaBrandsPage() {
       </section>
 
       <section aria-labelledby="audience-heading" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="audience-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Who this is for
             </h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-6 grid gap-x-8 border-t border-brand-border sm:grid-cols-2">
               {WHO_THIS_IS_FOR.map((who) => (
                 <li
                   key={who}
-                  className="rounded-xl border border-brand-border bg-white px-4 py-3 text-base leading-7 text-slate-700"
+                  className="border-b border-brand-border py-3 text-base leading-7 text-slate-700"
                 >
                   {who}
                 </li>
@@ -322,30 +326,20 @@ export default function ChinaAsiaBrandsPage() {
         </Container>
       </section>
 
-      <section aria-labelledby="china-cta-heading" className="bg-brand-navy">
-        <Container className="py-14 sm:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2
-              id="china-cta-heading"
-              className="text-2xl font-bold tracking-tight text-white sm:text-3xl"
-            >
-              Need an Irish fulfilment partner?
-            </h2>
-            <p className="mt-3 text-base leading-7 text-slate-300">
-              Tell us what you sell, where your stock is coming from and your
-              expected order volume. We&apos;ll explain how a local fulfilment
-              setup could work.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <CalculatorModal label="Get Price" icon={false} />
-              <Link
-                href="/contact#enquiry"
-                className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
-              >
-                Contact Us
-              </Link>
-            </div>
-            <p className="mt-6 text-sm leading-6 text-slate-400">
+      {/* The site's one closing band (redesign review, 2026-09-24).
+          The two reading routes stay under the sentence, as a block
+          span rather than a second <p>: the band renders its text
+          inside one paragraph. id="china-cta" keeps the heading id
+          the section is labelled by. */}
+      <ClosingBand
+        id="china-cta"
+        heading="Need an Irish fulfilment partner?"
+        text={
+          <>
+            Tell us what you sell, where your stock is coming from and your
+            expected order volume. We&apos;ll explain how a local fulfilment
+            setup could work.
+            <span className="mt-4 block text-sm leading-6 text-slate-400">
               Or read{" "}
               <Link
                 href="/pricing"
@@ -361,10 +355,18 @@ export default function ChinaAsiaBrandsPage() {
                 what onboarding involves
               </Link>
               .
-            </p>
-          </div>
-        </Container>
-      </section>
+            </span>
+          </>
+        }
+      >
+        <CalculatorModal label="Get Price" icon={false} />
+        <Link
+          href="/contact#enquiry"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+        >
+          Contact Us
+        </Link>
+      </ClosingBand>
     </>
   );
 }

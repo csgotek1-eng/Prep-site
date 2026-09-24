@@ -1,4 +1,4 @@
-import { Camera, PackageOpen, Receipt, UserRound } from "lucide-react";
+import Link from "next/link";
 import Container from "@/components/Container";
 
 /**
@@ -27,18 +27,25 @@ import Container from "@/components/Container";
  * after the three that were already live, not third as the source
  * document's structure would suggest — the owner asked for the live
  * order to be left alone and the new one appended.
+ *
+ * THE COMMITMENT BAND (redesign round, 2026-09-23, decision ledger in
+ * docs/design/DESIGN_DIRECTION_2026-09.md). This is the homepage's one
+ * large typographic statement on navy. The heading text, the section
+ * id and the four claims are unchanged; the statement and the sentence
+ * under it are the /dispatch-commitment page's own words, verbatim,
+ * because a commitment with a stated consequence outranks any
+ * statistic and the site already owns one. The icon tiles and the four
+ * cards went: the claims are an unboxed list under a hairline.
  */
 
 const reasons = [
   {
     title: "No minimum order volume",
-    Icon: PackageOpen,
     description:
       "The larger Irish 3PLs start at 100 orders a month. We start at your first box.",
   },
   {
     title: "A photo of every batch, on arrival",
-    Icon: Camera,
     description:
       "What turned up and what condition it's in, before anything goes on a shelf. Same day. Included, not an add-on.",
   },
@@ -51,7 +58,6 @@ const reasons = [
     // makes - people rather than a queue - survives without naming one
     // of them.
     title: "A real team, not a ticket queue",
-    Icon: UserRound,
     // Comma, not an em dash: ТЗ 15.09.2026, A13 removes long dashes
     // from the site. Wording is otherwise untouched.
     description:
@@ -59,7 +65,6 @@ const reasons = [
   },
   {
     title: "Your price before the conversation",
-    Icon: Receipt,
     description:
       "Tell the calculator your volume and the services you need, and your price comes straight back to you on WhatsApp or by email. No call, no meeting, no waiting for someone to book you in.",
   },
@@ -70,46 +75,47 @@ export default function WhyDockentra() {
     <section
       id="why-dockentra"
       aria-labelledby="why-heading"
-      className="scroll-mt-28 bg-white"
+      className="scroll-mt-28 bg-brand-navy"
     >
-      <Container className="py-16 sm:py-20">
-        <div className="max-w-2xl">
-          <h2
-            id="why-heading"
-            className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
-          >
-            Why Dockentra
-          </h2>
-          <p className="mt-3 text-base leading-7 text-slate-600">
-            Practical fulfilment in Ireland with people you can reach,
-            built around how growing sellers actually work.
-          </p>
-        </div>
+      <Container className="py-20 sm:py-28">
+        {/* The heading stays an <h2> (it labels the section and the
+            skip-link target), styled as the navy eyebrow so the
+            statement under it can be the thing a visitor reads first. */}
+        <h2
+          id="why-heading"
+          className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-mint"
+        >
+          Why Dockentra
+        </h2>
+        <p className="mt-4 max-w-4xl text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          In by 14:00, out the same day.
+        </p>
+        <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
+          Orders that reach us before 2pm on a working day are dispatched that
+          day. If we miss it on our side, that order&apos;s pick and pack is
+          free.
+        </p>
+        {/* Underlined at rest rather than on hover: this section is
+            pinned as information with no hover state at all
+            (tests/approved-ux-round.test.ts), and a link on navy reads
+            better with its underline anyway. */}
+        <Link
+          href="/dispatch-commitment"
+          className="mt-6 inline-flex min-h-11 items-center text-base font-semibold text-brand-mint underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-mint focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy"
+        >
+          See the full commitment &rarr;
+        </Link>
 
         {/* Two columns, not three. With the fourth point restored
-            (A10) a three-column grid leaves one card orphaned on its
+            (A10) a three-column grid leaves one item orphaned on its
             own row on desktop; 2x2 also gives the longest description
-            room to breathe. */}
-        <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+            room to breathe. Unboxed: a hairline above the list is the
+            only ornament. */}
+        <dl className="mt-12 grid gap-x-12 gap-y-8 border-t border-white/20 pt-10 sm:grid-cols-2">
           {reasons.map((item) => (
-            <div
-              key={item.title}
-              /* INFORMATION CARD. These carry no link and no button,
-                 so they carry no hover either: a card that lit up under
-                 the cursor and then did nothing is exactly the "I
-                 clicked and nothing happened" the audit found. */
-              className="rounded-lg border border-brand-border bg-brand-surface-soft p-6"
-            >
-              <dt className="flex items-center gap-3 text-lg font-semibold tracking-tight text-brand-navy">
-                <span
-                  aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-green shadow-sm"
-                >
-                  <item.Icon className="h-5 w-5" strokeWidth={1.75} />
-                </span>
-                {item.title}
-              </dt>
-              <dd className="mt-3 text-sm leading-6 text-slate-600">
+            <div key={item.title}>
+              <dt className="text-lg font-semibold text-white">{item.title}</dt>
+              <dd className="mt-2 text-base leading-7 text-slate-300">
                 {item.description}
               </dd>
             </div>

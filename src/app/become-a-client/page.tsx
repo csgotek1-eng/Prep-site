@@ -4,6 +4,7 @@ import Link from "next/link";
 import BecomeClientForm from "@/components/BecomeClientForm";
 import { SELLER_FIT } from "@/components/sections/SellerFit";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import PromotionCard from "@/components/PromotionCard";
 import {
   getLivePromotionById,
@@ -63,67 +64,73 @@ export default async function BecomeAClientPage({
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Become a Client", path: "/become-a-client" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-mint">
-              Become a client
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Start with Dockentra
-            </h1>
-            <p className="mt-4 text-lg leading-8 text-white/80">
-              Tell us what you sell and how you sell it. We&apos;ll look at what
-              you need, prepare your pricing and show you exactly how getting
-              started works. No long forms, no obligation.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader
+        variant="operational"
+        eyebrow="Become a client"
+        still={{
+          src: "/media/process/dockentra-process-racking-band.webp",
+          alt: "Racking bays stacked with wrapped pallets and cartons.",
+          caption: "racked stock.",
+        }}
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Start with Dockentra
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          Tell us what you sell and how you sell it. We&apos;ll look at what
+          you need, prepare your pricing and show you exactly how getting
+          started works. No long forms, no obligation.
+        </p>
+      </PageHeader>
 
       <section aria-labelledby="suits-heading" className="bg-white">
-        <Container className="py-12 sm:py-16">
+        <Container className="py-16 sm:py-24">
           <h2
             id="suits-heading"
             className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
           >
             Who Dockentra suits
           </h2>
-          <ul className="mt-6 grid gap-5 sm:grid-cols-2">
-            {SELLER_FIT.map(({ Icon, title, body }) => (
-              <li
-                key={title}
-                className="rounded-lg border border-brand-border bg-brand-surface-soft/60 p-5"
-              >
-                <Icon aria-hidden="true" className="h-6 w-6 text-brand-green-dark" />
-                <h3 className="mt-3 text-base font-semibold text-brand-navy">
+          {/* INFORMATION, not options: the same hairline rows as the
+              homepage "Who Dockentra is for" block, from the same list
+              and with the same treatment. No card, no icon, no hover,
+              nothing selectable. */}
+          <ul className="mt-10 grid gap-x-12 sm:grid-cols-2">
+            {SELLER_FIT.map(({ title, body }) => (
+              <li key={title} className="border-t border-brand-border py-5">
+                <span className="block text-lg font-semibold text-brand-navy">
                   {title}
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{body}</p>
+                </span>
+                <span className="mt-1 block text-base leading-7 text-slate-600">
+                  {body}
+                </span>
               </li>
             ))}
           </ul>
         </Container>
       </section>
 
-      <section aria-labelledby="next-heading" className="bg-brand-surface-soft/50">
-        <Container className="py-12 sm:py-16">
+      <section aria-labelledby="next-heading" className="bg-brand-surface-soft">
+        <Container className="py-16 sm:py-24">
           <h2
             id="next-heading"
             className="text-xl font-bold tracking-tight text-brand-navy sm:text-2xl"
           >
             What happens after you send this
           </h2>
-          <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-8 max-w-3xl divide-y divide-brand-border border-t border-brand-border">
             {STEPS.map((step, index) => (
               <li
                 key={step}
-                className="rounded-lg border border-brand-border bg-white p-5"
+                className="grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4 py-4"
               >
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand-green text-sm font-bold text-white">
-                  {index + 1}
+                <span
+                  aria-hidden="true"
+                  className="font-mono-data text-sm font-medium text-brand-green-dark"
+                >
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-                <p className="mt-3 text-sm leading-6 text-slate-700">{step}</p>
+                <p className="text-base leading-7 text-slate-700">{step}</p>
               </li>
             ))}
           </ol>
@@ -135,7 +142,7 @@ export default async function BecomeAClientPage({
         aria-labelledby="form-heading"
         className="scroll-mt-24 bg-white"
       >
-        <Container className="py-12 sm:py-16">
+        <Container className="py-16 sm:py-24">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
             <div>
               {applied && (

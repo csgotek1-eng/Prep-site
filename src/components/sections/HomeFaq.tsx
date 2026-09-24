@@ -40,26 +40,28 @@ export default function HomeFaq() {
       aria-labelledby="home-faq-heading"
       className="scroll-mt-28 bg-brand-surface-soft"
     >
-      <Container className="py-16 sm:py-20">
+      <Container className="py-16 sm:py-24">
         <h2
           id="home-faq-heading"
-          className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+          className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
         >
           Questions sellers ask
         </h2>
-        <dl className="mt-8 grid gap-x-10 gap-y-7 sm:grid-cols-2">
+        {/* Hairline rows rather than free-floating pairs: the rule
+            above each question is the only ornament. */}
+        <dl className="mt-10 grid gap-x-12 sm:grid-cols-2">
           {selected.map((item) => (
-            <div key={item.question}>
-              <dt className="text-base font-semibold tracking-tight text-brand-navy">
+            <div key={item.question} className="border-t border-brand-border py-6">
+              <dt className="text-lg font-semibold text-brand-navy">
                 {item.question}
               </dt>
-              <dd className="mt-2 text-sm leading-6 text-slate-600">
+              <dd className="mt-2 text-base leading-7 text-slate-600">
                 {item.answer}
               </dd>
             </div>
           ))}
         </dl>
-        <p className="mt-8 text-sm text-slate-600">
+        <p className="mt-6 text-base text-slate-600">
           <Link
             href="/faq"
             className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"

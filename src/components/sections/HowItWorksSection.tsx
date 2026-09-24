@@ -6,8 +6,10 @@ import Container from "@/components/Container";
  * lines the owner approved. They are set in the mono accent face at a
  * small size, which is how the brand book presents data.
  *
- * These are OPERATIONAL COMMITMENTS, not decoration. Nothing beyond the
- * two lines the document states is published here.
+ * These are OPERATIONAL COMMITMENTS, not decoration. Step 3 carries
+ * the cut-off the site already publishes on /dispatch-commitment
+ * (redesign round, 2026-09-23); nothing beyond what the documents
+ * state is published here.
  */
 const steps = [
   {
@@ -26,7 +28,7 @@ const steps = [
     title: "Orders are picked, packed and dispatched",
     description:
       "As orders come in, items are picked, checked, packed and made ready for dispatch.",
-    timings: [] as string[],
+    timings: ["Cut-off for same-day dispatch: 14:00"],
   },
 ];
 
@@ -35,32 +37,42 @@ export default function HowItWorksSection() {
     <section
       id="how-it-works"
       aria-labelledby="process-heading"
-      className="scroll-mt-28 bg-brand-mint-soft"
+      className="scroll-mt-28 bg-white"
     >
-      <Container className="py-16 sm:py-20">
+      <Container className="py-16 sm:py-24">
+        <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark">
+          How it works
+        </p>
         <h2
           id="process-heading"
-          className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+          className="mt-4 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
         >
           How it works
         </h2>
-        <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
+        {/* THE CONNECTOR STAYS, as a hairline (redesign round,
+            2026-09-23). The steps sit a column apart from sm and the
+            circles alone read as three separate items; the hairline
+            between them is what makes the row one sequence, and a
+            hairline is the only ornament this round allows. The text
+            wrapper carries the section's own background so the line
+            never runs under a title. */}
+        <ol className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
           {steps.map((step, index) => (
             <li key={step.title} className="relative">
               {index < steps.length - 1 && (
                 <span
                   aria-hidden="true"
-                  className="absolute left-11 top-5 hidden h-px w-[calc(100%-1.5rem)] bg-gradient-to-r from-brand-teal/40 to-brand-mint/50 sm:block"
+                  className="absolute left-11 top-5 hidden h-px w-[calc(100%-1.5rem)] bg-brand-border sm:block"
                 />
               )}
               <div className="flex items-start gap-3">
                 <span
                   aria-hidden="true"
-                  className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-green-dark via-brand-green to-brand-teal text-sm font-bold text-white shadow-sm"
+                  className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-green text-sm font-bold text-white"
                 >
                   {index + 1}
                 </span>
-                <div className="relative z-10 bg-brand-mint-soft pr-2">
+                <div className="relative z-10 bg-white pr-2">
                   <h3 className="pt-1.5 text-base font-semibold text-brand-navy">
                     {step.title}
                   </h3>
@@ -81,7 +93,7 @@ export default function HowItWorksSection() {
         </ol>
         <Link
           href="/how-it-works"
-          className="mt-8 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+          className="mt-10 inline-flex min-h-11 items-center text-base font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
         >
           See the full process
           <span aria-hidden="true" className="ml-1">

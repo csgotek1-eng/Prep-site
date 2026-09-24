@@ -45,15 +45,25 @@ export default function WhyIrelandSection() {
       aria-labelledby="why-ireland-heading"
       className="bg-brand-surface-soft"
     >
-      <Container className="py-16 sm:py-20">
-        <div className="max-w-3xl">
+      <Container className="py-16 sm:py-24">
+        {/* LAYOUT ONLY (redesign round, 2026-09-23): not one word of
+            this block changed. At lg the heading takes the left five
+            columns and the four paragraphs the right seven, so the
+            block is a heading beside its argument rather than a
+            heading above a column of text. The paragraphs keep their
+            max-w-3xl measure and stay in one column: split into two
+            they would drop to ~36 characters a line inside a 7/12
+            column, which is too narrow to read. Below sm the four
+            paragraphs sit a step tighter (15px/24px) so the block is
+            not four screens on a phone; from sm they are 16px/28px. */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-x-12">
           <h2
             id="why-ireland-heading"
-            className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+            className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:col-span-5"
           >
             Why brands selling in Ireland benefit from stock held in Ireland
           </h2>
-          <div className="mt-6 space-y-4 text-base leading-7 text-slate-700">
+          <div className="mt-6 max-w-3xl space-y-4 text-[15px] leading-6 text-slate-700 sm:text-base sm:leading-7 lg:col-span-7 lg:mt-0">
             <p>
               Sending every customer order from another country adds distance,
               more handovers and a more complicated returns process. Holding

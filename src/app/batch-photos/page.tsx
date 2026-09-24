@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
+import PageHeader from "@/components/PageHeader";
 import BatchPhotosContent from "@/components/sections/BatchPhotosContent";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
@@ -31,22 +32,18 @@ export default function BatchPhotosPage() {
   return (
     <>
       <BreadcrumbJsonLd trail={[{ name: "Batch Photos", path: "/batch-photos" }]} />
-      <section className="bg-brand-navy">
-        <Container className="py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              You find out before your customer does
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Every incoming shipment, photographed on arrival and sent to you
-              the same day.
-            </p>
-          </div>
-        </Container>
-      </section>
+      <PageHeader eyebrow="Batch photos">
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          You find out before your customer does
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-slate-200">
+          Every incoming shipment, photographed on arrival and sent to you
+          the same day.
+        </p>
+      </PageHeader>
 
       <section aria-label="Why batch photos matter" className="bg-white">
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <BatchPhotosContent />
           </div>
@@ -57,11 +54,11 @@ export default function BatchPhotosPage() {
         aria-labelledby="what-a-batch-photo-is"
         className="bg-brand-surface-soft"
       >
-        <Container className="py-16 sm:py-20">
+        <Container className="py-16 sm:py-24">
           <div className="max-w-3xl">
             <h2
               id="what-a-batch-photo-is"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               What a batch photo actually is
             </h2>

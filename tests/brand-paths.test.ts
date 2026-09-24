@@ -153,19 +153,20 @@ describe("the three brand entry points are equal", () => {
         `a card is being visually promoted: ${offence}`,
       );
     }
-    // And exactly one frame class serves all three.
-    const frames = cards.match(/rounded-2xl border[^"]*/g) ?? [];
-    assert.equal(frames.length, 1, "the cards no longer share one frame");
-    assert.ok(frames[0].includes("border border-brand-border"));
+    // And no frame at all: since the redesign round (2026-09-24) the
+    // three are hairline rows (columns from lg), not cards, so nothing
+    // can be boxed more heavily than its neighbours.
+    assert.equal(/rounded-|bg-white/.test(cards), false, "a card frame is back on the paths");
+    assert.match(copy, /divide-y divide-brand-border border-y border-brand-border lg:grid-cols-3 lg:divide-x lg:divide-y-0/);
   });
 
-  it("keeps the cards the same height with their buttons aligned", () => {
-    // h-full + a growing spacer above the button: without them the
-    // shortest card ends early and its button floats up, which reads
-    // as the weaker option even though nothing said so.
-    assert.match(copy, /items-stretch/);
-    assert.match(copy, /flex h-full w-full flex-col/);
-    assert.match(copy, /flex grow flex-col justify-end/);
+  it("keeps the three links on one baseline without a fixed height", () => {
+    // Each path is a flex column and the link sits in an mt-auto
+    // wrapper: the three links land level whatever the copy does, so
+    // the shortest path never ends early and reads as the weaker one.
+    assert.match(copy, /flex flex-col py-8/);
+    assert.match(copy, /mt-auto pt-6/);
+    assert.equal(/overflow-x-auto|snap-x|w-\[85%\]/.test(copy), false, "the phone carousel is back");
   });
 
   it("uses one button class for all three", () => {
@@ -514,8 +515,12 @@ describe("the homepage Why Ireland block speaks to every audience", () => {
 
   it("keeps the existing section styling rather than inventing one", () => {
     assert.match(copy, /bg-brand-surface-soft/);
-    assert.match(copy, /text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl/);
-    assert.match(copy, /py-16 sm:py-20/);
+    // The homepage H2 scale and section rhythm of the redesign round
+    // (2026-09-24): 30/36px headings, 80/112px section padding.
+    assert.match(copy, /text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl/);
+    // Text-only sections sit at py-16 sm:py-24; media sections at
+    // py-20 sm:py-28 (docs/BRAND_SYSTEM.md, section rhythm).
+    assert.match(copy, /py-16 sm:py-24/);
     assert.match(copy, /max-w-3xl/);
   });
 

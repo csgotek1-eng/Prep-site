@@ -60,7 +60,11 @@ export default function WarehouseLocation({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Open the Dockentra warehouse location in Google Maps"
-          className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
+          // Outlined, not filled: the surfaces this card sits on already
+          // carry their one filled green action (the enquiry form's
+          // submit), and two filled buttons in one card read as two
+          // primary asks.
+          className="inline-flex min-h-12 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
         >
           Open in Google Maps
         </a>

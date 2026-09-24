@@ -4,20 +4,26 @@ import { teamMemberEmailHref, teamMembers } from "@/lib/team";
 /**
  * The team block on /about: three people, three names, nothing else.
  *
- * NO JOB TITLES AND NO BIOGRAPHIES. None has been supplied, and a card
- * with an invented title under a real face is a claim about how the
- * company is organised. The names are the whole content.
+ * NO JOB TITLES AND NO BIOGRAPHIES. None has been supplied, and a
+ * caption with an invented title under a real face is a claim about how
+ * the company is organised. The names are the whole content.
  *
  * ONE SET, NOT THREE PICTURES. Every portrait is the same file size and
- * the same 4:5 ratio, and the card holds that ratio, so the three boxes
- * are identical and no face is cropped to fit a shape it was not shot
- * for. `imagePosition` comes from the data, so a single member can be
- * nudged without disturbing the other two.
+ * the same 4:5 ratio, and the frame holds that ratio, so the three are
+ * identical and no face is cropped to fit a shape it was not shot for.
+ * `imagePosition` comes from the data, so a single member can be nudged
+ * without disturbing the other two.
+ *
+ * BARE FRAMES, NOT CARDS (redesign round, 2026-09-24). A portrait is a
+ * media frame like every other on the site: square corners, no
+ * hairline, no tinted fill, the name beneath as a plain caption. A
+ * boxed card around a face was the one place the site still framed
+ * media differently.
  *
  * NOT A <figure>. /about already has exactly one, and
  * tests/media-assets.test.ts counts them: that figure carries the
  * "illustrative imagery" caption which must never be attached to a real
- * person. These cards are a different kind of thing and stay outside it.
+ * person. These frames are a different kind of thing and stay outside it.
  *
  * EMAIL. A member's address is rendered only when the data holds one.
  * All three are null today, so no mailto appears anywhere and the
@@ -25,7 +31,7 @@ import { teamMemberEmailHref, teamMembers } from "@/lib/team";
  */
 export default function TeamSection() {
   return (
-    <div className="mx-auto mt-14 max-w-5xl">
+    <div className="mt-14">
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
         Our team
       </p>
@@ -47,36 +53,31 @@ export default function TeamSection() {
         {teamMembers.map((member) => {
           const mailto = teamMemberEmailHref(member);
           return (
-            <li
-              key={member.id}
-              className="overflow-hidden rounded-2xl border border-brand-border bg-white"
-            >
-              <div className="relative aspect-[4/5] w-full bg-brand-mint-soft">
+            <li key={member.id}>
+              <div className="relative aspect-[4/5] w-full overflow-hidden">
                 <Image
                   src={member.image}
                   alt={`Portrait of ${member.name}`}
                   fill
-                  // One card per row below sm, three across the 64rem
+                  // One frame per row below sm, three across the 64rem
                   // container above it; the cap stops a desktop browser
-                  // fetching more than the card can ever show.
+                  // fetching more than the frame can ever show.
                   sizes="(min-width: 1024px) 21rem, (min-width: 640px) 33vw, 100vw"
                   style={{ objectPosition: member.imagePosition }}
                   className="object-cover"
                 />
               </div>
-              <div className="px-4 py-3 sm:px-5 sm:py-4">
-                <p className="text-base font-semibold text-brand-navy">
-                  {member.name}
-                </p>
-                {mailto && (
-                  <a
-                    href={mailto}
-                    className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
-                  >
-                    Email {member.name}
-                  </a>
-                )}
-              </div>
+              <p className="mt-3 text-base font-semibold text-brand-navy">
+                {member.name}
+              </p>
+              {mailto && (
+                <a
+                  href={mailto}
+                  className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+                >
+                  Email {member.name}
+                </a>
+              )}
             </li>
           );
         })}

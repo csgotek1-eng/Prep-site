@@ -381,10 +381,21 @@ for (const [width, height] of PHONES) {
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
 
-  // Below sm the desktop CTA is hidden, so the menu is the only route.
+  // Redesign round (2026-09-24): the bar's Get Price shows at every
+  // width now (the pricing page points phone visitors at it), so on a
+  // phone it must be visible, inside the viewport and beside the
+  // hamburger, not wrapped or pushed out.
+  const barCta = page.locator('header button:has-text("Get Price")').first();
+  ok(await barCta.isVisible(), `${where}: the bar CTA should be visible on a phone`);
+  const barBox = await barCta.boundingBox();
+  const menuBox = await page.locator('header button[aria-label="Open menu"]').boundingBox();
   ok(
-    !(await page.locator('header button:has-text("Get Price")').first().isVisible()),
-    `${where}: the desktop CTA should be hidden below sm`,
+    barBox !== null && barBox.x >= 0 && barBox.x + barBox.width <= width,
+    `${where}: the bar CTA runs outside the viewport`,
+  );
+  ok(
+    barBox !== null && menuBox !== null && Math.abs(barBox.y - menuBox.y) < 8 && barBox.x + barBox.width <= menuBox.x,
+    `${where}: the bar CTA is not on the hamburger's row`,
   );
 
   // 1. open the hamburger menu

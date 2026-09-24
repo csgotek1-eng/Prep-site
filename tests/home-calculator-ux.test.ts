@@ -24,9 +24,13 @@ describe("header Get Price", () => {
     assert.ok(header.includes('variant="header"'));
   });
 
-  it("shows it top-right on desktop and inside the menu on mobile, never both", () => {
+  it("shows it in the bar at every width and as a row inside the menu", () => {
+    // Redesign round (2026-09-24): the bar trigger is no longer hidden
+    // below sm — the pricing page tells a phone visitor to use the button
+    // at the top of the page, so it has to be there on a phone too.
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
-    assert.ok(header.includes('className="hidden sm:block"'), "desktop bar is sm+");
+    assert.ok(header.includes('className="block"'), "bar trigger visible at every width");
+    assert.equal(header.includes('className="hidden sm:block"'), false, "the bar trigger is hidden on phones again");
     assert.ok(header.includes('className="pt-2 sm:hidden"'), "menu row is below sm");
   });
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ClosingBand from "@/components/sections/ClosingBand";
 import ProcessVideo from "@/components/ProcessVideo";
 
 export const metadata: Metadata = {
@@ -116,31 +117,27 @@ export default function DispatchCommitmentPage() {
                 actual numbers are published on this page.
               </p>
             </div>
-
-            <div className="mt-12 rounded-2xl bg-brand-mint-soft p-6 sm:p-8">
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-lg font-semibold text-brand-navy">
-                  Ready to put your orders behind that?
-                </p>
-                <div className="flex flex-col gap-3 sm:flex-row sm:shrink-0">
-                  <Link
-                    href="/become-a-client"
-                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
-                  >
-                    Become a Client
-                  </Link>
-                  <Link
-                    href="/contact#enquiry"
-                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-brand-navy/25 bg-white px-7 text-base font-semibold text-brand-navy transition-colors hover:border-brand-green hover:text-brand-green-dark"
-                  >
-                    Ask a question
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
         </Container>
       </section>
+
+      {/* The site's one closing band (redesign review, 2026-09-24): the
+          mint card that sat under the prose is gone, and the same
+          sentence and pair of actions close the page at full width. */}
+      <ClosingBand heading="Ready to put your orders behind that?">
+        <Link
+          href="/become-a-client"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-brand-green px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
+        >
+          Become a Client
+        </Link>
+        <Link
+          href="/contact#enquiry"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md border border-white/25 px-7 text-base font-semibold text-white transition-colors hover:border-brand-mint hover:text-brand-mint"
+        >
+          Ask a question
+        </Link>
+      </ClosingBand>
     </>
   );
 }

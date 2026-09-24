@@ -273,7 +273,9 @@ describe("CTA vocabulary and repetition", () => {
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
     // ZERO dialogs of its own: both triggers flip the shared state.
     assert.equal((header.match(/<CalculatorDialog/g) ?? []).length, 0);
-    assert.ok(header.includes("hidden sm:block"));
+    // Redesign round (2026-09-24): the bar trigger shows at every width
+    // (the pricing page points phone visitors at it); the menu row stays.
+    assert.ok(header.includes('className="block"'));
     assert.ok(header.includes("sm:hidden"));
     // The nav list itself stays free of a Calculator entry.
     assert.equal(

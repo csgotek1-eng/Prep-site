@@ -31,6 +31,8 @@ interface FloatingChromeState {
   helpOpen: boolean;
   openHelp: () => void;
   closeHelp: () => void;
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
 }
 
 const FloatingChromeContext = createContext<FloatingChromeState | null>(null);
@@ -64,6 +66,14 @@ export function FloatingChromeProvider({ children }: { children: ReactNode }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const openHelp = useCallback(() => setHelpOpen(true), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
+  /**
+   * Whether the header's mobile menu is open. The header still owns
+   * the toggle; it only mirrors the value here so the floating dock
+   * can stand down while the menu covers the page — on a phone the
+   * dock's corner sat on top of the last menu rows and the Get Price
+   * row, exactly the overlap it hides for on an open dialog.
+   */
+  const [menuOpen, setMenuOpen] = useState(false);
   const addBottomBar = useCallback(
     () => setBottomBarCount((count) => count + 1),
     [],
@@ -83,6 +93,8 @@ export function FloatingChromeProvider({ children }: { children: ReactNode }) {
       helpOpen,
       openHelp,
       closeHelp,
+      menuOpen,
+      setMenuOpen,
     }),
     [
       bottomBarCount,
@@ -94,6 +106,7 @@ export function FloatingChromeProvider({ children }: { children: ReactNode }) {
       helpOpen,
       openHelp,
       closeHelp,
+      menuOpen,
     ],
   );
   return (
@@ -125,6 +138,28 @@ export function useBottomBarRegistration(active: boolean): void {
 export function useAnyDialogOpen(): boolean {
   const context = useContext(FloatingChromeContext);
   return Boolean(context?.calculatorOpen || context?.helpOpen);
+}
+
+/**
+ * The header's mobile menu state, mirrored for fixed chrome. The
+ * setter is a no-op outside the provider so the header stays
+ * renderable in isolation.
+ */
+export function useMobileMenu(): {
+  open: boolean;
+  setMenuOpen: (open: boolean) => void;
+} {
+  const context = useContext(FloatingChromeContext);
+  return {
+    open: context?.menuOpen ?? false,
+    setMenuOpen: context?.setMenuOpen ?? (() => {}),
+  };
+}
+
+/** True while the header's mobile menu is open. */
+export function useMobileMenuOpen(): boolean {
+  const context = useContext(FloatingChromeContext);
+  return Boolean(context?.menuOpen);
 }
 
 /** True while at least one fixed bottom bar is registered. */

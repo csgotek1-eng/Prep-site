@@ -25,6 +25,36 @@ const DISPATCH_POSTER = "public/media/process/dockentra-process-handover.webp";
 const CLIPS = [HERO_VIDEO, HERO_PORTRAIT_VIDEO, PROCESS_VIDEO, DISPATCH_VIDEO];
 const POSTERS = [HERO_POSTER, HERO_PORTRAIT_POSTER, PROCESS_POSTER, DISPATCH_POSTER];
 const DISPATCH_PAGE = "src/app/dispatch-commitment/page.tsx";
+// Redesign round, 2026-09-24: stills cut from the owner's footage now
+// sit beside the services list, beside the batch-photo prose, beside
+// the how-it-works rail and behind five inner-page headers (through
+// the shared PageHeader). Every one of those surfaces is policed here.
+const STILL_SURFACES = [
+  "src/components/sections/ServicesSection.tsx",
+  "src/components/sections/BatchPhotosSection.tsx",
+  "src/app/how-it-works/page.tsx",
+  "src/components/PageHeader.tsx",
+];
+const HEADER_PAGES = [
+  "src/app/services/page.tsx",
+  "src/app/how-it-works/page.tsx",
+  "src/app/why-ireland/page.tsx",
+  "src/app/uk-brands/page.tsx",
+  "src/app/china-asia-brands/page.tsx",
+  "src/app/european-brands/page.tsx",
+  "src/app/become-a-client/page.tsx",
+];
+const STILL_FILES = [
+  "public/media/process/dockentra-process-aisle-band.webp",
+  "public/media/process/dockentra-process-racking-band.webp",
+  "public/media/process/dockentra-process-taping-band.webp",
+  "public/media/process/dockentra-process-bench-band.webp",
+  "public/media/process/dockentra-process-handover-band.webp",
+  "public/media/process/dockentra-process-pallets-band.webp",
+  "public/media/process/dockentra-process-parcels-band.webp",
+  "public/media/process/dockentra-process-taping-hands.webp",
+  "public/media/process/dockentra-process-batch-photo.webp",
+];
 const ABOUT_PHOTO = "public/media/about/dockentra-team-packing.webp";
 
 /** Walk the MP4 box tree far enough to answer "what tracks are in here". */
@@ -125,11 +155,14 @@ describe("the process clips are silent by construction", () => {
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
       read(DISPATCH_PAGE),
+      ...STILL_SURFACES.map(read),
+      ...HEADER_PAGES.map(read),
     ].join("\n");
     // Only the src/poster attributes — "WhatsApp" appears in the copy
-    // as a delivery channel, which is a different thing entirely.
-    const paths = [...markup.matchAll(/(?:src|portraitSrc|poster|portraitPoster)="(\/media\/[^"]+)"/g)].map((m) => m[1]);
-    assert.ok(paths.length >= 9, `only ${paths.length} media paths found`);
+    // as a delivery channel, which is a different thing entirely. The
+    // PageHeader stills are passed as an object literal (src: "…").
+    const paths = [...markup.matchAll(/(?:src|portraitSrc|poster|portraitPoster)(?:=|:\s*)"(\/media\/[^"]+)"/g)].map((m) => m[1]);
+    assert.ok(paths.length >= 18, `only ${paths.length} media paths found`);
     for (const path of paths) {
       assert.equal(
         /WhatsApp|IMG-|VID-|\d{8}|\s/.test(path),
@@ -199,6 +232,7 @@ describe("the clips are decorative and honest", () => {
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
       read(DISPATCH_PAGE),
+      ...STILL_SURFACES.map(read),
     ];
     for (const source of surfaces) {
       const captions = [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)]
@@ -217,7 +251,10 @@ describe("the clips are decorative and honest", () => {
       .map((m) => m[1]);
     // Four figures, three captions: the "From stock to shipment" figure
     // carries no caption at all (owner decision, 2026-09-23).
-    assert.equal(shown.length, 3, `${shown.length} captions, expected 3`);
+    // Hero, /about, /dispatch-commitment, the services frame, the
+    // batch-photo frame, the how-it-works frame and the one PageHeader
+    // template that captions every inner-page band (redesign round).
+    assert.equal(shown.length, 7, `${shown.length} captions, expected 7`);
     const stockToShipment = read("src/components/sections/ProcessMedia.tsx");
     assert.equal(
       /<figcaption/.test(stockToShipment),
@@ -247,7 +284,7 @@ describe("the clips are decorative and honest", () => {
     // not show.
     const illustrative = shown.filter((c) => /Illustrative footage of fulfilment work/.test(c));
     const named = shown.filter((c) => /Viktor and Anna/.test(c));
-    assert.equal(illustrative.length, 2, "every captioned stand-in clip must stay labelled illustrative");
+    assert.equal(illustrative.length, 6, "every captioned stand-in frame must stay labelled illustrative");
     assert.equal(named.length, 1, "the /about photograph must name the people it shows");
   });
 
@@ -257,8 +294,10 @@ describe("the clips are decorative and honest", () => {
       read("src/components/sections/ProcessMedia.tsx"),
       read("src/app/about/page.tsx"),
       read(DISPATCH_PAGE),
+      ...STILL_SURFACES.map(read),
+      ...HEADER_PAGES.map(read),
     ].join("\n");
-    for (const match of all.matchAll(/alt="([^"]*)"/g)) {
+    for (const match of all.matchAll(/alt(?:=|:\s*)"([^"]*)"/g)) {
       const alt = match[1];
       if (!alt) continue;
       assert.ok(alt.length > 30, `alt text is too thin: "${alt}"`);
@@ -287,7 +326,7 @@ describe("the clips are decorative and honest", () => {
 /** Every alt/figcaption a visitor can read on a page, in one string. */
 function visibleMediaText(path: string): string {
   const source = read(path);
-  const alts = [...source.matchAll(/alt="([^"]*)"/g)].map((m) => m[1]);
+  const alts = [...source.matchAll(/alt(?:=|:\s*)"([^"]*)"/g)].map((m) => m[1]);
   const captions = [...source.matchAll(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/g)].map(
     (m) => m[1].replace(/\s+/g, " "),
   );
@@ -299,6 +338,8 @@ const MEDIA_SURFACES = [
   "src/app/page.tsx",
   "src/components/sections/ProcessMedia.tsx",
   DISPATCH_PAGE,
+  ...STILL_SURFACES,
+  ...HEADER_PAGES,
 ];
 
 describe("illustrative people imagery is never claimed as Dockentra's own", () => {
@@ -325,7 +366,7 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     // Alt text answers "what is in the picture". The moment it starts
     // answering "whose picture is this", it has become a claim.
     for (const path of MEDIA_SURFACES) {
-      for (const match of read(path).matchAll(/alt="([^"]*)"/g)) {
+      for (const match of read(path).matchAll(/alt(?:=|:\s*)"([^"]*)"/g)) {
         const alt = match[1];
         if (!alt) continue;
         assert.equal(
@@ -412,6 +453,36 @@ describe("illustrative people imagery is never claimed as Dockentra's own", () =
     assert.equal(/object-position/.test(figure), false, "an off-centre focus point");
     assert.equal(/scale-\[?[1-9]/.test(figure), false, "the frame is zoomed in");
     assert.equal(/\bfill\b/.test(figure), false, "fill makes the image take the box's shape");
+  });
+});
+
+describe("the inner-page header bands", () => {
+  it("every operational header passes a still with an alt and a caption", () => {
+    for (const path of HEADER_PAGES) {
+      const source = read(path);
+      const usage = /<PageHeader[\s\S]*?variant="operational"[\s\S]*?>/.exec(source);
+      assert.ok(usage, `${path} no longer opens on an operational PageHeader`);
+      assert.match(usage[0], /src: "\/media\/process\/dockentra-process-[a-z-]+\.webp"/);
+      assert.match(usage[0], /alt: "[^"]{30,}"/);
+      assert.match(usage[0], /caption: "[^"]{5,}"/);
+    }
+  });
+
+  it("the shared band captions every still as illustrative and loads it eagerly", () => {
+    const header = strip(read("src/components/PageHeader.tsx"));
+    assert.ok(header.includes("Illustrative footage of fulfilment work: {still.caption}"));
+    assert.ok(header.includes('loading="eager"'));
+    assert.ok(header.includes('fetchPriority="high"'));
+    assert.equal(header.includes("<video"), false, "a band is a still, never a clip");
+  });
+
+  it("the derived stills exist, are WebP and stay within budget", () => {
+    for (const path of STILL_FILES) {
+      assert.ok(existsSync(path), `${path} is missing`);
+      assert.equal(readFileSync(path).subarray(0, 40).toString("latin1", 8, 12), "WEBP");
+      assert.ok(kb(path) < 130, `${path} is ${Math.round(kb(path))} KB`);
+    }
+    assert.ok(existsSync("scripts/derive-site-stills.mjs"));
   });
 });
 

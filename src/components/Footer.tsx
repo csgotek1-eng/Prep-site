@@ -71,6 +71,19 @@ const serviceLinks = [
   { href: "/services#amazon-fba-prep", label: "Amazon FBA Prep" },
 ];
 
+/**
+ * The three link columns at phone width.
+ *
+ * Stacked one link per row at 44px, the footer ran to roughly 1,700px
+ * at 390 — longer than most of the pages above it. Below sm the lists
+ * are two-column grids of 40px rows, which halves the height; from sm
+ * up the outer grid gives each column its own track and the lists go
+ * back to a single column of 44px rows.
+ */
+const LINK_LIST_CLASS = "mt-4 grid grid-cols-2 gap-x-6 sm:block sm:space-y-1";
+const LINK_CLASS =
+  "inline-flex min-h-10 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint sm:min-h-11";
+
 export default function Footer() {
   return (
     <footer className="bg-brand-navy-deep text-slate-300">
@@ -95,13 +108,10 @@ export default function Footer() {
             <p className="text-sm font-semibold uppercase tracking-wider text-white">
               Pages
             </p>
-            <ul className="mt-4 space-y-1">
+            <ul className={LINK_LIST_CLASS}>
               {[...navLinks, ...extraPageLinks].map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
-                  >
+                  <Link href={link.href} className={LINK_CLASS}>
                     {link.label}
                   </Link>
                 </li>
@@ -113,13 +123,10 @@ export default function Footer() {
             <p className="text-sm font-semibold uppercase tracking-wider text-white">
               Services
             </p>
-            <ul className="mt-4 space-y-1">
+            <ul className={LINK_LIST_CLASS}>
               {serviceLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
-                  >
+                  <Link href={link.href} className={LINK_CLASS}>
                     {link.label}
                   </Link>
                 </li>
@@ -128,13 +135,10 @@ export default function Footer() {
             <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-white">
               Who we work with
             </p>
-            <ul className="mt-4 space-y-1">
+            <ul className={LINK_LIST_CLASS}>
               {audienceLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="inline-flex min-h-11 items-center text-sm text-slate-300 transition-colors hover:text-brand-mint"
-                  >
+                  <Link href={link.href} className={LINK_CLASS}>
                     {link.label}
                   </Link>
                 </li>
@@ -189,6 +193,18 @@ export default function Footer() {
                 </li>
               )}
             </ul>
+            {/* THE FULL ADDRESS, from the one copy in siteConfig — the
+                same lines /about and /contact print. The map link above
+                gives the short label; a visitor deciding whether to
+                send stock here should not have to open a map to learn
+                the unit number and the Eircode. */}
+            <address className="mt-4 text-xs not-italic leading-5 text-slate-300">
+              {siteConfig.location.addressLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </address>
             {/* OPENING HOURS, from the same array /about reads
                 (siteConfig.location.openingHours). Compact by design:
                 this column already carries email, WhatsApp, location,

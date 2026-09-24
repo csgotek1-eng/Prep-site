@@ -7,6 +7,7 @@ import {
   useAnyDialogOpen,
   useBottomBarPresent,
   useCalculator,
+  useMobileMenuOpen,
 } from "@/components/FloatingChrome";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { siteConfig } from "@/lib/site";
@@ -43,7 +44,24 @@ import { siteConfig } from "@/lib/site";
  *  - side + vertical position persist in localStorage (nothing else —
  *    no identifiers, no server, no database);
  *  - while either dialog is open the dock hides, so it can never cover
- *    a close button, a destination field or a Send action.
+ *    a close button, a destination field or a Send action;
+ *  - while the header's mobile menu is open it hides for the same
+ *    reason: in its bottom-right corner it sat on the menu's last rows
+ *    and its Get Price button on a phone;
+ *  - BELOW sm it stands down while the visitor reads: two 48px buttons
+ *    in the bottom-right corner covered the last characters of every
+ *    reading line that passed that corner of a phone screen, and Get
+ *    Price lives in the header at every width anyway. Scrolling DOWN
+ *    (past a small threshold, so a resting thumb does not flicker it)
+ *    fades and nudges it out, and while it is out it takes no pointer
+ *    events and is hidden from assistive technology (aria-hidden and
+ *    inert, so no keyboard focus can land in an invisible control).
+ *    Scrolling UP brings it back, and near the top of the page
+ *    (scrollY < REST_Y) it is always shown, so at page load — where the
+ *    browser checks measure it — it is exactly where it always was.
+ *    The transition is 200 ms on translate and opacity, none under
+ *    prefers-reduced-motion. From sm up nothing changes: the listener
+ *    checks the breakpoint and never stands the dock down there.
  *
  * Dragging is a pointer-only enhancement. The two buttons stay ordinary
  * keyboard-operable buttons with real accessible names, so nothing here
@@ -57,6 +75,15 @@ const EDGE_MARGIN = 12;
 const DRAG_THRESHOLD_PX = 6;
 /** Fallback height before the dock has been measured. */
 const ASSUMED_HEIGHT = 104;
+/**
+ * Scroll movement below this, in either direction, changes nothing —
+ * the stand-down follows a real scroll, not a touch jitter.
+ */
+const SCROLL_THRESHOLD_PX = 12;
+/** Within this distance of the top the dock is always shown. */
+const REST_Y = 8;
+/** Tailwind's `sm` breakpoint: the stand-down applies only below it. */
+const SM_QUERY = "(min-width: 40rem)";
 
 type DockSide = "left" | "right";
 
@@ -93,10 +120,17 @@ export default function FloatingDock() {
   // from classes, not from state).
   const [position, setPosition] = useState<DockPosition | null>(null);
   const [dragging, setDragging] = useState(false);
+  // True only below sm, only while the visitor is scrolling down the
+  // page. False at rest, so the server and the first client render
+  // agree and the dock is measured at load exactly where it always was.
+  const [standingDown, setStandingDown] = useState(false);
   const warmCatalogue = useCataloguePrefetch();
   const bottomBarPresent = useBottomBarPresent();
   // ANY dialog, not just one this component owns — it owns none now.
   const anyDialogOpen = useAnyDialogOpen();
+  // The header's mobile menu is not a dialog, but it covers the same
+  // ground: the dock stands down for it too.
+  const menuOpen = useMobileMenuOpen();
 
   const dockRef = useRef<HTMLDivElement>(null);
   const positionRef = useRef<DockPosition | null>(null);
@@ -157,6 +191,39 @@ export default function FloatingDock() {
 
   // Never leave a mid-drag listener or body style behind.
   useEffect(() => () => dragEndRef.current?.(), []);
+
+  // Below sm: stand down while the visitor scrolls DOWN, come back on
+  // scroll UP or near the top. Direction is taken from the last scroll
+  // position that moved the flag, so a slow drift still adds up to a
+  // decision and a jitter never flips it.
+  useEffect(() => {
+    const wide = window.matchMedia(SM_QUERY);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (wide.matches || y < REST_Y) {
+        lastY = y;
+        setStandingDown(false);
+        return;
+      }
+      const dy = y - lastY;
+      if (Math.abs(dy) < SCROLL_THRESHOLD_PX) return;
+      lastY = y;
+      setStandingDown(dy > 0);
+    };
+    // Crossing the breakpoint (rotation, a resized window) must never
+    // leave the dock standing down from sm up.
+    const onBreakpoint = () => {
+      lastY = window.scrollY;
+      if (wide.matches) setStandingDown(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    wide.addEventListener("change", onBreakpoint);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      wide.removeEventListener("change", onBreakpoint);
+    };
+  }, []);
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -219,6 +286,12 @@ export default function FloatingDock() {
 
   const side = position?.side ?? "right";
 
+  // Every hook above has run by this point, so an early exit is safe.
+  // Unmounted, not merely hidden, for the same reason as the dialog
+  // gate below: nothing in it can be tabbed to or tapped through the
+  // open menu.
+  if (menuOpen) return null;
+
   return (
     <>
       {/* Hidden entirely while a dialog is open: a floating control can
@@ -230,6 +303,8 @@ export default function FloatingDock() {
           data-side={side}
           role="region"
           aria-label="Quick actions"
+          aria-hidden={standingDown || undefined}
+          inert={standingDown || undefined}
           onPointerDown={onPointerDown}
           style={
             position
@@ -241,7 +316,7 @@ export default function FloatingDock() {
                 }
               : undefined
           }
-          className={`fixed z-50 flex touch-none select-none flex-col gap-1.5 rounded-l-2xl border border-brand-border bg-white/95 p-1.5 shadow-lg backdrop-blur ${
+          className={`fixed z-50 flex touch-none select-none flex-col gap-1.5 rounded-l-2xl border border-brand-border bg-white/95 p-1.5 shadow-lg backdrop-blur transition-[translate,opacity] duration-200 motion-reduce:transition-none ${
             position?.side === "left"
               ? "rounded-l-none rounded-r-2xl"
               : "rounded-r-none"
@@ -249,6 +324,10 @@ export default function FloatingDock() {
             position
               ? ""
               : "bottom-[max(1rem,env(safe-area-inset-bottom))] right-0 top-auto"
+          } ${
+            standingDown
+              ? "pointer-events-none translate-y-2 opacity-0 sm:pointer-events-auto sm:translate-y-0 sm:opacity-100"
+              : ""
           } ${bottomBarPresent ? "hidden lg:flex" : "flex"}`}
         >
           <button

@@ -38,16 +38,16 @@ export default function ContactSection() {
       aria-labelledby="contact-heading"
       className="scroll-mt-28 bg-white"
     >
-      <Container className="py-16 sm:py-20">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+      <Container className="py-16 sm:py-24">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
             <h2
               id="contact-heading"
-              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl"
             >
               Talk to us
             </h2>
-            <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Send us the details or message on WhatsApp and we&apos;ll come back with
               a fulfilment setup that fits.
             </p>
