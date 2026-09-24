@@ -72,15 +72,25 @@ const JOURNEY = [
   { step: "Your customer", who: "Carrier", ours: false },
 ];
 
-function ExternalCreatrHubLink({ className }: { className: string }) {
+/** An outbound link to CreatrHub's own site, always in a new tab. The
+ *  defaults are the "Explore CreatrHub services" button. */
+function ExternalCreatrHubLink({
+  className,
+  href = creatrhub.website,
+  label = "Explore CreatrHub services",
+}: {
+  className: string;
+  href?: string;
+  label?: string;
+}) {
   return (
     <a
-      href={creatrhub.website}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={className}
     >
-      Explore CreatrHub services
+      {label}
       <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span className="sr-only">(opens {creatrhub.websiteLabel} in a new tab)</span>
     </a>
@@ -97,11 +107,13 @@ export default function CreatrHubPartnerPage() {
         ]}
       />
 
-      {/* 1. HERO — navy, like every inner page. Three actions: the two
-          CreatrHub doors stay outlined, Dockentra's "Become a Client"
-          is the one solid green button, the colour the whole site
-          already uses for Dockentra's own action, so which button
-          belongs to which company reads without needing a label. */}
+      {/* 1. HERO — navy, like every inner page. Two actions (owner
+          request, 2026-09-24: "Explore CreatrHub services" left the
+          hero): CreatrHub's "Talk to CreatrHub" stays outlined and
+          Dockentra's "Become a Client" is the one solid green button,
+          the colour the whole site already uses for Dockentra's own
+          action, so which button belongs to which company reads
+          without needing a label. */}
       <section className="relative isolate overflow-hidden bg-brand-navy">
         <Container className="relative py-16 sm:py-24">
           <div className="grid items-center gap-12 lg:grid-cols-12">
@@ -139,7 +151,7 @@ export default function CreatrHubPartnerPage() {
                 each separately.
               </p>
               {/* The caption sits above the buttons (design review,
-                  2026-09-24): stacked full-width on a phone, the three
+                  2026-09-24): stacked full-width on a phone, the
                   actions briefly read as one equal list before a label
                   underneath explained them — read it first instead. */}
               <p className="font-mono-data mt-9 text-xs uppercase tracking-[0.12em] text-white/70">
@@ -151,7 +163,6 @@ export default function CreatrHubPartnerPage() {
                 <a href="#contact" className={SECONDARY_ON_NAVY}>
                   Talk to CreatrHub
                 </a>
-                <ExternalCreatrHubLink className={SECONDARY_ON_NAVY} />
                 <Link href="/become-a-client" className={PRIMARY_CTA}>
                   Become a Client
                 </Link>
@@ -401,7 +412,11 @@ export default function CreatrHubPartnerPage() {
                   <Mail className="h-5 w-5" aria-hidden="true" />
                   Email CreatrHub
                 </a>
-                <ExternalCreatrHubLink className={SECONDARY_ON_LIGHT} />
+                <ExternalCreatrHubLink
+                  className={SECONDARY_ON_LIGHT}
+                  href={creatrhub.workWithUsUrl}
+                  label="Work with us"
+                />
               </div>
             </div>
           </div>

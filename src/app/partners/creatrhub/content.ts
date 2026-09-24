@@ -34,6 +34,9 @@ export const creatrhub = {
    *  self-serve UGC platform; the agency site is the one for sellers. */
   website: "https://creatrhubagency.com",
   websiteLabel: "creatrhubagency.com",
+  /** The "Work with us" button under "Start with a conversation"
+   *  (owner-specified, 2026-09-24). Checked to answer 200 that day. */
+  workWithUsUrl: "https://creatrhubagency.com/creator-application",
   company: "CreatrHub Limited",
   registrationNumber: "809110",
   contact: {
