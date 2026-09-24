@@ -124,11 +124,11 @@ export default function CreatrHubPartnerPage() {
                 <span aria-hidden="true" className="mx-2 text-white/40">/</span>
                 CreatrHub
               </p>
-              {/* Two deliberate lines, so the "×" never strands on its
-                  own at the end of the first. */}
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                <span className="block">Dockentra</span>
-                <span className="block">× CreatrHub</span>
+              {/* One line at every width the hero actually renders at
+                  (owner request, 2026-09-24): sized down on phones
+                  rather than wrapped, so "×" never strands alone. */}
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Dockentra × CreatrHub
               </h1>
               <p className="mt-5 text-2xl font-semibold tracking-tight text-brand-mint sm:text-3xl">
                 Creator content meets fulfilment.
