@@ -537,29 +537,60 @@ describe("the inner-page header bands", () => {
   });
 });
 
-describe("handheld devices never autoplay", () => {
-  // Owner decision, 2026-09-23: on a phone or tablet the clip is not
-  // played automatically. Same mechanism as reduced motion: the
-  // <video> is never mounted, the poster still stands in, and no clip
-  // bytes are fetched on a phone at all.
+describe("mobile plays the same clip as desktop", () => {
+  // Owner decision, 2026-09-24, reversing the "no autoplay on a phone
+  // or tablet" rule set the day before: a phone or tablet now mounts
+  // and autoplays the clip exactly like a desktop. The HANDHELD_QUERY
+  // media query and the `handheld` state that fed it are gone from the
+  // component entirely — nothing device-specific is left to assert on
+  // negatively, so these tests assert its absence and that the checks
+  // which DO still apply everywhere (reduced motion, data saving,
+  // near-viewport) mention nothing about device type.
   const source = strip(read("src/components/ProcessVideo.tsx"));
 
-  it("defines handheld as narrow OR touch-first, in one media query list", () => {
-    assert.ok(
-      source.includes('"(width < 48rem), ((hover: none) and (pointer: coarse))"'),
+  it("has no handheld-only gate left anywhere in the component", () => {
+    assert.equal(source.includes("HANDHELD_QUERY"), false, "the handheld media query is back");
+    assert.equal(source.includes("handheld"), false, "handheld state or a handheld check is back");
+    assert.equal(
+      source.includes("(width < 48rem)"),
+      false,
+      "the handheld-width query condition is back",
     );
-    assert.ok(source.includes("window.matchMedia(HANDHELD_QUERY)"));
   });
 
-  it("folds the handheld check into the SAME branch that renders the still", () => {
-    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(source);
-    assert.ok(guard);
-    assert.ok(guard[1].includes("handheld !== false"));
-    // ...and the autoplay effect never fires on a handheld either.
-    assert.match(
+  it("the still-vs-clip guard and the autoplay-retry guard both read only reducedMotion, dataSaving and nearViewport", () => {
+    const renderGuard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(source);
+    assert.ok(renderGuard);
+    for (const clause of ["reducedMotion !== false", "dataSaving !== false", "!nearViewport"]) {
+      assert.ok(renderGuard[1].includes(clause), `render guard is missing ${clause}`);
+    }
+    const autoplayGuard = /if \(reducedMotion !== false \|\| dataSaving !== false \|\| !nearViewport\) \{\s*\n\s*return;/.exec(
       source,
-      /if \(\s*reducedMotion !== false \|\|\s*dataSaving !== false \|\|\s*!nearViewport \|\|\s*handheld !== false\s*\) \{\s*return;/,
     );
+    assert.ok(autoplayGuard, "the autoplay-retry effect's guard changed shape");
+  });
+
+  it("falls back to the next user gesture when the browser refuses autoplay", () => {
+    // muted + playsInline make an inline autoplay legal almost
+    // everywhere; this is what covers the platforms that still refuse
+    // it (iOS Low Power Mode chief among them) without ever swapping
+    // away from the <video> element (its own `poster` attribute is
+    // already the still on screen).
+    assert.ok(source.includes("node.play().catch(() => {"));
+    for (const gesture of ['"pointerdown"', '"touchstart"', '"keydown"']) {
+      assert.ok(source.includes(gesture), `the interaction fallback does not listen for ${gesture}`);
+    }
+    assert.ok(source.includes("{ once: true, passive: true }"));
+  });
+
+  it("keeps muted, loop, playsInline and autoPlay on the <video> — the attributes autoplay actually depends on", () => {
+    for (const attr of ["muted", "loop", "playsInline", "autoPlay"]) {
+      assert.ok(new RegExp(`\\b${attr}\\b`).test(source), `<video> lost ${attr}`);
+    }
+    // playsInline is what stops iOS Safari opening its native
+    // fullscreen player instead of playing the clip in place.
+    assert.ok(source.includes("aria-hidden=\"true\""));
+    assert.equal(source.includes("controls"), false, "a decorative clip grew controls");
   });
 
   it("gives portrait screens a portrait still, chosen before first paint", () => {

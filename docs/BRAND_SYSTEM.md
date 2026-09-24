@@ -155,9 +155,16 @@ stays for errors only.
     construction — the audio track is stripped, not just muted — they
     are decorative (`aria-hidden`, no controls, not focusable), and a
     visitor who asks for reduced motion gets the poster frame instead
-    of a loop. Exactly ONE clip on a page may load eagerly. Clips never
-    autoplay on a phone or tablet (owner decision, 2026-09-23): a
-    handheld device gets the poster still and never fetches the clip;
+    of a loop. Exactly ONE clip on a page may load eagerly. A phone or
+    tablet mounts and autoplays a clip exactly like a desktop (owner
+    decision, 2026-09-24, reversing the "no autoplay on a phone or
+    tablet" rule set the day before): the same muted + playsInline
+    attributes that make an autoplaying clip decorative on desktop are
+    what make it legal to autoplay inline on a phone at all — without
+    `playsInline`, iOS Safari opens its native fullscreen player
+    instead. A device that still refuses autoplay (iOS Low Power Mode,
+    chiefly) gets one retry on the visitor's next tap or keypress;
+    the poster stands in until then, same as it always could;
   - **no picture on the site carries a caption** (owner decision,
     2026-09-24). Until that date every stand-in frame wore a visible
     line reading *illustrative footage of fulfilment work: …* and the

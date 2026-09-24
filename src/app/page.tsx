@@ -90,9 +90,13 @@ export default async function HomePage() {
           the poster. The veil is in the markup rather than baked into
           the file, so the same asset serves any future layout.
 
-          NO AUTOPLAY ON PHONES (owner decision): the ProcessVideo
-          component shows the portrait poster there and never mounts
-          the clip, so the first screen on a phone is a still.
+          PHONES AUTOPLAY TOO (owner decision, 2026-09-24, reversing
+          the "no autoplay on phones" rule from the day before): the
+          first screen on a phone is the portrait clip playing, chosen
+          by ProcessVideo from `portraitSrc`/`portraitPoster` — the
+          same art-direction switch as before, just no longer gated to
+          a still-only outcome on a handheld. See
+          src/components/ProcessVideo.tsx for the mechanism.
 
           ILLUSTRATIVE FOOTAGE. The clip shows fulfilment work in a
           warehouse; it is not presented as Dockentra's own unit, staff

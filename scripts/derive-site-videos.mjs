@@ -114,20 +114,23 @@ const JOBS = [
 
 /**
  * Posters. The two hero posters are cut from the 4K SOURCE, not from
- * the encoded clip: on a phone the poster is the whole hero (clips do
- * not autoplay on handheld devices, owner decision 2026-09-23), so it
- * is the sharpest frame the site serves, and the image pipeline on the
- * Worker does not resize, so the file is delivered as-is to every
- * screen. 1080x1920 for portrait screens, 1920x1080 for the rest.
+ * the encoded clip, because it is the sharpest frame the site can
+ * serve and the image pipeline on the Worker does not resize, so the
+ * file is delivered as-is to every screen — the poster is still the
+ * first paint on every device (a phone included: it autoplays the
+ * clip exactly like a desktop since 2026-09-24, but the clip mounts
+ * and starts playing a moment after hydration, not before). 1080x1920
+ * for portrait screens, 1920x1080 for the rest.
  */
 const POSTERS = [
   { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "scale=1920:-2", out: "public/media/hero/dockentra-process-aisle.webp", quality: "55" },
   { from: "SOURCE:19896989-uhd_3840_2160_25fps.mp4", vf: "crop=ih*9/16:ih,scale=1080:1920", out: "public/media/hero/dockentra-process-aisle-portrait.webp", quality: "55" },
   { from: "public/media/process/dockentra-process-handover.mp4", vf: null, out: "public/media/process/dockentra-process-handover.webp", quality: "72" },
-  // `at`: the second to take the poster from. On a handheld the poster
-  // IS the frame (clips never autoplay there), so it should be a
-  // sharp, representative moment — here the label going onto the
-  // closed box — not the motion-blurred first frame.
+  // `at`: the second to take the poster from. The poster is the first
+  // paint on every device and stands in for the clip on reduced motion
+  // and data saving, so it should be a sharp, representative moment —
+  // here the label going onto the closed box — not the motion-blurred
+  // first frame.
   { from: "public/media/process/dockentra-process-packing.mp4", at: "10", vf: null, out: "public/media/process/dockentra-process-packing.webp", quality: "72" },
 ];
 
