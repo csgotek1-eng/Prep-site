@@ -52,15 +52,3 @@ export const ESTIMATE_SCOPE_NOTE =
 
 /** The heading a priced fulfilment figure must carry. */
 export const FULFILMENT_TOTAL_LABEL = "Estimated Dockentra fulfilment";
-
-/**
- * Every disclosure line, in the order they should be presented.
- *
- * Callers that render a list (the email, the WhatsApp message) use this
- * rather than retyping the three strings in a different order.
- */
-export const ESTIMATE_DISCLOSURES: readonly string[] = [
-  `${CARRIER_DELIVERY_LABEL}: ${CARRIER_DELIVERY_STATUS.toLowerCase()}. ${CARRIER_DELIVERY_NOTE}`,
-  VAT_BASIS_NOTE,
-  ESTIMATE_SCOPE_NOTE,
-];

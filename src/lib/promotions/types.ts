@@ -135,15 +135,6 @@ export function isStoredPromotionStatus(
   );
 }
 
-export function isPromotionPlacement(
-  value: unknown,
-): value is PromotionPlacement {
-  return (
-    typeof value === "string" &&
-    (PROMOTION_PLACEMENTS as readonly string[]).includes(value)
-  );
-}
-
 export function isPromotionTemplateId(
   value: unknown,
 ): value is PromotionTemplateId {

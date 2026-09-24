@@ -31,8 +31,6 @@ import {
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { useBottomBarRegistration } from "@/components/FloatingChrome";
 
-export const CALCULATOR_STORAGE_KEY = "dockentra-calculator-selections";
-
 /** How the customer wants their private price delivered (STEP 3). */
 type PricingChannel = "whatsapp" | "email";
 

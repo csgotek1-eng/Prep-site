@@ -131,16 +131,3 @@ export const salesChannels = [
   "Own Website",
   "Other",
 ] as const;
-
-export const serviceOptions = [
-  "Receiving",
-  "Inspection & Quality Check",
-  "Labelling",
-  "Prep",
-  "Amazon FBA Prep",
-  "Pick & Pack",
-  "Storage",
-  "Kitting & Bundling",
-  "Returns",
-  "Other",
-] as const;

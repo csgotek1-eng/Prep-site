@@ -177,20 +177,12 @@ export const PROMOTION_TEMPLATES: readonly PromotionTemplate[] = [
   },
 ];
 
-export function findPromotionTemplate(
-  id: string,
-): PromotionTemplate | undefined {
-  return PROMOTION_TEMPLATES.find((template) => template.id === id);
-}
-
 /**
  * Square-bracket placeholders a template leaves for the owner. A
  * promotion carrying one of these may be saved as a draft but never
  * published — an offer that says "[number]" to a customer is worse
  * than no offer at all.
  */
-export const PLACEHOLDER_PATTERN = /\[[^\]]+\]/;
-
 export function findPlaceholders(...fields: string[]): string[] {
   return fields
     .flatMap((field) => field.match(/\[[^\]]+\]/g) ?? [])

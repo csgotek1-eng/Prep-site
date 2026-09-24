@@ -5,7 +5,7 @@ here is served to a visitor; `public/media/**` holds the web versions.
 
 | source | web version | what changed |
 |---|---|---|
-| `dockentra-process-packing.source.mp4` | — (retired) | was the 9:16 hero clip. **RETIRED 2026-09-23** in the video trial round; web copy deleted, source kept. |
+| `dockentra-process-packing.source.mp4` | — (retired) | was the 9:16 hero clip. **RETIRED 2026-09-23** in the video trial round; web copy deleted, source kept. NOT the source of today's `public/media/process/dockentra-process-packing.mp4`, which shares the name only: that clip is Pexels 7287770 (see "Licensed photographs"). Never re-derive it from this file. |
 | `dockentra-process-dispatch.source.mp4` | `public/media/process/dockentra-process-dispatch.mp4` | audio track removed, H.264 High, CRF 28, faststart. 1.22 MB → 335 KB. Still the "From stock to shipment" clip: a taping clip replaced it for a few hours on 2026-09-23 and the owner asked for this one back. |
 | `viktor.source.png` | `public/media/team/viktor.webp` | downscale 1122×1402 → 880×1100 (same 4:5, no crop), WebP q85. 1.79 MB → 60 KB |
 | `anna.source.png` | `public/media/team/anna.webp` | same treatment. 1.90 MB → 71 KB |
@@ -75,16 +75,20 @@ than from the encoded clip — on a phone the poster IS the hero.
 
 ## Stills, redesign round (2026-09-24)
 
-`scripts/derive-site-stills.mjs` cuts seven WebP stills from the same
-sources (crops chosen on contact sheets; no faces, no bays with large
-third-party logos): five 3:1 bands for the inner-page headers
-(`-aisle-band`, `-racking-band`, `-taping-band`, `-bench-band`,
-`-handover-band`), a 4:3 frame beside the services list
-(`-taping-hands`) and a 4:3 frame beside the batch-photo section
-(`-batch-photo`, from the 576px dispatch clip, shipped at source size).
-None of them is captioned where it appears (owner decision,
-2026-09-24). The same rule as above applies: real Dockentra frames at
-the same paths replace them, and this file records the swap.
+`scripts/derive-site-stills.mjs` first cut nine WebP stills from the
+same sources (crops chosen on contact sheets; no faces, no bays with
+large third-party logos). Later the same day the owner asked for one
+distinct picture per surface, and seven of them were withdrawn because
+each was a second showing of a clip already on the site: the `-aisle`,
+`-racking`, `-pallets`, `-bench`, `-handover` and `-parcels` bands and
+the `-taping-hands` frame (their crops stay recorded in the script).
+**Two remain from the clips:** the `-taping-band` behind the
+/how-it-works header and the 4:3 `-batch-photo` frame (from the 576px
+dispatch clip, shipped at source size). Every other still on the site
+is a licensed photograph, listed below. None is captioned where it
+appears (owner decision, 2026-09-24). The same rule as above applies:
+real Dockentra frames at the same paths replace them, and this file
+records the swap.
 
 ## Licensed photographs (2026-09-24)
 

@@ -144,11 +144,12 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        // Photography and the two silent clips are big and change only
-        // when the owner swaps the files. Next serves /public with
-        // max-age=0, so every visit re-validates ~700 KB of media. An
-        // hour of browser caching plus a day of stale-while-revalidate
-        // removes that without making a replacement invisible for long.
+        // Brand files change only when the owner replaces them. Next
+        // serves /public with max-age=0, so every navigation re-fetched
+        // the header mark. A day of browser caching plus a week of
+        // stale-while-revalidate. On Cloudflare the effective copy of
+        // this rule is public/_headers (static files never reach the
+        // Worker); this one covers `next start` and the rollback host.
         source: "/brand/:path*",
         headers: [
           {
@@ -158,8 +159,10 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // (see the /brand rule above: the logo mark is requested by
-        // every page and was re-fetched on every navigation)
+        // Photography and the silent clips are big and change only when
+        // the owner swaps the files: an hour of browser caching plus a
+        // day of stale-while-revalidate, so a replacement is not
+        // invisible for long. Same Cloudflare note as /brand above.
         source: "/media/:path*",
         headers: [
           {

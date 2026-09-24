@@ -58,10 +58,6 @@ export interface AdminAuthProvider {
   authenticate(request: Request): Promise<AdminAuthResult>;
 }
 
-export function isAdminConfigured(): boolean {
-  return Boolean(process.env.ADMIN_ACCESS_TOKEN?.trim());
-}
-
 /** Constant-time comparison of the presented token with the expected one. */
 export function verifyAdminToken(
   presented: string | null | undefined,

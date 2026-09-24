@@ -82,9 +82,3 @@ export function prefetchCatalogue(): void {
     // the real open will surface it.
   });
 }
-
-/** Test seam: forget everything the module has cached. */
-export function resetCatalogueCacheForTests(): void {
-  cached = null;
-  inflight = null;
-}

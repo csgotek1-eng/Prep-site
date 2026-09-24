@@ -45,9 +45,14 @@ every visitor. All three would have been invisible without this step.
 ### 3. Run the gates
 
 ```bash
-npm run gates        # lint, typecheck, 876 unit tests, both builds
-npm run test:browser # the six Playwright suites (~20 min)
+npm run gates        # lint, typecheck, the unit suite, both builds
+npm run test:browser # the ten Playwright suites (~20 min)
 ```
+
+Run the browser suites after a fresh `npm run build`, never straight
+after `npm test` on its own: `tests/build-hygiene.test.ts` removes
+`.next/` as part of the unit suite, and the browser suites serve that
+build. (`npm run gates` already builds after testing.)
 
 `npm run gates` is the fast set and should pass before every commit.
 The browser suites are slower; CI runs them on every push, so locally
@@ -70,7 +75,7 @@ break. Each has a test; none of them is a matter of remembering.
 | --- | --- |
 | No prices on any public page | `tests/pricing-page-and-hours.test.ts`, `tests/browser/pricing-privacy.mjs` |
 | No rate card in this repository (it is **public**) | `tests/pricing-page-and-hours.test.ts` |
-| `/uk-brands`: GB and unknown see it, IE is redirected | `tests/reviews-and-geo-behaviour.test.ts` |
+| `/uk-brands`: open to every country, no geo redirect (the IE redirect was removed by owner decision) | `tests/reviews-and-geo-behaviour.test.ts` |
 | Security headers on pages **and** static files | `tests/cloudflare-deployment.test.ts` |
 | No Next proxy/middleware file returns | `tests/cloudflare-deployment.test.ts` |
 | Forms save before they confirm | `tests/browser/lead-failure-path.mjs` |

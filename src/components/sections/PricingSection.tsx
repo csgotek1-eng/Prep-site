@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";

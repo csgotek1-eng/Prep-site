@@ -51,9 +51,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # 876 tests, including the ones that keep prices off the public
-      # site, the rate card out of this repository, and the geo rule
-      # answering correctly for GB, IE and an unknown country.
+      # The whole unit suite, including the ones that keep prices off
+      # the public site, the rate card out of this repository, and the
+      # geo rule answering correctly for GB, IE and an unknown country.
       - name: Unit tests
         run: npm test
 

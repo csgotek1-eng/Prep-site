@@ -4,7 +4,8 @@
  * findings this round closes were about what the page DID, not what
  * the source said.
  *
- * Run with:  npm run build && npm run test:browser:ux
+ * Run with:  npm run build && node tests/browser/approved-ux-round.mjs
+ * (also part of `npm run test:browser`)
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
 import { mkdtempSync, writeFileSync } from "node:fs";

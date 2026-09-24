@@ -10,17 +10,18 @@
  *
  * WHAT IS DELIBERATELY ABSENT.
  *
- * No R2 incremental-cache binding. The adapter's docs recommend an R2
- * cache for a site that uses `revalidate` (this one does: 60 on the
- * layout, 300 on /cases), but R2 is not enabled on the account and
- * enabling it is a billing decision that belongs to the owner. Without
- * it, revalidated pages are simply rendered per request — correct, and
- * slower than it needs to be. The site is a brochure with a calculator,
- * not a high-traffic app, so this is an optimisation to revisit rather
- * than a launch blocker. Same reasoning for the Images binding.
+ * No R2 incremental-cache binding. The adapter's docs recommend R2 for
+ * a site that uses `revalidate` (this one does: 60 on the root layout,
+ * which is also the effective window for /cases), but R2 is not enabled
+ * on the account and enabling it is a billing decision that belongs to
+ * the owner. The incremental cache is KV instead — see the
+ * kv_namespaces block below and open-next.config.ts for why, and for
+ * the 500 its absence once caused. Same billing reasoning for the
+ * Images binding: without it /_next/image passes files through
+ * unresized (docs/CLOUDFLARE_DEPLOYMENT.md).
  *
- * `run_worker_first` on /media is NOT an optimisation, it is a
- * security fix — see the comment on it below.
+ * No `run_worker_first` either — see the comment in the assets block:
+ * public/_headers now carries the static-file headers it was added for.
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",

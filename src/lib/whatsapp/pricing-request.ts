@@ -25,8 +25,6 @@ import type {
  * right here.
  */
 
-export type WhatsAppPricingDeliveryOutcome =
-  PricingDeliveryResult["delivery"];
 export type WhatsAppPricingResult = PricingDeliveryResult;
 
 export interface WhatsAppPricingRequestArgs {

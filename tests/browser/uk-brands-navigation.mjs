@@ -4,9 +4,9 @@
  * The page used to redirect visitors in Ireland to the homepage, on the
  * reasoning that an Irish seller has no use for a page about moving
  * stock INTO Ireland. The reasoning was sound and the effect was not:
- * the site links here deliberately, from "Read how the €3 charge works"
- * on the homepage and "See the numbers for a UK brand" on
- * /why-ireland, and most visitors are in Ireland. So most clicks on
+ * the site links here deliberately — from the homepage (then "Read how
+ * the €3 charge works", today the UK path card) and "See the numbers
+ * for a UK brand" on /why-ireland — and most visitors are in Ireland. So most clicks on
  * those CTAs went to the top of the homepage. The buttons were not
  * weak, they were dead.
  *
@@ -146,9 +146,17 @@ async function clickThrough(page, from, text, expected) {
   return { landed: new URL(page.url()).pathname, missing: false };
 }
 
+// The homepage door into /uk-brands is the UK path card's "Explore UK
+// fulfilment" (BrandPathCards, rendered on / through WhyIrelandSection
+// and on /why-ireland). The two homepage links this suite used to click
+// — "Read how the €3 charge works" and "See the UK cost comparison" —
+// were retired from the shared Why-Ireland block on 2026-09-18 (commit
+// 9f21e59: a customs link in a section addressed to EU brands implied
+// an equivalence that does not exist), and tests/brand-paths.test.ts
+// now asserts they stay gone. Clicking them here only ever reported
+// "missing", which hid whether the real doors still work.
 const JOURNEYS = [
-  ["/", "Read how the €3 charge works", "/uk-brands"],
-  ["/", "See the UK cost comparison", "/uk-brands"],
+  ["/", "Explore UK fulfilment", "/uk-brands"],
   ["/why-ireland", "See the numbers for a UK brand", "/uk-brands"],
   ["/", "See customer stories", "/cases"],
 ];
