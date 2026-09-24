@@ -5,7 +5,18 @@
  * Services" (supplied by the owner, 2026-09-24). Nothing here is
  * Dockentra's claim and nothing may be added that the brochure does not
  * state: no extra figures, partners, approvals, prices or capabilities.
- * Figures and approvals are attributed to CreatrHub on the page.
+ *
+ * TRIMMED (owner brief, 2026-09-24): the page used to carry CreatrHub's
+ * full operational detail — every UGC format, the four platform
+ * features, the six-step process, the week-by-week first month, the
+ * audience list and the ten named brand partners. All of that is gone.
+ * A visitor who wants it can follow "Explore CreatrHub services" to
+ * CreatrHub's own site; this page states only what CreatrHub does, in
+ * `whatCreatrHubDoes` below.
+ *
+ * DO NOT RE-ADD (owner instruction, 2026-09-24):
+ *  - "Figures reported by CreatrHub." under the figures strip.
+ *  - The CreatrHub brand-partner names/logos as page content or proof.
  *
  * DELIBERATELY LEFT OUT (open with the owner and CreatrHub):
  *  - Price. The brochure states two different CreatrHub prices, one of
@@ -35,130 +46,34 @@ export const creatrhub = {
   },
 } as const;
 
-/** CreatrHub's own figures, shown attributed. */
+/** CreatrHub's own figures. */
 export const figures = [
   { value: "800+", label: "vetted creators" },
   { value: "~3 min", label: "to a first creator match" },
   { value: "16", label: "brand partners" },
 ] as const;
 
-export const ugcFormats = [
-  "Product demos",
-  "Unboxings",
-  "Reviews",
-  "Tutorials",
-  "Lifestyle content",
-  "Short and long form",
+/**
+ * The compressed "What CreatrHub does" list — the four essentials the
+ * owner named, nothing more. Each line stays short enough to read at a
+ * glance; the detail behind each one lives on CreatrHub's own site.
+ */
+export const whatCreatrHubDoes = [
+  "UGC and creator content",
+  "TikTok Shop support",
+  "Affiliate and creator campaigns",
+  "Matching and campaign management",
 ] as const;
-
-/** The UGC service: how a brief becomes approved content. */
-export const ugcFeatures = [
-  {
-    title: "Creator matching",
-    body: "CreatrHub says its AI matches creators on behavioural signals rather than demographic proxies, and a first match can take about three minutes.",
-  },
-  {
-    title: "Contracts up front",
-    body: "Contracts are generated automatically, so usage rights and deliverables are agreed before anyone films.",
-  },
-  {
-    title: "Content review studio",
-    body: "You review, ask for changes and approve content in one place before anything goes live.",
-  },
-  {
-    title: "Milestone escrow",
-    body: "Payment is held and released to the creator when you approve the content.",
-  },
-] as const;
-
-/** The TikTok Shop service: running the creator side of the channel. */
-export const shopFeatures = [
-  {
-    title: "Creator roster",
-    body: "Creators with experience of TikTok Shop content.",
-  },
-  {
-    title: "Affiliate programmes",
-    body: "Creator commission structures set up and managed for your products.",
-  },
-  {
-    title: "TikTok LIVE",
-    body: "Hosted shopping sessions with creators.",
-  },
-  {
-    title: "Shop partner collaborations",
-    body: "CreatrHub already takes part in live TikTok Shop partner collaborations with sellers.",
-  },
-] as const;
-
-export const steps = [
-  { title: "Brief", body: "Tell CreatrHub about the product, audience, goals and the content you want." },
-  { title: "Match", body: "CreatrHub shortlists vetted creators who suit the brand." },
-  { title: "Agree", body: "Deliverables, timelines and usage rights go into an auto-generated contract." },
-  { title: "Create", body: "Creators produce and submit the content." },
-  { title: "Review", body: "You review, request changes and approve in the review studio." },
-  { title: "Pay and launch", body: "Escrow releases on approval and the content goes live on your channels or TikTok Shop." },
-] as const;
-
-export const firstMonth = [
-  {
-    week: "Week 1",
-    title: "Set up",
-    body: "CreatrHub confirms product fit, sets up or connects your TikTok Shop and agrees the content and campaign plan with you.",
-  },
-  {
-    week: "Week 2",
-    title: "First content",
-    body: "CreatrHub matches and briefs creators; your first UGC videos are produced and go to you for approval.",
-  },
-  {
-    week: "Week 3",
-    title: "Launch",
-    body: "Approved content goes live and CreatrHub sets up an affiliate structure so creators can sell through TikTok Shop.",
-  },
-  {
-    week: "Week 4",
-    title: "Review",
-    body: "CreatrHub reviews what performed with you and scales up the content and creators that are working.",
-  },
-] as const;
-
-export const brandProvides = [
-  "Product samples for creators",
-  "Basic brand guidelines",
-  "A TikTok Shop seller account, or authorisation to help set one up",
-  "Someone who can review and approve content",
-] as const;
-
-export const audiences = [
-  "Brands launching on TikTok Shop",
-  "Brands already selling online",
-  "Shopify and Instagram sellers new to TikTok Shop",
-  "Brands building trust and reach through creators",
-] as const;
-
-/** Named by CreatrHub in its brochure. Text only: no logos. */
-export const brandPartners = {
-  ugc: ["Stella AI", "Feel Hobby", "The Skin Dairy", "Sellshots", "Speechify"],
-  tiktokShop: [
-    "Hair Syrup",
-    "Agilithor Shop Ireland",
-    "Lisa & Co Cosmetics",
-    "SOSU Cosmetics",
-    "Magic Hair Brush Detangler",
-  ],
-} as const;
 
 /**
- * The brochure download. `available` stays false until the owner and
- * CreatrHub confirm a final version: the supplied PDF still carries
- * bracketed placeholders (a price, the email and the phone number) and
- * two conflicting prices, and this repository is public, so committing
- * the file would publish them. The optimised copy lives only on the
- * owner's machine (git-excluded) until then.
+ * The brochure download. CreatrHub's supplied PDF still carries
+ * bracketed placeholders (one of its two stated prices, and its email
+ * and phone in brackets) — flagged to the owner, who asked for it to
+ * be published on this preview regardless. `meta` is measured from the
+ * optimised file actually committed at `href`.
  */
 export const brochure = {
-  available: false,
+  available: true,
   href: "/partners/creatrhub/creatrhub-tiktok-shop-services.pdf",
   downloadName: "creatrhub-tiktok-shop-services.pdf",
   title: "TikTok Shop Content Creation Services",

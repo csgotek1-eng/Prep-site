@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, FileText, Mail, Phone } from "lucide-react";
+import CalculatorModal from "@/components/CalculatorModal";
 import Container from "@/components/Container";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import ClosingBand from "@/components/sections/ClosingBand";
+import FactsStrip from "@/components/sections/FactsStrip";
 import { CartonGlyph, CheckGlyph, HeroFlowArt } from "./_components/Illustrations";
-import {
-  audiences,
-  brandPartners,
-  brandProvides,
-  brochure,
-  creatrhub,
-  figures,
-  firstMonth,
-  shopFeatures,
-  steps,
-  ugcFeatures,
-  ugcFormats,
-} from "./content";
+import { brochure, creatrhub, figures, whatCreatrHubDoes } from "./content";
 
 /**
  * /partners/creatrhub — Dockentra's page about its partner CreatrHub.
@@ -29,10 +19,12 @@ import {
  * one: CreatrHub runs the creator and TikTok Shop side, Dockentra the
  * physical side, and each is agreed with separately.
  *
- * Every CreatrHub fact comes from ./content.ts, which records its source
- * and what was deliberately left out (above all, any price). Copy was
- * checked sentence by sentence against the brochure by an independent
- * review on 2026-09-24; keep new wording no stronger than the source.
+ * SHORT ON PURPOSE (owner brief, 2026-09-24). The first build carried
+ * CreatrHub's full operational detail; this one states only what a
+ * brand owner needs to decide who to contact, and links to CreatrHub's
+ * own site for the rest. Dockentra's own value now sits right after
+ * the partnership split, not at the bottom of the page. See content.ts
+ * for what was cut and why, and what must not be re-added.
  */
 
 export const metadata: Metadata = {
@@ -55,8 +47,6 @@ const EYEBROW_LIGHT =
   "font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark";
 const H2 = "text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl";
 const INTRO = "mt-4 max-w-2xl text-lg leading-8 text-slate-600";
-const ROW_LABEL =
-  "font-mono-data pt-1 text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark";
 
 const PRIMARY_CTA =
   "inline-flex min-h-12 shrink-0 items-center justify-center gap-2.5 rounded-md bg-brand-green px-7 text-center text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark";
@@ -107,9 +97,11 @@ export default function CreatrHubPartnerPage() {
         ]}
       />
 
-      {/* 1. HERO — navy, like every inner page. The drawing (content,
-          order, carton) shows from lg only: on phones and tablets it
-          pushed the page down and repeated the journey list. */}
+      {/* 1. HERO — navy, like every inner page. Three actions: the two
+          CreatrHub doors stay outlined, Dockentra's "Become a Client"
+          is the one solid green button, the colour the whole site
+          already uses for Dockentra's own action, so which button
+          belongs to which company reads without needing a label. */}
       <section className="relative isolate overflow-hidden bg-brand-navy">
         <Container className="relative py-16 sm:py-24">
           <div className="grid items-center gap-12 lg:grid-cols-12">
@@ -134,16 +126,29 @@ export default function CreatrHubPartnerPage() {
                 Creator content meets fulfilment.
               </p>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200">
-                CreatrHub matches brands with vetted creators and runs the
-                creator side of TikTok Shop. We receive your stock in
-                Limerick and pick, pack and dispatch your orders. Two
-                independent companies, each agreed with separately.
+                CreatrHub matches your brand with vetted creators and runs
+                the creator side of TikTok Shop. Dockentra receives your
+                stock in Limerick and picks, packs and dispatches your
+                orders. Two independent companies: you agree terms with
+                each separately.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="#contact" className={PRIMARY_CTA}>
+              {/* The caption sits above the buttons (design review,
+                  2026-09-24): stacked full-width on a phone, the three
+                  actions briefly read as one equal list before a label
+                  underneath explained them — read it first instead. */}
+              <p className="font-mono-data mt-9 text-xs uppercase tracking-[0.12em] text-white/70">
+                CreatrHub — creators &amp; TikTok Shop
+                <span aria-hidden="true" className="mx-2">/</span>
+                Dockentra — fulfilment
+              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <a href="#contact" className={SECONDARY_ON_NAVY}>
                   Talk to CreatrHub
                 </a>
                 <ExternalCreatrHubLink className={SECONDARY_ON_NAVY} />
+                <Link href="/become-a-client" className={PRIMARY_CTA}>
+                  Become a Client
+                </Link>
               </div>
             </div>
             <div className="hidden lg:col-span-5 lg:block">
@@ -153,14 +158,16 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 2. FIGURES — exactly the homepage fact strip, carrying
-          CreatrHub's numbers and saying plainly whose they are. */}
+      {/* 2. FIGURES — CreatrHub's own numbers. A visible eyebrow, not
+          only an sr-only heading (design review, 2026-09-24): landing
+          right after the hero, "800+ / ~3 min / 16" needs a label on
+          screen or it reads as unattributed for a few seconds. */}
       <section aria-labelledby="figures-heading" className="border-b border-brand-border bg-white">
         <Container className="py-6 sm:py-8">
-          <h2 id="figures-heading" className="sr-only">
+          <h2 id="figures-heading" className={EYEBROW_LIGHT}>
             CreatrHub in figures
           </h2>
-          <dl className="grid grid-cols-1 divide-y divide-brand-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <dl className="mt-3 grid grid-cols-1 divide-y divide-brand-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {figures.map((figure) => (
               <div
                 key={figure.label}
@@ -178,9 +185,9 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 3. THE PARTNERSHIP — who does what, then the route an order
-          takes. The split and the journey were two sections in the
-          brief; they say one thing, so they are one. */}
+      {/* 3. THE PARTNERSHIP — who does what. The order journey used to
+          live here too; it now has its own section further down, after
+          Dockentra's value and CreatrHub's services are both stated. */}
       <section aria-labelledby="partnership-heading" className="bg-white">
         <Container className="py-16 sm:py-24">
           <p className={EYEBROW_LIGHT}>The partnership</p>
@@ -201,12 +208,10 @@ export default function CreatrHubPartnerPage() {
                 Content, creators, TikTok Shop
               </p>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                An AI-native marketplace that connects brands with vetted
-                creators for short and long form video. Registered in
-                Ireland and launched in March 2026, CreatrHub states that it
-                holds TikTok Shop TAP, CAP and TSP approvals, so it works
-                with brands on TikTok Shop directly rather than through a
-                third party.
+                An AI-native marketplace that matches brands with vetted
+                creators for short and long form video. CreatrHub says it
+                holds TikTok Shop TAP, CAP and TSP approvals, letting it
+                work with brands on TikTok Shop directly.
               </p>
             </div>
             <div className="border-t border-brand-border py-8 md:border-t-0 md:pl-10">
@@ -217,11 +222,8 @@ export default function CreatrHubPartnerPage() {
                 Prep, storage, fulfilment, dispatch
               </p>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                Fulfilment and prep in Limerick. Stock is received and
-                counted, prepared to your requirements and stored; orders
-                are picked, packed and dispatched, and returns are dealt
-                with. TikTok Shop Ireland is part of the EU market, and we
-                ship your orders from inside it.
+                Fulfilment and prep from Limerick: stock received, stored,
+                picked, packed and dispatched, with returns handled too.
               </p>
               <Link
                 href="/services"
@@ -232,11 +234,79 @@ export default function CreatrHubPartnerPage() {
               </Link>
             </div>
           </div>
+        </Container>
+      </section>
 
-          <h3 className="mt-14 text-lg font-semibold tracking-tight text-brand-navy">
+      {/* 4. DOCKENTRA'S SIDE — moved up from the bottom of the page
+          (owner brief, 2026-09-24) so the fulfilment side is stated
+          right after the split, not after a long CreatrHub read. The
+          facts strip repeats the site's own approved commitments
+          (cut-off, receiving, minimum) rather than stating new ones. */}
+      <section aria-labelledby="dockentra-heading" className="bg-brand-surface-soft">
+        <Container className="py-16 sm:py-24">
+          <p className={EYEBROW_LIGHT}>Dockentra</p>
+          <h2 id="dockentra-heading" className={`mt-3 ${H2}`}>
+            Stock in, orders out, from Limerick
+          </h2>
+          <p className={INTRO}>
+            While CreatrHub drives the content and the sales, Dockentra
+            handles the physical side: receiving, prep, storage, pick and
+            pack, dispatch and returns. Pricing is private and depends on
+            your volume.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <CalculatorModal label="Get Price" variant="secondary" icon={false} />
+            <Link href="/batch-photos" className={SECONDARY_ON_LIGHT}>
+              See what we photograph
+            </Link>
+          </div>
+        </Container>
+      </section>
+      <FactsStrip />
+
+      {/* 5. WHAT CREATRHUB DOES — compressed to the essentials (owner
+          brief, 2026-09-24). Format-by-format detail, the platform
+          features and the six-step process now live on CreatrHub's own
+          site; this states only what a brand owner needs to decide. */}
+      <section aria-labelledby="services-heading" className="bg-white">
+        <Container className="py-16 sm:py-24">
+          <div className="max-w-2xl">
+            <p className={EYEBROW_LIGHT}>What CreatrHub does</p>
+            <h2 id="services-heading" className={`mt-3 ${H2}`}>
+              Creator content and the TikTok Shop side
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              CreatrHub matches your brand with vetted creators and
+              manages your TikTok Shop channel from brief to launch:
+            </p>
+            <ul className="mt-6 border-t border-brand-border">
+              {whatCreatrHubDoes.map((item) => (
+                <li
+                  key={item}
+                  className="flex gap-2.5 border-b border-brand-border py-3 text-base text-slate-700"
+                >
+                  <CheckGlyph />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <ExternalCreatrHubLink className={SECONDARY_ON_LIGHT} />
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* 6. THE CONNECTED JOURNEY — the order-flow diagram, moved down
+          (owner brief, 2026-09-24) to recap the split once both sides
+          have been stated, rather than appear before either has. */}
+      <section aria-labelledby="journey-heading" className="bg-brand-surface-soft">
+        <Container className="py-16 sm:py-24">
+          <p className={EYEBROW_LIGHT}>Connected</p>
+          <h2 id="journey-heading" className={`mt-3 ${H2}`}>
             How an order travels
-          </h3>
-          <ol className="mt-6 grid gap-0 md:grid-cols-5">
+          </h2>
+          <ol className="mt-10 grid gap-0 md:grid-cols-5">
             {JOURNEY.map((node, index) => (
               <li key={node.step} className="relative flex gap-4 pb-8 last:pb-0 md:block md:pb-0 md:pr-4">
                 {/* connector: vertical on phones, horizontal from md */}
@@ -269,208 +339,13 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 4. WHAT CREATRHUB DOES — the /services row pattern: a label in
-          the gutter, the substance beside it. */}
-      <section aria-labelledby="services-heading" className="bg-brand-surface-soft">
-        <Container className="py-16 sm:py-24">
-          <div className="max-w-4xl">
-            <p className={EYEBROW_LIGHT}>What CreatrHub does</p>
-            <h2 id="services-heading" className={`mt-3 ${H2}`}>
-              Creator content, and the TikTok Shop side
-            </h2>
-            <p className={INTRO}>
-              UGC is video made by real people rather than a brand&apos;s
-              own marketing team. It looks like a recommendation from a real
-              customer, which CreatrHub says audiences tend to trust more
-              than polished studio adverts, and it can run on your channels,
-              in ads, on product pages and on TikTok Shop.
-            </p>
-
-            <div className="mt-12 divide-y divide-brand-border border-y border-brand-border">
-              <div className="grid gap-4 py-8 sm:grid-cols-[9rem_minmax(0,1fr)]">
-                <h3 className={ROW_LABEL}>UGC content</h3>
-                <div>
-                  <p className="text-base leading-7 text-slate-700">
-                    You brief CreatrHub on the product and the goal; it
-                    matches you with creators who fit.
-                  </p>
-                  <ul className="mt-5 grid gap-x-8 gap-y-2 sm:grid-cols-2">
-                    {ugcFormats.map((format) => (
-                      <li key={format} className="flex gap-2.5 text-base text-slate-700">
-                        <CheckGlyph />
-                        {format}
-                      </li>
-                    ))}
-                  </ul>
-                  <dl className="mt-7 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-                    {ugcFeatures.map((feature) => (
-                      <div key={feature.title}>
-                        <dt className="text-base font-semibold text-brand-navy">{feature.title}</dt>
-                        <dd className="mt-1 text-sm leading-6 text-slate-600">{feature.body}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              </div>
-
-              <div className="grid gap-4 py-8 sm:grid-cols-[9rem_minmax(0,1fr)]">
-                <h3 className={ROW_LABEL}>TikTok Shop</h3>
-                <div>
-                  <p className="text-base leading-7 text-slate-700">
-                    For brands selling, or getting ready to sell, on TikTok
-                    Shop, CreatrHub runs the creator side of the channel.
-                  </p>
-                  <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-                    {shopFeatures.map((feature) => (
-                      <div key={feature.title}>
-                        <dt className="text-base font-semibold text-brand-navy">{feature.title}</dt>
-                        <dd className="mt-1 text-sm leading-6 text-slate-600">{feature.body}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* 5. HOW IT WORKS — the numbered steps from the homepage. */}
-      <section aria-labelledby="steps-heading" className="bg-white">
-        <Container className="py-16 sm:py-24">
-          <h2 id="steps-heading" className={H2}>
-            From brief to live content in six steps
-          </h2>
-          <p className={INTRO}>How a CreatrHub campaign runs.</p>
-          <ol className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-            {steps.map((step, index) => (
-              <li key={step.title} className="flex gap-4">
-                <span
-                  aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-green text-sm font-bold text-white"
-                >
-                  {index + 1}
-                </span>
-                <div className="pt-1.5">
-                  <h3 className="text-lg font-semibold tracking-tight text-brand-navy">
-                    <span className="sr-only">Step {index + 1}: </span>
-                    {step.title}
-                  </h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Container>
-      </section>
-
-      {/* 6. YOUR FIRST MONTH — for brands not yet on TikTok Shop. */}
-      <section aria-labelledby="month-heading" className="bg-brand-surface-soft">
-        <Container className="py-16 sm:py-24">
-          <p className={EYEBROW_LIGHT}>New to TikTok Shop</p>
-          <h2 id="month-heading" className={`mt-3 ${H2}`}>
-            Your first month
-          </h2>
-          <p className={INTRO}>
-            Many of the brands CreatrHub works with are Irish, founder-run
-            and selling a physical product through Shopify and Instagram,
-            and have not started on TikTok Shop yet. CreatrHub describes the
-            first four weeks like this.
-          </p>
-          <ol className="mt-12 grid grid-cols-1 divide-y divide-brand-border border-y border-brand-border sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-            {firstMonth.map((week, index) => (
-              <li
-                key={week.week}
-                className={`py-6 sm:px-6 lg:px-6 lg:first:pl-0 lg:last:pr-0 ${
-                  index % 2 === 0 ? "sm:pl-0" : ""
-                } ${index > 1 ? "sm:border-t sm:border-brand-border lg:border-t-0" : ""}`}
-              >
-                <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark">
-                  {week.week}
-                </p>
-                <h3 className="mt-2 text-lg font-semibold tracking-tight text-brand-navy">
-                  {week.title}
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{week.body}</p>
-              </li>
-            ))}
-          </ol>
-
-          <h3 className="mt-12 text-lg font-semibold tracking-tight text-brand-navy">
-            What you provide
-          </h3>
-          <ul className="mt-4 grid gap-x-10 border-t border-brand-border sm:grid-cols-2">
-            {brandProvides.map((item) => (
-              <li key={item} className="flex gap-2.5 border-b border-brand-border py-3 text-base text-slate-700">
-                <CheckGlyph />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </section>
-
-      {/* 7. WHO CREATRHUB WORKS WITH — the audience, then the brands
-          CreatrHub names, in a row of their own and in body weight so
-          the names never read as a logo wall. Text only, attributed. */}
-      <section aria-labelledby="fit-heading" className="bg-white">
-        <Container className="py-16 sm:py-24">
-          <div className="max-w-3xl">
-            <h2 id="fit-heading" className={H2}>
-              Who CreatrHub works with
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600">
-              Direct to consumer and ecommerce brands, founders and
-              boutique agencies that want a steady supply of creator
-              content without managing dozens of freelancers by hand.
-            </p>
-            <ul className="mt-8 grid gap-x-10 border-t border-brand-border sm:grid-cols-2">
-              {audiences.map((audience) => (
-                <li key={audience} className="flex gap-2.5 border-b border-brand-border py-3 text-base text-slate-700">
-                  <CheckGlyph />
-                  {audience}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-16 border-t border-brand-border pt-10">
-            <h3 className="text-xl font-semibold tracking-tight text-brand-navy">
-              CreatrHub&apos;s brand partners
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-slate-600">As named by CreatrHub.</p>
-            <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:gap-16">
-              {(
-                [
-                  ["UGC content", brandPartners.ugc],
-                  ["TikTok Shop", brandPartners.tiktokShop],
-                ] as const
-              ).map(([label, names]) => (
-                <div key={label}>
-                  <h4 className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-green-dark">
-                    {label}
-                  </h4>
-                  <ul className="mt-3 border-t border-brand-border">
-                    {names.map((name) => (
-                      <li key={name} className="border-b border-brand-border py-2.5 text-base text-slate-700">
-                        {name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* 8. GET IN TOUCH — CreatrHub's own contact, and the brochure.
+      {/* 7. GET IN TOUCH — CreatrHub's own contact, and its brochure.
           Leads go to CreatrHub directly; Dockentra is not a party to
           CreatrHub's terms, and the page says so in readable type. */}
       <section
         id="contact"
         aria-labelledby="contact-heading"
-        className="scroll-mt-24 bg-brand-surface-soft"
+        className="scroll-mt-24 bg-white"
       >
         <Container className="py-16 sm:py-24">
           <div className="grid gap-14 lg:grid-cols-2 lg:gap-16">
@@ -543,18 +418,32 @@ export default function CreatrHubPartnerPage() {
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold tracking-tight text-brand-navy">
+              {/* Compacted (design review, 2026-09-24): a row, not a
+                  second full column competing with CreatrHub's contact
+                  card. The placeholder note is deliberate (trust review,
+                  2026-09-24): the PDF still shows a bracketed price and
+                  bracketed contact details CreatrHub has not confirmed,
+                  so "read now or pass on to your team" would oversell
+                  a draft as finished. */}
+              <h3 className="text-lg font-semibold tracking-tight text-brand-navy">
                 The CreatrHub brochure
               </h3>
-              <div className="mt-6 border-y border-brand-border py-6">
+              <div className="mt-4 border-y border-brand-border py-5">
                 <div className="flex items-start gap-4">
-                  <span className="flex h-14 w-11 shrink-0 items-center justify-center rounded-sm border border-brand-navy/20 bg-white text-brand-navy">
+                  <span className="flex h-12 w-10 shrink-0 items-center justify-center rounded-sm border border-brand-navy/20 bg-white text-brand-navy">
                     <FileText className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <div>
                     <p className="text-base font-semibold text-brand-navy">{brochure.title}</p>
                     {brochure.available ? (
-                      <p className="font-mono-data mt-1 text-xs text-slate-600">{brochure.meta}</p>
+                      <>
+                        <p className="font-mono-data mt-1 text-xs text-slate-600">{brochure.meta}</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                          A CreatrHub draft: a few figures in it, including
+                          its price, are still placeholders CreatrHub is
+                          confirming.
+                        </p>
+                      </>
                     ) : (
                       <p id="brochure-status" className="mt-1 text-sm leading-6 text-slate-600">
                         CreatrHub&apos;s overview of its TikTok Shop content
@@ -564,31 +453,25 @@ export default function CreatrHubPartnerPage() {
                   </div>
                 </div>
                 {brochure.available ? (
-                  <>
-                    <p className="mt-4 text-sm leading-6 text-slate-600">
-                      CreatrHub&apos;s own overview of its TikTok Shop
-                      content services, to read now or pass on to your team.
-                    </p>
-                    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                      <a
-                        href={brochure.href}
-                        target="_blank"
-                        rel="noopener"
-                        className={SECONDARY_ON_LIGHT}
-                      >
-                        View CreatrHub brochure
-                        <span className="sr-only">(PDF, opens in a new tab)</span>
-                      </a>
-                      <a
-                        href={brochure.href}
-                        download={brochure.downloadName}
-                        className={SECONDARY_ON_LIGHT}
-                      >
-                        Download PDF
-                        <span className="sr-only">({brochure.meta})</span>
-                      </a>
-                    </div>
-                  </>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <a
+                      href={brochure.href}
+                      target="_blank"
+                      rel="noopener"
+                      className={SECONDARY_ON_LIGHT}
+                    >
+                      View CreatrHub brochure
+                      <span className="sr-only">(PDF, opens in a new tab)</span>
+                    </a>
+                    <a
+                      href={brochure.href}
+                      download={brochure.downloadName}
+                      className={SECONDARY_ON_LIGHT}
+                    >
+                      Download PDF
+                      <span className="sr-only">({brochure.meta})</span>
+                    </a>
+                  </div>
                 ) : (
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <button
@@ -615,7 +498,7 @@ export default function CreatrHubPartnerPage() {
         </Container>
       </section>
 
-      {/* 9. Dockentra's own ask, in the site's one closing shape. */}
+      {/* 8. Dockentra's own ask, in the site's one closing shape. */}
       <ClosingBand
         id="fulfilment"
         heading="Selling through creators? We handle the stock."
