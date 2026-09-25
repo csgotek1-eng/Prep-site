@@ -70,10 +70,16 @@ unchanged. Since 2026-09-24 NO figure on the site carries a caption at
 all (owner decision, site-wide); the alt text describes only what is
 shown, which is now the only place that description lives.
 
-**Clips never autoplay on a phone or tablet** (owner decision,
-2026-09-23): handheld devices get the poster still and never fetch the
-clip. That is why the hero posters are cut from the 4K source rather
-than from the encoded clip — on a phone the poster IS the hero.
+**A phone or tablet autoplays a clip exactly like a desktop** (owner
+decision, 2026-09-24, reversing the "no autoplay on a phone or tablet"
+rule set the day before, 2026-09-23). The hero posters stay cut from
+the 4K source rather than from the encoded clip regardless: the poster
+is still the first paint (the clip mounts and starts playing a moment
+after hydration), still what a reduced-motion or data-saving visitor
+sees instead of the clip on every device, and still the frame a
+handheld gets if its platform refuses autoplay outright (rare — see
+the first-interaction fallback in `src/components/ProcessVideo.tsx`) —
+so it is worth being the sharpest frame the site serves either way.
 
 ## Stills, redesign round (2026-09-24)
 

@@ -181,10 +181,24 @@ for (const width of WIDTHS) {
 }
 
 // ============ 3. only ONE prioritised asset; the rest wait =============
-{
-  const context = await browser.newContext(view(1440, 900));
+// Checked at both a desktop and a phone width: mobile now mounts and
+// autoplays clips exactly like desktop, so a phone that fetched BOTH
+// the hero clip and the below-the-fold "stock to shipment" clip on
+// first load would be exactly the data-cost regression this guards
+// against, and before 2026-09-24 a phone-width run of this check would
+// have passed for free (the second clip never even reaches the DOM
+// there, since neither clip did).
+for (const [label, width, height, touch] of [
+  ["desktop", 1440, 900, false],
+  ["phone", 390, 844, true],
+]) {
+  const context = await browser.newContext({
+    viewport: { width, height },
+    isMobile: touch,
+    hasTouch: touch,
+  });
   const page = await context.newPage();
-  step("loading priority");
+  step(`loading priority (${label})`);
   const requested = [];
   page.on("request", (r) => {
     if (/\.(mp4|jpg|png|webp|avif)/.test(r.url())) requested.push(r.url());
@@ -194,42 +208,45 @@ for (const width of WIDTHS) {
   const videos = requested.filter((u) => u.endsWith(".mp4"));
   ok(
     videos.length <= 1,
-    `${videos.length} videos loaded above the fold: ${videos.map((v) => v.split("/").pop()).join(", ")}`,
+    `${label}: ${videos.length} videos loaded above the fold: ${videos.map((v) => v.split("/").pop()).join(", ")}`,
   );
   ok(
     videos.some((u) => u.includes("hero/")),
-    "the hero clip was not the one that loaded",
+    `${label}: the hero clip was not the one that loaded`,
   );
   // The second clip is not even mounted until it nears the viewport.
   const second = await page.evaluate(() => {
     const el = document.querySelector('video[src*="process/"]');
     return el ? el.getAttribute("preload") : "not mounted";
   });
-  ok(second !== "auto", `the second clip preloads "${second}" — it must not compete`);
+  ok(second !== "auto", `${label}: the second clip preloads "${second}" — it must not compete`);
   await context.close();
 }
 
 // ================= 4. reduced motion gets a still, not a loop ==========
-{
-  // Desktop width on purpose: on a phone the handheld rule already keeps
-  // the clip out, so a phone-sized check would pass even if the
-  // reduced-motion guard were deleted.
+// Checked at BOTH a desktop and a phone width. Before 2026-09-24 a
+// phone-sized check here would have passed even with the
+// reduced-motion guard deleted, because the (now-removed) handheld
+// rule kept the clip out regardless; now that mobile plays video like
+// desktop, the phone check is the one that actually exercises the
+// reduced-motion branch on the device it matters most for.
+for (const [label, width, height] of [["desktop", 1440, 900], ["phone", 390, 844]]) {
   const context = await browser.newContext({
-    ...view(1440, 900),
+    ...view(width, height),
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
-  step("prefers-reduced-motion");
+  step(`prefers-reduced-motion (${label})`);
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
   ok(
     (await page.locator("video").count()) === 0,
-    "a looping clip was mounted for a visitor who asked for reduced motion",
+    `${label}: a looping clip was mounted for a visitor who asked for reduced motion`,
   );
   const stills = await page.locator('img[alt*="warehouse aisle"]').count();
-  ok(stills >= 1, "reduced motion got no still image in place of the clip");
+  ok(stills >= 1, `${label}: reduced motion got no still image in place of the clip`);
   const alt = await page.locator('img[alt*="warehouse aisle"]').first().getAttribute("alt");
-  ok((alt ?? "").length > 30, `the still's alt text is too thin: "${alt}"`);
+  ok((alt ?? "").length > 30, `${label}: the still's alt text is too thin: "${alt}"`);
   await context.close();
 }
 
@@ -359,23 +376,33 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
   await context.close();
 }
 
-// ============ handheld devices: no autoplay, no clip bytes ============
-// Owner decision, 2026-09-23. A phone (either orientation) and a
-// tablet get the poster still; the <video> is never mounted and no
-// video response arrives, even after scrolling every clip into view.
-// A desktop at 768 and 1440 still mounts the clip.
+// ======= mobile plays the same clip as desktop, and actually plays it ====
+// Owner decision, 2026-09-24, reversing the "no autoplay on a phone or
+// tablet" rule from the day before (2026-09-23). A phone (either
+// orientation) and a tablet now mount and autoplay the clip exactly
+// like a desktop: same muted/loop/playsInline/autoPlay attributes, same
+// art-directed portrait/landscape source choice for the hero, same
+// below-the-fold lazy mount. This checks that the <video> is not
+// merely PRESENT — mounted-but-paused would pass a naive element-count
+// check and still be exactly the "poster forever" regression this
+// guards against — by also confirming playback state and, wherever
+// this run's Chromium can actually decode the file, that currentTime
+// genuinely advances. Where it cannot (a Chromium build without H.264;
+// see the tolerant check below, matched against the hero-clip-contract
+// test above), the codec gap is the accepted, distinguishable reason.
 {
-  step("handheld: no autoplay");
+  step("mobile: video mounts and plays, at every required width");
   const cases = [
-    { label: "phone portrait 390", width: 390, height: 844, touch: true, expectVideo: false },
-    { label: "phone portrait 430", width: 430, height: 932, touch: true, expectVideo: false },
-    { label: "phone landscape 844x390", width: 844, height: 390, touch: true, expectVideo: false },
-    { label: "tablet portrait 1024x1366", width: 1024, height: 1366, touch: true, expectVideo: false },
-    // The width clause on its own: a desktop window narrower than 768px
-    // gets the phone layout and, deliberately, the phone rule.
-    { label: "narrow desktop window 700", width: 700, height: 900, touch: false, expectVideo: false },
-    { label: "desktop 768", width: 768, height: 1024, touch: false, expectVideo: true },
-    { label: "desktop 1440", width: 1440, height: 900, touch: false, expectVideo: true },
+    { label: "phone 320", width: 320, height: 844, touch: true },
+    { label: "phone 360", width: 360, height: 800, touch: true },
+    { label: "phone 375", width: 375, height: 812, touch: true },
+    { label: "phone 390", width: 390, height: 844, touch: true },
+    { label: "phone 412", width: 412, height: 915, touch: true },
+    { label: "phone 430", width: 430, height: 932, touch: true },
+    { label: "phone landscape 844x390", width: 844, height: 390, touch: true },
+    { label: "tablet portrait 768x1024", width: 768, height: 1024, touch: true },
+    { label: "tablet landscape 1024x768", width: 1024, height: 768, touch: true },
+    { label: "desktop 1440", width: 1440, height: 900, touch: false },
   ];
   for (const c of cases) {
     const context = await browser.newContext({
@@ -384,6 +411,11 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
       hasTouch: c.touch,
     });
     const page = await context.newPage();
+    const consoleErrors = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
+    page.on("pageerror", (err) => consoleErrors.push(String(err)));
     let videoResponses = 0;
     page.on("response", (response) => {
       if ((response.headers()["content-type"] ?? "").startsWith("video/")) videoResponses += 1;
@@ -397,40 +429,98 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
       }
       window.scrollTo(0, 0);
     });
-    await page.waitForTimeout(1200);
-    const state = await page.evaluate(() => ({
-      videos: document.querySelectorAll("video").length,
-      heroStill: document.querySelector('main section picture img[src*="dockentra-process-aisle"]'),
-      heroStillCurrent: document.querySelector('main section picture img')?.currentSrc ?? "",
-    }));
-    if (c.expectVideo) {
-      ok(state.videos >= 1, `${c.label}: the clip no longer mounts on a desktop`);
-    } else {
-      ok(state.videos === 0, `${c.label}: a <video> was mounted on a handheld (${state.videos})`);
-      ok(videoResponses === 0, `${c.label}: ${videoResponses} video response(s) on a handheld`);
-      ok(state.heroStill !== null, `${c.label}: no poster still stood in for the hero clip`);
-      // Art direction: an upright phone gets the portrait frame.
+    await page.waitForTimeout(1500);
+
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    ok(scrollWidth <= c.width + 1, `${c.label}: horizontal overflow (${scrollWidth})`);
+
+    const hero = await page.evaluate(() => {
+      const v = document.querySelector("[data-hero-backdrop] video");
+      if (!v) return null;
+      return {
+        muted: v.muted,
+        loop: v.loop,
+        playsInline: v.playsInline,
+        autoplay: v.autoplay,
+        controls: v.hasAttribute("controls"),
+        playing: !v.paused,
+        currentSrc: v.currentSrc,
+        currentTime: v.currentTime,
+        error: v.error?.message ?? null,
+      };
+    });
+    ok(hero !== null, `${c.label}: the hero <video> did not mount — mobile is back to poster-only`);
+    if (hero) {
+      ok(hero.muted, `${c.label}: hero clip is not muted`);
+      ok(hero.loop, `${c.label}: hero clip does not loop`);
+      ok(
+        hero.playsInline,
+        `${c.label}: hero clip is missing playsInline — iOS Safari would open its native fullscreen player instead of playing inline`,
+      );
+      ok(hero.autoplay, `${c.label}: hero clip is missing the autoplay attribute`);
+      ok(!hero.controls, `${c.label}: hero clip shows native controls`);
+      ok(
+        hero.playing || (hero.error ?? "").includes("NO_SUPPORTED_STREAMS"),
+        `${c.label}: the hero clip neither played nor failed on the known codec gap: ${hero.error}`,
+      );
+      // Art direction: an upright viewport gets the portrait encode, a
+      // wide one the landscape encode — unaffected by this round.
       if (c.height > c.width) {
         ok(
-          state.heroStillCurrent.includes("aisle-portrait"),
-          `${c.label}: the still is not the portrait frame (${state.heroStillCurrent})`,
+          hero.currentSrc.includes("aisle-portrait"),
+          `${c.label}: portrait viewport is not playing the portrait clip (${hero.currentSrc})`,
+        );
+      } else {
+        ok(
+          !hero.currentSrc.includes("aisle-portrait"),
+          `${c.label}: landscape viewport is playing the portrait clip unnecessarily (${hero.currentSrc})`,
         );
       }
     }
+
+    // Not merely mounted-and-paused: currentTime genuinely advances,
+    // wherever this run's Chromium can decode the file (the "playing"
+    // check above already separates that from a real failure).
+    if (hero?.playing) {
+      const t0 = hero.currentTime;
+      await page.waitForTimeout(800);
+      const t1 = await page.evaluate(
+        () => document.querySelector("[data-hero-backdrop] video")?.currentTime ?? 0,
+      );
+      ok(
+        t1 > t0,
+        `${c.label}: the hero clip reports "playing" but currentTime never advanced (${t0} -> ${t1}) — it is showing a frozen frame, not actually playing`,
+      );
+    }
+
+    ok(videoResponses >= 1, `${c.label}: no video byte was ever requested — the clip did not really mount`);
+    ok(
+      consoleErrors.length === 0,
+      `${c.label}: console error(s) on load: ${consoleErrors.slice(0, 2).join(" | ")}`,
+    );
     await context.close();
   }
 }
 
 // ============ data saving: the hero clip is never fetched ============
-{
-  step("Save-Data");
+// Checked at BOTH a desktop and a phone width, for the same reason as
+// the reduced-motion and priority-loading checks above: mobile now
+// autoplays like desktop, so Save-Data has to be re-proven on a phone
+// rather than assumed from the desktop result.
+for (const [widthLabel, width, height, touch] of [
+  ["desktop", 1440, 900, false],
+  ["phone", 390, 844, true],
+]) {
+  step(`Save-Data (${widthLabel})`);
   for (const [label, saveData] of [
     ["normal connection", false],
     ["Save-Data on", true],
   ]) {
-    // Desktop width on purpose: on a phone the handheld rule already
-    // keeps the clip out, so it would not show what Save-Data does.
-    const context = await browser.newContext(view(1440, 900));
+    const context = await browser.newContext({
+      viewport: { width, height },
+      isMobile: touch,
+      hasTouch: touch,
+    });
     if (saveData) {
       await context.addInitScript(() => {
         Object.defineProperty(navigator, "connection", {
@@ -459,13 +549,93 @@ for (const [width, height] of [[320, 844], [390, 664], [390, 844], [430, 932]]) 
     }));
     if (saveData) {
       // Not fetched-and-hidden: never fetched at all.
-      ok(videoRequests === 0, `${label}: the clip was still downloaded`);
-      ok(mounted.videos === 0, `${label}: a <video> was still mounted`);
-      ok(mounted.poster, `${label}: no poster stood in for the clip`);
+      ok(videoRequests === 0, `${widthLabel}/${label}: the clip was still downloaded`);
+      ok(mounted.videos === 0, `${widthLabel}/${label}: a <video> was still mounted`);
+      ok(mounted.poster, `${widthLabel}/${label}: no poster stood in for the clip`);
     } else {
-      ok(mounted.videos >= 1, `${label}: the clip stopped mounting`);
+      ok(mounted.videos >= 1, `${widthLabel}/${label}: the clip stopped mounting`);
     }
     await context.close();
+  }
+}
+
+// ===== every OTHER clip on the site: the same parity, on its own page =====
+// The hero is checked in detail above; this proves the other three
+// call sites (ProcessMedia's "stock to shipment" on the homepage, the
+// /how-it-works packing clip, the /dispatch-commitment handover clip —
+// see src/app/how-it-works/page.tsx, src/app/dispatch-commitment/
+// page.tsx and src/components/sections/ProcessMedia.tsx) got the same
+// fix rather than only the one asset a homepage-only check would have
+// exercised. All three are lazy (not priority), so each is scrolled
+// into view before checking.
+{
+  step("every other clip on the site plays on mobile too");
+  const clips = [
+    { path: "/", selector: 'video[src*="dispatch.mp4"]', label: "homepage: ProcessMedia" },
+    { path: "/how-it-works", selector: 'video[src*="packing.mp4"]', label: "/how-it-works" },
+    { path: "/dispatch-commitment", selector: 'video[src*="handover.mp4"]', label: "/dispatch-commitment" },
+  ];
+  const widths = [
+    { label: "phone 390", width: 390, height: 844, touch: true },
+    { label: "tablet 768x1024", width: 768, height: 1024, touch: true },
+    { label: "desktop 1440", width: 1440, height: 900, touch: false },
+  ];
+  for (const clip of clips) {
+    for (const w of widths) {
+      const context = await browser.newContext({
+        viewport: { width: w.width, height: w.height },
+        isMobile: w.touch,
+        hasTouch: w.touch,
+      });
+      const page = await context.newPage();
+      const caseLabel = `${clip.label} @ ${w.label}`;
+      await page.goto(BASE + clip.path, { waitUntil: "networkidle" });
+      // Scroll the whole page so the lazy clip's IntersectionObserver
+      // fires, exactly as the priority-loading check above does.
+      await page.evaluate(async () => {
+        for (let y = 0; y <= document.body.scrollHeight; y += 500) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 80));
+        }
+      });
+      await page.waitForTimeout(1500);
+      const el = await page.evaluate((selector) => {
+        const v = document.querySelector(selector);
+        if (!v) return null;
+        return {
+          muted: v.muted,
+          loop: v.loop,
+          playsInline: v.playsInline,
+          autoplay: v.autoplay,
+          controls: v.hasAttribute("controls"),
+          playing: !v.paused,
+          currentTime: v.currentTime,
+          error: v.error?.message ?? null,
+        };
+      }, clip.selector);
+      ok(el !== null, `${caseLabel}: the clip did not mount`);
+      if (el) {
+        ok(el.muted, `${caseLabel}: not muted`);
+        ok(el.loop, `${caseLabel}: does not loop`);
+        ok(el.playsInline, `${caseLabel}: missing playsInline`);
+        ok(el.autoplay, `${caseLabel}: missing the autoplay attribute`);
+        ok(!el.controls, `${caseLabel}: shows native controls`);
+        ok(
+          el.playing || (el.error ?? "").includes("NO_SUPPORTED_STREAMS"),
+          `${caseLabel}: neither played nor failed on the known codec gap: ${el.error}`,
+        );
+        if (el.playing) {
+          const t0 = el.currentTime;
+          await page.waitForTimeout(700);
+          const t1 = await page.evaluate(
+            (selector) => document.querySelector(selector)?.currentTime ?? 0,
+            clip.selector,
+          );
+          ok(t1 > t0, `${caseLabel}: reports "playing" but currentTime never advanced (${t0} -> ${t1})`);
+        }
+      }
+      await context.close();
+    }
   }
 }
 
