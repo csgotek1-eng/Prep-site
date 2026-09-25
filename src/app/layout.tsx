@@ -125,9 +125,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col">
-        {/* Header logo intro: decides, before first paint, whether this
-            page load plays it (first page of the session, no reduced
-            motion). See src/lib/logo-intro-markup.ts. */}
+        {/* Header logo intro: flags every full page load, before first
+            paint, unless the visitor prefers reduced motion. Route changes
+            are handled by LogoIntroPlayer. See src/lib/logo-intro-markup.ts. */}
         <script dangerouslySetInnerHTML={{ __html: LOGO_INTRO_GUARD_SCRIPT }} />
         <script
           type="application/ld+json"

@@ -156,6 +156,7 @@ export function playLogoIntro(layer: Element, onDone: () => void): () => void {
     onDone();
     return () => {};
   }
+  apply(nodes, introFrame(0)); // a replay starts from the box, never from the last frame
   let raf = 0;
   let cancelled = false;
   const t0 = performance.now();

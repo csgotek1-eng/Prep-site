@@ -8,9 +8,9 @@ import { introMarkup } from "@/lib/logo-intro-markup";
  * accessible name are never touched and nothing can shift.
  *
  * Invisible (display: none) unless the guard script in the root layout has
- * put data-logo-intro on <html> - i.e. only on the first page of a session
- * and never with prefers-reduced-motion. Everyone else gets the static
- * logo exactly as before.
+ * put data-logo-intro on <html> (every page view; LogoIntroPlayer re-flags
+ * it on route changes) and never with prefers-reduced-motion. Reduced-motion
+ * visitors get the static logo exactly as before.
  */
 export default function LogoIntro({ markSize }: { markSize: number }) {
   return (

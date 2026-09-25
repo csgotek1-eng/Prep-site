@@ -8,7 +8,6 @@ import {
   BOX_OUTER,
   BOX_RIBBON,
   LOGO_INTRO_GUARD_SCRIPT,
-  LOGO_INTRO_STORAGE_KEY,
   introMarkup,
 } from "../src/lib/logo-intro-markup.ts";
 import { LOGO_INTRO_DURATION, introFrame } from "../src/lib/logo-intro.ts";
@@ -19,25 +18,19 @@ const read = (path: string) => readFileSync(path, "utf8");
  * The header logo intro (box -> D -> "ockentra", first page of a session).
  * Rendered proof is in tests/browser/logo-intro.mjs; these are the cheap
  * guards for the properties an owner would notice by their absence: it
- * never plays with reduced motion, never repeats within a session, never
- * touches the static lockup, and never costs the main bundle the animation.
+ * plays on every page view (load, refresh, route change, back/forward), never
+ * plays with reduced motion, never touches the static lockup, and never costs
+ * the main bundle the animation.
  */
 
 // ---------------------------------------------------------------------
 // The guard script: whether this page load plays the intro
 // ---------------------------------------------------------------------
 
-function runGuard(opts: {
-  reduced?: boolean;
-  visited?: boolean;
-  search?: string;
-  storageThrows?: boolean;
-}) {
+function runGuard(opts: { reduced?: boolean; noMatchMedia?: boolean; search?: string }) {
   const attrs: Record<string, string> = {};
-  const store: Record<string, string> = opts.visited
-    ? { [LOGO_INTRO_STORAGE_KEY]: "1" }
-    : {};
-  const ctx = {
+  let storageTouched = false;
+  const ctx: Record<string, unknown> = {
     document: {
       documentElement: {
         setAttribute: (k: string, v: string) => {
@@ -46,52 +39,42 @@ function runGuard(opts: {
       },
     },
     location: { search: opts.search ?? "" },
-    matchMedia: (q: string) => ({
-      matches: /prefers-reduced-motion: reduce/.test(q) && !!opts.reduced,
-    }),
-    sessionStorage: {
-      getItem: (k: string) => {
-        if (opts.storageThrows) throw new Error("blocked");
-        return store[k] ?? null;
-      },
-      setItem: (k: string, v: string) => {
-        if (opts.storageThrows) throw new Error("blocked");
-        store[k] = v;
-      },
-    },
+    // Any storage access is a regression: the intro no longer remembers anything.
+    sessionStorage: new Proxy({}, { get: () => { storageTouched = true; throw new Error("storage"); } }),
+    localStorage: new Proxy({}, { get: () => { storageTouched = true; throw new Error("storage"); } }),
   };
+  if (!opts.noMatchMedia) {
+    ctx.matchMedia = (q: string) => ({
+      matches: /prefers-reduced-motion: reduce/.test(q) && !!opts.reduced,
+    });
+  }
   runInNewContext(LOGO_INTRO_GUARD_SCRIPT, ctx);
-  return { attrs, store };
+  return { attrs, storageTouched };
 }
 
 describe("logo intro guard", () => {
-  it("plays on the first page of a session and remembers it", () => {
-    const { attrs, store } = runGuard({});
-    assert.equal(attrs["data-logo-intro"], "pending");
-    assert.equal(store[LOGO_INTRO_STORAGE_KEY], "1");
+  it("flags every full page load: there is no once-per-session memory", () => {
+    // Two loads in a row behave identically - the guard has no state.
+    assert.equal(runGuard({}).attrs["data-logo-intro"], "pending");
+    assert.equal(runGuard({}).attrs["data-logo-intro"], "pending");
   });
 
-  it("does not repeat within the same session", () => {
-    assert.deepEqual(runGuard({ visited: true }).attrs, {});
+  it("never touches sessionStorage or localStorage", () => {
+    assert.equal(runGuard({}).storageTouched, false);
+    assert.equal(/sessionStorage|localStorage/.test(LOGO_INTRO_GUARD_SCRIPT), false);
   });
 
   it("never plays with prefers-reduced-motion", () => {
-    const { attrs, store } = runGuard({ reduced: true });
-    assert.deepEqual(attrs, {});
-    assert.deepEqual(store, {});
-  });
-
-  it("can be forced for review with ?logo-intro=1", () => {
-    assert.equal(
-      runGuard({ visited: true, search: "?a=b&logo-intro=1" }).attrs["data-logo-intro"],
-      "pending",
-    );
-    // ...but a reduced-motion visitor is still never animated.
+    assert.deepEqual(runGuard({ reduced: true }).attrs, {});
     assert.deepEqual(runGuard({ reduced: true, search: "?logo-intro=1" }).attrs, {});
   });
 
-  it("fails closed when storage is blocked (no intro, no exception)", () => {
-    assert.deepEqual(runGuard({ storageThrows: true }).attrs, {});
+  it("does not throw and does not animate when matchMedia is unavailable", () => {
+    assert.deepEqual(runGuard({ noMatchMedia: true }).attrs, {});
+  });
+
+  it("?logo-intro=1 still plays (it is simply what every load does now)", () => {
+    assert.equal(runGuard({ search: "?logo-intro=1" }).attrs["data-logo-intro"], "pending");
   });
 });
 
@@ -189,6 +172,26 @@ describe("logo intro wiring", () => {
     assert.ok(css.includes('html[data-logo-intro="pending"] [data-brand-static]'));
     assert.ok(css.includes("@keyframes brand-intro-failsafe"));
     assert.ok(/prefers-reduced-motion: reduce\)\s*\{\s*\.brand-intro-layer/.test(css));
+  });
+
+  it("replays on every route change, keyed on the pathname only", () => {
+    assert.ok(player.includes('usePathname'));
+    assert.ok(/\},\s*\[pathname\]\);/.test(player));
+    // Nothing else may restart it: no search params, no hash, no state.
+    assert.equal(/useSearchParams|location\.hash|useState/.test(player), false);
+    // Before paint, so a route change never shows the finished logo first.
+    assert.ok(player.includes("useLayoutEffect"));
+  });
+
+  it("replays when a page returns from the back/forward cache", () => {
+    assert.ok(player.includes('"pageshow"') && player.includes("e.persisted"));
+  });
+
+  it("has no once-per-session memory anywhere", () => {
+    for (const f of ["src/lib/logo-intro-markup.ts", "src/lib/logo-intro.ts", "src/components/LogoIntroPlayer.tsx", "src/components/LogoIntro.tsx", "src/components/BrandLockup.tsx"]) {
+      assert.equal(/sessionStorage|localStorage|dk-logo-intro/.test(read(f)), false, f);
+    }
+    assert.equal(/sessionStorage|localStorage/.test(layout), false);
   });
 
   it("keeps the animation out of the main bundle", () => {

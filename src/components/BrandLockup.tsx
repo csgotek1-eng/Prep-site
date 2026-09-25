@@ -22,11 +22,11 @@ import LogoIntro from "@/components/LogoIntro";
  * wordmark do not move by a single pixel, and it is inside the
  * role="img" container, so assistive tech still hears one word.
  *
- * `animate` (header only): the first page of a session plays the box -> D
- * intro. The static lockup below is rendered exactly as before; it is only
- * marked (data-brand-static) so CSS can hold it back while the absolutely
- * positioned intro layer plays over it, then cross-fade to it. Without the
- * flag on <html> (repeat visit, reduced motion, no JS) nothing differs.
+ * `animate` (header only): every page view plays the box -> D intro. The
+ * static lockup below is rendered exactly as before; it is only marked
+ * (data-brand-static) so CSS can hold it back while the absolutely
+ * positioned intro layer plays over it, then fade to it. Without the flag
+ * on <html> (reduced motion, no JS) nothing differs.
  */
 export default function BrandLockup({
   markSize = 20,

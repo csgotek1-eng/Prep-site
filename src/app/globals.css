@@ -171,7 +171,8 @@ h6 {
  * Header logo intro (src/lib/logo-intro.ts). The layer is absolutely
  * positioned over the static lockup and exists only while <html> carries
  * data-logo-intro (set before first paint by the guard script in the root
- * layout: first page of a session, never with prefers-reduced-motion).
+ * layout on every full load, and by LogoIntroPlayer on every route change;
+ * never with prefers-reduced-motion).
  *   pending  static lockup held back, the box (first frame) is shown
  *   running  the intro plays
  *   done     static lockup fades in under the layer, then the layer fades off

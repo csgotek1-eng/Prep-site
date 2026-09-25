@@ -1,6 +1,6 @@
 /**
  * Header logo intro - the part that ships in the main bundle: the guard
- * that decides whether the intro plays, and the overlay's first frame (the
+ * that decides whether the intro plays (always, except for reduced motion), and the overlay's first frame (the
  * shipping box) as markup. It is rendered on the server AND by the client,
  * so it is kept tiny; the animation itself (src/lib/logo-intro.ts) is
  * loaded only when the intro is actually going to play.
@@ -8,25 +8,17 @@
  * No window/document access at import time (evaluated on the server).
  */
 
-/** sessionStorage key: the intro plays once per browser session. */
-export const LOGO_INTRO_STORAGE_KEY = "dk-logo-intro";
-
 /**
- * Runs in <head> before first paint. Decides ONCE per page load whether the
- * intro plays and, if so, flags <html> so CSS can hide the static lockup
- * and show the first frame (the box) from the very first paint - no flash of
- * the final logo. Skipped for prefers-reduced-motion, for a repeat visit in
- * the same session, and on any storage error. `?logo-intro=1` forces a
- * replay (owner review). The key is written here, not by the player, so a
- * page that fails to hydrate cannot loop the intro on every load.
+ * Runs in <head> before first paint, on EVERY full page load (first visit,
+ * refresh, a link that reloads the document). Flags <html> so CSS can hide
+ * the static lockup and show the first frame (the box) from the very first
+ * paint - no flash of the final logo. Skipped only for prefers-reduced-motion
+ * (and if matchMedia is unavailable). Client-side navigations are handled by
+ * LogoIntroPlayer, which re-flags <html> on every route change.
  */
 export const LOGO_INTRO_GUARD_SCRIPT =
-  "try{var d=document.documentElement,q=/[?&]logo-intro=1/.test(location.search);" +
-  "if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&(q||!sessionStorage.getItem('" +
-  LOGO_INTRO_STORAGE_KEY +
-  "'))){sessionStorage.setItem('" +
-  LOGO_INTRO_STORAGE_KEY +
-  "','1');d.setAttribute('data-logo-intro','pending')}}catch(e){}";
+  "try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)" +
+  "document.documentElement.setAttribute('data-logo-intro','pending')}catch(e){}";
 
 /** The carton (first frame). The animation module morphs these into the D. */
 export const BOX_OUTER = "M 28 31 L 272 31 C 470 31 482 43 482 254 C 482 466 470 478 275 478 L 28 478 Z";
