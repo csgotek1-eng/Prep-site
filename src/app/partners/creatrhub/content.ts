@@ -40,7 +40,7 @@ export const creatrhub = {
   company: "CreatrHub Limited",
   registrationNumber: "809110",
   contact: {
-    name: "Olubukola (Bukky) Sogbolu",
+    name: "Bukky",
     role: "Co-Founder & CEO",
     email: "partnerships@creatrhub.eu",
     /** E.164 for the tel: link; the label is how it is read aloud. */
