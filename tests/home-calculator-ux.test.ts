@@ -18,9 +18,9 @@ const strip = (s: string) =>
 describe("header Get Price", () => {
   const header = strip(read("src/components/Header.tsx"));
 
-  it("renders the canonical calculator trigger labelled Get Price", () => {
+  it("renders the canonical calculator trigger labelled Get a Quote", () => {
     assert.ok(header.includes("<CalculatorTrigger"));
-    assert.ok(header.includes('label="Get Price"'));
+    assert.ok(header.includes('label="Get a Quote"'));
     assert.ok(header.includes('variant="header"'));
   });
 
@@ -92,7 +92,7 @@ describe("homepage hero", () => {
       "an in-page calculator button is back in the homepage hero",
     );
     const header = read("src/components/Header.tsx");
-    assert.ok(header.includes('label="Get Price"'), "the header CTA went missing");
+    assert.ok(header.includes('label="Get a Quote"'), "the header CTA went missing");
   });
 
   it("pairs it with a calm second door instead of leaving one way out", () => {

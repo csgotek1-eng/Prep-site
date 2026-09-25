@@ -252,7 +252,7 @@ const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
 await scanState("calculator (desktop)", DESKTOP, async (page) => {
-  await page.locator('header button:has-text("Get Price")').first().click();
+  await page.locator('header button:has-text("Quote")').first().click();
   await page.waitForSelector("#monthly-orders", { state: "visible" });
 });
 await scanState("calculator (mobile, step 1)", MOBILE, async (page) => {

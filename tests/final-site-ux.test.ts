@@ -78,9 +78,9 @@ describe("the dialog always fits the visible viewport", () => {
 // Header + hero appearance
 // ---------------------------------------------------------------------
 
-describe("header Get Price is text only", () => {
+describe("header pricing CTA is text only", () => {
   it("renders without the calculator icon", () => {
-    assert.ok(header.includes('label="Get Price"'));
+    assert.ok(header.includes('label="Get a Quote"'));
     assert.equal((header.match(/icon=\{false\}/g) ?? []).length, 2);
     const headerVariant = calcModal.slice(
       calcModal.indexOf("header:"),

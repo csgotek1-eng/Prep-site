@@ -63,9 +63,17 @@ export function useCataloguePrefetch(): () => void {
 }
 
 const VARIANTS = {
-  /** Top-right site CTA. Text only — no icon (owner request). */
+  /**
+   * Top-right site CTA. Text only — no icon (owner request). Visible at
+   * every width (see Header.tsx), so it carries its own responsive
+   * sizing rather than the page-level `lg:` nav swap: compact on a
+   * phone, a touch-friendlier step at `sm` as the layout has room, full
+   * desktop size at `lg`. Flat by design (no shadow) — it reads as part
+   * of the nav bar, not a floating widget on top of it (CTA refinement
+   * round, 2026-09-25).
+   */
   header:
-    "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-green px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark",
+    "inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-brand-green px-4 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-green-dark active:bg-brand-green-dark sm:min-h-11 sm:px-5 lg:min-h-12 lg:text-base",
   /**
    * The homepage hero's PRIMARY action — solid, not outlined.
    *
@@ -100,12 +108,19 @@ const VARIANTS = {
  */
 export function CalculatorTrigger({
   label = "Get Price",
+  shortLabel,
   variant = "primary",
   onClick,
   block = false,
   icon = true,
 }: {
   label?: string;
+  /**
+   * A shorter label shown below `sm` when the same button spans phone
+   * and desktop widths (the header bar CTA). Omit for triggers that
+   * only ever render at one width, such as the mobile menu row.
+   */
+  shortLabel?: string;
   variant?: keyof typeof VARIANTS;
   onClick: () => void;
   /** Full-width button (mobile menu row). */
@@ -124,7 +139,14 @@ export function CalculatorTrigger({
       className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
     >
       {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}
-      {label}
+      {shortLabel ? (
+        <>
+          <span className="sm:hidden">{shortLabel}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </>
+      ) : (
+        label
+      )}
     </button>
   );
 }

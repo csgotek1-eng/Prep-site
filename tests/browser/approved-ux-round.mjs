@@ -165,9 +165,9 @@ for (const width of WIDTHS) {
 
   // Header, then the dock on top of it — the exact sequence that used
   // to produce two dialogs and two focus traps.
-  await page.locator('header button:has-text("Get Price")').first().click();
+  await page.locator('header button:has-text("Quote")').first().click();
   await page.waitForSelector("#monthly-orders", { state: "visible" });
-  ok((await page.locator('[role="dialog"]').count()) === 1, "header Get Price: not exactly one dialog");
+  ok((await page.locator('[role="dialog"]').count()) === 1, "header pricing CTA: not exactly one dialog");
   const dockVisible = await page
     .locator('[data-testid="floating-dock"]')
     .isVisible()
@@ -190,7 +190,7 @@ for (const width of WIDTHS) {
     "body scroll was not restored",
   );
   const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? "");
-  ok(focused.includes("Get Price"), `focus did not return to the trigger (got "${focused}")`);
+  ok(focused.includes("Quote"), `focus did not return to the trigger (got "${focused}")`);
 
   // The dock's own Get Price, then the header on top of it.
   await page.locator('[data-testid="floating-dock"] button[aria-label="Open pricing calculator"]').click();
@@ -213,10 +213,10 @@ for (const width of WIDTHS) {
     (await page.locator('#mobile-menu button:has-text("Help")').count()) === 1,
     "Help is not in the mobile menu",
   );
-  await page.locator('#mobile-menu button:has-text("Get Price")').click();
+  await page.locator('#mobile-menu button:has-text("Get Quote")').click();
   await page.waitForTimeout(600);
-  ok((await page.locator('[role="dialog"]').count()) === 1, "mobile Get Price: not exactly one dialog");
-  ok(await page.locator("#monthly-orders").isVisible(), "mobile Get Price did not open at step 1");
+  ok((await page.locator('[role="dialog"]').count()) === 1, "mobile Get Quote: not exactly one dialog");
+  ok(await page.locator("#monthly-orders").isVisible(), "mobile Get Quote did not open at step 1");
   await page.locator('[role="dialog"] button[aria-label="Close"]').click();
   await page.waitForTimeout(400);
 

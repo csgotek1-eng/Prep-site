@@ -219,7 +219,7 @@ describe("CTA vocabulary and repetition", () => {
   // homepage hero, the Pricing page's one conversion section and the
   // global floating action — not on every page, and never twice on the
   // same page.
-  const PRICING_CTA = /Get Price\b|\bCalculator\b/g;
+  const PRICING_CTA = /Get Price\b|Get a Quote\b|Get Quote\b|\bCalculator\b/g;
 
   /**
    * These assertions are about what a visitor SEES, so the prose that
@@ -244,8 +244,12 @@ describe("CTA vocabulary and repetition", () => {
       const hits = (withoutComments(read(path)).match(PRICING_CTA) ?? []).length;
       // The header renders its trigger twice — desktop bar and mobile
       // menu row — and `hidden sm:block` / `sm:hidden` make them
-      // mutually exclusive, so a visitor still only ever sees one.
-      const limit = path === "src/components/Header.tsx" ? 2 : 1;
+      // mutually exclusive, so a visitor still only ever sees one. The
+      // bar trigger itself carries two literal label props (`label` and
+      // `shortLabel`, CTA refinement round 2026-09-25) so only one of
+      // its own two spans is ever visible at a given width — three
+      // literal occurrences in source, still one CTA seen at a time.
+      const limit = path === "src/components/Header.tsx" ? 3 : 1;
       assert.ok(hits <= limit, `${path} repeats a pricing CTA ${hits} times`);
     }
   });
@@ -265,9 +269,10 @@ describe("CTA vocabulary and repetition", () => {
     }
   });
 
-  it("the header carries the ONE Get Price button, and no Calculator nav item", () => {
+  it("the header carries the ONE pricing CTA, and no Calculator nav item", () => {
     const header = withoutComments(read("src/components/Header.tsx"));
-    assert.ok(header.includes('label="Get Price"'));
+    assert.ok(header.includes('label="Get a Quote"'));
+    assert.ok(header.includes('shortLabel="Get Quote"'));
     // Desktop bar + mobile menu = two renderings, never both visible,
     // both driving the single dialog the header owns.
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
@@ -291,7 +296,7 @@ describe("CTA vocabulary and repetition", () => {
     // the header's was left untouched.
     const home = withoutComments(read("src/app/page.tsx"));
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 0);
-    assert.ok(read("src/components/Header.tsx").includes('label="Get Price"'));
+    assert.ok(read("src/components/Header.tsx").includes('label="Get a Quote"'));
     assert.equal(home.includes('href="/pricing-calculator"'), false);
     // The visitor who is not ready to be priced still has somewhere to go.
     assert.ok(home.includes("See how it works"));
@@ -319,8 +324,16 @@ describe("CTA vocabulary and repetition", () => {
     }
   });
 
-  it("the retired label is gone from public surfaces", () => {
+  it("the retired label stays out of every surface except the header CTA it was reinstated for", () => {
+    // "Get a Quote" was retired site-wide (2026-09 audit: the same
+    // phrase named two different destinations — the header's calculator
+    // and Help's contact form — which is the exact confusion this rule
+    // still guards against everywhere but one place. Owner decision,
+    // 2026-09-25 (CTA refinement round): the header's pricing button is
+    // reinstated to "Get a Quote" ("Get Quote" below sm), and nothing
+    // else on the site uses the phrase, so there is no live collision.
     for (const path of [...ctaSurfaces, "src/components/PricingCalculator.tsx"]) {
+      if (path === "src/components/Header.tsx") continue;
       assert.equal(
         read(path).includes("Get a Quote"),
         false,

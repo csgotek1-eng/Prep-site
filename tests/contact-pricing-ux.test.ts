@@ -78,7 +78,7 @@ describe("header is navigation only", () => {
     // pricing action and the nav list itself stays clean.
     const header = withoutComments(read("src/components/Header.tsx"));
     assert.equal(header.includes("Get Pricing"), false, "old label retired");
-    assert.ok(header.includes('label="Get Price"'));
+    assert.ok(header.includes('label="Get a Quote"'));
     // Desktop bar + mobile menu row; the classes keep them exclusive,
     // and both flip the ONE shared state rather than owning a dialog.
     assert.equal((header.match(/<CalculatorTrigger/g) ?? []).length, 2);
@@ -101,7 +101,7 @@ describe("homepage hero keeps ONE conversion action", () => {
     // hold the primary directly beneath the header's identical button;
     // the owner removed the in-page copy and kept the header's.
     assert.equal((home.match(/<CalculatorModal/g) ?? []).length, 0);
-    assert.ok(read("src/components/Header.tsx").includes('label="Get Price"'));
+    assert.ok(read("src/components/Header.tsx").includes('label="Get a Quote"'));
     // The homepage renders several section components; the hero is the
     // only one allowed to open the calculator, so none of the others
     // may mount a second opener.

@@ -127,9 +127,10 @@ stays for errors only.
 - **Media frames** are square-cornered, with no hairline, at every
   size (the "From stock to shipment" frame set the rule; the services,
   batch-photo, how-it-works and about frames follow it).
-- **Header**: Get Price is visible in the bar at every width; the
-  floating dock stands down while the mobile menu is open, as it does
-  for dialogs.
+- **Header**: the pricing CTA ("Get a Quote" desktop/tablet, "Get
+  Quote" on phones — CTA refinement round, 2026-09-25) is visible in
+  the bar at every width; the floating dock stands down while the
+  mobile menu is open, as it does for dialogs.
 - **Typography** — OWNER-APPROVED, self-hosted via `next/font/google`,
   no runtime request to Google:
   - **Manrope** (700/800) — display and headings;

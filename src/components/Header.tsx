@@ -135,7 +135,8 @@ export default function Header() {
             <div className="block">
               <CalculatorTrigger
                 variant="header"
-                label="Get Price"
+                label="Get a Quote"
+                shortLabel="Get Quote"
                 icon={false}
                 onClick={openCalculator}
               />
@@ -231,7 +232,7 @@ export default function Header() {
                     carries it. */}
                 <CalculatorTrigger
                   variant="header"
-                  label="Get Price"
+                  label="Get Quote"
                   icon={false}
                   block
                   onClick={() => {

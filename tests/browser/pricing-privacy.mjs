@@ -249,8 +249,8 @@ const browser = await launch();
   // suite after the sweep had already passed. What the run actually
   // needs is the header button, so wait for that.
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
-  await page.locator('header button:has-text("Get Price")').first().waitFor({ state: "visible" });
-  await page.locator('header button:has-text("Get Price")').first().click();
+  await page.locator('header button:has-text("Quote")').first().waitFor({ state: "visible" });
+  await page.locator('header button:has-text("Quote")').first().click();
   await page.waitForSelector("#monthly-orders", { state: "visible" });
   await page.fill("#monthly-orders", "1000");
   const boxes = page.locator('[role="dialog"] input[type="checkbox"]');
