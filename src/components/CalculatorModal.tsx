@@ -64,16 +64,16 @@ export function useCataloguePrefetch(): () => void {
 
 const VARIANTS = {
   /**
-   * Top-right site CTA. Text only — no icon (owner request). Visible at
-   * every width (see Header.tsx), so it carries its own responsive
-   * sizing rather than the page-level `lg:` nav swap: compact on a
-   * phone, a touch-friendlier step at `sm` as the layout has room, full
-   * desktop size at `lg`. Flat by design (no shadow) — it reads as part
-   * of the nav bar, not a floating widget on top of it (CTA refinement
-   * round, 2026-09-25).
+   * Top-right site CTA. A minimalist text link — no fill, no border, no
+   * shadow — with a green arrow, on every width and with the same
+   * label everywhere ("Get Price"; option 10, CTA correction round,
+   * 2026-09-27, reversing the mobile/desktop label swap this replaced).
+   * A 44px min-height keeps the tap target real despite the plain
+   * styling; `lg:text-base` is the only responsive change, a touch
+   * larger on desktop.
    */
   header:
-    "inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-brand-green px-4 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-green-dark active:bg-brand-green-dark sm:min-h-11 sm:px-5 lg:min-h-12 lg:text-base",
+    "group inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2 text-sm font-semibold text-brand-green transition-colors duration-150 hover:text-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 active:text-brand-green-dark sm:px-3 lg:text-base",
   /**
    * The homepage hero's PRIMARY action — solid, not outlined.
    *
@@ -108,25 +108,21 @@ const VARIANTS = {
  */
 export function CalculatorTrigger({
   label = "Get Price",
-  shortLabel,
   variant = "primary",
   onClick,
   block = false,
   icon = true,
+  arrow = false,
 }: {
   label?: string;
-  /**
-   * A shorter label shown below `sm` when the same button spans phone
-   * and desktop widths (the header bar CTA). Omit for triggers that
-   * only ever render at one width, such as the mobile menu row.
-   */
-  shortLabel?: string;
   variant?: keyof typeof VARIANTS;
   onClick: () => void;
   /** Full-width button (mobile menu row). */
   block?: boolean;
   /** The header CTA reads as plain text; everywhere else keeps the icon. */
   icon?: boolean;
+  /** Adds a separately animated arrow to the header CTA. */
+  arrow?: boolean;
 }) {
   const warm = useCataloguePrefetch();
   return (
@@ -139,11 +135,16 @@ export function CalculatorTrigger({
       className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
     >
       {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}
-      {shortLabel ? (
-        <>
-          <span className="sm:hidden">{shortLabel}</span>
-          <span className="hidden sm:inline">{label}</span>
-        </>
+      {arrow ? (
+        <span>
+          {label}{" "}
+          <span
+            aria-hidden="true"
+            className="inline-block transition-transform duration-150 group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5 motion-reduce:transform-none"
+          >
+            →
+          </span>
+        </span>
       ) : (
         label
       )}

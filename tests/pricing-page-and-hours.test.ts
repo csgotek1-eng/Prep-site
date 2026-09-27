@@ -376,14 +376,14 @@ describe("the redundant in-page Get Price buttons stay gone", () => {
     // otherwise count toward the two required placements and let the
     // real button disappear.
     const header = readCode("src/components/Header.tsx");
-    assert.ok(header.includes('label="Get a Quote"'), "the header CTA lost its label");
+    assert.ok(header.includes('label="Get Price"'), "the header CTA lost its label");
     assert.ok(header.includes("CalculatorModal"), "the header CTA lost its calculator");
-    // Both placements: the desktop bar ("Get a Quote", "Get Quote" below
-    // sm) and the mobile menu row ("Get Quote").
+    // Both placements: the desktop bar and the mobile menu row, same
+    // label on both (option 10, 2026-09-27: no swap between widths).
     assert.equal(
-      (header.match(/label="Get a Quote"|label="Get Quote"/g) ?? []).length,
+      (header.match(/label="Get Price"/g) ?? []).length,
       2,
-      "the header no longer carries the pricing CTA in both the bar and the menu",
+      "the header no longer carries Get Price in both the bar and the menu",
     );
   });
 });

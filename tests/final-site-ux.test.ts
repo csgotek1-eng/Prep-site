@@ -80,13 +80,20 @@ describe("the dialog always fits the visible viewport", () => {
 
 describe("header pricing CTA is text only", () => {
   it("renders without the calculator icon", () => {
-    assert.ok(header.includes('label="Get a Quote"'));
+    assert.ok(header.includes('label="Get Price"'));
     assert.equal((header.match(/icon=\{false\}/g) ?? []).length, 2);
     const headerVariant = calcModal.slice(
       calcModal.indexOf("header:"),
       calcModal.indexOf("hero:"),
     );
     assert.equal(headerVariant.includes("gap-2"), false, "no icon gap");
+    assert.ok(headerVariant.includes("min-h-11"), "keeps a 44px touch target");
+    assert.ok(headerVariant.includes("text-brand-green"));
+    assert.equal(headerVariant.includes("bg-brand-green"), false);
+    assert.equal(headerVariant.includes("shadow"), false);
+    assert.equal(headerVariant.includes("border"), false);
+    assert.ok(calcModal.includes("group-hover:translate-x-0.5"));
+    assert.ok(calcModal.includes("group-focus-visible:translate-x-0.5"));
   });
 
   it("the icon is opt-out, so every other entry point keeps it", () => {

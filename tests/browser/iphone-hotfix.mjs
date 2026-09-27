@@ -385,11 +385,11 @@ for (const [width, height] of PHONES) {
   // width now (the pricing page points phone visitors at it), so on a
   // phone it must be visible, inside the viewport and beside the
   // hamburger, not wrapped or pushed out.
-  const barCta = page.locator('header button:has-text("Get Quote")').first();
+  const barCta = page.locator('header button:has-text("Get Price")').first();
   ok(await barCta.isVisible(), `${where}: the bar CTA should be visible on a phone`);
   ok(
-    (await barCta.innerText()).trim() === "Get Quote",
-    `${where}: the bar CTA should show the short "Get Quote" label below sm`,
+    (await barCta.innerText()).trim() === "Get Price →",
+    `${where}: the bar CTA should show "Get Price →" at every width`,
   );
   const barBox = await barCta.boundingBox();
   const menuBox = await page.locator('header button[aria-label="Open menu"]').boundingBox();
@@ -407,9 +407,13 @@ for (const [width, height] of PHONES) {
   await page.waitForTimeout(250);
   ok(await page.locator("#mobile-menu").isVisible(), `${where}: the menu did not open`);
 
-  // 2. Get Quote is visible inside it
-  const cta = page.locator('#mobile-menu button:has-text("Get Quote")');
-  ok(await cta.isVisible(), `${where}: Get Quote missing from the menu`);
+  // 2. Get Price is visible inside it
+  const cta = page.locator('#mobile-menu button:has-text("Get Price")');
+  ok(await cta.isVisible(), `${where}: Get Price missing from the menu`);
+  ok(
+    (await cta.innerText()).trim() === "Get Price →",
+    `${where}: the menu row should show "Get Price →", not a different label`,
+  );
   ok(
     (await cta.locator("svg").count()) === 0,
     `${where}: the header CTA must carry no calculator icon`,
@@ -464,7 +468,7 @@ for (const [width, height] of PHONES) {
       await page.locator("#mobile-menu").isVisible(),
       `${where}: the menu broke after closing the dialog`,
     );
-    await page.locator('#mobile-menu button:has-text("Get Quote")').click();
+    await page.locator('#mobile-menu button:has-text("Get Price")').click();
     await page.waitForTimeout(600);
     ok(
       (await page.locator('[role="dialog"]').count()) === 1,
@@ -481,12 +485,12 @@ for (const [width, height] of [[1280, 900], [1440, 900]]) {
   const where = `header CTA @${width}x${height}`;
   step(where);
   await page.goto(BASE, { waitUntil: "networkidle" });
-  const cta = page.locator('header button:has-text("Get a Quote")').first();
+  const cta = page.locator('header button:has-text("Get Price")').first();
   ok(await cta.isVisible(), `${where}: the desktop CTA is missing`);
-  ok((await cta.innerText()).trim() === "Get a Quote", `${where}: wrong label`);
+  ok((await cta.innerText()).trim() === "Get Price →", `${where}: wrong label`);
   ok((await cta.locator("svg").count()) === 0, `${where}: the CTA grew an icon`);
   ok(
-    (await page.locator('header button:has-text("Get a Quote")').count()) === 1,
+    (await page.locator('header button:has-text("Get Price")').count()) === 1,
     `${where}: two pricing CTAs are rendered at once`,
   );
   await cta.click();
