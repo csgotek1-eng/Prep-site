@@ -142,7 +142,7 @@ describe("C. no public component can render a monetary value", () => {
     }
     // It routes anyone who wants a number to the private flow rather
     // than showing one.
-    assert.ok(quoteForm.includes("privately by WhatsApp or email"));
+    assert.ok(quoteForm.includes("privately by email"));
   });
 
   it("the retired priced-display helper is gone", () => {

@@ -375,7 +375,7 @@ describe("the first screen says who it is for and what happens next", () => {
     // button — the instruction went, and the promise stayed where it
     // sits next to the action it describes.
     const pricing = read("src/components/sections/PricingSection.tsx");
-    assert.ok(pricing.includes("privately by WhatsApp or email"));
+    assert.ok(pricing.includes("privately by email"));
     assert.ok(home.includes("<PricingSection"), "the homepage no longer renders it");
     assert.equal(
       /Ask for a price from the button at the top/i.test(home),

@@ -66,7 +66,7 @@ const reasons = [
   {
     title: "Your price before the conversation",
     description:
-      "Tell the calculator your volume and the services you need, and your price comes straight back to you on WhatsApp or by email. No call, no meeting, no waiting for someone to book you in.",
+      "Tell the calculator your volume and the services you need, and your price comes straight back to you by email. No call, no meeting, no waiting for someone to book you in.",
   },
 ];
 

@@ -63,10 +63,9 @@ export default function PrivacyPage() {
               </p>
               <p className="mt-3">
                 When you ask the pricing calculator to send you your
-                pricing, you provide either your WhatsApp mobile number
-                or your email address, whichever delivery method you
-                choose, together with your selected services,
-                quantities and monthly order volume.
+                pricing, you provide your email address, together with
+                your selected services, quantities and monthly order
+                volume.
               </p>
               <p className="mt-3">
                 While you type into the Help panel, your draft is kept
@@ -103,21 +102,16 @@ export default function PrivacyPage() {
                 Receiving your pricing
               </h2>
               <p className="mt-3">
-                When you request pricing in the calculator you choose how
-                to receive it: &quot;Send my price to WhatsApp&quot; or
-                &quot;Send my price by email&quot;. The destination you
-                give, your WhatsApp mobile number or your email address
-                and your request details (selected services,
+                When you request pricing in the calculator, your email
+                address and your request details (selected services,
                 quantities, monthly order volume and the calculated
                 pricing) are used to send and respond to your requested
                 pricing. The request is stored in Dockentra&apos;s own
                 systems together with the delivery status of that one
                 message, so the team can follow up if it cannot be
-                delivered. WhatsApp messages are sent through an official
-                WhatsApp Business provider; emails are sent through a
-                transactional email provider. Your number or address is
-                used only for this. Neither is added to any marketing
-                list.
+                delivered. Pricing emails are sent through a
+                transactional email provider. Your address is used only
+                for this. It is not added to any marketing list.
               </p>
             </div>
 

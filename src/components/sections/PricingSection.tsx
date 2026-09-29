@@ -53,8 +53,8 @@ export default function PricingSection() {
               services you need. It takes a minute.
             </p>
             <p className="mt-3 text-base font-semibold leading-7 text-brand-navy">
-              You&apos;ll receive your price privately by WhatsApp or email. No
-              call needed.
+              You&apos;ll receive your price privately by email.
+              No call needed.
             </p>
           </div>
 

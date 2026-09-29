@@ -124,6 +124,50 @@ describe("CSP connect-src", () => {
 });
 
 // ---------------------------------------------------------------------
+// 2b. CSP: Cloudflare Web Analytics is allowed, minimally
+// ---------------------------------------------------------------------
+
+describe("CSP Cloudflare Analytics allowance", () => {
+  // The hosts live in named constants, not inline in the policy string,
+  // so the BUILT policy is evaluated rather than the source text.
+  async function builtCsp(): Promise<string> {
+    const config = (await import(`../next.config.ts?csp=${"cf-analytics"}`))
+      .default;
+    const routes = await config.headers();
+    const all = routes.find((r: { source: string }) => r.source === "/:path*");
+    const header = all.headers.find(
+      (h: { key: string }) => h.key === "Content-Security-Policy",
+    );
+    return header.value as string;
+  }
+
+  it("names the beacon script host in script-src", async () => {
+    const scriptLine = /script-src[^;]*/.exec(await builtCsp())?.[0] ?? "";
+    assert.ok(scriptLine.includes("https://static.cloudflareinsights.com"));
+  });
+
+  it("names the beacon's reporting host in connect-src, no wildcard", async () => {
+    const connectLine = /connect-src[^;]*/.exec(await builtCsp())?.[0] ?? "";
+    assert.ok(connectLine.includes("https://cloudflareinsights.com"));
+    assert.equal(/cloudflareinsights\.com\/?\*/.test(connectLine), false);
+  });
+
+  it("weakens nothing else in the policy", async () => {
+    const csp = await builtCsp();
+    for (const directive of [
+      "default-src 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "style-src 'self' 'unsafe-inline'",
+    ]) {
+      assert.ok(csp.includes(directive), `${directive} is gone`);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------
 // 3. The estimate endpoint refuses an oversized body BEFORE reading it
 // ---------------------------------------------------------------------
 
@@ -381,6 +425,28 @@ describe("published copy matches the product", () => {
         /see (an |your )?(indicative |estimated )?total/i.test(source),
         false,
         `${path} promises an on-screen total`,
+      );
+    }
+  });
+
+  it("no public surface promises pricing delivery by WhatsApp", () => {
+    // The calculator is email-only (WHATSAPP_PRICING_ENABLED is off), so
+    // every description of what happens after "Get Price" says email.
+    // Owner decision, 2026-09-29.
+    for (const path of [
+      "src/app/privacy/page.tsx",
+      "src/lib/faq.ts",
+      "src/components/sections/PricingSection.tsx",
+      "src/components/sections/WhyDockentra.tsx",
+      "src/components/EnquiryForm.tsx",
+    ]) {
+      const source = readCode(path).replace(/\s+/g, " ");
+      assert.equal(
+        /WhatsApp or (by )?email|on WhatsApp or by email|Send my price to WhatsApp|WhatsApp mobile number/i.test(
+          source,
+        ),
+        false,
+        `${path} still promises pricing by WhatsApp`,
       );
     }
   });

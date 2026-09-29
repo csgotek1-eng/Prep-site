@@ -202,7 +202,7 @@ export default function EnquiryForm() {
       <p className="mt-4 text-sm leading-6 text-slate-600">
         Want a price instead? Use{" "}
         <span className="font-semibold text-brand-navy">Get Price</span>. You
-        will receive it privately by WhatsApp or email. Ready to start? Go to{" "}
+        will receive it privately by email. Ready to start? Go to{" "}
         <a
           href="/become-a-client"
           className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"

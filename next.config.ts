@@ -59,13 +59,22 @@ const TURNSTILE_HOST = "https://challenges.cloudflare.com";
 const turnstileScript = turnstileSiteKey ? ` ${TURNSTILE_HOST}` : "";
 const turnstileFrame = turnstileSiteKey ? TURNSTILE_HOST : "'none'";
 
+// Cloudflare Web Analytics. Unlike the Google and Turnstile hosts
+// above, this one is not gated behind an env var: the beacon is
+// injected by Cloudflare's own edge ("Automatic Setup" in the
+// dashboard), outside this repo, so there is no build-time signal to
+// read. Named unconditionally, scoped to exactly the two origins the
+// beacon needs (the script, and the host it reports to), no wildcard.
+const CF_ANALYTICS_SCRIPT_HOST = "https://static.cloudflareinsights.com";
+const CF_ANALYTICS_CONNECT_HOST = "https://cloudflareinsights.com";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${gaScript}${turnstileScript}`,
+  `script-src 'self' 'unsafe-inline'${gaScript}${turnstileScript} ${CF_ANALYTICS_SCRIPT_HOST}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob:${gaImage}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseConnectSource()}${gaConnect}`,
+  `connect-src 'self' ${supabaseConnectSource()}${gaConnect} ${CF_ANALYTICS_CONNECT_HOST}`,
   "frame-ancestors 'none'",
   `frame-src ${turnstileFrame}`,
   "object-src 'none'",

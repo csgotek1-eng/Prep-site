@@ -124,7 +124,7 @@ export const faqItems: FaqItem[] = [
     category: "Pricing",
     question: "Can I get an estimate before contacting Dockentra?",
     answer:
-      "You can build your service selection in the calculator and send it to us. We come back with your price by WhatsApp or email, within one working day. The calculator doesn't show a total on screen, because the final figure depends on product dimensions, handling and how fast your stock moves.",
+      "You can build your service selection in the calculator and send it to us. We come back with your price by email, within one working day. The calculator doesn't show a total on screen, because the final figure depends on product dimensions, handling and how fast your stock moves.",
   },
   {
     category: "Contact & support",

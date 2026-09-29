@@ -114,7 +114,7 @@ describe("homepage hero", () => {
     // the expectation is now set where the click actually happens.
     assert.ok(
       read("src/components/sections/PricingSection.tsx").includes(
-        "privately by WhatsApp or email",
+        "privately by email",
       ),
       "nothing sets the expectation that no price appears on screen",
     );
