@@ -60,7 +60,8 @@ const note = (msg) => notes.push(msg);
 
 const UA = "Mozilla/5.0 (compatible; dockentra-seo-check/1.0)";
 async function get(url) {
-  const res = await fetch(url, { redirect: "manual", headers: { "user-agent": UA } });
+  // 20 s per request: a hung origin fails the check instead of hanging it.
+  const res = await fetch(url, { redirect: "manual", headers: { "user-agent": UA }, signal: AbortSignal.timeout(20000) });
   return { status: res.status, headers: res.headers, body: await res.text() };
 }
 const attr = (tag, name) => (new RegExp(`${name}\\s*=\\s*"([^"]*)"`, "i").exec(tag) ?? [])[1];
