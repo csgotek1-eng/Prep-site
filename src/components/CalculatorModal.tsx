@@ -6,6 +6,7 @@ import { useCalculator } from "@/components/FloatingChrome";
 import Modal from "@/components/Modal";
 import PricingCalculator from "@/components/PricingCalculator";
 import { prefetchCatalogue } from "@/lib/pricing/catalogue-client";
+import { trackGetPriceClick } from "@/lib/analytics-events";
 
 /**
  * THE canonical pricing dialog. Every "Get Price" / "Calculator" entry
@@ -131,7 +132,14 @@ export function CalculatorTrigger({
       onPointerEnter={warm}
       onFocus={warm}
       onTouchStart={warm}
-      onClick={onClick}
+      onClick={() => {
+        // Interest, not a lead: the accepted request is counted
+        // separately in PricingCalculator (lead_submitted).
+        trackGetPriceClick(
+          variant === "header" ? (block ? "mobile_menu" : "header") : "page",
+        );
+        onClick();
+      }}
       className={`${VARIANTS[variant]}${block ? " w-full" : ""}`}
     >
       {icon && <Calculator aria-hidden="true" className="h-5 w-5" />}

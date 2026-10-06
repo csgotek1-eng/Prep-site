@@ -365,7 +365,9 @@ describe("the first screen says who it is for and what happens next", () => {
     // "fulfilment & prep in Ireland" must survive the hero rewrite.
     const site = read("src/lib/site.ts");
     assert.ok(/[Ff]ulfilment/.test(site) && site.includes("Ireland"));
-    assert.ok(read("src/app/layout.tsx").includes("prep centre Ireland"));
+    // Where engines actually read it: the site description (meta description,
+    // og:description, LocalBusiness.description), not a keywords tag.
+    assert.ok(/fulfilment and prep centre \(3PL\) in Limerick/.test(site));
   });
 
   it("states the private-pricing mechanic BEFORE the click", () => {

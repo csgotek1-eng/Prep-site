@@ -11,6 +11,7 @@ import {
 } from "@/components/FloatingChrome";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { siteConfig } from "@/lib/site";
+import { trackGetPriceClick } from "@/lib/analytics-events";
 
 /**
  * THE one floating system on the site: a compact dock of two icon-only
@@ -114,7 +115,12 @@ function readSaved(): DockPosition | null {
 }
 
 export default function FloatingDock() {
-  const { openCalculator } = useCalculator();
+  const { openCalculator: openCalculatorShared } = useCalculator();
+  // The click is counted as interest (get_price_click), never as a lead.
+  const openCalculator = () => {
+    trackGetPriceClick("dock");
+    openCalculatorShared();
+  };
   // Null until the saved position is restored after mount, so the
   // server and the first client render agree (the default corner comes
   // from classes, not from state).

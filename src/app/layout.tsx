@@ -62,34 +62,26 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: [
-    "fulfilment Ireland",
-    "fulfilment centre Ireland",
-    "ecommerce fulfilment Ireland",
-    "e-commerce fulfilment Ireland",
-    "prep centre Ireland",
-    "Amazon FBA prep Ireland",
-    "TikTok Shop fulfilment Ireland",
-    "Shopify fulfilment Ireland",
-    "pick and pack Ireland",
-    "order fulfilment Ireland",
-    "fulfilment services Ireland",
-  ],
+  // No `keywords`: Google has ignored the meta keywords tag since 2009
+  // and no other engine the site targets reads it (SEO audit, 2026-10).
   alternates: {
     canonical: "/",
   },
+  // Open Graph and Twitter carry NO title, description or url here. A
+  // page that does not override `openGraph` inherits this whole object,
+  // so the old values put the HOMEPAGE title, description and URL on 14
+  // of 19 pages (verified live, 2026-10-06): a /services link shared on
+  // WhatsApp or Facebook previewed as the homepage, and og:title is one
+  // of the inputs Google uses for a result's title link. Left empty,
+  // Next fills og:title and og:description from each page's own title
+  // and description; the file-convention opengraph-image still applies.
   openGraph: {
     type: "website",
     locale: "en_IE",
-    url: siteUrl,
     siteName: siteConfig.name,
-    title: siteConfig.title,
-    description: siteConfig.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
   },
   robots: {
     index: true,

@@ -1,8 +1,15 @@
 # ANALYTICS PLAN — CONVERSION MEASUREMENT (NOT IMPLEMENTED)
 
-Status: **design only**. The site currently loads NO analytics, pixels
-or third-party trackers, and this round deliberately adds none. This
-document is the agreed plan for when measurement is switched on.
+Status: **design only** for the first-party endpoint below. What exists
+in code today (SEO audit, October 2026 — `docs/seo/SEO_AUDIT_2026-10.md`
+§12 F4): `src/lib/analytics-events.ts` sends two Google Analytics 4
+events through the consent-mode tag in `GoogleAnalytics.tsx` —
+`get_price_click` (which "Get Price →" was pressed: header, mobile
+menu, dock, page) and `lead_submitted` (which form the server accepted:
+pricing calculator, enquiry, become-a-client, partnership). Parameters
+are fixed labels only; nothing the visitor typed is ever sent. Both are
+no-ops until `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` is set. Until then the
+site loads NO analytics, pixels or third-party trackers.
 
 ## Goal
 

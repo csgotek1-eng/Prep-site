@@ -4,6 +4,7 @@ import { useState } from "react";
 import SubmitError from "@/components/SubmitError";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { isOurFailure } from "@/lib/submit-failure";
+import { trackLeadSubmitted } from "@/lib/analytics-events";
 
 /**
  * THE short general enquiry — name, email, message, and nothing else.
@@ -59,6 +60,7 @@ export default function EnquiryForm() {
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (data.ok) {
         setPhase("done");
+        trackLeadSubmitted("enquiry");
         return;
       }
       // A Turnstile token is single use, so the one that was just

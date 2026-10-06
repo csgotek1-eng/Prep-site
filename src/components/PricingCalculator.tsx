@@ -30,6 +30,7 @@ import {
 } from "@/lib/whatsapp/pricing-channel";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { useBottomBarRegistration } from "@/components/FloatingChrome";
+import { trackLeadSubmitted } from "@/lib/analytics-events";
 
 /** How the customer wants their private price delivered (STEP 3). */
 type PricingChannel = "whatsapp" | "email";
@@ -507,6 +508,7 @@ export default function PricingCalculator({
       if (data.ok && data.reference && data.delivery) {
         setSendPhase("done");
         setSendOutcome({ delivery: data.delivery, reference: data.reference });
+        trackLeadSubmitted("pricing_calculator");
       } else {
         setSendPhase("idle");
         // A Turnstile token is single use, so the one that was just

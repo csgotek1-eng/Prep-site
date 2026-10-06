@@ -6,6 +6,7 @@ import { PARTNERSHIP_KINDS } from "@/lib/partnerships";
 import SubmitError from "@/components/SubmitError";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { isOurFailure } from "@/lib/submit-failure";
+import { trackLeadSubmitted } from "@/lib/analytics-events";
 
 /**
  * PARTNERSHIPS — a separate form for a separate conversation.
@@ -77,6 +78,7 @@ export default function PartnershipForm({
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (data.ok) {
         setPhase("done");
+        trackLeadSubmitted("partnership");
       } else {
         setPhase("idle");
         // A Turnstile token is single use, so the one that was just

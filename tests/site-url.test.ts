@@ -97,7 +97,7 @@ describe("E/F. no stale or invented host anywhere in executable code", () => {
     assert.ok(read("src/app/sitemap.ts").includes("${siteUrl}"));
     assert.ok(read("src/app/robots.ts").includes("${siteUrl}/sitemap.xml"));
     // JSON-LD in the layout uses the same import.
-    assert.ok(read("src/app/layout.tsx").includes("url: siteUrl"));
+    assert.ok(read("src/lib/structured-data.ts").includes("url: siteUrl"));
   });
 
   it("generated output for a Vercel host contains no placeholder domain", () => {

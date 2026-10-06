@@ -10,6 +10,7 @@ import {
 import SubmitError from "@/components/SubmitError";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { isOurFailure } from "@/lib/submit-failure";
+import { trackLeadSubmitted } from "@/lib/analytics-events";
 
 /**
  * BECOME A CLIENT — the short form behind "I want Dockentra to fulfil
@@ -91,6 +92,7 @@ export default function BecomeClientForm({
       const data = (await response.json()) as { ok: boolean; error?: string };
       if (data.ok) {
         setPhase("done");
+        trackLeadSubmitted("become_a_client");
       } else {
         setPhase("idle");
         // A Turnstile token is single use, so the one that was just

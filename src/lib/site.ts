@@ -29,7 +29,12 @@ export const siteConfig = {
   },
   social: {
     instagram: "https://www.instagram.com/dockentra",
-    facebook: "https://www.facebook.com/share/19GDx29wyu/",
+    // The page's own URL, not the share link it used to be: the share
+    // link 302-redirected here (verified 2026-10-06, and Google lists
+    // the page as facebook.com/people/Dockentra-Fulfillment/61592560362868).
+    // A redirecting URL in LocalBusiness `sameAs` is a weaker identity
+    // signal than the profile itself.
+    facebook: "https://www.facebook.com/profile.php?id=61592560362868",
     tiktok: "https://www.tiktok.com/@dockentra.ie",
     tiktokHandle: "@dockentra.ie",
     whatsapp: siteContact.whatsapp,
