@@ -17,11 +17,14 @@ import { getServicePage, servicePages } from "@/lib/service-pages";
  * /services row it expands links here and nothing redirects to the
  * homepage.
  *
- * Static: the four slugs are known at build time, anything else is a
- * real 404 (dynamicParams off), so a mistyped URL cannot become a thin
- * indexable page.
+ * The four slugs are prerendered at build time; anything else reaches
+ * the component, which answers notFound() — a real 404, so a mistyped
+ * URL cannot become a thin indexable page. dynamicParams stays ON on
+ * purpose: with it off, Next answers 404 whenever the prerendered HTML
+ * is not in the incremental cache, and on Cloudflare a preview version
+ * uploaded without `populateCache` (and any cache eviction) has exactly
+ * that gap — verified on the preview Worker, 2026-10-07.
  */
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return servicePages.map((page) => ({ slug: page.slug }));

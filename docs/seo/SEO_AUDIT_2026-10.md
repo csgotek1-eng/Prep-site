@@ -339,12 +339,14 @@ Everything below is on the branch, built and tested locally and on a preview Wor
 
 | Lighthouse 12, mobile, simulated throttling | Before (production, 7 Oct) | After (preview Worker, 7 Oct) |
 |---|---|---|
-| Homepage performance score | 81 (79–82) | AFTER_SCORE |
-| LCP | 4 935 ms (4 758–4 937) | AFTER_LCP |
-| FCP | 1 177 ms | AFTER_FCP |
-| TBT | 97 ms | AFTER_TBT |
-| Speed Index | 1 903 ms | AFTER_SI |
-| LCP element | `<video>` (hero clip) | AFTER_LCPEL |
+| Homepage performance score | 81 (79–82) | 82 (69–84) |
+| LCP | 4 935 ms (4 758–4 937) | 4 558 ms (4 399–4 622) |
+| FCP | 1 177 ms | 1 399 ms |
+| TBT | 97 ms | 123 ms |
+| Speed Index | 1 903 ms | 2 770 ms |
+| LCP element | `<video>` (hero clip) | `<img>` (the preloaded portrait still) |
+
+Caveats on the table: the "after" host is the preview Worker on workers.dev, whose TTFB in these runs was 290–359 ms against 106–158 ms for production, so the comparison understates the gain; page weight fell from 1 588 KB to 1 471 KB (the duplicate still). What remains of the LCP is the portrait still itself (118 KB at `w=1200`, served at full size because `/_next/image` is a passthrough on Workers) downloading behind the 218 KB homepage HTML under simulated slow 4G. The next step is real image resizing (Cloudflare Images transformations, or pre-derived 640/828/1080 px variants) — an infrastructure or asset change for the owner to approve, not done here.
 
 Chrome probe (CPU ×4, slow 4G), LCP candidate sequence: before — SPAN → P → VIDEO at 4.7 s; after (local build) — SPAN → **IMG (preloaded portrait still) at 2.46 s**, no later candidate.
 
