@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { navLinks, siteUrl } from "@/lib/site";
+import { servicePages } from "@/lib/service-pages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [
@@ -36,6 +37,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       // Partner pages: reached from /partnerships, not from the top
       // navigation, so the sitemap is how a crawler finds them.
       "/partners/creatrhub",
+      // Dedicated service pages (src/lib/service-pages.ts): linked from
+      // their /services rows, the homepage and the footer, and listed
+      // here so each is discovered on its own.
+      ...servicePages.map((page) => `/services/${page.slug}`),
     ]),
   ];
   return pages.map((href) => ({

@@ -62,13 +62,16 @@ const audienceLinks = [
   { href: "/pricing-calculator", label: "Fulfilment cost calculator" },
 ];
 
+// The four services with a page of their own link to the page; the
+// rest to their row on /services (SEO audit, 2026-10).
 const serviceLinks = [
   { href: "/services#receiving", label: "Receiving" },
   { href: "/services#prep", label: "Prep" },
   { href: "/services#storage", label: "Storage" },
-  { href: "/services#pick-pack", label: "Pick & Pack" },
-  { href: "/services#returns", label: "Returns" },
-  { href: "/services#amazon-fba-prep", label: "Amazon FBA Prep" },
+  { href: "/services/pick-and-pack", label: "Pick & Pack" },
+  { href: "/services/returns", label: "Returns" },
+  { href: "/services/amazon-fba-prep", label: "Amazon FBA Prep" },
+  { href: "/services/tiktok-shop-fulfilment", label: "TikTok Shop Fulfilment" },
 ];
 
 /**

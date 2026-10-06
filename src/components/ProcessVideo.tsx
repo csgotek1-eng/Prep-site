@@ -2,7 +2,6 @@
 
 import { getImageProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { preload } from "react-dom";
 
 /**
  * A short, silent process clip.
@@ -241,32 +240,39 @@ export default function ProcessVideo({
     ? getImageProps({ ...common, src: portraitPoster }).props
     : null;
 
-  // The hero still is the largest paint on the page. React hoists the
-  // preload into <head> during SSR, and the media condition means a
-  // phone fetches only the portrait frame and a desktop only the
-  // landscape one. Through react-dom's preload() rather than a <link>
-  // element on purpose: React then omits href when imageSrcSet is
-  // given, so a browser without imagesrcset support (Safari before
-  // 17.2) preloads nothing instead of the wrong candidate on top of
-  // the right one.
-  if (priority) {
-    preload(landscapeStill.src, {
-      as: "image",
-      imageSrcSet: landscapeStill.srcSet,
-      imageSizes: landscapeStill.sizes,
-      media: portraitStill ? "(orientation: landscape)" : undefined,
-      fetchPriority: "high",
-    });
-    if (portraitStill) {
-      preload(portraitStill.src, {
-        as: "image",
-        imageSrcSet: portraitStill.srcSet,
-        imageSizes: portraitStill.sizes,
-        media: PORTRAIT_QUERY,
-        fetchPriority: "high",
-      });
-    }
-  }
+  // The hero still is the largest paint on the page. The preload is a
+  // <link> ELEMENT, which React hoists into <head> during SSR, rather
+  // than react-dom's preload(): that API has no `media` option, so the
+  // media condition was silently dropped and EVERY device fetched both
+  // stills at high priority — on a phone the landscape frame (~118 KB)
+  // competed with the portrait frame that is actually painted, and the
+  // LCP image arrived after the fonts and scripts (SEO audit, 2026-10).
+  // With `media`, a phone preloads only the portrait frame and a
+  // desktop only the landscape one. No href on purpose: a browser
+  // without imagesrcset support (Safari before 17.2) then preloads
+  // nothing instead of the wrong candidate on top of the right one.
+  const preloadLinks = priority ? (
+    <>
+      <link
+        rel="preload"
+        as="image"
+        fetchPriority="high"
+        imageSrcSet={landscapeStill.srcSet}
+        imageSizes={landscapeStill.sizes}
+        media={portraitStill ? "(orientation: landscape)" : undefined}
+      />
+      {portraitStill && (
+        <link
+          rel="preload"
+          as="image"
+          fetchPriority="high"
+          imageSrcSet={portraitStill.srcSet}
+          imageSizes={portraitStill.sizes}
+          media={PORTRAIT_QUERY}
+        />
+      )}
+    </>
+  ) : null;
 
   // The still stands in for the clip in four situations: before the
   // media queries and the connection have been read, for anyone who
@@ -276,6 +282,24 @@ export default function ProcessVideo({
   // the identical box, so swapping one for the other cannot shift the
   // layout, and it is the element the observer watches.
   const orientationKnown = !portraitSrc || portrait !== null;
+  // display: contents — the <picture> contributes no box of its own, so
+  // the absolutely positioned <img> inside it fills the figure exactly
+  // as a bare <Image fill> did.
+  const still = (
+    <picture className="contents">
+      {portraitStill && (
+        <source
+          media={PORTRAIT_QUERY}
+          srcSet={portraitStill.srcSet}
+          sizes={portraitStill.sizes}
+        />
+      )}
+      {/* Built by getImageProps: a <picture> is the documented
+          art-direction route in next/image. */}
+      <img ref={stillRef} {...landscapeStill} alt={alt} />
+    </picture>
+  );
+
   if (
     reducedMotion !== false ||
     dataSaving !== false ||
@@ -283,32 +307,33 @@ export default function ProcessVideo({
     !orientationKnown
   ) {
     return (
-      // display: contents — the <picture> contributes no box of its
-      // own, so the absolutely positioned <img> inside it fills the
-      // figure exactly as a bare <Image fill> did.
-      <picture className="contents">
-        {portraitStill && (
-          <source
-            media={PORTRAIT_QUERY}
-            srcSet={portraitStill.srcSet}
-            sizes={portraitStill.sizes}
-          />
-        )}
-        {/* Built by getImageProps: a <picture> is the documented
-            art-direction route in next/image. */}
-        <img ref={stillRef} {...landscapeStill} alt={alt} />
-      </picture>
+      <>
+        {preloadLinks}
+        {still}
+      </>
     );
   }
 
+  // THE STILL STAYS UNDER THE CLIP. The clip used to REPLACE the
+  // <picture>, and carried its own `poster` pointing at the raw file:
+  // on a phone the preloaded, high-priority still was thrown away
+  // before it had painted, the raw poster was fetched again at low
+  // priority, and the first frame of the hero was painted at ~4.7 s
+  // under mobile throttling (measured, SEO audit 2026-10). Now the
+  // still is painted first (it is the largest contentful paint) and
+  // the <video>, transparent until it has a frame, plays over it. No
+  // `poster` attribute: the still underneath is the poster, fetched
+  // once.
   return (
-    <video
+    <>
+      {preloadLinks}
+      {still}
+      <video
       ref={videoRef}
       // key: an orientation change swaps the file, and a fresh element
       // is the one reliable way to make every browser load it.
       key={portrait && portraitSrc ? portraitSrc : src}
       src={portrait && portraitSrc ? portraitSrc : src}
-      poster={portrait && portraitPoster ? portraitPoster : poster}
       aria-hidden="true"
       tabIndex={-1}
       muted
@@ -316,7 +341,11 @@ export default function ProcessVideo({
       playsInline
       autoPlay
       preload={priority ? "auto" : "none"}
-      className={className}
+      // `relative`: the still's <img> is absolutely positioned (next/image
+      // fill), and a positioned element paints over a static sibling —
+      // without this the still would cover the playing clip.
+      className={`relative ${className}`}
     />
+    </>
   );
 }

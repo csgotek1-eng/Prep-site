@@ -85,6 +85,16 @@ export default function WhyIrelandSection() {
               From our Limerick base, Dockentra can support fulfilment to
               customers across Ireland through national carrier networks.
             </p>
+            {/* One warehouse, stated plainly: sellers anywhere in Ireland
+                and brands abroad send stock here; orders go out to every
+                county. Says where we are and where we are not, so neither
+                a reader nor a search engine infers a second site (SEO
+                audit, 2026-10). */}
+            <p>
+              Our only warehouse is in Limerick. Sellers anywhere in Ireland,
+              and brands abroad, send stock to Limerick, and orders go out to
+              customers in every county through national carrier networks.
+            </p>
           </div>
         </div>
 

@@ -127,6 +127,20 @@ export const faqItems: FaqItem[] = [
       "You can build your service selection in the calculator and send it to us. We come back with your price by email, within one working day. The calculator doesn't show a total on screen, because the final figure depends on product dimensions, handling and how fast your stock moves.",
   },
   {
+    // Warehouse vs service area, in the words the site already uses
+    // (SEO audit, 2026-10): one site in Limerick, sellers from anywhere.
+    category: "Getting started",
+    question: "Do you work with sellers outside Limerick?",
+    answer:
+      "Yes. Our only warehouse is in Limerick; sellers anywhere in Ireland, and brands abroad, send stock to Limerick, and orders go out to customers in every county through national carrier networks.",
+  },
+  {
+    category: "Getting started",
+    question: "I'm outside Ireland. How do I get stock to you?",
+    answer:
+      "Send it to our Limerick warehouse in bulk. We receive it, count and photograph it on arrival, store it, prepare orders, pick and pack, dispatch to Irish customers and handle returns in Ireland. Tell us how your stock will arrive and we'll confirm the receiving arrangements before you ship.",
+  },
+  {
     category: "Contact & support",
     question: "How can I contact Dockentra?",
     answer:

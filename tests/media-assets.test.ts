@@ -226,7 +226,7 @@ describe("the clips are decorative and honest", () => {
     // reducedMotion gates the SAME early return that renders the still,
     // so nothing is fetched. The condition also carries the data-saving
     // check now; what matters here is that reducedMotion is in it.
-    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(
+    const guard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<>\s*\n\s*\{preloadLinks\}\s*\n\s*\{still\}/.exec(
       player,
     );
     assert.ok(guard, "the still is no longer behind a reducedMotion guard");
@@ -559,7 +559,7 @@ describe("mobile plays the same clip as desktop", () => {
   });
 
   it("the still-vs-clip guard and the autoplay-retry guard both read only reducedMotion, dataSaving and nearViewport", () => {
-    const renderGuard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<picture/.exec(source);
+    const renderGuard = /if \(([^)]*reducedMotion[^)]*)\) \{\s*\n\s*return \(\s*\n\s*<>\s*\n\s*\{preloadLinks\}\s*\n\s*\{still\}/.exec(source);
     assert.ok(renderGuard);
     for (const clause of ["reducedMotion !== false", "dataSaving !== false", "!nearViewport"]) {
       assert.ok(renderGuard[1].includes(clause), `render guard is missing ${clause}`);
@@ -596,21 +596,22 @@ describe("mobile plays the same clip as desktop", () => {
   it("gives portrait screens a portrait still, chosen before first paint", () => {
     assert.match(source, /<source\s+media=\{PORTRAIT_QUERY\}\s+srcSet=\{portraitStill\.srcSet\}/);
     // The preload is media-scoped, so a phone fetches one poster, not
-    // two — and it goes through react-dom's preload(), which omits href
-    // when imageSrcSet is given, so a browser without imagesrcset
-    // support preloads nothing rather than the wrong candidate.
-    assert.ok(source.includes('import { preload } from "react-dom"'));
-    const preloads = [...source.matchAll(/preload\((\w+)\.src, \{([\s\S]*?)\}\);/g)];
-    assert.equal(preloads.length, 2);
-    assert.equal(preloads[0][1], "landscapeStill");
-    assert.ok(preloads[0][2].includes('media: portraitStill ? "(orientation: landscape)" : undefined'));
-    assert.equal(preloads[1][1], "portraitStill");
-    assert.ok(preloads[1][2].includes("media: PORTRAIT_QUERY"));
-    for (const [, still, options] of preloads) {
-      assert.ok(options.includes('fetchPriority: "high"'));
-      assert.ok(options.includes(`imageSrcSet: ${still}.srcSet`));
-    }
-    assert.equal(/<link\b/.test(source), false, "a raw preload <link> is back");
+    // two. It is a <link rel="preload"> ELEMENT, not react-dom's
+    // preload(): that API has no `media` option and silently dropped
+    // it, so every device fetched both stills at high priority
+    // (verified on the live site, SEO audit 2026-10). No href on
+    // purpose: a browser without imagesrcset support preloads nothing
+    // rather than the wrong candidate.
+    assert.equal(source.includes('from "react-dom"'), false, "react-dom preload() is back (it drops `media`)");
+    const links = [...source.matchAll(/<link\s+rel="preload"\s+as="image"\s+fetchPriority="high"\s+imageSrcSet=\{(\w+)\.srcSet\}\s+imageSizes=\{\1\.sizes\}\s+media=\{([^}]+)\}/g)];
+    assert.equal(links.length, 2, "two media-scoped preload links expected");
+    assert.equal(links[0][1], "landscapeStill");
+    assert.equal(links[0][2], 'portraitStill ? "(orientation: landscape)" : undefined');
+    assert.equal(links[1][1], "portraitStill");
+    assert.equal(links[1][2], "PORTRAIT_QUERY");
+    assert.equal(/href=/.test(links[0][0]) || /href=/.test(links[1][0]), false, "a preload href would make old Safari fetch the wrong candidate");
+    // Rendered in BOTH branches (still and clip), so SSR always emits them.
+    assert.equal((source.match(/\{preloadLinks\}/g) ?? []).length, 2);
     // The homepage hero passes the portrait still, and it is a real
     // 9:16 frame, not the landscape poster renamed.
     const home = read("src/app/page.tsx");

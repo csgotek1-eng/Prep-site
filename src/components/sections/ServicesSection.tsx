@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/Container";
+import { servicePages } from "@/lib/service-pages";
 
 const services = [
   {
@@ -127,6 +128,21 @@ export default function ServicesSection() {
               </Link>
               .
             </p>
+            {/* The four services people search for by name have a page
+                each; a searcher who lands on the homepage should reach
+                them in one click (SEO audit, 2026-10). */}
+            <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {servicePages.map((page) => (
+                <li key={page.slug}>
+                  <Link
+                    href={`/services/${page.slug}`}
+                    className="inline-flex min-h-8 items-center font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                  >
+                    {page.h1}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <figure className="lg:col-span-5 lg:sticky lg:top-28 lg:self-start">

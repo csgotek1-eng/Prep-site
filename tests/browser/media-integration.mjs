@@ -137,7 +137,13 @@ for (const width of WIDTHS) {
   ok(hero?.controls === false, "the hero clip shows controls");
   ok(hero?.ariaHidden === "true", "a decorative clip must be aria-hidden");
   ok(hero?.tabIndex === -1, "a decorative clip must not take focus");
-  ok(Boolean(hero?.poster), "the hero clip has no poster");
+  // The still (the preloaded poster) stays under the clip; the <video>
+  // carries no poster of its own so the frame is fetched once.
+  ok(
+    await page.evaluate(() => !!document.querySelector("[data-hero-backdrop] picture img")),
+    "the hero still is gone from under the clip",
+  );
+  ok(!hero?.poster, "the hero clip fetches its own poster on top of the still");
   ok(hero?.preload === "auto", `hero preload is ${hero?.preload}`);
   ok(
     hero?.playing === true ||

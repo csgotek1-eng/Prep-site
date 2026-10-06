@@ -208,13 +208,16 @@ step("clicking to a different anchor while already on /services also lands corre
   const page = await context.newPage();
   await page.goto(`${BASE}/services`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(500);
-  const link = page.locator('footer a[href="/services#returns"]').first();
+  // #storage: a row the footer still links by anchor. Pick & Pack,
+  // Returns and Amazon FBA Prep link to their own pages since the SEO
+  // round of 2026-10 (src/lib/service-pages.ts).
+  const link = page.locator('footer a[href="/services#storage"]').first();
   await link.scrollIntoViewIfNeeded();
   await link.click();
   await page.waitForTimeout(1200);
-  const m = await measure(page, "returns");
-  ok(!m.hiddenBehindHeader, "same-page → #returns: hidden behind the header");
-  ok(m.inUpperThird, `same-page → #returns: not in the upper third (top=${m.top})`);
+  const m = await measure(page, "storage");
+  ok(!m.hiddenBehindHeader, "same-page → #storage: hidden behind the header");
+  ok(m.inUpperThird, `same-page → #storage: not in the upper third (top=${m.top})`);
   await context.close();
 }
 

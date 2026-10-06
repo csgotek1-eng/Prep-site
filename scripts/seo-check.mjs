@@ -49,6 +49,10 @@ const KEY_PAGES = [
   "/about",
   "/contact",
   "/faq",
+  "/services/amazon-fba-prep",
+  "/services/tiktok-shop-fulfilment",
+  "/services/pick-and-pack",
+  "/services/returns",
 ];
 /** Must never be in the sitemap. */
 const NEVER_IN_SITEMAP = [/^\/admin(\/|$)/, /^\/api(\/|$)/, /^\/offers(\/|$)/];

@@ -210,6 +210,35 @@ export function buildServicesJsonLd(
   };
 }
 
+/**
+ * The Service node of a dedicated service page (/services/<slug>). The
+ * same entity the /services row describes, so it carries that row's
+ * `@id` as `sameAs`-style identity through `isRelatedTo`; its own `@id`
+ * and `url` are the page, where a searcher who clicks lands. No Offer,
+ * no price, no rating — pricing is private and reviews are not yet
+ * collected (same rule as buildServicesJsonLd).
+ */
+export function buildServicePageJsonLd(page: {
+  slug: string;
+  rowId: string;
+  title: string;
+  description: string;
+}) {
+  const url = `${siteUrl}/services/${page.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: page.title,
+    description: page.description,
+    serviceType: page.title,
+    url,
+    provider: { "@id": `${siteUrl}/#business` },
+    areaServed: { "@type": "Country", name: "Ireland" },
+    isRelatedTo: { "@id": `${siteUrl}/services#${page.rowId}` },
+  };
+}
+
 export interface Crumb {
   name: string;
   path: string;

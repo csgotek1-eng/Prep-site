@@ -317,3 +317,91 @@ Not changed, on purpose: robots.txt and Cloudflare bot policy (training block st
 ## 15. Unknowns and access gaps
 
 Search volume / difficulty / backlinks (no tool) · whether Bing Webmaster Tools, Bing Places or a Business Profile exist under any account · ChatGPT, Copilot and Perplexity citations (not reachable or sign-in required from this session) · Core Web Vitals field data (none yet) · GoodFirms/ensun/Clutch listing mechanics (pages block fetches) · whether real Bingbot is blocked by Cloudflare (no Bing crawl evidence either way) · production email delivery of a lead (not exercised: real recipients) · the Search Console "Generative AI performance report" contents (not opened).
+
+---
+
+## 16. Implementation round — 7 October 2026 (branch `seo/audit-2026-10`, continued)
+
+Everything below is on the branch, built and tested locally and on a preview Worker; nothing is on `main` or in production.
+
+### 16.1 Mobile speed — what was slow, what changed, before/after
+
+**Diagnosis (VERIFIED, Chrome with CPU ×4 and slow-4G emulation, and Lighthouse 12 mobile):**
+
+1. The hero's two preloads (`react-dom` `preload()`) carried no `media` attribute — the API has no such option and dropped it silently — so every device fetched BOTH hero stills at high priority (~118 KB wasted on a phone, competing with fonts, scripts and the frame that is actually painted).
+2. When the clip mounted it REPLACED the `<picture>` still and carried its own `poster` pointing at the raw file (`/media/hero/…-portrait.webp`), a different URL from the preloaded `/_next/image?…` candidate. On a throttled phone the preloaded still was discarded before it had painted, the raw poster was fetched again at low priority, and the hero's first paint became the `<video>` element at ~4.7–4.9 s. LCP candidates observed on production: banner text → hero paragraph → **VIDEO at 4748 ms** (the still never painted).
+3. The 223 KB header logo PNG (512×512, rendered at 20 px) is fetched at high priority on every page. Not changed: the recorded owner decision and its tests say the lockup must use the master file; see the question in §16.7.
+4. Cold Worker starts: TTFB 3.0 s on a first request vs 0.17 s warm (production, measured twice). Edge caching of HTML is a Cloudflare setting; see §16.5.
+
+**Changes (F8, F9 — `src/components/ProcessVideo.tsx`):** the preloads are now `<link rel="preload" as="image" media=…>` elements (one per orientation, verified in the served HTML); the still stays under the clip and the `<video>` plays over it (`relative`, no `poster` of its own), so the preloaded still is the largest paint and the frame is fetched once. Reduced-motion, data-saver and lazy behaviour unchanged; the four other clips get the same fix.
+
+**Measurements** — same tool, same settings, three runs each, medians (lab data; **field data does not exist for this site**, so none of this is a Core Web Vitals score):
+
+| Lighthouse 12, mobile, simulated throttling | Before (production, 7 Oct) | After (preview Worker, 7 Oct) |
+|---|---|---|
+| Homepage performance score | 81 (79–82) | AFTER_SCORE |
+| LCP | 4 935 ms (4 758–4 937) | AFTER_LCP |
+| FCP | 1 177 ms | AFTER_FCP |
+| TBT | 97 ms | AFTER_TBT |
+| Speed Index | 1 903 ms | AFTER_SI |
+| LCP element | `<video>` (hero clip) | AFTER_LCPEL |
+
+Chrome probe (CPU ×4, slow 4G), LCP candidate sequence: before — SPAN → P → VIDEO at 4.7 s; after (local build) — SPAN → **IMG (preloaded portrait still) at 2.46 s**, no later candidate.
+
+### 16.2 Service pages — which, why, and what they say
+
+Created (`src/lib/service-pages.ts`, `src/app/services/[slug]/page.tsx`): **/services/amazon-fba-prep**, **/services/tiktok-shop-fulfilment**, **/services/pick-and-pack**, **/services/returns**. Justification: on google.ie every provider ranking for these four queries does so with a dedicated page (§4, §6); a row on /services cannot answer "what is included / how it works / what it does not cover". Not created: Shopify (the SERP is Shopify's own guides; one row suffices), storage (self-storage intent), receiving/labelling/kitting (no distinct search), county pages (doorway pattern).
+
+Each page: who it is for · what is included · how it works (steps) · what this does not cover · four questions sellers ask · "Get Price →" (the calculator) and "Become a Client" · related pages · own canonical, title, description, Open Graph, BreadcrumbList and one `Service` node linked to its /services row. **Every sentence restates something already published** (the /services rows, /why-ireland, /dispatch-commitment, /batch-photos, /faq); a unit test refuses customs/import/VAT services, carrier names, prices, "guarantee", affiliations and delivery-time promises. What is deliberately absent until the owner answers (§16.7): the exact FBA prep task list beyond the published seven, the TikTok Shop order-intake and carrier-handover process, anything about inbound customs.
+
+Linked from: the /services row (one line above the rows: "Four services have a page of their own"), the homepage services section, the footer Services group (Pick & Pack, Returns, Amazon FBA Prep now go to the pages; TikTok Shop added), each other, and the sitemap (23 URLs). The /services anchors are untouched; no redirect, no canonical to the homepage.
+
+### 16.3 Homepage and internal links
+
+- One new sentence in the "Why brands… hold stock in Ireland" block: "Our only warehouse is in Limerick. Sellers anywhere in Ireland, and brands abroad, send stock to Limerick, and orders go out to customers in every county through national carrier networks." Warehouse vs service area, stated once, no county list.
+- Two FAQ entries (also in the FAQPage markup): "Do you work with sellers outside Limerick?" and "I'm outside Ireland. How do I get stock to you?" — the latter promises receiving, not customs.
+- Links: homepage → four service pages; /services rows → pages; footer → pages; pages → each other, /services#row, /faq, /become-a-client, calculator. Logo → `/` on every page; "Get Price →" in the header at every width (unchanged, verified by the browser suites).
+
+### 16.4 Technical
+
+- Sitemap: 23 URLs (19 + 4). Metadata and canonicals per page; the SEO guard checks all of them.
+- `scripts/seo-check.mjs`: the four pages are now key pages (must be in the sitemap and linked from the homepage).
+- Unit tests: `tests/seo-audit-2026-10.test.ts` (service pages, metadata, events, IndexNow, guard); `tests/media-assets.test.ts` updated to pin the corrected preload and the still-under-clip rule.
+
+### 16.5 HTTP → HTTPS — the exact Cloudflare change (needs the owner's approval; one toggle)
+
+Today `http://dockentra.ie/<path>?<query>` answers 200 with the page (VERIFIED). An app-level redirect looped the whole site in September (the Worker sees the forwarded scheme as http for HTTPS traffic too), so the fix belongs at the edge:
+
+**Cloudflare dashboard → zone `dockentra.ie` → SSL/TLS → Edge Certificates → "Always Use HTTPS" → On.** Cloudflare then answers every `http://` request with `301 Location: https://dockentra.ie/<same path>?<same query>` before the Worker runs; HTTPS requests are untouched, so no loop is possible. Nothing else in that section should change (SSL mode stays as it is; do not enable "Automatic HTTPS Rewrites" unless mixed content appears — there is none).
+
+Verification after the toggle: `curl -sI "http://dockentra.ie/services?utm_source=x"` must show `301` and `Location: https://dockentra.ie/services?utm_source=x`; `curl -sI https://dockentra.ie/services` must still be `200`; `npm run seo:check -- https://dockentra.ie` must no longer print the http note.
+
+Optional, separate approval: **Caching → Cache Rules → "Cache HTML"**: eligible for cache when the hostname is `dockentra.ie` and the path is not `/admin*`, `/api*`, `/offers*`, `/become-a-client`; respect origin Cache-Control (the app already sends `s-maxage=60, stale-while-revalidate`). Removes the 3-second cold-start TTFB on first requests. Risk: a published change is visible up to 60 s late. Not applied.
+
+### 16.6 Bing Webmaster Tools and URL submission (prepared; external actions need approval)
+
+1. https://www.bing.com/webmasters → sign in (Microsoft account) → "Import from Google Search Console" → choose `dockentra.ie` → import. This verifies the site through the existing Google verification and imports the sitemap; no DNS record is needed. (Alternative: "Add a site manually" → DNS CNAME or meta tag; tell me the value and I will add it.)
+2. Sitemaps → confirm `https://dockentra.ie/sitemap.xml` shows 23 URLs.
+3. URL submission: either **Cloudflare → Caching → Configuration → Crawler Hints: On** (automatic IndexNow on cache misses, no code), or after the release `node scripts/indexnow-submit.mjs` (sitemap) / `node scripts/indexnow-submit.mjs /services/amazon-fba-prep /services/tiktok-shop-fulfilment /services/pick-and-pack /services/returns` (priority URLs). The key file is served at `https://dockentra.ie/82e504e697e9b084495d00a000b28b7a.txt` once released. IndexNow reaches Bing, Yandex, Seznam, Naver and Yep; **not Google**.
+4. Google: Search Console → URL Inspection → Request indexing for the four new pages and the eight "Discovered – currently not indexed" pages, once each.
+
+### 16.7 Open questions (answers unblock the next content round)
+
+1. Is the warehouse receiving stock now? (Keep hours and remove "Opening Soon", or keep "Opening Soon" and remove the hours?)
+2. Amazon FBA prep — anything beyond: receiving, FNSKU labelling, inspection, polybagging, bubble wrap, bundling, carton preparation? (expiry labels, removal orders, Amazon shipment creation?)
+3. TikTok Shop — how do orders reach Dockentra (platform integration, export, manual), who prints the labels, which carriers, how returns are routed?
+4. International sellers — which of customs clearance, importer of record, VAT/EORI/fiscal representation, inbound freight booking does Dockentra do or arrange? (Until answered: none is promised.)
+5. Company details — confirm "Dockentra Limited, CRO 825486" and the privacy-policy controller name.
+6. Header logo — may the lockup use a derived 96×96 copy of the official mark (223 KB → ~5 KB on every page), keeping the 512×512 master as the brand source and for the OG image? The current tests pin "the lockup uses the master".
+7. Business Profile — permanent signage at Unit 10, and someone there during the published hours?
+
+### 16.8 Release checklist (when approved)
+
+1. `git fetch && git log --oneline origin/main..seo/audit-2026-10` — review; fast-forward `main` (`git push origin seo/audit-2026-10:main`), `npm run cf:deploy`.
+2. `npm run seo:check -- https://dockentra.ie` → 23 pages, only the http note (until §16.5 is done).
+3. Share `https://dockentra.ie/services/pick-and-pack` in WhatsApp: the preview must show that page's own title.
+4. Cloudflare: Always Use HTTPS (§16.5) → re-run the check: no note.
+5. Bing Webmaster Tools import (§16.6) → IndexNow submit or Crawler Hints.
+6. Search Console: request indexing for 4 + 8 URLs; note the date.
+7. Set `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` when the property exists (events start on the next deploy).
+8. 30/60/90-day comparison per §14, from the release date.

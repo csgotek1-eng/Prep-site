@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { buildServicesJsonLd } from "@/lib/structured-data";
 import { serializeJsonLd } from "@/lib/json-ld";
+import { servicePages } from "@/lib/service-pages";
 
 /** The page's primary action, used by both CTA bands. */
 const PRIMARY_CTA =
@@ -293,6 +294,26 @@ export default function ServicesPage() {
           >
             Core services
           </h2>
+          {/* The four services searchers look for by name have a page
+              each (src/lib/service-pages.ts). Linked here, OUTSIDE the
+              rows: the rows are information, not navigation (owner
+              decision, redesign round 2026-09-23, pinned by the
+              approved-ux-round browser suite), so the links sit in one
+              line above them. */}
+          <p className="mt-4 text-base leading-7 text-slate-600">
+            Four services have a page of their own:{" "}
+            {servicePages.map((page, index) => (
+              <span key={page.slug}>
+                <Link
+                  href={`/services/${page.slug}`}
+                  className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                >
+                  {page.h1}
+                </Link>
+                {index < servicePages.length - 1 ? " · " : "."}
+              </span>
+            ))}
+          </p>
 
           <div className="mt-10 divide-y divide-brand-border border-y border-brand-border">
             {coreServices.map((service, index) => (

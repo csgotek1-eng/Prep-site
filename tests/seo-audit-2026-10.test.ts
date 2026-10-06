@@ -118,3 +118,59 @@ describe("LocalBusiness sameAs points at the Facebook page itself", () => {
     assert.equal(site.includes("facebook.com/share/"), false, "the share link is back");
   });
 });
+
+describe("dedicated service pages say only what the site already says", () => {
+  const source = read("src/lib/service-pages.ts");
+  const copy = source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  it("exist for the four services searchers look for by name, with their /services row", () => {
+    for (const [slug, row] of [
+      ["amazon-fba-prep", "amazon-fba-prep"],
+      ["tiktok-shop-fulfilment", "tiktok-shop"],
+      ["pick-and-pack", "pick-pack"],
+      ["returns", "returns"],
+    ]) {
+      assert.ok(copy.includes(`slug: "${slug}"`), `${slug} page missing`);
+      assert.ok(copy.includes(`rowId: "${row}"`), `${slug} does not point at its /services row`);
+      assert.ok(existsSync("src/app/services/[slug]/page.tsx"));
+    }
+  });
+
+  it("promise nothing the owner has not confirmed: no customs/import services, prices, carriers, guarantees or affiliations", () => {
+    for (const banned of [
+      "customs clearance",
+      "importer of record",
+      "fiscal representative",
+      "EORI",
+      "DDP",
+      "guarantee",
+      "€",
+      "An Post",
+      "DPD",
+      "Fastway",
+      "GLS",
+      "UPS",
+      "DHL",
+      "certified",
+      "approved by Amazon",
+      "official partner",
+      "same-day delivery",
+      "next-day",
+      "24 hour",
+      "99",
+    ]) {
+      assert.equal(copy.includes(banned), false, `service-pages.ts promises "${banned}"`);
+    }
+    // The non-affiliation statement the rest of the site carries.
+    assert.ok(copy.includes("not affiliated with or endorsed by"));
+  });
+
+  it("are in the sitemap, linked from the footer, the homepage services section and /services (outside the rows)", () => {
+    assert.ok(read("src/app/sitemap.ts").includes("servicePages.map((page) => `/services/${page.slug}`)"));
+    assert.ok(read("src/components/Footer.tsx").includes('"/services/amazon-fba-prep"'));
+    assert.ok(read("src/components/sections/ServicesSection.tsx").includes("servicePages.map("));
+    assert.ok(read("src/app/services/page.tsx").includes("Four services have a page of their own"));
+  });
+});
