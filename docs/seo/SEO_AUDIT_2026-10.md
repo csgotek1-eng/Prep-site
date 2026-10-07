@@ -369,6 +369,7 @@ Linked from: the /services row (one line above the rows: "Four services have a p
 - Sitemap: 23 URLs (19 + 4). Metadata and canonicals per page; the SEO guard checks all of them.
 - `scripts/seo-check.mjs`: the four pages are now key pages (must be in the sitemap and linked from the homepage).
 - Unit tests: `tests/seo-audit-2026-10.test.ts` (service pages, metadata, events, IndexNow, guard); `tests/media-assets.test.ts` updated to pin the corrected preload and the still-under-clip rule.
+- **Preview caveat, found by the guard:** on the workers.dev preview every page — including `/faq` — is served with `X-Robots-Tag: noindex`, because a version uploaded by the preview script never runs `populateCache`, so the Worker renders each page on a cache miss in Next's fallback mode (which adds the header). Production is deployed with `npm run cf:deploy`, which populates the cache: the same build in the local Worker runtime with a populated cache (`opennextjs-cloudflare preview`) serves all 23 pages with no `X-Robots-Tag` and `/services/no-such` as a 404 (VERIFIED, 7 Oct). The post-release `npm run seo:check -- https://dockentra.ie` is the check that proves it on the live site; it fails on that header.
 
 ### 16.5 HTTP → HTTPS — the exact Cloudflare change (needs the owner's approval; one toggle)
 
@@ -400,7 +401,7 @@ Optional, separate approval: **Caching → Cache Rules → "Cache HTML"**: eligi
 ### 16.8 Release checklist (when approved)
 
 1. `git fetch && git log --oneline origin/main..seo/audit-2026-10` — review; fast-forward `main` (`git push origin seo/audit-2026-10:main`), `npm run cf:deploy`.
-2. `npm run seo:check -- https://dockentra.ie` → 23 pages, only the http note (until §16.5 is done).
+2. `npm run seo:check -- https://dockentra.ie` → 23 pages, no `X-Robots-Tag` on any of them, only the http note (until §16.5 is done). If a service page shows `noindex`, run `npx opennextjs-cloudflare populateCache remote` and re-check.
 3. Share `https://dockentra.ie/services/pick-and-pack` in WhatsApp: the preview must show that page's own title.
 4. Cloudflare: Always Use HTTPS (§16.5) → re-run the check: no note.
 5. Bing Webmaster Tools import (§16.6) → IndexNow submit or Crawler Hints.
