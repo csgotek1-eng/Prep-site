@@ -151,10 +151,13 @@ export default async function HomePage() {
               reduced motion. Nothing else on the page animates. */}
           <div className="hero-enter max-w-3xl">
             {/* The eyebrow states what a seller cannot infer from the
-                headline: where we are. Mint rather than brand green,
-                because green on navy does not reach AA at this size. */}
+                headline: where we are. The country only, since 7 Oct
+                2026 (owner decision): the warehouse address stays on
+                /contact, the footer and the LocalBusiness node. Mint
+                rather than brand green, because green on navy does not
+                reach AA at this size. */}
             <p className="font-mono-data text-xs font-medium uppercase tracking-[0.12em] text-brand-mint [text-shadow:0_1px_2px_rgba(13,23,48,0.35)] sm:text-sm">
-              Limerick, Ireland
+              Ireland
             </p>
             <h1
               id="hero-heading"

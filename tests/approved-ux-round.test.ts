@@ -357,7 +357,11 @@ describe("the first screen says who it is for and what happens next", () => {
     // The eyebrow no longer repeats the H1 almost word for word. The
     // opening year came out of it at the owner's request: a date in an
     // eyebrow ages on its own, and nothing else on the page needs it.
-    assert.ok(home.includes("Limerick, Ireland"));
+    // Since 7 Oct 2026 the eyebrow names the country only (owner
+    // decision): the city stays on /contact, the footer, the title and
+    // the LocalBusiness node, so search meaning is not lost.
+    assert.ok(/<p[^>]*>\s*Ireland\s*<\/p>/.test(home), "the hero eyebrow should read exactly Ireland");
+    assert.equal(home.includes("Limerick, Ireland"), false, "the city is back in the hero eyebrow");
     assert.equal(/Opening 2026/i.test(home), false, "the opening year is back in the hero");
   });
 
