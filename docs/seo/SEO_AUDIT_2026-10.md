@@ -408,3 +408,11 @@ Optional, separate approval: **Caching → Cache Rules → "Cache HTML"**: eligi
 6. Search Console: request indexing for 4 + 8 URLs; note the date.
 7. Set `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` when the property exists (events start on the next deploy).
 8. 30/60/90-day comparison per §14, from the release date.
+
+### 16.9 Release log — 7 October 2026
+
+- `main` fast-forwarded to `2b3a6e5`; `npm run cf:deploy` → Worker version **89f5c1c0-e266-4c2b-ab91-5a72b03a99e1** (previous production version, for rollback: `f76ff21d-6f82-45eb-861f-3d0298d54b6d`).
+- Verified on https://dockentra.ie after the deploy: `/api/health` 200; the four service pages 200 with their own canonical and og:title, `/services/<unknown>` 404; no `X-Robots-Tag` on any page; both media-scoped hero preloads in the served HTML and no `poster` attribute; the Limerick warehouse / service-area sentence on the homepage; `npm run seo:check -- https://dockentra.ie` → 23 pages, all invariants hold, only the http note remains (§16.5 not yet done); IndexNow key file served (200); sitemap 23 URLs.
+- IndexNow: `node scripts/indexnow-submit.mjs` → 23 URLs, HTTP 202 (Bing/Yandex/Seznam/Naver/Yep; a hint, not a guarantee). Not Google.
+- Still to do in the dashboards (owner's accounts; the browser extension was not connected in this session): Cloudflare "Always Use HTTPS" (§16.5); Bing Webmaster Tools import (§16.6 step 1–2); Search Console "Request indexing" for the four new pages and the eight "Discovered – currently not indexed" pages; GA4 property → `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` as a build variable, then a redeploy.
+- 30/60/90-day comparison (§14) counts from **7 October 2026**.
