@@ -201,6 +201,15 @@ export default function PrivacyPage() {
                 advertising or ad-tracking scripts of any kind.
               </p>
               <p className="mt-3">
+                We use Cloudflare Web Analytics to count visits, see which
+                pages are read and measure how fast they load. It sets{" "}
+                <strong>no cookies and stores nothing on your device</strong>,
+                does not track you across other websites, and gives us only
+                aggregated figures, never a profile of an individual
+                visitor. Cloudflare processes this data on our behalf as
+                part of hosting the site.
+              </p>
+              <p className="mt-3">
                 This website may use Google Analytics to count visits and
                 see which pages are read. Where it is enabled, it runs
                 with Google Consent Mode set to deny every storage

@@ -76,3 +76,22 @@ NOT collected, by design:
 4. Server-side `lead_created` event inside processLead().
 5. Privacy policy section + PROJECT_STATUS update.
 6. A simple /admin view or SQL snippets for reading the funnel.
+
+## Cloudflare Web Analytics — live since 8 October 2026
+
+Visitor statistics (visits, page views, top pages, referrers, countries,
+devices, Core Web Vitals) come from **Cloudflare Web Analytics**, free,
+cookieless. Dashboard: Cloudflare → Analytics → Web analytics →
+`dockentra.ie`.
+
+- The beacon is injected by Cloudflare at the edge ("Automatic setup");
+  there is no snippet in this repository. The CSP names its two hosts
+  (`tests/hardening-round.test.ts`).
+- Until 8 Oct 2026 the site was set to **"Enable, excluding visitor data
+  in the EU"**, so almost no visit was counted (the audience is in
+  Ireland). It is now **"Enable"**. Verified in Chrome on production:
+  `beacon.min.js` 200, report `POST /cdn-cgi/rum` 204, the dashboard
+  counter moved.
+- Plain `curl` without a browser user agent does not always receive the
+  injected tag; check in a real browser.
+- The privacy policy names it (Hosting and technical processing).
