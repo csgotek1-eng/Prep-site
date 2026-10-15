@@ -154,7 +154,7 @@ export default function DispatchCommitmentPage() {
                 The record kept for every parcel
               </h2>
               <p className="mt-6 text-base leading-7 text-slate-700">
-                When a marketplace investigates an undelivered order it
+                When TikTok Shop investigates an undelivered order it
                 can ask for proof of carrier handover; the date, time and
                 place; the quantity; the condition when packed; and
                 whether the packaging was sealed. We collect all of it as
