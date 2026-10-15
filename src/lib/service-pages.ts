@@ -54,7 +54,7 @@ export const servicePages: readonly ServicePage[] = [
     rowId: "amazon-fba-prep",
     title: "Amazon FBA Prep in Ireland",
     description:
-      "FBA prep in Limerick for Amazon sellers: receiving, inspection, FNSKU labelling, polybagging, bubble wrap, bundling and carton preparation, with photos of every delivery.",
+      "Amazon FBA prep in Limerick: receiving, inspection, FNSKU labelling, polybagging, bundling and carton prep, with photos of every delivery.",
     eyebrow: "Amazon FBA prep",
     h1: "Amazon FBA prep in Ireland",
     lead:
@@ -125,7 +125,7 @@ export const servicePages: readonly ServicePage[] = [
     rowId: "tiktok-shop",
     title: "TikTok Shop Fulfilment in Ireland",
     description:
-      "Fulfilment for TikTok Shop sellers from Limerick: receiving, storage, prep, pick and pack and returns, with same-day dispatch before 14:00 and the evidence Ship by Seller disputes ask for.",
+      "TikTok Shop fulfilment from Limerick: storage, prep, pick and pack and returns, same-day dispatch before 14:00 and evidence for Ship by Seller disputes.",
     eyebrow: "TikTok Shop fulfilment",
     h1: "TikTok Shop fulfilment in Ireland",
     lead:
@@ -195,7 +195,7 @@ export const servicePages: readonly ServicePage[] = [
     rowId: "pick-pack",
     title: "Pick and Pack Services in Ireland",
     description:
-      "Pick and pack from Limerick for online sellers across Ireland: orders picked, checked, packed and dispatched the same day when in before 14:00, with no minimum volume.",
+      "Pick and pack from Limerick for online sellers across Ireland: orders checked, packed and dispatched the same day when in before 14:00. No minimum volume.",
     eyebrow: "Pick & pack",
     h1: "Pick and pack in Ireland",
     lead:
@@ -264,7 +264,7 @@ export const servicePages: readonly ServicePage[] = [
     rowId: "returns",
     title: "E-commerce Returns Handling in Ireland",
     description:
-      "Returns for online sellers received at Dockentra in Limerick: inspected, photographed where required, sellable items restocked and damaged stock separated, with a local Irish return address.",
+      "E-commerce returns received in Limerick: inspected, photographed where needed, sellable items restocked, damaged stock separated. An Irish return address.",
     eyebrow: "Returns",
     h1: "E-commerce returns handling in Ireland",
     lead:

@@ -284,6 +284,15 @@ export default function ServicesPage() {
           customer, from receiving to returns, all handled locally in
           Ireland.
         </p>
+        {/* The words people search with (SEO round, 2026-10-15): order
+            fulfilment, 3PL, fulfilment centre, warehousing. Restates
+            the FAQ's own definition; no new claim. */}
+        <p className="mt-4 text-base leading-7 text-slate-300">
+          In industry terms Dockentra is a third-party logistics (3PL)
+          provider: an e-commerce fulfilment centre in Limerick that
+          handles order fulfilment for online sellers across Ireland,
+          from receiving and warehousing to pick and pack and returns.
+        </p>
       </PageHeader>
 
       <section aria-labelledby="core-services-heading" className="bg-white">

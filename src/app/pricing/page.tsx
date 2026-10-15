@@ -16,6 +16,38 @@ export const metadata: Metadata = {
   },
 };
 
+/** Restated from the service pages, the FAQ and /dispatch-commitment. */
+const pricingIncluded = [
+  "Your price comes back privately by email, within one working day of sending your numbers through the calculator.",
+  "Goods-in on your first shipment is free.",
+  "Batch photos of every incoming delivery, sent to you the same day, are part of the price, not an extra.",
+  "Orders in before 14:00 on a working day are dispatched the same day. If we miss it on our side, that order's pick and pack is free.",
+  "Carrier delivery charges depend on parcel weight, dimensions, destination and service, and are confirmed before onboarding.",
+];
+
+const servicePricing = [
+  {
+    service: "Pick and pack",
+    href: "/services/pick-and-pack",
+    basis: "Per order, with your monthly order volume and units per order setting the rate.",
+  },
+  {
+    service: "Amazon FBA prep",
+    href: "/services/amazon-fba-prep",
+    basis: "Per service: your SKUs, incoming stock, units and the prep work each product needs.",
+  },
+  {
+    service: "TikTok Shop fulfilment",
+    href: "/services/tiktok-shop-fulfilment",
+    basis: "Built from the services your store actually uses: receiving, storage, prep, pick and pack, returns.",
+  },
+  {
+    service: "Returns handling",
+    href: "/services/returns",
+    basis: "Per return, as part of your private price.",
+  },
+];
+
 /**
  * WHAT A QUOTE DEPENDS ON — THE FACTORS, NOT THE RATES.
  *
@@ -191,6 +223,62 @@ export default async function PricingPage() {
               figures, under a list with no figures in it, would tell a
               visitor to look for something that is not there. */}
 
+        </Container>
+      </section>
+
+      {/* SEO round, 2026-10-15: the page was one of the shortest on the
+          site and Google had not indexed it. Every line below restates
+          something already published elsewhere — the service pages
+          (src/lib/service-pages.ts), the FAQ, /dispatch-commitment —
+          so nothing new is promised and still no figure appears. */}
+      <section
+        aria-labelledby="pricing-included-heading"
+        className="border-t border-brand-border bg-brand-surface-soft"
+      >
+        <Container className="py-16 sm:py-24">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <h2
+                id="pricing-included-heading"
+                className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              >
+                What comes with every price
+              </h2>
+              <ul className="mt-6 space-y-4 text-base leading-7 text-slate-700">
+                {pricingIncluded.map((line) => (
+                  <li key={line} className="flex gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green"
+                    />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+                How each service is priced
+              </h2>
+              <dl className="mt-6 divide-y divide-brand-border border-y border-brand-border">
+                {servicePricing.map((item) => (
+                  <div key={item.href} className="py-5">
+                    <dt className="text-base font-semibold text-brand-navy">
+                      <Link
+                        href={item.href}
+                        className="underline-offset-2 hover:text-brand-green-dark hover:underline"
+                      >
+                        {item.service}
+                      </Link>
+                    </dt>
+                    <dd className="mt-1 text-base leading-7 text-slate-600">
+                      {item.basis}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
         </Container>
       </section>
 

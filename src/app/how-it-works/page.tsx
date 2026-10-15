@@ -42,6 +42,67 @@ const steps = [
   },
 ];
 
+/** Restated from the service pages, the FAQ and /dispatch-commitment. */
+const processDetail: {
+  title: string;
+  points: string[];
+  link?: { href: string; label: string };
+}[] = [
+  {
+    title: "Before your stock arrives",
+    points: [
+      "We agree the services you need and, for Amazon stock, the prep each product needs, before the first carton arrives.",
+      "How orders reach us is agreed when you set up.",
+      "There is no minimum order volume: we start at your first box.",
+    ],
+    link: { href: "/pricing", label: "How pricing works" },
+  },
+  {
+    title: "Receiving and inspection",
+    points: [
+      "Supplier deliveries are counted by carton and by unit, barcodes are verified and discrepancies are reported to you.",
+      "Every delivery is photographed on arrival, and the photos are sent to you the same day.",
+      "Visible condition, packaging and quantity are checked before anything goes on a shelf.",
+    ],
+    link: { href: "/batch-photos", label: "Batch photos of every delivery" },
+  },
+  {
+    title: "Storage and prep",
+    points: [
+      "Your inventory is stored in Limerick, ready for orders, prep or onward shipment.",
+      "Prep is done to your specification: labelling, polybagging, bubble wrap, bundles and kits.",
+      "Amazon stock is labelled and packed for FBA and made ready for onward shipment.",
+    ],
+    link: { href: "/services/amazon-fba-prep", label: "Amazon FBA prep" },
+  },
+  {
+    title: "Pick, pack and dispatch",
+    points: [
+      "Each order is picked, checked against what was ordered, packed and prepared for shipment.",
+      "Orders in before 14:00 on a working day are dispatched the same day. If we miss it on our side, that order's pick and pack is free.",
+      "Parcels go to customers in every county in Ireland through national carrier networks.",
+    ],
+    link: { href: "/services/pick-and-pack", label: "Pick and pack" },
+  },
+  {
+    title: "Returns",
+    points: [
+      "Your Irish customers return to Limerick, not across a border.",
+      "Returned items are inspected and photographed where required.",
+      "Sellable items are restocked; damaged stock is separated and reported to you.",
+    ],
+    link: { href: "/services/returns", label: "Returns handling" },
+  },
+  {
+    title: "Selling on TikTok Shop",
+    points: [
+      "In Ireland TikTok Shop is Ship by Seller only, so the seller or a fulfilment partner dispatches every order.",
+      "We keep the evidence a dispute asks for: carrier handover, date, time and place, quantity, condition when packed and whether the parcel was sealed.",
+    ],
+    link: { href: "/services/tiktok-shop-fulfilment", label: "TikTok Shop fulfilment" },
+  },
+];
+
 export default function HowItWorksPage() {
   return (
     <>
@@ -148,6 +209,62 @@ export default function HowItWorksPage() {
                 </div>
               </div>
             </figure>
+          </div>
+        </Container>
+      </section>
+
+      {/* SEO round, 2026-10-15: the three steps above stay exactly as
+          approved; this section adds the detail behind them, every
+          line restated from the service pages (src/lib/service-pages.ts),
+          the FAQ and /dispatch-commitment, so no new promise is made.
+          The page was the shortest on the site and was not indexed. */}
+      <section
+        aria-labelledby="process-detail-heading"
+        className="border-t border-brand-border bg-brand-surface-soft"
+      >
+        <Container className="py-16 sm:py-24">
+          <div className="max-w-3xl">
+            <h2
+              id="process-detail-heading"
+              className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+            >
+              What happens at each stage
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              The order fulfilment process behind the three steps, from
+              the first conversation to a parcel on its way to your
+              customer, all from our fulfilment centre in Limerick.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-x-12 gap-y-10 sm:grid-cols-2">
+            {processDetail.map((stage) => (
+              <div key={stage.title}>
+                <h3 className="text-lg font-semibold text-brand-navy">
+                  {stage.title}
+                </h3>
+                <ul className="mt-3 space-y-3 text-base leading-7 text-slate-700">
+                  {stage.points.map((point) => (
+                    <li key={point} className="flex gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green"
+                      />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+                {stage.link && (
+                  <p className="mt-3 text-sm leading-6">
+                    <Link
+                      href={stage.link.href}
+                      className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                    >
+                      {stage.link.label}
+                    </Link>
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </Container>
       </section>

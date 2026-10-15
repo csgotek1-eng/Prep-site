@@ -116,6 +116,79 @@ export default function DispatchCommitmentPage() {
         </Container>
       </section>
 
+      {/* SEO round, 2026-10-15: the commitment above is unchanged. This
+          adds what surrounds a dispatch, restated from the service
+          pages (src/lib/service-pages.ts) — nothing new is promised,
+          and no dispatch figures appear until there are real ones. */}
+      <section
+        aria-labelledby="dispatch-detail-heading"
+        className="border-t border-brand-border bg-brand-surface-soft"
+      >
+        <Container className="py-16 sm:py-20">
+          <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <h2
+                id="dispatch-detail-heading"
+                className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl"
+              >
+                Before an order goes out
+              </h2>
+              <ul className="mt-6 space-y-4 text-base leading-7 text-slate-700">
+                {[
+                  "Each order is picked from your stock in Limerick and checked against what was ordered.",
+                  "It is packed, with any prep the item needs on its way out, and prepared for shipment.",
+                  "It is handed to national carrier networks for delivery to customers in every county in Ireland.",
+                ].map((line) => (
+                  <li key={line} className="flex gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green"
+                    />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+                The record kept for every parcel
+              </h2>
+              <p className="mt-6 text-base leading-7 text-slate-700">
+                When a marketplace investigates an undelivered order it
+                can ask for proof of carrier handover; the date, time and
+                place; the quantity; the condition when packed; and
+                whether the packaging was sealed. We collect all of it as
+                a matter of course, alongside{" "}
+                <Link
+                  href="/batch-photos"
+                  className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                >
+                  batch photos of every incoming delivery
+                </Link>
+                .
+              </p>
+              <p className="mt-4 text-base leading-7 text-slate-700">
+                More on{" "}
+                <Link
+                  href="/services/pick-and-pack"
+                  className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                >
+                  pick and pack
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/services/tiktok-shop-fulfilment"
+                  className="font-semibold text-brand-green-dark underline-offset-2 hover:underline"
+                >
+                  TikTok Shop fulfilment
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        </Container>
+      </section>
+
       {/* The site's one closing band (redesign review, 2026-09-24): the
           mint card that sat under the prose is gone, and the same
           sentence and pair of actions close the page at full width. */}

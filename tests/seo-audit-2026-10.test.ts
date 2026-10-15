@@ -174,3 +174,44 @@ describe("dedicated service pages say only what the site already says", () => {
     assert.ok(read("src/app/services/page.tsx").includes("Four services have a page of their own"));
   });
 });
+
+describe("content round 2026-10-15: thin pages carry their detail, and promise nothing new", () => {
+  const banned = ["customs clearance", "guarantee", "€", "certified", "official partner", "next-day", "24 hour", "same-day delivery"];
+
+  for (const [file, marker] of [
+    ["src/app/how-it-works/page.tsx", "What happens at each stage"],
+    ["src/app/pricing/page.tsx", "What comes with every price"],
+    ["src/app/dispatch-commitment/page.tsx", "The record kept for every parcel"],
+  ] as const) {
+    it(`${file} has its detail section and no unconfirmed claim`, () => {
+      const source = readCode(file);
+      assert.ok(source.includes(marker), `${file}: "${marker}" section is gone`);
+      for (const word of banned) {
+        assert.equal(source.includes(word), false, `${file} promises "${word}"`);
+      }
+    });
+  }
+
+  it("the detail sections link to the service pages", () => {
+    const how = readCode("src/app/how-it-works/page.tsx");
+    const pricing = readCode("src/app/pricing/page.tsx");
+    for (const slug of ["amazon-fba-prep", "pick-and-pack", "returns", "tiktok-shop-fulfilment"]) {
+      assert.ok(how.includes(`/services/${slug}`), `/how-it-works does not link /services/${slug}`);
+      assert.ok(pricing.includes(`/services/${slug}`), `/pricing does not link /services/${slug}`);
+    }
+  });
+
+  it("/services names the terms people search with", () => {
+    const services = readCode("src/app/services/page.tsx");
+    for (const term of ["third-party logistics (3PL)", "fulfilment centre", "order fulfilment", "warehousing"]) {
+      assert.ok(services.includes(term), `/services lost "${term}"`);
+    }
+  });
+
+  it("service page descriptions fit a search snippet (155 characters or fewer)", () => {
+    const source = read("src/lib/service-pages.ts");
+    const descriptions = [...source.matchAll(/description:\s*\n?\s*"([^"]+)"/g)].map((m) => m[1]);
+    assert.equal(descriptions.length, 4);
+    for (const d of descriptions) assert.ok(d.length <= 155, `${d.length} chars: ${d}`);
+  });
+});
