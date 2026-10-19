@@ -7,6 +7,7 @@ import {
   InstagramIcon,
   TikTokIcon,
   WhatsAppIcon,
+  YouTubeIcon,
 } from "@/components/SocialIcons";
 import { contactEmailHref, contactEmailLabel, siteContact } from "@/lib/site-contact";
 import { navLinks, siteConfig } from "@/lib/site";
@@ -26,6 +27,11 @@ const socialLinks = [
     label: "Dockentra on TikTok",
     href: siteConfig.social.tiktok,
     Icon: TikTokIcon,
+  },
+  {
+    label: "Dockentra on YouTube",
+    href: siteConfig.social.youtube,
+    Icon: YouTubeIcon,
   },
   {
     label: "Chat with Dockentra on WhatsApp",

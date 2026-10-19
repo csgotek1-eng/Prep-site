@@ -1,8 +1,16 @@
 import type { MetadataRoute } from "next";
 import { navLinks, siteUrl } from "@/lib/site";
 import { servicePages } from "@/lib/service-pages";
+import { getPublishedVideos } from "@/lib/videos/service";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Re-read hourly so /videos joins the sitemap once a video is published.
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // /videos only when it has something on it: an empty /videos is
+  // noindex (src/app/videos/page.tsx), and a sitemap must not list a
+  // page that asks not to be indexed.
+  const hasVideos = (await getPublishedVideos()).length > 0;
   const pages = [
     ...new Set([
       ...navLinks.map((link) => link.href),
@@ -41,6 +49,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       // their /services rows, the homepage and the footer, and listed
       // here so each is discovered on its own.
       ...servicePages.map((page) => `/services/${page.slug}`),
+      ...(hasVideos ? ["/videos"] : []),
     ]),
   ];
   return pages.map((href) => ({

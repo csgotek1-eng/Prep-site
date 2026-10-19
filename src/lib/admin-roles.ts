@@ -45,6 +45,7 @@ export interface AdminSection {
 export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/admin/pricing", label: "Pricing", roles: ["owner", "admin"] },
   { href: "/admin/promotions", label: "Promotions", roles: ["owner", "admin"] },
+  { href: "/admin/videos", label: "Videos", roles: ["owner", "admin"] },
   { href: "/admin/leads", label: "Leads", roles: ["owner", "admin"] },
   // The only section a reviewer can reach, and the reason the role
   // exists: moderating reviews needs no access to pricing, to leads, or

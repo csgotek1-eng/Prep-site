@@ -30,3 +30,7 @@ export function FacebookIcon({ className }: IconProps) {
 export function TikTokIcon({ className }: IconProps) {
   return <BrandIcon brand="tiktok" className={className} />;
 }
+
+export function YouTubeIcon({ className }: IconProps) {
+  return <BrandIcon brand="youtube" className={className} />;
+}

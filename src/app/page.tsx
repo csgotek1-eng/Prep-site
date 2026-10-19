@@ -16,6 +16,7 @@ import PricingSection from "@/components/sections/PricingSection";
 import SellerFit from "@/components/sections/SellerFit";
 import ServicesSection from "@/components/sections/ServicesSection";
 import WhyDockentra from "@/components/sections/WhyDockentra";
+import VideosSection from "@/components/sections/VideosSection";
 import WhyIrelandSection from "@/components/sections/WhyIrelandSection";
 
 /* THE one platform presentation on the homepage. It used to be a
@@ -278,6 +279,10 @@ export default async function HomePage() {
       {/* ТЗ 15.09.2026, A6: after the process, before the reasons —
           the photos are the proof that the process happened. */}
       <BatchPhotosSection />
+      {/* Videos the owner marked "Show on homepage" in /admin/videos
+          (2026-10-19). Renders nothing when none are marked, so the
+          approved page is unchanged until the owner chooses to use it. */}
+      <VideosSection />
       <WhyDockentra />
       {/* Package 2, item 5: the way in to /cases, which until now was
           linked from the footer and nowhere else. It sits after the

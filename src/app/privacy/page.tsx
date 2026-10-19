@@ -210,6 +210,15 @@ export default function PrivacyPage() {
                 part of hosting the site.
               </p>
               <p className="mt-3">
+                Some pages show videos from the Dockentra YouTube channel.
+                Until you press play, nothing is loaded from YouTube: the
+                preview image comes from this website. When you press play,
+                the video loads from YouTube in its privacy-enhanced mode
+                (youtube-nocookie.com), and from that moment Google Ireland
+                Limited, which operates YouTube, receives the technical data
+                needed to play it under its own privacy policy.
+              </p>
+              <p className="mt-3">
                 This website may use Google Analytics to count visits and
                 see which pages are read. Where it is enabled, it runs
                 with Google Consent Mode set to deny every storage

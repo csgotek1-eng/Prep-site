@@ -57,7 +57,15 @@ const gaImage = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.image.join(" ")}` : "";
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
 const TURNSTILE_HOST = "https://challenges.cloudflare.com";
 const turnstileScript = turnstileSiteKey ? ` ${TURNSTILE_HOST}` : "";
-const turnstileFrame = turnstileSiteKey ? TURNSTILE_HOST : "'none'";
+// The YouTube player for /videos and the homepage video section
+// (2026-10-19). The privacy-enhanced host only, and only as a frame:
+// the player is inserted after a visitor presses play
+// (src/components/YouTubeVideo.tsx), its stills are served from this
+// site (src/app/video-thumbs), so no img-src, script-src or
+// connect-src entry is needed for it. frame-src can therefore no
+// longer be 'none'; it names exactly these hosts.
+const YOUTUBE_FRAME_HOST = "https://www.youtube-nocookie.com";
+const turnstileFrame = [YOUTUBE_FRAME_HOST, ...(turnstileSiteKey ? [TURNSTILE_HOST] : [])].join(" ");
 
 // Cloudflare Web Analytics. Unlike the Google and Turnstile hosts
 // above, this one is not gated behind an env var: the beacon is

@@ -134,6 +134,7 @@ export function buildLocalBusinessJsonLd() {
       siteConfig.social.instagram,
       siteConfig.social.facebook,
       siteConfig.social.tiktok,
+      siteConfig.social.youtube,
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -236,6 +237,32 @@ export function buildServicePageJsonLd(page: {
     provider: { "@id": `${siteUrl}/#business` },
     areaServed: { "@type": "Country", name: "Ireland" },
     isRelatedTo: { "@id": `${siteUrl}/services#${page.rowId}` },
+  };
+}
+
+/**
+ * One VideoObject per video on /videos, describing the video exactly as
+ * the page shows it. uploadDate is omitted rather than guessed when the
+ * channel feed did not give one; the thumbnail is this site's own copy
+ * (src/app/video-thumbs), which serves only published videos.
+ */
+export function buildVideoObjectJsonLd(video: {
+  youtubeId: string;
+  title: string;
+  description: string;
+  uploadDate: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "@id": `${siteUrl}/videos#${video.youtubeId}`,
+    name: video.title,
+    description: video.description || video.title,
+    thumbnailUrl: [`${siteUrl}/video-thumbs/${video.youtubeId}`],
+    ...(video.uploadDate ? { uploadDate: video.uploadDate } : {}),
+    embedUrl: `https://www.youtube.com/embed/${video.youtubeId}`,
+    url: `https://www.youtube.com/watch?v=${video.youtubeId}`,
+    publisher: { "@id": `${siteUrl}/#business` },
   };
 }
 

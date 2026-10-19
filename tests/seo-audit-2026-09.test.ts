@@ -186,7 +186,18 @@ describe("what structured data still does not claim", () => {
     // The clip shows fulfilment work being done; it is not footage of
     // Dockentra's own operation, and a VideoObject would claim it is.
     assert.equal(read("src/app/page.tsx").includes("VideoObject"), false);
-    assert.equal(read("src/lib/structured-data.ts").includes("VideoObject"), false);
+    // NARROWED ON PURPOSE (2026-10-19): structured-data.ts now has ONE
+    // VideoObject builder, for the owner's own YouTube channel videos on
+    // /videos — real Dockentra footage, described by its YouTube ID. It
+    // must stay that: used only by /videos, keyed on a YouTube ID, and
+    // never pointed at the licensed clips under public/media.
+    const sd = read("src/lib/structured-data.ts");
+    assert.equal((sd.match(/"@type": "VideoObject"/g) ?? []).length, 1);
+    assert.ok(sd.includes("export function buildVideoObjectJsonLd(video: {\n  youtubeId: string;"));
+    assert.equal(/VideoObject[\s\S]{0,800}\/media\//.test(sd), false, "a VideoObject points at stock footage");
+    for (const file of ["src/app/page.tsx", "src/components/ProcessVideo.tsx"]) {
+      assert.equal(read(file).includes("buildVideoObjectJsonLd"), false, `${file} marks up stock footage`);
+    }
   });
 });
 

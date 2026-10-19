@@ -37,6 +37,9 @@ export const siteConfig = {
     facebook: "https://www.facebook.com/profile.php?id=61592560362868",
     tiktok: "https://www.tiktok.com/@dockentra.ie",
     tiktokHandle: "@dockentra.ie",
+    // The Dockentra YouTube channel (owner, 2026-10-19). Videos from it
+    // are shown on /videos through /admin/videos.
+    youtube: "https://www.youtube.com/@Dockentra",
     whatsapp: siteContact.whatsapp,
     // The business is reachable on Telegram via the same phone number,
     // but no PUBLIC t.me username has been supplied by the owner yet.

@@ -659,8 +659,17 @@ describe("Turnstile configuration", () => {
     assert.ok(config.includes("turnstileSiteKey ?"));
     assert.ok(config.includes("${turnstileScript}"));
     assert.ok(config.includes("frame-src ${turnstileFrame}"));
-    assert.ok(config.includes("turnstileFrame = turnstileSiteKey ?"));
-    assert.ok(config.includes("\"'none'\""), "frame-src lost its closed default");
+    // REVERSED ON PURPOSE (2026-10-19): frame-src used to be 'none'
+    // without a site key. The /videos player (youtube-nocookie.com,
+    // inserted only after a visitor presses play) now needs one frame
+    // host, so the default is that host and nothing else; Turnstile is
+    // still added only behind its key.
+    assert.ok(config.includes('YOUTUBE_FRAME_HOST = "https://www.youtube-nocookie.com"'));
+    assert.ok(
+      config.includes("...(turnstileSiteKey ? [TURNSTILE_HOST] : [])"),
+      "Turnstile's frame host is no longer behind its site key",
+    );
+    assert.equal(/frame-src[^;"]*\*/.test(config), false, "a wildcard reached frame-src");
   });
 
   it("weakens nothing else", () => {

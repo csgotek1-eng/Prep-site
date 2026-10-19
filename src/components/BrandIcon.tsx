@@ -8,6 +8,7 @@ import {
   SiTiktok,
   SiWhatsapp,
   SiWoocommerce,
+  SiYoutube,
 } from "react-icons/si";
 
 /**
@@ -41,7 +42,8 @@ export type BrandName =
   | "woocommerce"
   | "instagram"
   | "facebook"
-  | "whatsapp";
+  | "whatsapp"
+  | "youtube";
 
 interface BrandDefinition {
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -58,6 +60,7 @@ const BRANDS: Record<BrandName, BrandDefinition> = {
   instagram: { Icon: SiInstagram, color: "#E4405F" },
   facebook: { Icon: SiFacebook, color: "#1877F2" },
   whatsapp: { Icon: SiWhatsapp, color: "#25D366" },
+  youtube: { Icon: SiYoutube, color: "#FF0000" },
 };
 
 export default function BrandIcon({
