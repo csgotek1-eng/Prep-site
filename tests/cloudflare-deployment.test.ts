@@ -150,7 +150,7 @@ describe("the worker configuration", () => {
 
   it("configures a real revalidation queue, not the adapter's default", () => {
     /**
-     * Every page inherits `revalidate = 60` from the root layout, so
+     * Every page inherits `revalidate = 600` (60 until 2026-10-20) from the root layout, so
      * every page eventually needs a BACKGROUND refresh once it goes
      * stale. With no queue configured, the adapter's default is
      * DummyQueue, whose entire body is
@@ -178,6 +178,17 @@ describe("the worker configuration", () => {
       'queue: "direct" revalidates synchronously inside the visitor\'s own ' +
         "request and the adapter's own validator warns it is not for production",
     );
+  });
+
+  it("intercepts cached pages and refreshes them every 10 minutes (P0, 2026-10-20)", () => {
+    // Cache interception keeps the 5.4 MB server module out of cached
+    // requests; it awaits the refresh of a stale entry, so it must not
+    // go back to a 60 s interval without re-measuring. Not longer either:
+    // the live promotion strip is missing from build-time prerenders
+    // until the first refresh, and 10 minutes bounds that gap.
+    assert.ok(/enableCacheInterception:\s*true/.test(readCode("open-next.config.ts")));
+    const layout = readCode("src/app/layout.tsx");
+    assert.ok(/export const revalidate = 600;/.test(layout), "the layout interval is no longer 10 minutes");
   });
 
   it("binds the memory queue's self-reference under the name it looks for", () => {

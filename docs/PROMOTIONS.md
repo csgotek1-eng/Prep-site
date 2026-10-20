@@ -83,10 +83,18 @@ available".
 ### Rendering
 
 Server components, resolved during the request. The root layout sets
-`export const revalidate = 60`, so pages stay cached and fast (§36) and
-a published or expired offer takes effect within a minute. Without it
-the site would prerender once at build time and a new offer would not
-appear until the next deploy.
+`export const revalidate = 600` (it was 60 until 2026-10-20; lowered
+to relieve the Worker's CPU allowance, see
+docs/P0_503_DIAGNOSIS_2026-10-19.md), so pages stay cached and fast
+(§36) and a published or expired offer takes effect within TEN
+MINUTES. Plan for that when scheduling an offer: an offer that ends at
+18:00 can still show until about 18:10. Right after a deploy the strip
+is missing for up to ten minutes too, because the build prerenders
+pages without database access. If that is not acceptable once
+promotions are live, add on-demand revalidation when an offer is
+published or archived rather than shortening the interval again.
+Without ISR the site would prerender once at build time and a new
+offer would not appear until the next deploy.
 
 A store outage shows no offer rather than an error: every helper in
 `src/lib/promotions/service.ts` answers `null` instead of throwing.

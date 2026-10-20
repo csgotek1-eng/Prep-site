@@ -85,7 +85,25 @@ import memoryQueue from "@opennextjs/cloudflare/overrides/queue/memory-queue";
  * ("not recommended for use in production") because it makes that
  * request pay for someone else's regeneration.
  */
+/*
+ * CACHE INTERCEPTION (P0, 2026-10-20 — docs/P0_503_DIAGNOSIS_2026-10-19.md).
+ *
+ * Without it every page request, even one answered from the cache,
+ * loads and runs the 5.4 MB Next server module. On a fresh isolate that
+ * cost 84-230 ms of CPU in production logs, and under bursts (a browser
+ * prefetching the links on a page, a crawler) requests died with
+ * "Worker exceeded CPU time limit" -> 503, on the account's 10 ms CPU
+ * allowance. With interception the routing layer answers cached
+ * HTML/RSC itself and the server module is never loaded for them.
+ *
+ * Safe here because: no PPR, no middleware/proxy, no i18n; server
+ * actions and revalidation requests are passed through by the
+ * interceptor. It AWAITS the revalidation of a stale entry, which is
+ * why it ships together with the 10-minute revalidate in
+ * src/app/layout.tsx rather than the old 60 s.
+ */
 export default defineCloudflareConfig({
   incrementalCache: kvIncrementalCache,
   queue: memoryQueue,
+  enableCacheInterception: true,
 });

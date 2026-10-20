@@ -24,10 +24,24 @@ import "./globals.css";
  * newly published offer would never appear until the next deploy.
  *
  * ISR rather than force-dynamic on purpose (§36): pages stay cached
- * and fast, and a published or expired offer takes effect within a
- * minute instead of costing a render on every request.
+ * and fast.
+ *
+ * EVERY 10 MINUTES, NOT EVERY MINUTE (P0, 2026-10-20). At 60 s every
+ * page went stale every minute and each refresh was a full render
+ * (56-343 ms CPU in production logs) on the account's 10 ms CPU
+ * allowance, part of what produced 503s; a load run caused 21 refreshes
+ * on the old setting against 1 on the new one
+ * (docs/P0_503_DIAGNOSIS_2026-10-19.md).
+ *
+ * Why 10 minutes and not an hour: the promotions table IS live in
+ * production (the "Opening Soon" strip is an offer from it). Pages are
+ * prerendered at build time WITHOUT database access, so right after a
+ * deploy they carry no strip until their first refresh; 10 minutes
+ * bounds that gap, and how long a changed or ended offer can lag.
+ * Cache interception (open-next.config.ts) awaits that refresh, which
+ * took 0.15-0.86 s in the same run — once per page per 10 minutes.
  */
-export const revalidate = 60;
+export const revalidate = 600;
 
 /*
  * Owner-approved typography experiment (Brand Book fonts round): Manrope
