@@ -459,9 +459,12 @@ describe("Google Analytics is off until an ID is supplied", () => {
 // ---------------------------------------------------------------------
 
 describe("the owner's contact address", () => {
+  // Updated 2026-10-28: the owner moved every public contact to the
+  // company mailbox. The Gmail address is now only the internal
+  // fallback for pricing notifications (owner-notification.ts).
   it("is the approved one, in exactly one module", () => {
-    assert.equal(siteContact.email, "viktorkomarovprep@gmail.com");
-    assert.equal(siteContact.emailHref, "mailto:viktorkomarovprep@gmail.com");
+    assert.equal(siteContact.email, "info@dockentra.ie");
+    assert.equal(siteContact.emailHref, "mailto:info@dockentra.ie");
     const hits = [
       "src/components/Footer.tsx",
       "src/app/contact/page.tsx",

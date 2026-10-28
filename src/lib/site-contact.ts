@@ -31,16 +31,16 @@
  * for free. It lives in the href and nowhere else; the label is what a
  * visitor sees.
  *
- * It is a gmail.com address, not an @dockentra domain. That is the
- * owner's decision and not a placeholder to be "improved": no
- * @dockentra address exists yet, and guessing one would be exactly the
- * invention this module was written to prevent. When a domain mailbox
- * exists, replace the constant here and nothing else changes.
+ * It is the company mailbox info@dockentra.ie. The owner decided on
+ * 2026-10-28 that every public contact goes there; the Gmail address
+ * stays only as an internal fallback in owner-notification.ts and is
+ * never shown publicly. Changing this constant is the only edit needed
+ * to move the public address again.
  *
  * NEXT_PUBLIC_OWNER_CONTACT_EMAIL still overrides it, so a preview or a
  * staging deployment can point somewhere else without a code change.
  */
-const OWNER_CONTACT_EMAIL: string | null = "viktorkomarovprep@gmail.com";
+const OWNER_CONTACT_EMAIL: string | null = "info@dockentra.ie";
 
 function resolveContactEmail(): string | null {
   const fromEnv = process.env.NEXT_PUBLIC_OWNER_CONTACT_EMAIL?.trim();
