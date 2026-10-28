@@ -143,6 +143,8 @@
    */
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://dockentra.ie",
+    "NEXT_PUBLIC_OWNER_CONTACT_EMAIL": "info@dockentra.ie",
+    "PRICING_NOTIFICATION_TO": "info@dockentra.ie",
     "PRICING_EMAIL_DELIVERY_MODE": "resend",
     "PRICING_EMAIL_FROM": "notifications@dockentra.ie"
   },
