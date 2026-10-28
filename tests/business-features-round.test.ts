@@ -483,10 +483,12 @@ describe("the owner's contact address", () => {
     }
   });
 
-  it("invents no @dockentra mailbox", () => {
-    // Comment-stripped: the docstring explains WHY there is no
-    // @dockentra address, and must not fail the rule it documents.
-    assert.equal(readCode("src/lib/site-contact.ts").includes("@dockentra"), false);
+  // Updated 2026-10-28: the company mailbox now exists and the owner
+  // approved it, so the rule is "the approved mailbox, nothing else".
+  it("uses only the approved company mailbox", () => {
+    const code = readCode("src/lib/site-contact.ts");
+    assert.ok(code.includes('"info@dockentra.ie"'));
+    assert.equal(code.includes("viktorkomarovprep"), false);
   });
 });
 
