@@ -13,15 +13,17 @@
  * sitting outside every landmark.
  */
 import { startNextServer, stopNextServer } from "./next-server.mjs";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 const PORT = Number(process.env.A11Y_TEST_PORT ?? 3490);
 const BASE = `http://127.0.0.1:${PORT}`;
 
 const OFFER_ID = "11111111-1111-1111-1111-111111111111";
+const OFFER_FIXTURE = fileURLToPath(new URL("../fixtures/offer-audit-promotions.json", import.meta.url));
 
 // The twelve pages in the navigation, plus the two that render for
 // real visitors and were in no audit: the offer page a visitor reaches
@@ -76,33 +78,9 @@ const dir = mkdtempSync(join(tmpdir(), "dockentra-a11y-"));
 //
 // Same fixture as the approved-UX round, on every public placement.
 const promoFile = join(dir, "promotions.json");
-const now = new Date().toISOString();
-writeFileSync(
-  promoFile,
-  JSON.stringify([
-    {
-      id: OFFER_ID,
-      internalName: "INTERNAL-ONLY-NAME",
-      publicTitle: "Founding Partner offer",
-      shortText: "Your first agreed stock transfer is on us.",
-      longDescription: "The first three approved clients help us set the standard.",
-      promotionType: "welcome",
-      templateId: null,
-      status: "ACTIVE",
-      audience: "NEW_CLIENTS",
-      startAt: null,
-      endAt: null,
-      ctaLabel: "Become a Founding Partner",
-      ctaUrl: "/become-a-client",
-      placements: { topBanner: true, homepage: true, pricing: true, contact: true },
-      priority: 10,
-      termsText: "Terms apply to eligible new clients.",
-      createdAt: now,
-      updatedAt: now,
-      createdBy: "audit",
-    },
-  ]),
-);
+// The same fixture the CI build reads (see quality-gates.yml), so the
+// prerendered pages and this run's live store agree on the offer.
+copyFileSync(OFFER_FIXTURE, promoFile);
 
 const server = startNextServer(PORT, {
   ...process.env,
@@ -166,22 +144,16 @@ await waitForServer();
 const browser = await launch();
 step("browser ready");
 
-// The promo-bearing pages are statically prerendered with
-// `revalidate: 60`, and the BUILD had no offer in it. Two things follow,
-// and the second one is not obvious:
-//
-//  - the first request after the entry goes stale serves the old markup
-//    and only SCHEDULES the regeneration, so one fetch is never enough;
-//  - immediately after a build the entry is fresh, so for the length of
-//    the revalidate window nothing revalidates at all. A suite run right
-//    after `npm run build` therefore audits pages with no offer in them,
-//    which is precisely the blind spot this fixture exists to close.
-//
-// So the warm-up polls for longer than that window rather than sleeping
-// a guessed interval. In the normal case the first fetch triggers the
-// regeneration and the second one is warm, about a second later.
+// The promo-bearing pages are statically prerendered. The site-wide
+// revalidate window is 600 s (src/app/layout.tsx, set 2026-10-20), so a
+// page built WITHOUT the offer would stay fresh and offer-less for ten
+// minutes, far longer than this suite can wait. That is why the CI build
+// step reads the same promotions fixture (quality-gates.yml): the
+// prerendered markup already carries the offer, and the check below
+// confirms it. If the build ever lacks the offer, this loop still waits
+// and fails loudly rather than auditing pages with no offer on them.
 const PROMO_PAGES = ["/", "/pricing", "/contact", "/become-a-client", "/partnerships"];
-const WARM_ATTEMPTS = 100; // ~100s: longer than the 60s revalidate window
+const WARM_ATTEMPTS = 100; // ~100s of polling for a stale build to refresh
 for (const path of PROMO_PAGES) {
   let warm = false;
   for (let attempt = 0; attempt < WARM_ATTEMPTS && !warm; attempt += 1) {

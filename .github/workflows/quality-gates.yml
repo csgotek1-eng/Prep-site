@@ -114,6 +114,11 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: https://dockentra.ie
+          # The browser suites audit the active-offer markup. Prerendered
+          # pages revalidate only every 600 s, so the build itself must
+          # carry the same offer the suites expect (tests/fixtures).
+          PROMOTIONS_PERSISTENCE: file
+          PROMOTIONS_STORE_FILE: ${{ github.workspace }}/tests/fixtures/offer-audit-promotions.json
 
       - name: Browser suites
         run: npm run test:browser

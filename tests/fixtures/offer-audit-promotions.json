@@ -1,0 +1,28 @@
+[
+  {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "internalName": "INTERNAL-ONLY-NAME",
+    "publicTitle": "Founding Partner offer",
+    "shortText": "Your first agreed stock transfer is on us.",
+    "longDescription": "The first three approved clients help us set the standard.",
+    "promotionType": "welcome",
+    "templateId": null,
+    "status": "ACTIVE",
+    "audience": "NEW_CLIENTS",
+    "startAt": null,
+    "endAt": null,
+    "ctaLabel": "Become a Founding Partner",
+    "ctaUrl": "/become-a-client",
+    "placements": {
+      "topBanner": true,
+      "homepage": true,
+      "pricing": true,
+      "contact": true
+    },
+    "priority": 10,
+    "termsText": "Terms apply to eligible new clients.",
+    "createdAt": "2026-10-28T00:00:00.000Z",
+    "updatedAt": "2026-10-28T00:00:00.000Z",
+    "createdBy": "audit"
+  }
+]
