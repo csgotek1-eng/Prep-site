@@ -26,10 +26,9 @@ describe("no action promises an email address the site cannot give", () => {
   it("the fallback points at the form anchor that actually exists", () => {
     if (siteContact.email) {
       assert.ok(contactEmailHref.startsWith("mailto:"));
-      // Was "Email us". The owner reversed it: the visible text is now
-      // "Send email" everywhere public, because the surfaces that used
-      // to print the raw personal address print the label instead.
-      assert.equal(contactEmailLabel, "Send email");
+      // Was "Email us", then "Send email" while the address was a
+      // personal Gmail. Since 2026-10-29 the company address itself.
+      assert.equal(contactEmailLabel, siteContact.email);
       return;
     }
     // The old target was /contact#contact-enquiry — an id present on

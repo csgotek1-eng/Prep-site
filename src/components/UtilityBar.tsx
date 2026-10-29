@@ -53,11 +53,11 @@ export default function UtilityBar() {
                 first landed here it pushed the row past a 390px phone
                 and widened the LAYOUT viewport to 422, which dragged
                 the fixed dock off-screen on every page of the site. The
-                owner has since asked for the address never to be shown
-                in public, so there is no long token left to break the
-                row and no reason to keep a breakpoint split: the label
-                is short, identical at 320px and at 1920px, and the
-                mailto: behind it is unchanged. */}
+                owner then hid the address behind a short label. Since
+                2026-10-29 the label is the company address
+                info@dockentra.ie, 17 characters against the old
+                27-character Gmail, and tests/browser/brand-and-contact-
+                strip.mjs holds it inside the viewport from 320px up. */}
             <a
               href={contactEmailHref}
               className="inline-flex h-8 items-center gap-1.5 font-medium text-brand-navy transition-colors hover:text-brand-green-dark"
@@ -65,14 +65,19 @@ export default function UtilityBar() {
               <Mail aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
               {contactEmailLabel}
             </a>
+            {/* Below 360px the visible address leaves no room for the
+                word, so WhatsApp becomes an icon button the width of the
+                social icons beside it. The word stays as its accessible
+                name (sr-only), and `relative` keeps that 1px box inside
+                the link. From 360px up nothing changes. */}
             <a
               href={siteConfig.social.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 transition-colors hover:text-brand-green-dark"
+              className="relative inline-flex h-8 items-center gap-1.5 transition-colors hover:text-brand-green-dark max-[359px]:w-7 max-[359px]:justify-center"
             >
               <WhatsAppIcon aria-hidden="true" className="h-3.5 w-3.5" />
-              WhatsApp
+              <span className="max-[359px]:sr-only">WhatsApp</span>
             </a>
             {siteConfig.location.googleMapsUrl && (
               <a

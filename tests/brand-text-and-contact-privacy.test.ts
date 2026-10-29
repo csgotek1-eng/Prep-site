@@ -70,14 +70,17 @@ describe("the wordmark is readable by machines, not only by people", () => {
 });
 
 // ---------------------------------------------------------------------
-// 2. The owner's personal address is not public text
+// 2. The public address comes from one config, and never a personal one
 // ---------------------------------------------------------------------
 
-describe("the contact address lives in the href and nowhere else", () => {
-  it('the public label is "Send email" while a mailto: exists', () => {
+describe("the contact address is printed only through site-contact", () => {
+  it("the public label is the company address while a mailto: exists", () => {
+    // Owner, 2026-10-29: the label was "Send email" while the address
+    // was a personal Gmail; the company mailbox is shown as itself.
     if (siteContact.email) {
-      assert.equal(contactEmailLabel, "Send email");
-      assert.ok(contactEmailHref.startsWith("mailto:"));
+      assert.equal(contactEmailLabel, siteContact.email);
+      assert.equal(contactEmailHref, `mailto:${siteContact.email}`);
+      assert.equal(/@gmail\.com$/i.test(siteContact.email), false);
       return;
     }
     // The label and the href are one decision: no address, no promise
@@ -86,10 +89,11 @@ describe("the contact address lives in the href and nowhere else", () => {
     assert.equal(contactEmailHref, "/contact#enquiry");
   });
 
-  it("no public surface renders the address as visible text", () => {
-    // These three printed the owner's personal mailbox in full: the
+  it("no public surface renders an address except through the shared label", () => {
+    // These once printed the owner's personal mailbox in full: the
     // utility bar from `sm` up, the footer contact column, and the
-    // bottom of /contact. The mailto: destination is unchanged.
+    // bottom of /contact. The address now reaches them only as
+    // contactEmailLabel, so a personal fallback can never leak.
     for (const path of [
       "src/components/UtilityBar.tsx",
       "src/components/Footer.tsx",
@@ -119,8 +123,9 @@ describe("the contact address lives in the href and nowhere else", () => {
   it("the utility bar no longer splits the row at a breakpoint", () => {
     // The split existed only to keep one unbreakable address token off
     // a 390px phone, where it had widened the layout viewport to 422px
-    // and dragged the fixed dock off-screen. With the address gone the
-    // label is short enough for 320px, so the hack went with it.
+    // and dragged the fixed dock off-screen. The company address is
+    // short enough for 320px (proved in brand-and-contact-strip.mjs),
+    // so the hack stays gone.
     const bar = strip(read("src/components/UtilityBar.tsx"));
     const link = bar.slice(bar.indexOf("contactEmailHref"), bar.indexOf("</a>"));
     assert.equal(/sm:hidden|hidden truncate/.test(link), false);

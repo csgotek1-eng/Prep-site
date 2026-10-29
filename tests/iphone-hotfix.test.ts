@@ -66,11 +66,11 @@ describe("the utility bar shows every social icon on a phone", () => {
     assert.ok(bar.includes("gap-0.5 sm:gap-1"));
     // Email, WhatsApp and the sm-only location link all survive. The
     // email row's LABEL is now whatever site-contact says is honest:
-    // "Send email" only once a real mailto: exists behind it.
+    // the address only once a real mailto: exists behind it.
     assert.ok(bar.includes("contactEmailLabel"));
-    // AND ONLY the label. The owner reversed the earlier decision to
-    // print the raw address from `sm` up, so the breakpoint split that
-    // kept that unbreakable token off a 390px phone is gone with it.
+    // AND ONLY through the label, which is now the company address at
+    // every width (2026-10-29). The old `sm` split that kept a long
+    // personal Gmail off a 390px phone stays gone.
     assert.equal(bar.includes("siteContact.email"), false);
     assert.equal(/sm:hidden/.test(bar), false);
     assert.ok(bar.includes("WhatsApp"));

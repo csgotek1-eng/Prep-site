@@ -9,12 +9,12 @@
  *     agree. One build, one page, one node of difference, so nothing
  *     but the letter can explain a discrepancy.
  *
- *  2. THE ADDRESS. The owner's personal mailbox was printed as visible
- *     text in the utility bar, the footer and the bottom of /contact.
- *     Every public page is swept for a visible @gmail.com, and the
- *     mailto: links are checked to still carry it.
+ *  2. THE ADDRESS. The owner's personal mailbox was once printed as
+ *     visible text in the utility bar, the footer and the bottom of
+ *     /contact. Every public page is swept for a visible @gmail.com;
+ *     the mailto: links must show the company address they open.
  *
- *  3. THE CONTACT STRIP. WhatsApp, the location, Send email and the
+ *  3. THE CONTACT STRIP. WhatsApp, the location, the email and the
  *     three social networks, measured at every width the site claims to
  *     support: inside the viewport, not clipped, not overlapping, and
  *     tapable.
@@ -29,7 +29,9 @@ import { createRequire } from "node:module";
 
 const PORT = Number(process.env.BRAND_TEST_PORT ?? 3560);
 const BASE = `http://127.0.0.1:${PORT}`;
-const WIDTHS = [320, 375, 390, 430, 768, 1024, 1440, 1920];
+// 360 is where the utility bar's WhatsApp word comes back beside the
+// full address (UtilityBar, max-[359px]), so it is measured too.
+const WIDTHS = [320, 360, 375, 390, 430, 768, 1024, 1440, 1920];
 const PAGES = ["/", "/contact", "/about", "/pricing", "/services"];
 
 /**
@@ -168,8 +170,8 @@ step("wordmark geometry measured");
     const page = await context.newPage();
     await page.goto(BASE + path, { waitUntil: "networkidle" });
 
-    // VISIBLE text only. The address is allowed, and required, inside
-    // href="mailto:" — that is the whole point of hiding the label.
+    // VISIBLE text only. No personal mailbox may be shown anywhere;
+    // the company address is checked against its mailto: below.
     const shown = await page.evaluate(() =>
       [...document.querySelectorAll("body *")]
         .filter(
@@ -194,16 +196,17 @@ step("wordmark geometry measured");
         /@/.test(link.href),
         `${path}: a mailto: lost its destination (${link.href})`,
       );
-      // The label may be composed into a sentence — LocationSection
-      // says "Send email to arrange a time" — but it must START with
-      // the shared label and must never contain an address.
+      // The visible text must name exactly the address the link opens
+      // (owner, 2026-10-29). It may sit in a sentence — LocationSection
+      // says "Email info@… to arrange a time".
+      const address = link.href.replace(/^mailto:/, "").split("?")[0];
       ok(
-        link.text.startsWith("Send email"),
-        `${path}: a mailto: is labelled "${link.text}" (it must start with "Send email")`,
+        link.text.includes(address),
+        `${path}: a mailto: to ${address} is labelled "${link.text}"`,
       );
       ok(
-        !link.text.includes("@"),
-        `${path}: a mailto: still shows an address in its own text`,
+        !/@gmail\.com/i.test(link.text),
+        `${path}: a mailto: shows a personal address in its own text`,
       );
     }
     await page.close();

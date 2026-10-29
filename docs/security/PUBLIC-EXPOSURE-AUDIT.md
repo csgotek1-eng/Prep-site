@@ -29,6 +29,7 @@ Seven public-exposure issues plus four RLS findings are recorded below. R3 and R
 4. **Real secret?** **No.** It is a contact address whose purpose is to receive mail. But it is a *personal* mailbox, not a role address, and it is now the only address on the site.
 5. **Severity:** MEDIUM — spam/phishing exposure and a privacy question, not a breach.
 6. **Fix:** this is half-done already. A recent change removed the address as *visible text* everywhere (the link now reads "Send email"), but the `href` still has to contain it for `mailto:` to work. The real fix is a role mailbox on the domain — `hello@dockentra.ie` — set through `NEXT_PUBLIC_OWNER_CONTACT_EMAIL` or the constant. Nothing else changes. Until then the exposure is unchanged from before this audit.
+7. **Status (2026-10-29): resolved in code.** The public address is now the role mailbox `info@dockentra.ie` (owner decision 2026-10-28), and since the role address is meant to be read it is shown as the link text again. The personal Gmail remains only as the server-side fallback in `src/lib/email/owner-notification.ts` and never reaches a page. Closed in production once that branch is deployed.
 
 ### 2. `script-src` allows `'unsafe-inline'` — LOW
 

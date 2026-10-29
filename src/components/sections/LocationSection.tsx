@@ -1,6 +1,6 @@
 import { Clock, MapPin } from "lucide-react";
 import { siteConfig } from "@/lib/site";
-import { contactEmailHref, contactEmailLabel } from "@/lib/site-contact";
+import { contactEmailHref, contactEmailLabel, hasContactEmail } from "@/lib/site-contact";
 
 // The address, the map link, the hours and the visit policy all come
 // from siteConfig.location — the place that already held the address
@@ -81,7 +81,9 @@ export default function LocationSection() {
             href={contactEmailHref}
             className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-green-dark underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
           >
-            {contactEmailLabel} to arrange a time
+            {/* The label is the address when one exists, so the verb
+                comes first: "Email info@… to arrange a time". */}
+            {hasContactEmail ? `Email ${contactEmailLabel}` : contactEmailLabel} to arrange a time
           </a>
         </div>
       </div>

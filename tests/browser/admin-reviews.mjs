@@ -192,10 +192,22 @@ for (const width of [320, 390, 768, 1440]) {
     // which legitimately carry the contact mailto, so scanning it
     // reports an address no visitor can see. The public privacy suite
     // learned this the same way.
+    //
+    // Since 2026-10-29 the site chrome prints the company address
+    // (info@dockentra.ie), public by design. Only that exact address,
+    // read from the public mailto: links, is taken out of the text;
+    // any OTHER address anywhere on the page still fails the check.
     const text = await page.evaluate(() => {
+      const publicAddresses = [
+        ...document.querySelectorAll(
+          'nav[aria-label="Contact shortcuts"] a[href^="mailto:"], footer a[href^="mailto:"]',
+        ),
+      ].map((a) => a.getAttribute("href").replace(/^mailto:/, "").split("?")[0]);
       const clone = document.body.cloneNode(true);
       for (const node of clone.querySelectorAll("script, style")) node.remove();
-      return clone.textContent ?? "";
+      let out = clone.textContent ?? "";
+      for (const address of publicAddresses) out = out.split(address).join("");
+      return out;
     });
     // Signed out, the shell must carry no review and no address.
     ok(!/@[a-z0-9.-]+\.[a-z]{2,}/i.test(text), "an email address is on the signed-out shell");

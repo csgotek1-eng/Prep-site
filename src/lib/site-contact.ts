@@ -23,19 +23,18 @@
  * enquiries. Every email surface therefore fell back to the enquiry
  * form. The owner has now given the address below, so those surfaces
  * become real mailto: links and the label changes from "Send an
- * enquiry" to "Send email" on its own — see contactEmailLabel.
- *
- * THE ADDRESS IS NEVER PRINTED AS VISIBLE TEXT. It is the owner's
- * personal mailbox, and a raw address rendered in the utility bar, the
- * footer and the bottom of /contact is three surfaces a scraper reads
- * for free. It lives in the href and nowhere else; the label is what a
- * visitor sees.
+ * enquiry" to the address itself on its own — see contactEmailLabel.
  *
  * It is the company mailbox info@dockentra.ie. The owner decided on
  * 2026-10-28 that every public contact goes there; the Gmail address
  * stays only as an internal fallback in owner-notification.ts and is
  * never shown publicly. Changing this constant is the only edit needed
  * to move the public address again.
+ *
+ * THE ADDRESS IS NOW PRINTED AS VISIBLE TEXT (owner, 2026-10-29). It
+ * was hidden behind a "Send email" label while it was the owner's
+ * personal Gmail; a company role mailbox is meant to be read, copied
+ * and typed, so contactEmailLabel below is the address itself.
  *
  * NEXT_PUBLIC_OWNER_CONTACT_EMAIL still overrides it, so a preview or a
  * staging deployment can point somewhere else without a code change.
@@ -96,18 +95,15 @@ export const contactEmailHref: string =
   siteContact.emailHref ?? "/contact#enquiry";
 
 /**
- * "Send email" ONLY when a mailto: exists behind it. Until the owner
- * supplies NEXT_PUBLIC_OWNER_CONTACT_EMAIL every one of those surfaces
- * says what it actually does, and the day the address is set all of
- * them become real mailto: links with the honest label, together, from
- * this one file.
+ * The address itself ONLY when a mailto: exists behind it. With no
+ * address configured every one of those surfaces says what it actually
+ * does ("Send an enquiry"), and the day an address is set all of them
+ * become real mailto: links showing it, together, from this one file.
  *
  * THE LABEL AND contactEmailHref ARE ONE DECISION, taken from the same
- * `siteContact.email`. They may never be branched on separately: a
- * "Send email" that opens a form, or a "Send an enquiry" that opens a
- * mail client, is the promise-versus-destination mismatch this module
- * exists to prevent.
+ * `siteContact.email`. They may never be branched on separately: an
+ * address that opens a form, or a "Send an enquiry" that opens a mail
+ * client, is the promise-versus-destination mismatch this module exists
+ * to prevent.
  */
-export const contactEmailLabel: string = siteContact.email
-  ? "Send email"
-  : "Send an enquiry";
+export const contactEmailLabel: string = siteContact.email ?? "Send an enquiry";
