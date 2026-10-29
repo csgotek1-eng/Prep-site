@@ -140,17 +140,26 @@ describe("typography experiment", () => {
   const layout = read("src/app/layout.tsx");
   const css = read("src/app/globals.css");
 
-  it("loads Manrope, Inter and IBM Plex Mono via next/font/google", () => {
-    assert.ok(layout.includes('from "next/font/google"'));
-    assert.ok(layout.includes("Manrope("));
-    assert.ok(layout.includes("Inter("));
-    assert.ok(layout.includes("IBM_Plex_Mono("));
+  it("self-hosts Manrope, Inter and IBM Plex Mono from the repository", () => {
+    // next/font/google downloaded the files from Google at build time
+    // and that download broke CI builds (2026-10-29); the same files now
+    // live in src/app/fonts, so a build needs no network for fonts.
+    assert.ok(layout.includes('from "next/font/local"'));
+    assert.equal(layout.includes('from "next/font/google"'), false);
+    for (const file of ["manrope-latin.woff2", "inter-latin.woff2", "ibm-plex-mono-500-latin.woff2"]) {
+      assert.ok(layout.includes(`"./fonts/${file}"`), `${file} is not loaded`);
+      assert.ok(readFileSync(`src/app/fonts/${file}`).length > 5000, `${file} is missing or empty`);
+    }
+    // The OFL requires the licence to travel with the font files.
+    for (const family of ["manrope", "inter", "ibmplexmono"]) {
+      assert.ok(read(`src/app/fonts/OFL-${family}.txt`).includes("SIL Open Font License, Version 1.1"));
+    }
   });
 
-  it("requests only a small, intentional weight set per family", () => {
-    assert.ok(layout.includes('weight: ["700", "800"]')); // Manrope
-    assert.ok(layout.includes('weight: ["400", "500", "600"]')); // Inter
-    assert.ok(layout.includes('weight: ["500"]')); // IBM Plex Mono
+  it("keeps the same small, intentional weight set per family", () => {
+    assert.ok(layout.includes('weight: "700 800"')); // Manrope (variable)
+    assert.ok(layout.includes('weight: "400 600"')); // Inter (variable)
+    assert.ok(layout.includes('weight: "500"')); // IBM Plex Mono
   });
 
   it("never requests fonts.googleapis.com at runtime", () => {

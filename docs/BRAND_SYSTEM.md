@@ -132,8 +132,9 @@ stays for errors only.
   — option 10, CTA correction round, 2026-09-27) is visible in the bar
   at every width; the floating dock stands down while the mobile menu
   is open, as it does for dialogs.
-- **Typography** — OWNER-APPROVED, self-hosted via `next/font/google`,
-  no runtime request to Google:
+- **Typography** — OWNER-APPROVED, self-hosted from `src/app/fonts`
+  via `next/font/local` (since 2026-10-29; neither the build nor the
+  visitor's browser contacts Google):
   - **Manrope** (700/800) — display and headings;
   - **Inter** (400/500/600) — body and interface text;
   - **IBM Plex Mono** (500) — small data/label accents only.

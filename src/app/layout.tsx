@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import SiteDialogs from "@/components/SiteDialogs";
 import FloatingDock from "@/components/FloatingDock";
 import PromotionBanner from "@/components/PromotionBanner";
@@ -46,25 +46,37 @@ export const revalidate = 600;
 /*
  * Owner-approved typography experiment (Brand Book fonts round): Manrope
  * for display/headings, Inter for body/interface text, IBM Plex Mono as
- * a small accent for data/labels only. Self-hosted at build time via
- * next/font/google — no runtime request to fonts.googleapis.com. Only
- * the weights actually used are downloaded.
+ * a small accent for data/labels only.
+ *
+ * SELF-HOSTED FROM THE REPOSITORY (2026-10-29). These were loaded with
+ * next/font/google, which downloads the files from Google AT BUILD TIME.
+ * That download failed two of three CI browser builds in a row
+ * ("next/font/google queries have exactly one entry"), so a release
+ * depended on Google answering a build machine. The files in ./fonts are
+ * byte-for-byte the latin files production was already serving (same
+ * content hashes), so nothing a visitor sees changes. Manrope and Inter
+ * are variable fonts, hence a weight RANGE; Plex Mono is one static 500.
+ * All three are SIL OFL 1.1; the licences sit next to the files.
+ *
+ * Only latin is shipped: every page is English (en-IE), and Irish
+ * accents (á é í ó ú) are in latin. A rarer glyph falls back to the
+ * size-matched system fallback next/font generates, not to a box.
  */
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["700", "800"],
+const manrope = localFont({
+  src: "./fonts/manrope-latin.woff2",
+  weight: "700 800",
   variable: "--font-manrope",
   display: "swap",
 });
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const inter = localFont({
+  src: "./fonts/inter-latin.woff2",
+  weight: "400 600",
   variable: "--font-inter",
   display: "swap",
 });
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["500"],
+const ibmPlexMono = localFont({
+  src: "./fonts/ibm-plex-mono-500-latin.woff2",
+  weight: "500",
   variable: "--font-plex-mono",
   display: "swap",
 });
