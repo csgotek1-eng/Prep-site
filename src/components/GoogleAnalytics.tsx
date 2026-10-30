@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { resolveMeasurementId } from "@/lib/analytics";
+import { storedConsentUpdateScript } from "@/lib/consent";
 
 /**
  * The GA4 tag, or nothing at all.
@@ -21,9 +22,12 @@ import { resolveMeasurementId } from "@/lib/analytics";
  * always on. Leaving it in would read as a privacy control that is not
  * one.)
  *
- * There is no cookie banner on this site yet; when there is one, it calls
- * gtag("consent", "update", { analytics_storage: "granted" }) and the
- * same tag starts measuring properly.
+ * THE COOKIE BANNER (src/components/ConsentManager.tsx) is what lifts
+ * the default: "Accept" calls gtag("consent", "update", ...granted) and
+ * the same tag starts measuring properly. A RETURNING visitor who
+ * already accepted is granted right here, inline, straight after the
+ * defaults and before the tag's first hit, so their first page view is
+ * not lost to a cookieless ping.
  */
 export default function GoogleAnalytics() {
   const measurementId = resolveMeasurementId();
@@ -45,7 +49,8 @@ gtag('consent', 'default', {
   functionality_storage: 'denied',
   personalization_storage: 'denied',
   security_storage: 'granted'
-});`}
+});
+${storedConsentUpdateScript()}`}
       </Script>
       <Script
         id="ga-tag"

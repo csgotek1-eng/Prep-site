@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import BrandLockup from "@/components/BrandLockup";
 import Container from "@/components/Container";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
+import { resolveMeasurementId } from "@/lib/analytics";
+import { resolveMetaPixelId } from "@/lib/meta-pixel";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -293,6 +296,13 @@ export default function Footer() {
                 Privacy
               </Link>
             </li>
+            {/* Only when there is something to consent to: with no
+                tracker configured the banner never opens. */}
+            {(resolveMeasurementId() !== null || resolveMetaPixelId() !== null) && (
+              <li>
+                <CookieSettingsButton className="inline-flex min-h-11 items-center text-slate-400 transition-colors hover:text-brand-mint sm:min-h-0" />
+              </li>
+            )}
           </ul>
         </div>
       </Container>

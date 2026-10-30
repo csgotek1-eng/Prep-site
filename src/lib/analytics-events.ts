@@ -48,4 +48,15 @@ export function trackGetPriceClick(surface: GetPriceSurface): void {
 /** Call ONLY after the server answered `ok: true`. */
 export function trackLeadSubmitted(form: LeadForm): void {
   send("lead_submitted", { form });
+  // The Meta Pixel's standard Lead event, for the ads. window.fbq only
+  // exists after the visitor accepted the cookie banner
+  // (ConsentManager.tsx), so without consent this does nothing. Same
+  // rule as above: a fixed label, never anything the visitor typed.
+  if (typeof window !== "undefined" && typeof window.fbq === "function") {
+    try {
+      window.fbq("track", "Lead", { content_name: form });
+    } catch {
+      // Analytics must never break the page it measures.
+    }
+  }
 }

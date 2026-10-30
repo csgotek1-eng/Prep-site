@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { GOOGLE_ANALYTICS_CSP, resolveMeasurementId } from "./src/lib/analytics.ts";
+import { META_PIXEL_CSP, resolveMetaPixelId } from "./src/lib/meta-pixel.ts";
 
 // Conservative security headers for production.
 //
@@ -40,6 +41,14 @@ const gaScript = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.script.join(" ")}` : "";
 const gaConnect = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.connect.join(" ")}` : "";
 const gaImage = analyticsId ? ` ${GOOGLE_ANALYTICS_CSP.image.join(" ")}` : "";
 
+// The Meta Pixel follows its ID the same way, and it only ever LOADS
+// after the visitor accepts the cookie banner (ConsentManager.tsx).
+// With no ID the policy names no Meta host at all.
+const pixelId = resolveMetaPixelId();
+const pixelScript = pixelId ? ` ${META_PIXEL_CSP.script.join(" ")}` : "";
+const pixelConnect = pixelId ? ` ${META_PIXEL_CSP.connect.join(" ")}` : "";
+const pixelImage = pixelId ? ` ${META_PIXEL_CSP.image.join(" ")}` : "";
+
 // Cloudflare Turnstile, and it follows its site key exactly the way
 // the Google hosts follow the Measurement ID. With no site key the
 // widget renders nothing (src/components/TurnstileWidget.tsx), so
@@ -70,11 +79,11 @@ const CF_ANALYTICS_CONNECT_HOST = "https://cloudflareinsights.com";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${gaScript}${turnstileScript} ${CF_ANALYTICS_SCRIPT_HOST}`,
+  `script-src 'self' 'unsafe-inline'${gaScript}${pixelScript}${turnstileScript} ${CF_ANALYTICS_SCRIPT_HOST}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${gaImage}`,
+  `img-src 'self' data: blob:${gaImage}${pixelImage}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseConnectSource()}${gaConnect} ${CF_ANALYTICS_CONNECT_HOST}`,
+  `connect-src 'self' ${supabaseConnectSource()}${gaConnect}${pixelConnect} ${CF_ANALYTICS_CONNECT_HOST}`,
   "frame-ancestors 'none'",
   `frame-src ${turnstileFrame}`,
   "object-src 'none'",

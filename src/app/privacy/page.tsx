@@ -197,8 +197,7 @@ export default function PrivacyPage() {
                 which processes standard web request data (such as IP
                 address) as part of serving the site and is used
                 internally to apply a short-lived rate limit against
-                abusive form submissions. This website loads no
-                advertising or ad-tracking scripts of any kind.
+                abusive form submissions.
               </p>
               <p className="mt-3">
                 We use Cloudflare Web Analytics to count visits, see which
@@ -210,16 +209,34 @@ export default function PrivacyPage() {
                 part of hosting the site.
               </p>
               <p className="mt-3">
-                This website may use Google Analytics to count visits and
-                see which pages are read. Where it is enabled, it runs
+                <strong>Cookie choice.</strong> Where Google Analytics or
+                the Meta Pixel is enabled, the website asks before using
+                them, with &ldquo;Accept&rdquo; and &ldquo;Reject&rdquo;
+                given equal weight. Your answer is kept only in your own
+                browser&apos;s local storage (the choice and the date), and
+                you can change it at any time with &ldquo;Cookie
+                settings&rdquo; in the footer.
+              </p>
+              <p className="mt-3">
+                <strong>Google Analytics.</strong> Until you accept, it runs
                 with Google Consent Mode set to deny every storage
-                category, which means <strong>no analytics cookies are
-                written and nothing is stored on your device</strong>;
-                Google receives anonymous, aggregated page-view signals
-                only. Google Ireland Limited acts as the processor. If
-                that ever changes, for example if we introduce a cookie
-                banner and fuller measurement, this page will say so
-                before it happens.
+                category: <strong>no analytics cookies are written and
+                nothing is stored on your device</strong>, and Google
+                receives anonymous, aggregated page-view signals only. If
+                you accept, Google Analytics may set cookies to tell
+                visits apart and to measure whether our Google
+                advertising leads to enquiries. Google Ireland Limited
+                acts as the processor.
+              </p>
+              <p className="mt-3">
+                <strong>Meta Pixel.</strong> Only if you accept, the
+                website loads Meta&apos;s Pixel, which sets a cookie and
+                tells Meta Platforms Ireland Limited which pages were
+                visited and when an enquiry form was sent, so we can
+                measure our Facebook and Instagram ads and show them to
+                people who visited the site. If you reject, the Pixel is
+                never loaded. We never pass anything you type into a form
+                (your name, email, phone or message) to Google or Meta.
               </p>
             </div>
 
