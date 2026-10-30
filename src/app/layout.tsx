@@ -14,6 +14,9 @@ import {
   buildWebSiteJsonLd,
 } from "@/lib/structured-data";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import ConsentManager from "@/components/ConsentManager";
+import { resolveMeasurementId } from "@/lib/analytics";
+import { resolveMetaPixelId } from "@/lib/meta-pixel";
 import { LOGO_INTRO_GUARD_SCRIPT } from "@/lib/logo-intro-markup";
 import "./globals.css";
 
@@ -176,6 +179,12 @@ export default function RootLayout({
           {/* One calculator and one Help panel for the whole site. */}
           <SiteDialogs />
         </FloatingChromeProvider>
+        {/* Renders nothing unless a GA4 or Meta Pixel ID is configured;
+            the only place either tracker is ever switched on. */}
+        <ConsentManager
+          analyticsEnabled={resolveMeasurementId() !== null}
+          pixelId={resolveMetaPixelId()}
+        />
       </body>
     </html>
   );
