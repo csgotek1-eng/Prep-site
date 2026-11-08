@@ -5,6 +5,7 @@ import "server-only";
 // this into a client component would have shipped the secret and
 // failed silently. With this import it fails the build instead.
 import { formatEuro } from "../pricing/money.ts";
+import { siteUrl } from "../site.ts";
 import {
   CARRIER_DELIVERY_LABEL,
   CARRIER_DELIVERY_STATUS,
@@ -58,8 +59,27 @@ export function headerSafe(value: string, max = 200): string {
     .slice(0, max);
 }
 
+/**
+ * The direct admin link to one saved lead (2026-11-08): opens
+ * /admin/leads with that lead expanded, or sends the owner through
+ * sign-in and back to it. Without an id, the inbox itself.
+ */
+export function adminLeadLink(leadId: string | null | undefined): string {
+  const inbox = `${siteUrl}/admin/leads`;
+  return leadId ? `${inbox}#lead-${encodeURIComponent(leadId)}` : inbox;
+}
+
+/** The closing line of every owner email about a lead. */
+export function adminLeadLine(leadId: string | null | undefined): string {
+  return leadId
+    ? `Open this lead in the admin: ${adminLeadLink(leadId)}`
+    : `The full record is in the admin inbox: ${adminLeadLink(null)}`;
+}
+
 export interface OwnerNotificationInput {
   reference: string;
+  /** The saved lead, for the direct admin link. */
+  leadId?: string | null;
   /** "whatsapp" | "email" | a form name — where the request came from. */
   source: string;
   /** The page the visitor was on, when known. */
@@ -148,7 +168,7 @@ export function buildOwnerNotificationText(input: OwnerNotificationInput): strin
   );
   lines.push(VAT_BASIS_NOTE);
   lines.push("");
-  lines.push("The full record is in the admin inbox at /admin/leads.");
+  lines.push(adminLeadLine(input.leadId));
 
   return lines.join("\n");
 }

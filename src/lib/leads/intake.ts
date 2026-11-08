@@ -24,8 +24,10 @@ import type { LeadDeliveryStatus, LeadInput } from "./types";
 export interface LeadNotificationResult {
   /**
    * DELIVERED — an external destination accepted the notification.
-   * SKIPPED   — no external destination is configured (log mode); the
-   *             submission was logged, which is not delivery.
+   * SKIPPED   — nothing was sent for this lead: no external destination
+   *             is configured (log mode; logging is not delivery), or
+   *             the lead repeats one already delivered (the delivery
+   *             note on the lead says which).
    * FAILED    — the configured destination could not be reached.
    */
   status: Extract<LeadDeliveryStatus, "DELIVERED" | "SKIPPED" | "FAILED">;
@@ -43,10 +45,75 @@ export interface LeadIntakeResult {
   notification: LeadNotificationResult;
 }
 
+/** What the notifier knows beyond the lead itself. */
+export interface LeadNotifyContext {
+  /** The saved lead's id, for a direct admin link; null if the save failed. */
+  leadId: string | null;
+}
+
+export interface ProcessLeadOptions {
+  /**
+   * Skip the notification when this lead repeats one the owner was
+   * already told about (same form, email and message within a day; see
+   * leads/duplicate.ts). The repeat is STILL SAVED and shown in
+   * /admin/leads; only the second identical email is not sent. For the
+   * owner-facing enquiry emails, never for anything a visitor receives.
+   */
+  skipDuplicateNotification?: boolean;
+}
+
+/** How long the duplicate lookup may take before the owner is emailed anyway. */
+const DUPLICATE_LOOKUP_TIMEOUT_MS = 2_500;
+/** One short wait for an earlier identical lead whose email is still being sent. */
+const DUPLICATE_SETTLE_MS = 1_500;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * The earlier lead this one repeats, ONLY if that lead's owner email was
+ * actually delivered; otherwise null, and the owner is emailed. Every
+ * failure mode lands on "email": a store without the lookup, a lookup
+ * error, a slow lookup, and an earlier lead whose email has not gone out
+ * (re-checked once after a short wait, which is the double-click case).
+ */
+async function deliveredDuplicateOf(
+  store: LeadStore,
+  input: LeadInput,
+  leadId: string,
+): Promise<string | null> {
+  if (!store.findRecentDuplicate) return null;
+  const lookup = async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        store.findRecentDuplicate!(input, leadId),
+        new Promise<null>((resolve) => {
+          timer = setTimeout(() => resolve(null), DUPLICATE_LOOKUP_TIMEOUT_MS);
+        }),
+      ]);
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  let match = await lookup();
+  // Worth waiting for only while the earlier email is still being sent.
+  if (match && match.pending) {
+    await wait(DUPLICATE_SETTLE_MS);
+    match = await lookup();
+  }
+  return match?.delivered ? match.id : null;
+}
+
 export async function processLead(
   input: LeadInput,
-  notify: (input: LeadInput) => Promise<LeadNotificationResult>,
+  notify: (
+    input: LeadInput,
+    context: LeadNotifyContext,
+  ) => Promise<LeadNotificationResult>,
   store: LeadStore = getLeadStore(),
+  options: ProcessLeadOptions = {},
 ): Promise<LeadIntakeResult> {
 
   let leadId: string | null = null;
@@ -59,11 +126,25 @@ export async function processLead(
     );
   }
 
+  let duplicateOf: string | null = null;
+  if (leadId !== null && options.skipDuplicateNotification) {
+    duplicateOf = await deliveredDuplicateOf(store, input, leadId);
+  }
+
   let notification: LeadNotificationResult;
-  try {
-    notification = await notify(input);
-  } catch {
-    notification = { status: "FAILED", error: "Notification failed." };
+  if (duplicateOf !== null) {
+    console.log("Lead saved as a repeat of an earlier one; no second owner email.");
+    // SKIPPED with a note: nothing was sent for THIS lead, by design.
+    notification = {
+      status: "SKIPPED",
+      error: `Repeat of lead ${duplicateOf}, whose owner email was already delivered; no second email sent.`,
+    };
+  } else {
+    try {
+      notification = await notify(input, { leadId });
+    } catch {
+      notification = { status: "FAILED", error: "Notification failed." };
+    }
   }
 
   if (leadId !== null) {

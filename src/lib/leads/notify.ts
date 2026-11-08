@@ -70,6 +70,7 @@ function enquirySubjectLine(enquiry: EnquiryRequest): string {
 
 export async function notifyEnquiryLead(
   enquiry: EnquiryRequest,
+  leadId: string | null = null,
 ): Promise<LeadNotificationResult> {
   const webhook = isWebhookMode();
   const submittedAt = new Date().toISOString();
@@ -84,6 +85,7 @@ export async function notifyEnquiryLead(
       subject: enquirySubjectLine(enquiry),
       message: enquiry.message,
       submittedAt,
+      leadId,
     }),
     webhook ? deliverEnquiry(enquiry) : Promise.resolve(null),
   ]);

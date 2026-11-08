@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   isSessionExpiring,
@@ -12,6 +12,10 @@ import {
   type SupabaseAuthClientConfig,
 } from "@/lib/supabase-browser";
 import { formatEuro } from "@/lib/pricing/money";
+import {
+  leadIdFromHash,
+  rememberLeadForAfterSignIn,
+} from "@/lib/admin-lead-link";
 import {
   LEAD_STATUSES,
   type LeadEmailDelivery,
@@ -113,6 +117,12 @@ export default function AdminLeadsManager({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
+  // The owner email links to one lead (/admin/leads#lead-<id>): the
+  // first time the list arrives, open that lead and bring it into view.
+  // Only on that first load, so a refresh after collapsing it does not
+  // reopen it; a later link in the same tab arrives as a hashchange.
+  const [targetedId, setTargetedId] = useState<string | null>(null);
+  const targetHandled = useRef(false);
 
   const loadLeads = useCallback(async (headers: Record<string, string>) => {
     const response = await fetch("/api/admin/leads", { headers });
@@ -126,7 +136,16 @@ export default function AdminLeadsManager({
       (error as Error & { status?: number }).status = response.status;
       throw error;
     }
-    setLeads(data.leads ?? []);
+    const list = data.leads ?? [];
+    setLeads(list);
+    if (!targetHandled.current) {
+      targetHandled.current = true;
+      const id = leadIdFromHash(window.location.hash);
+      if (id && list.some((lead) => lead.id === id)) {
+        setExpandedId(id);
+        setTargetedId(id);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -143,6 +162,7 @@ export default function AdminLeadsManager({
         storeSession(stored);
       }
       if (!stored) {
+        rememberLeadForAfterSignIn(window.location.hash);
         router.replace("/admin/login");
         return;
       }
@@ -151,6 +171,7 @@ export default function AdminLeadsManager({
         if (active) setSession(stored);
       } catch {
         storeSession(null);
+        rememberLeadForAfterSignIn(window.location.hash);
         router.replace("/admin/login");
       }
     })();
@@ -158,6 +179,26 @@ export default function AdminLeadsManager({
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Scroll AFTER the targeted lead is on screen (the list renders only
+  // once the session is set), not on a timer that a slow phone can beat.
+  useEffect(() => {
+    if (!targetedId || !session) return;
+    document.getElementById(`lead-${targetedId}`)?.scrollIntoView({ block: "start" });
+  }, [targetedId, session]);
+
+  // A link from a second email, opened while this tab is already on
+  // /admin/leads, changes only the hash: open that lead too.
+  useEffect(() => {
+    function onHashChange() {
+      const id = leadIdFromHash(window.location.hash);
+      if (!id) return;
+      setExpandedId(id);
+      setTargetedId(id);
+    }
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
   function authHeader(): Record<string, string> {
@@ -314,7 +355,12 @@ export default function AdminLeadsManager({
           return (
             <li
               key={lead.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5"
+              id={`lead-${lead.id}`}
+              className={`scroll-mt-28 rounded-lg border bg-white p-4 sm:p-5 ${
+                targetedId === lead.id
+                  ? "border-brand-green ring-2 ring-brand-green/40"
+                  : "border-slate-200"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 {/* min-w-0 + break-words so long emails/business names

@@ -88,20 +88,29 @@ export async function POST(request: Request) {
     promotionName: attribution.promotionName,
   };
 
-  const result = await processLead(lead, () =>
-    notifyEnquiryLead({
-      type: "client",
-      topic: "",
-      name: enquiry.name,
-      company: enquiry.company,
-      email: enquiry.email,
-      phone: enquiry.phone,
-      platform: enquiry.sellingChannels.join(", "),
-      weeklyOrders: enquiry.orderVolume,
-      partnershipType: "",
-      subject: lead.subject,
-      message: enquiry.message,
-    }),
+  // A repeat of the same enquiry is saved but does not email the owner
+  // a second time (lib/leads/duplicate.ts).
+  const result = await processLead(
+    lead,
+    (_, { leadId }) =>
+      notifyEnquiryLead(
+        {
+          type: "client",
+          topic: "",
+          name: enquiry.name,
+          company: enquiry.company,
+          email: enquiry.email,
+          phone: enquiry.phone,
+          platform: enquiry.sellingChannels.join(", "),
+          weeklyOrders: enquiry.orderVolume,
+          partnershipType: "",
+          subject: lead.subject,
+          message: enquiry.message,
+        },
+        leadId,
+      ),
+    undefined,
+    { skipDuplicateNotification: true },
   );
   if (!result.ok) {
     return fail("Something went wrong. Please try again.", 500);

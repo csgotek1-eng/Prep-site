@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { LeadStoreUnavailableError } from "./errors.ts";
+import { findDuplicateLead, type DuplicateMatch } from "./duplicate.ts";
 import { resolvePricingPersistence } from "../pricing/repository.ts";
 import { SupabaseLeadStore } from "./supabase-store.ts";
 import {
@@ -87,7 +88,23 @@ export interface LeadStore {
   /** Newest first. */
   listLeads(limit: number): Promise<StoredLead[]>;
   setLeadStatus(id: string, status: LeadStatus): Promise<StoredLead | null>;
+  /**
+   * The EARLIER lead that the saved lead `selfId` merely repeats, or
+   * null. See findDuplicateLead for what counts as a repeat. Optional so
+   * a store that cannot answer simply never suppresses a notification.
+   */
+  findRecentDuplicate?(
+    input: LeadInput,
+    selfId: string,
+    now?: Date,
+  ): Promise<DuplicateMatch | null>;
 }
+
+export {
+  DUPLICATE_WINDOW_MS,
+  findDuplicateLead,
+  type DuplicateMatch,
+} from "./duplicate.ts";
 
 /**
  * Shared status-update maths for both store implementations: given the
@@ -336,6 +353,14 @@ export class FileLeadStore implements LeadStore {
       leads: store.leads.map((lead) => (lead.id === id ? updated : lead)),
     });
     return updated;
+  }
+
+  async findRecentDuplicate(
+    input: LeadInput,
+    selfId: string,
+    now: Date = new Date(),
+  ): Promise<DuplicateMatch | null> {
+    return findDuplicateLead(this.load().leads, input, selfId, now);
   }
 }
 

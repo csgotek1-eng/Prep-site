@@ -206,7 +206,12 @@ describe("both new routes are durable", () => {
       assert.ok(source.includes("processLead("), "must go through processLead");
       // The notifier is a CALLBACK to processLead, so the save happens
       // first and a delivery outage cannot lose the lead.
-      assert.ok(source.includes("processLead(lead, () =>"));
+      assert.ok(/processLead\(\s*lead,\s*\([^)]*\)\s*=>/.test(source));
+      // ...with the saved lead's id for the admin link, and a repeat of
+      // the same enquiry saved without a second owner email.
+      assert.ok(source.includes("notifyEnquiryLead("));
+      assert.ok(source.includes("leadId,"));
+      assert.ok(source.includes("skipDuplicateNotification: true"));
       assert.ok(source.includes("rateLimiter.allow(requestClientKey(request))"));
       assert.ok(source.includes("readIntakeBody(request)"));
       // Server-side validation, always.

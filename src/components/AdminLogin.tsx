@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { afterSignInPath } from "@/lib/admin-lead-link";
 import {
   isSessionExpiring,
   loadStoredSession,
@@ -67,7 +68,7 @@ export default function AdminLogin({
         storeSession(session);
       }
       if (session && (await verifyAdmin(session)) === 200) {
-        if (active) router.replace("/admin/pricing");
+        if (active) router.replace(afterSignInPath("/admin/pricing"));
         return;
       }
       if (session) storeSession(null);
@@ -129,7 +130,7 @@ export default function AdminLogin({
     const verdict = await verifyAdmin(attempt.session);
     if (verdict === 200) {
       storeSession(attempt.session);
-      router.replace("/admin/pricing");
+      router.replace(afterSignInPath("/admin/pricing"));
       return;
     }
 

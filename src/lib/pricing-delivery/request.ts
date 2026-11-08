@@ -252,10 +252,11 @@ export async function processPricingDeliveryRequest(
   // owner is emailed that one arrived.
   const intake = await processLead(
     input,
-    async () => {
+    async (_, { leadId }) => {
       console.log(`Pricing request stored (${channel}, ${reference}).`);
       const notification = await sendOwnerPricingNotification({
         reference,
+        leadId,
         source: `pricing calculator (${channel})`,
         page: args.page ?? null,
         customerName: input.name,

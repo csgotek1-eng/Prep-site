@@ -1,6 +1,7 @@
 import "server-only";
 // A BUILD ERROR, NOT A CONVENTION — see owner-notification.ts for why.
 import {
+  adminLeadLine,
   headerSafe,
   ownerNotificationRecipient,
 } from "./owner-notification.ts";
@@ -43,6 +44,8 @@ export interface LeadNotificationInput {
   subject: string;
   message: string;
   submittedAt: string;
+  /** The saved lead, for the direct admin link. */
+  leadId?: string | null;
 }
 
 export function buildLeadNotificationSubject(
@@ -76,7 +79,7 @@ export function buildLeadNotificationText(input: LeadNotificationInput): string 
   lines.push("MESSAGE");
   lines.push(input.message || "(no message provided)");
   lines.push("");
-  lines.push("The full record is in the admin inbox at /admin/leads.");
+  lines.push(adminLeadLine(input.leadId));
   return lines.join("\n");
 }
 

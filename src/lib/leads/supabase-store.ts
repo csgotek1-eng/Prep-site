@@ -1,4 +1,9 @@
 import { LeadStoreUnavailableError } from "./errors.ts";
+import {
+  DUPLICATE_WINDOW_MS,
+  findDuplicateLead,
+  type DuplicateMatch,
+} from "./duplicate.ts";
 import { transitionWhatsAppDelivery } from "./store.ts";
 import type {
   LeadStore,
@@ -388,6 +393,51 @@ export class SupabaseLeadStore implements LeadStore {
       `website_leads?order=created_at.desc&limit=${safeLimit}`,
     );
     return rows.map(rowToLead);
+  }
+
+  async findRecentDuplicate(
+    input: LeadInput,
+    selfId: string,
+    now: Date = new Date(),
+  ): Promise<DuplicateMatch | null> {
+    // Filtered by TIME only, and matched in code: the visitor's email
+    // and message never go into a request URL, where a proxy or the
+    // database's own request log could keep them. The window includes
+    // the lead just saved, which the rule needs to tell "earlier" apart.
+    const since = new Date(now.getTime() - DUPLICATE_WINDOW_MS).toISOString();
+    const rows = await this.request<
+      Pick<
+        LeadRow,
+        | "id"
+        | "source"
+        | "type"
+        | "email"
+        | "subject"
+        | "partnership_type"
+        | "message"
+        | "delivery_status"
+        | "created_at"
+      >[]
+    >(
+      "GET",
+      `website_leads?select=id,source,type,email,subject,partnership_type,message,delivery_status,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=200`,
+    );
+    return findDuplicateLead(
+      rows.map((row) => ({
+        id: row.id,
+        source: row.source as StoredLead["source"],
+        type: row.type as StoredLead["type"],
+        email: row.email,
+        subject: row.subject,
+        partnershipType: row.partnership_type,
+        message: row.message,
+        deliveryStatus: row.delivery_status as StoredLead["deliveryStatus"],
+        createdAt: row.created_at,
+      })),
+      input,
+      selfId,
+      now,
+    );
   }
 
   async setLeadStatus(
