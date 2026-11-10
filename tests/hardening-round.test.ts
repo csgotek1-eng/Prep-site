@@ -429,24 +429,31 @@ describe("published copy matches the product", () => {
     }
   });
 
-  it("no public surface promises pricing delivery by WhatsApp", () => {
-    // The calculator is email-only (WHATSAPP_PRICING_ENABLED is off), so
-    // every description of what happens after "Get Price" says email.
-    // Owner decision, 2026-09-29.
+  it("public copy names both pricing channels, and no automated WhatsApp send", () => {
+    // The calculator offers WhatsApp again (owner, 2026-11-10) as a
+    // handoff to the team's chat, beside email. Every description of
+    // what happens after "Get Price" says so. None may claim the site
+    // itself sends the price to WhatsApp, or that it arrives there
+    // instantly: that needs the Meta Business API, which is not
+    // connected, and on WhatsApp a person (Denis) replies.
     for (const path of [
       "src/app/privacy/page.tsx",
       "src/lib/faq.ts",
       "src/components/sections/PricingSection.tsx",
       "src/components/sections/WhyDockentra.tsx",
       "src/components/EnquiryForm.tsx",
+      "src/app/pricing-calculator/page.tsx",
+      "src/app/pricing/page.tsx",
+      "src/lib/service-pages.ts",
     ]) {
       const source = readCode(path).replace(/\s+/g, " ");
+      assert.ok(source.includes("WhatsApp"), `${path} no longer mentions WhatsApp`);
       assert.equal(
-        /WhatsApp or (by )?email|on WhatsApp or by email|Send my price to WhatsApp|WhatsApp mobile number/i.test(
+        /Send my price to WhatsApp|WhatsApp Business provider|straight back to you on WhatsApp|privately by email(?! or)/i.test(
           source,
         ),
         false,
-        `${path} still promises pricing by WhatsApp`,
+        `${path} misdescribes the WhatsApp channel or says email only`,
       );
     }
   });

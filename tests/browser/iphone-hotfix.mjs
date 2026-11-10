@@ -239,7 +239,7 @@ for (const [width, height] of PHONES) {
   ok(await visibleLabels(page, "Back") === 1, `${where}: step 3 shows ${await visibleLabels(page, "Back")} visible "Back" labels (want 1)`);
   ok(await visibleNavButtons(page, /^Back$/) === 1, `${where}: step 3 has more than one Back button`);
   ok(await visibleNavButtons(page, /^Continue/) === 0, `${where}: step 3 still offers Continue`);
-  ok(await page.getByRole("button", { name: /Send my price/ }).isVisible(), `${where}: the Send action is missing from step 3`);
+  ok(await page.getByRole("button", { name: /Send my (price|request)/ }).isVisible(), `${where}: the Send action is missing from step 3`);
 
   // --- one tap on Back = exactly one step, nothing lost
   await page.locator('[data-testid="calculator-wizard-nav"]').getByRole("button", { name: "Back" }).click();

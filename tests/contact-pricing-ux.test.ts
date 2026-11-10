@@ -346,7 +346,7 @@ describe("calculator asks its questions in the owner's order", () => {
   });
 
   it("STEP 3 is the delivery choice, as a real radio group", () => {
-    assert.ok(calculator.includes("How would you like to receive your pricing?"));
+    assert.ok(calculator.includes("How would you like to get your price?"));
     assert.ok(calculator.includes('role="radiogroup"'));
     assert.ok(calculator.includes('type="radio"'));
     assert.ok(calculator.includes("Step 3"));
@@ -358,7 +358,7 @@ describe("calculator asks its questions in the owner's order", () => {
     assert.ok(calculator.includes("Email address"));
     // One submit handler, one button, two labels.
     assert.equal((calculator.match(/type="submit"/g) ?? []).length, 1);
-    assert.ok(calculator.includes("Send my price to WhatsApp"));
+    assert.ok(calculator.includes("Send my request on WhatsApp"));
     assert.ok(calculator.includes("Send my price by email"));
   });
 

@@ -169,7 +169,7 @@ describe("one pricing engine behind both calculator entry points", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
     assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
     assert.ok(calculator.includes('"/api/pricing/email"'));
-    assert.ok(calculator.includes("Send my price to WhatsApp"));
+    assert.ok(calculator.includes("Send my request on WhatsApp"));
     assert.ok(calculator.includes("Send my price by email"));
     // No pricing maths anywhere in the modal wrapper.
     const modal = read("src/components/CalculatorModal.tsx");

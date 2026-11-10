@@ -24,10 +24,8 @@ import {
 } from "@/lib/pricing/estimate-disclosure";
 import { loadCatalogue, peekCatalogue } from "@/lib/pricing/catalogue-client";
 import { isValidWhatsAppNumberInput } from "@/lib/whatsapp/number";
-import {
-  DEFAULT_PRICING_CHANNEL,
-  WHATSAPP_PRICING_ENABLED,
-} from "@/lib/whatsapp/pricing-channel";
+import { DEFAULT_PRICING_CHANNEL } from "@/lib/whatsapp/pricing-channel";
+import { pricingHandoffUrl } from "@/lib/whatsapp/handoff";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { useBottomBarRegistration } from "@/components/FloatingChrome";
 import { trackLeadSubmitted } from "@/lib/analytics-events";
@@ -82,12 +80,13 @@ interface SelectionState {
  * Step 3 is a single choice — WhatsApp or Email, never two forms at
  * once. The customer enters THEIR OWN destination and presses one
  * button. The SERVER calculates the authoritative estimate, durably
- * stores the request, and sends the result FROM Dockentra TO the
- * customer through that channel's official provider (see
- * src/lib/whatsapp/ and src/lib/email/). The customer never composes a
- * message and the browser never sees a price. The response reports the
- * outcome truthfully — "sent" only when the provider actually accepted
- * the message.
+ * stores the request and emails the owner. Email is then sent FROM
+ * Dockentra TO the customer by the email provider. WhatsApp has no
+ * connected provider, so its confirmation hands the saved request to
+ * Denis instead: a click-to-chat link with the request typed out and
+ * no price in it (src/lib/whatsapp/handoff.ts). The browser never sees
+ * a price. The response reports the outcome truthfully — "sent" only
+ * when a provider actually accepted the message.
  *
  * `variant` only adjusts LAYOUT to the rendering context; every piece
  * of pricing behaviour is identical in both:
@@ -161,6 +160,20 @@ export default function PricingCalculator({
   const [sendOutcome, setSendOutcome] = useState<{
     delivery: "sent" | "unavailable" | "failed";
     reference: string;
+    /**
+     * The channel and destination the request was SENT with. The
+     * choice stays editable while a request is in flight, so the live
+     * `channel` may already say something else by the time the answer
+     * arrives.
+     */
+    channel: PricingChannel;
+    destination: string;
+    /**
+     * WhatsApp only: the click-to-chat link that hands the saved
+     * request to Denis. Built from the selection that was SENT, so it
+     * can never describe a basket the visitor changed afterwards.
+     */
+    handoffUrl: string | null;
   } | null>(null);
   const [sendError, setSendError] = useState("");
   // "" whenever there is no valid challenge: no widget configured, not
@@ -409,6 +422,36 @@ export default function PricingCalculator({
     clearSendResult();
   }
 
+  /**
+   * The WhatsApp handoff for a request the server has just saved: the
+   * visitor's own inputs, typed out to Denis, and no price.
+   */
+  function handoffUrlFor(reference: string): string | null {
+    // The request is already saved when this runs, so nothing here may
+    // turn that success into an error the visitor would retry (and so
+    // duplicate). A lone surrogate, e.g. an emoji cut in half by
+    // maxLength, makes encodeURIComponent throw: fall back to the
+    // ordinary "we received your request" confirmation instead.
+    try {
+      return pricingHandoffUrl({
+      reference,
+      brandName,
+      storeUrl,
+      monthlyOrders,
+      lines: answeredSelections(selections).map(([serviceId, quantity]) => {
+        const service = services?.find((candidate) => candidate.id === serviceId);
+        return {
+          name: service?.name ?? serviceId,
+          quantity,
+          unitLabel: service?.unitLabel ?? "",
+        };
+      }),
+      });
+    } catch {
+      return null;
+    }
+  }
+
   // ONE pricing action: submit the selection + the customer's OWN
   // destination for the chosen channel; the server does everything
   // else. Client-side validation is UX only — the server re-validates,
@@ -507,8 +550,19 @@ export default function PricingCalculator({
       };
       if (data.ok && data.reference && data.delivery) {
         setSendPhase("done");
-        setSendOutcome({ delivery: data.delivery, reference: data.reference });
         trackLeadSubmitted("pricing_calculator");
+        setSendOutcome({
+          delivery: data.delivery,
+          reference: data.reference,
+          channel,
+          destination: destination.trim(),
+          handoffUrl:
+            channel === "whatsapp" ? handoffUrlFor(data.reference) : null,
+        });
+        // The accepted token is spent. "Request pricing again" must
+        // start from a fresh challenge, not resend a used one.
+        setTurnstileToken("");
+        setTurnstileReset((count) => count + 1);
       } else {
         setSendPhase("idle");
         // A Turnstile token is single use, so the one that was just
@@ -818,8 +872,8 @@ export default function PricingCalculator({
         </div>
         <p className="mt-1 text-xs leading-5 text-slate-500">
           We price every operation individually and don&apos;t publish
-          prices online. Choose how to receive your personalised price
-          and we&apos;ll send it straight to you.
+          prices online. Send us your selection on WhatsApp or by email
+          and we&apos;ll come back with your personalised price.
         </p>
         {estimateError && (
           <p
@@ -849,13 +903,47 @@ export default function PricingCalculator({
             role="status"
             className="rounded-md border border-brand-mint/70 bg-brand-mint-soft/60 px-3 py-3 text-sm leading-6 text-slate-800"
           >
-            {sendOutcome.delivery === "sent" ? (
+            {sendOutcome.handoffUrl && sendOutcome.delivery !== "sent" ? (
+              <>
+                <p>
+                  <span className="font-semibold text-brand-navy">
+                    Your request is saved
+                  </span>{" "}
+                  (reference{" "}
+                  <span className="font-mono-data font-semibold">
+                    {sendOutcome.reference}
+                  </span>
+                  ). One last step: open WhatsApp and press Send. Your
+                  request is already typed out to Denis, and he replies
+                  there with your price.
+                </p>
+                {/* A real link the visitor taps, not a script-opened
+                    window: browsers block a window opened after the
+                    save's network round-trip, and a phone opens the
+                    WhatsApp app straight from a tapped click-to-chat
+                    link. */}
+                <a
+                  href={sendOutcome.handoffUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-green px-5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+                >
+                  <WhatsAppIcon aria-hidden="true" className="h-5 w-5" />
+                  Open WhatsApp to send
+                </a>
+                <p className="mt-2 text-xs leading-5 text-slate-600">
+                  No WhatsApp on this device? Nothing is lost: the team
+                  has your request and will message{" "}
+                  {sendOutcome.destination}.
+                </p>
+              </>
+            ) : sendOutcome.delivery === "sent" ? (
               <p>
                 <span className="font-semibold text-brand-navy">
                   Your pricing is on its way
-                  {channel === "whatsapp" ? " to WhatsApp" : " by email"}.
+                  {sendOutcome.channel === "whatsapp" ? " to WhatsApp" : " by email"}.
                 </span>{" "}
-                Check {destination.trim()} in a moment. Reference:{" "}
+                Check {sendOutcome.destination} in a moment. Reference:{" "}
                 <span className="font-mono-data font-semibold">
                   {sendOutcome.reference}
                 </span>
@@ -872,10 +960,10 @@ export default function PricingCalculator({
                 </span>
                 ),{" "}
                 {sendOutcome.delivery === "failed"
-                  ? `but the ${channel === "whatsapp" ? "WhatsApp message" : "email"} could not be sent yet.`
-                  : `but ${channel === "whatsapp" ? "WhatsApp" : "email"} delivery is not available right now.`}{" "}
+                  ? `but the ${sendOutcome.channel === "whatsapp" ? "WhatsApp message" : "email"} could not be sent yet.`
+                  : `but ${sendOutcome.channel === "whatsapp" ? "WhatsApp" : "email"} delivery is not available right now.`}{" "}
                 Our team has your selection and will send your pricing
-                to {destination.trim()}.
+                to {sendOutcome.destination}.
               </p>
             )}
             <button
@@ -992,26 +1080,21 @@ export default function PricingCalculator({
                 two options. Exactly ONE destination field is rendered
                 at a time; there are never two forms on screen. */}
             {/* THE CHOICE IS ONLY OFFERED WHERE IT CAN BE HONOURED.
-                WhatsApp delivery needs the Meta Business API, which is
-                not connected. Asking a visitor to choose it and then
-                telling them afterwards that it could not be sent is a
-                promise the page cannot keep, so when it is unavailable
-                the step states what will happen instead of offering a
-                choice with one working answer. See
+                Automated WhatsApp delivery needs the Meta Business
+                API, which is not connected, so the WhatsApp option
+                says what really happens: the request is saved, then
+                handed to Denis in the visitor's own WhatsApp. See
                 lib/whatsapp/pricing-channel.ts. */}
             <fieldset className="mb-3">
               <legend className="block text-sm font-medium text-brand-navy">
                 <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand-green-dark">
                   Step 3
                 </span>
-                {WHATSAPP_PRICING_ENABLED
-                  ? "How would you like to receive your pricing?"
-                  : "Where should we send your pricing?"}
+                How would you like to get your price?
               </legend>
-              {WHATSAPP_PRICING_ENABLED ? (
               <div
                 role="radiogroup"
-                aria-label="How would you like to receive your pricing?"
+                aria-label="How would you like to get your price?"
                 className="mt-2 grid grid-cols-2 gap-2"
               >
                 {(
@@ -1043,12 +1126,11 @@ export default function PricingCalculator({
                   );
                 })}
               </div>
-              ) : (
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  We send your price by email. You can always reach us on
-                  WhatsApp if you would rather talk it through.
-                </p>
-              )}
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {channel === "whatsapp"
+                  ? "We save your request, then give you a button that opens WhatsApp with it typed out to Denis. Press Send and he replies there with your price."
+                  : "We email your price to you."}
+              </p>
             </fieldset>
 
             {channel === "whatsapp" ? (
@@ -1128,10 +1210,10 @@ export default function PricingCalculator({
             )}
             {/* Transactional intent, not marketing consent. */}
             <p className="mt-1.5 text-xs leading-5 text-slate-500">
-              Send my requested Dockentra pricing to this{" "}
-              {channel === "whatsapp" ? "WhatsApp number" : "email address"}.
-              Used only to send and respond to your requested pricing.
-              see our{" "}
+              {channel === "whatsapp"
+                ? "Your number is used only to reply to this pricing request on WhatsApp."
+                : "Send my requested Dockentra pricing to this email address. Used only to send and respond to your requested pricing."}{" "}
+              See our{" "}
               <a
                 href="/privacy"
                 className="font-medium text-brand-green-dark underline-offset-2 hover:underline"
@@ -1167,7 +1249,7 @@ export default function PricingCalculator({
               {sendPhase === "sending"
                 ? "Sending…"
                 : channel === "whatsapp"
-                  ? "Send my price to WhatsApp"
+                  ? "Send my request on WhatsApp"
                   : "Send my price by email"}
             </button>
             </div>

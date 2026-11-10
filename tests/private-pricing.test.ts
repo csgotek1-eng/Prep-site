@@ -142,7 +142,7 @@ describe("C. no public component can render a monetary value", () => {
     }
     // It routes anyone who wants a number to the private flow rather
     // than showing one.
-    assert.ok(quoteForm.includes("privately by email"));
+    assert.ok(quoteForm.includes("privately on WhatsApp or by email"));
   });
 
   it("the retired priced-display helper is gone", () => {
@@ -171,13 +171,16 @@ describe("D. API routes stay redacted while the lead keeps the priced copy", () 
 describe("E. ONE pricing CTA — the price is SENT to the customer", () => {
   it("the calculator has exactly one pricing action", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
-    assert.ok(calculator.includes("Send my price to WhatsApp"));
+    assert.ok(calculator.includes("Send my request on WhatsApp"));
     // The old dual-CTA pricing flow is gone: no quote-form branch and
-    // no customer-composed wa.me handoff for the pricing result.
+    // no wa.me link carrying the pricing result. The WhatsApp handoff
+    // (lib/whatsapp/handoff.ts) carries the visitor's inputs, never a
+    // price; tests/calculator-whatsapp-handoff.test.ts holds that.
     assert.equal(calculator.includes("Request This Quote"), false);
     assert.equal(calculator.includes("wa.me"), false);
     assert.equal(calculator.includes("buildWhatsAppEstimateUrl"), false);
-    // The customer supplies THEIR number; the server sends the price.
+    // The customer supplies THEIR number, so the request is saved with
+    // a way to reach them even if the handoff is never sent.
     assert.ok(calculator.includes("WhatsApp mobile number"));
     assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
   });

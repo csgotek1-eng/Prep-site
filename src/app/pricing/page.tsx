@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 /** Restated from the service pages, the FAQ and /dispatch-commitment. */
 const pricingIncluded = [
-  "Your price comes back privately by email, within one working day of sending your numbers through the calculator.",
+  "Your price comes back privately on WhatsApp or by email, within one working day of sending your numbers through the calculator.",
   "Goods-in on your first shipment is free.",
   "Batch photos of every incoming delivery, sent to you the same day, are part of the price, not an extra.",
   "Orders in before 14:00 on a working day are dispatched the same day. If we miss it on our side, that order's pick and pack is free.",

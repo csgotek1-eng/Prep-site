@@ -13,7 +13,7 @@
  * /services, /why-ireland, /dispatch-commitment, /batch-photos or /faq,
  * or restates a published commitment (the 14:00 cut-off, batch photos
  * the same day, no minimum, goods-in free on the first shipment, no
- * public prices, private pricing by email). Nothing is promised here
+ * public prices, private pricing on WhatsApp or by email). Nothing is promised here
  * that the site does not promise elsewhere: no carriers named, no
  * capacities, no turnaround beyond the published cut-off, no customs or
  * import services, no Amazon/TikTok approval or affiliation. Adding a
@@ -94,7 +94,7 @@ export const servicePages: readonly ServicePage[] = [
     limits: [
       "Dockentra is an independent fulfilment and prep business. It is not affiliated with or endorsed by Amazon, and it does not manage your Seller Central account or listings.",
       "Amazon's prep requirements are set by Amazon and change; we prep to the requirement you confirm for each product.",
-      "Prices are not published. You get a private price by email, built from the services you actually use.",
+      "Prices are not published. You get a private price on WhatsApp or by email, built from the services you actually use.",
     ],
     faqs: [
       {
@@ -115,7 +115,7 @@ export const servicePages: readonly ServicePage[] = [
       {
         question: "How is FBA prep priced?",
         answer:
-          "Per service, based on how your business runs: SKUs, incoming stock, units, the prep work each product needs. Use the calculator to build your selection and the price comes to you privately by email.",
+          "Per service, based on how your business runs: SKUs, incoming stock, units, the prep work each product needs. Use the calculator to build your selection and the price comes to you privately on WhatsApp or by email.",
       },
     ],
     related: ["pick-and-pack", "returns"],
@@ -164,7 +164,7 @@ export const servicePages: readonly ServicePage[] = [
     limits: [
       "Dockentra is an independent fulfilment centre, not affiliated with or endorsed by TikTok. We do not run your TikTok Shop account, your content or your ads.",
       "Ship by Seller means the seller carries the loss on a missing parcel; we cannot promise TikTok will accept a dispute, only that you will have the evidence it asks for.",
-      "Prices are not published. Your price is built from the services you use and sent privately by email.",
+      "Prices are not published. Your price is built from the services you use and sent privately on WhatsApp or by email.",
     ],
     faqs: [
       {
@@ -234,7 +234,7 @@ export const servicePages: readonly ServicePage[] = [
     limits: [
       "Carrier arrangements and dispatch scheduling are agreed per client, not published as a fixed list.",
       "Carrier delivery charges depend on parcel weight, dimensions, destination and service, and are confirmed before onboarding rather than quoted on the website.",
-      "No public prices. Your pick and pack price depends on your monthly volume and units per order, and comes to you privately by email.",
+      "No public prices. Your pick and pack price depends on your monthly volume and units per order, and comes to you privately on WhatsApp or by email.",
     ],
     faqs: [
       {
@@ -254,7 +254,7 @@ export const servicePages: readonly ServicePage[] = [
       {
         question: "How is pick and pack priced?",
         answer:
-          "Per order, with your monthly order volume setting the rate. The calculator builds your selection; the price is sent privately by email, never shown on screen.",
+          "Per order, with your monthly order volume setting the rate. The calculator builds your selection; the price is sent privately on WhatsApp or by email, never shown on screen.",
       },
     ],
     related: ["returns", "amazon-fba-prep"],
@@ -298,7 +298,7 @@ export const servicePages: readonly ServicePage[] = [
     limits: [
       "We do not decide refunds or handle your customers' refund claims; you keep the customer relationship and we give you the evidence.",
       "If your products contain batteries, tell us early so the return route is agreed before your first shipment.",
-      "No public prices. Returns handling is priced per return and sent privately by email.",
+      "No public prices. Returns handling is priced per return and sent privately on WhatsApp or by email.",
     ],
     faqs: [
       {
@@ -319,7 +319,7 @@ export const servicePages: readonly ServicePage[] = [
       {
         question: "How are returns priced?",
         answer:
-          "Per return, as part of your private price. Select Returns in the calculator and the price comes to you by email.",
+          "Per return, as part of your private price. Select Returns in the calculator and the price comes to you on WhatsApp or by email.",
       },
     ],
     related: ["pick-and-pack", "tiktok-shop-fulfilment"],

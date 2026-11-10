@@ -118,14 +118,16 @@ describe("owner-approved team data survives the phone de-emphasis", () => {
   });
 });
 
-describe("calculator WhatsApp flow — outbound only", () => {
-  it("the calculator never builds a customer-composed wa.me estimate link", () => {
+describe("calculator WhatsApp flow — save first, then a price-free handoff", () => {
+  it("the calculator never builds a priced wa.me estimate link", () => {
     const calculator = read("src/components/PricingCalculator.tsx");
     assert.equal(calculator.includes("wa.me"), false);
     assert.equal(calculator.includes("buildWhatsAppEstimateUrl"), false);
-    // The price is SENT to the customer's own number by the server.
+    // The request is SAVED by the server first; only then does the
+    // confirmation offer the handoff, built by lib/whatsapp/handoff.ts.
     assert.ok(calculator.includes('"/api/pricing/whatsapp"'));
-    assert.ok(calculator.includes("Send my price to WhatsApp"));
+    assert.ok(calculator.includes("Send my request on WhatsApp"));
+    assert.ok(calculator.includes("pricingHandoffUrl"));
   });
 
   it("general WhatsApp contact links still use the approved business number", () => {

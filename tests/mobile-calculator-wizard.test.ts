@@ -370,6 +370,6 @@ describe("the round changes presentation only", () => {
     assert.ok(i2 > i1, "step 2 comes after step 1");
     assert.ok(i3 > i2, "step 3 comes after step 2");
     // ...and step 3 still asks the delivery question itself.
-    assert.ok(code.includes("How would you like to receive your pricing?"));
+    assert.ok(code.includes("How would you like to get your price?"));
   });
 });

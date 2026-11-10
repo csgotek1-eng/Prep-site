@@ -8,7 +8,8 @@
  *
  * PRIORITY, as decided by the owner:
  *   1. EMAIL     — the primary human contact method.
- *   2. WHATSAPP  — chat, and the automated private price delivery.
+ *   2. WHATSAPP  — chat, and the calculator's price-request handoff
+ *      (lib/whatsapp/handoff.ts).
  *   3. PHONE     — kept for people who need it, shown ONLY in the
  *      footer and the bottom contact details of /contact. Never a
  *      prominent CTA, never a sticky Call button, never repeated
@@ -63,8 +64,10 @@ export const siteContact = {
    * earlier +353 number, which is now unrelated to WhatsApp — see
    * `phone` above).
    *
-   * This is the LINK only. The number the automated price-delivery
-   * message actually sends FROM is a separate, provider-side setting
+   * The calculator's WhatsApp option opens a chat with this number,
+   * the visitor's request typed out (lib/whatsapp/handoff.ts). The
+   * number an automated price-delivery message would send FROM, if
+   * the Meta API is ever connected, is a separate, provider-side setting
    * (`src/lib/whatsapp/meta-provider.ts` + Worker secrets) that this
    * file does not configure and this change does not touch — if the
    * two should match, that is a provider-account change for the owner.

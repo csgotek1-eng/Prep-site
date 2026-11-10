@@ -44,7 +44,7 @@ describe("calculator primary actions stay reachable", () => {
       calculator.indexOf("return (\n    <div>"),
     );
     // ONE action, whichever delivery channel the visitor picked.
-    assert.ok(panel.includes("Send my price to WhatsApp"));
+    assert.ok(panel.includes("Send my request on WhatsApp"));
     assert.ok(panel.includes("Send my price by email"));
     assert.ok(panel.includes("WhatsApp mobile number"));
     assert.ok(panel.includes("Email address"));

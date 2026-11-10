@@ -62,10 +62,10 @@ export default function PrivacyPage() {
                 name and a valid email address.
               </p>
               <p className="mt-3">
-                When you ask the pricing calculator to send you your
-                pricing, you provide your email address, together with
-                your selected services, quantities and monthly order
-                volume.
+                When you ask the pricing calculator for your pricing, you
+                provide either your WhatsApp mobile number or your email
+                address, whichever you choose, together with your
+                selected services, quantities and monthly order volume.
               </p>
               <p className="mt-3">
                 While you type into the Help panel, your draft is kept
@@ -102,16 +102,22 @@ export default function PrivacyPage() {
                 Receiving your pricing
               </h2>
               <p className="mt-3">
-                When you request pricing in the calculator, your email
-                address and your request details (selected services,
-                quantities, monthly order volume and the calculated
-                pricing) are used to send and respond to your requested
-                pricing. The request is stored in Dockentra&apos;s own
-                systems together with the delivery status of that one
-                message, so the team can follow up if it cannot be
-                delivered. Pricing emails are sent through a
-                transactional email provider. Your address is used only
-                for this. It is not added to any marketing list.
+                When you request pricing in the calculator you choose
+                WhatsApp or email. The number or address you give and
+                your request details (selected services, quantities,
+                monthly order volume and the calculated pricing) are used
+                to send and respond to your requested pricing. The
+                request is stored in Dockentra&apos;s own systems, so the
+                team can follow up. If you choose email, your pricing is
+                sent through a transactional email provider, and the
+                delivery status of that one message is stored with the
+                request. If you choose WhatsApp, the calculator then
+                gives you a button that opens WhatsApp on your device
+                with your request (without any price) typed out to our
+                team&apos;s WhatsApp number; it is only sent if you press
+                Send, and we reply to you there. Your number or
+                address is used only for this. Neither is added to any
+                marketing list.
               </p>
             </div>
 
