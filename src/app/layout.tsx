@@ -15,6 +15,7 @@ import {
 } from "@/lib/structured-data";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { LOGO_INTRO_GUARD_SCRIPT } from "@/lib/logo-intro-markup";
+import { TRANSLATE_GUARD_SCRIPT } from "@/lib/translate-guard";
 import "./globals.css";
 
 /**
@@ -147,6 +148,9 @@ export default function RootLayout({
             paint, unless the visitor prefers reduced motion. Route changes
             are handled by LogoIntroPlayer. See src/lib/logo-intro-markup.ts. */}
         <script dangerouslySetInnerHTML={{ __html: LOGO_INTRO_GUARD_SCRIPT }} />
+        {/* Browser translation must not crash React (Chrome "Translate
+            to Russian" broke the calculator). See src/lib/translate-guard.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
